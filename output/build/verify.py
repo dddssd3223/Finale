@@ -1,103 +1,86 @@
 from sympy import *
-x,h,a,b,c,k,t,y,p=symbols('x h a b c k t y p',real=True)
+x,h,a,b,c,p,q,r,k=symbols('x h a b c p q r k',real=True)
+hp=symbols('hp',positive=True)
 R={}
+def lr(Fl,Fr,x0):  # one-sided derivatives with explicit pieces
+    return (limit((Fl.subs(x,x0-hp)-Fl.subs(x,x0))/(-hp),hp,0), limit((Fr.subs(x,x0+hp)-Fr.subs(x,x0))/hp,hp,0))
 # 1
-f=x**3-x; avg=(f.subs(x,3)-f.subs(x,0))/3
-R[1]=[s for s in solve(Eq(diff(f,x),avg),x) if 0<s<3]
-# 2: f'(2)=3 any poly e.g. f=3x+ (x-2)^2
-f=3*x+(x-2)**2
-assert limit((f.subs(x,2+3*h)-f.subs(x,2-h))/h,h,0)==12
-R[2]=limit((x**2-4)/(f-f.subs(x,2)),x,2)
-# 3
-f=2+3*(x-1)+(x-1)**2; assert limit((f-2)/(x-1),x,1)==3
-R[3]=diff((x**2+1)*f,x).subs(x,1)
-# 4
-sol=solve([Eq(1+a,b+3),Eq(3+a,2*b)],[a,b]); R[4]=(sol, 4*sol[b]+3)
-# 5
-F=Function('F'); fp=(6*x**2-12*x+9)/3; f=integrate(fp,x)
-assert simplify(limit((f.subs(x,x+2*h)-f.subs(x,x-h))/h,h,0)-(6*x**2-12*x+9))==0
-g=limit((f.subs(x,x+h)-f.subs(x,x-3*h))/(2*h),h,0); R[5]=g.subs(x,1)+g.subs(x,-1)
-# 6
-f=x**3-3*x+a; ts=solve(Eq(diff(f,x),9),x)
-lines=[expand(9*(x-x0)+f.subs(x,x0)) for x0 in ts]
-big=max(lines,key=lambda L:L.subs({x:0,a:0}))
-R[6]=(lines,solve(Eq(big.subs(x,1),3),a))
-# 7
-f=3+2*(x-1); gv=symbols('gv'); gp=symbols('gp')
-R[7]=solve([Eq(3*gv,6),Eq(2*gv+3*gp,10)],[gv,gp])
-# 8
-f=Piecewise((x**2+2*x,x<1),(3*x,True))
-R[8]=(limit((f.subs(x,1+h)-f.subs(x,1-h))/h,h,0,'+'),limit((f.subs(x,1+h)-3)/h,h,0,'+'),limit((f.subs(x,1+h)-3)/h,h,0,'-'),
- limit(((h)*f.subs(x,1+h))/h,h,0,'+'),limit(((h)*f.subs(x,1+h))/h,h,0,'-'))
-# 9
-A,B,C=symbols('A B C'); f=A*x**2+B*x+C
-eqs=Poly(expand(diff(f,x)**2-(4*f+8*x**2+4*x-7)),x).all_coeffs()
-R[9]=[(s,(f.subs(s)).subs(x,2)) for s in solve(eqs,[A,B,C],dict=True)]
-# 10
-f=Rational(3,2)*x**2+2*x+1
-assert simplify(f.subs(x,x+y)-(f+f.subs(x,y)+3*x*y-1))==0 and diff(f,x).subs(x,1)==5
-R[10]=diff(f,x).subs(x,-2)
-# 11
-f1=x**2-2*x+10; f2=-x**2+2*x+8
-assert f1.subs(x,1)==f2.subs(x,1) and diff(f1,x).subs(x,1)==diff(f2,x).subs(x,1)
-R[11]=(solve(f1,x),solve(f2,x),f1.subs(x,-1)+f2.subs(x,3))
-# 12
 f=x**3+a*x**2+b*x
-s=solve([Eq(diff(f,x).subs(x,2),(f.subs(x,3)-f.subs(x,0))/3),Eq(diff(f,x).subs(x,3),6)],[a,b])
-ff=f.subs(s); R[12]=(s,solve(Eq(diff(ff,x),(ff.subs(x,3))/3),x),ff.subs(x,1))
-# 13
-f=x**3-3*x**2-x
-R[13]=(limit(f/x,x,0),limit(x*(f.subs(x,2+3/x)-f.subs(x,2)),x,oo),limit((f-x**3)/x**2,x,oo),f.subs(x,3))
-# 14
-f=Piecewise((x+1,x<1),(3-x,True))
-def lr(G):
-  return (limit((G.subs(x,1+h)-G.subs(x,1))/h,h,0,'+'),limit((G.subs(x,1+h)-G.subs(x,1))/h,h,0,'-'))
-R[14]=(lr((x-1)*f),lr(f*f.subs(x,2-x)),lr((f-2)*Abs(x-1)))
-# 15
-f=x*(x-2)*(x+1); g=Abs(x-2)*f
-R[15]=(limit(g/x,x,0),lr2:=None)
-gl=limit((g.subs(x,2+h)-g.subs(x,2))/h,h,0,'-'); gr=limit((g.subs(x,2+h)-g.subs(x,2))/h,h,0,'+')
-R[15]=(limit(g/x,x,0),gl,gr,g.subs(x,3))
-# 16
-f=2*x**3+a*x**2+b*x
-s=solve([Eq(diff(f,x).subs(x,3),diff(f,x).subs(x,0)),Eq(diff(f,x).subs(x,1),0)],[a,b]); ff=f.subs(s)
-def F(v):  # extend
-  n=floor(Rational(v)/3); r=v-3*n; return ff.subs(x,r)+n*ff.subs(x,3)
-R[16]=(s,ff.subs(x,3),F(7),F(-2))
-# 17
+s=solve([Eq((f.subs(x,3)-f.subs(x,-1))/4,2*diff(f,x).subs(x,1)), Eq(limit((f-f.subs(x,1))/(x**2-1),x,1),f.subs(x,1)-2)],[a,b],dict=True)
+R[1]=(s,[v[a]*v[b] for v in s])
+# 2
+F=Function('F')
+fp1=symbols('fp1'); # g=x^2 f, g'(1)=2f(1)+f'(1); 4g'(1)=20
+fp=solve(Eq(4*(2*2+fp1),20),fp1)[0]; R[2]=(fp, Rational(1,2)*fp+Rational(1,3)*fp)
+# check with explicit f
+ff=2+fp*(x-1)+7*(x-1)**2; g=x**2*ff
+assert limit((g.subs(x,1+3*h)-g.subs(x,1-h))/h,h,0)==20
+R[2]=R[2]+(limit((ff.subs(x,1+h/2)-ff.subs(x,1-h/3))/h,h,0),)
+# 3
+ff=3*x-4+5*(x-2)**2; g=(x**3-2*x)*ff
+gp=diff(g,x).subs(x,2); R[3]=(g.subs(x,2),gp,expand(gp*(0-2)+g.subs(x,2)))
+# 4
+L=x**2+a*x+b; Rr=x**3+c*x
+s=solve([Eq(diff(Rr,x).subs(x,1),1),Eq(L.subs(x,-1),Rr.subs(x,-1)),Eq(diff(L,x).subs(x,-1),diff(Rr,x).subs(x,-1))],[a,b,c],dict=True)[0]
+R[4]=(s,L.subs(s).subs(x,-2)+Rr.subs(s).subs(x,2))
+# 5
+f1=x**2+2*x-1; f2=-x**3+2*x-1; f3=2*x**2-4*x+2
+R[5]=('cont0',f1.subs(x,0),f2.subs(x,0),'cont1',f2.subs(x,1),f3.subs(x,1),
+      'ga',limit((f1+1)/x,x,0,'-'),limit((f2+1)/x,x,0,'+'),'nu',lr(f2,f3,1),'da',lr(f2**2,f3**2,1))
+# 6
+f=x**3+a*x**2+b*x
+s=solve([Eq(b,-1),Eq(3*diff(f,x).subs(x,2),a)],[a,b],dict=True)[0]; ff=f.subs(s)
+R[6]=(ff,limit(ff/x,x,0),limit(x*(ff.subs(x,2+3/x)-ff.subs(x,2)),x,oo),limit((ff-x**3)/x**2,x,oo),ff.subs(x,3))
+# 7  (x^2-4)g = f-3x, f'(2)=7, h'(2)=10, f'(-2)=-1
+g2,gp2,gm2=symbols('g2 gp2 gm2')
+f2v=6; s=solve([Eq(4*g2,7-3),Eq(7*g2+f2v*gp2,10),Eq(-4*gm2,-1-3)],[g2,gp2,gm2])
+R[7]=(s,s[g2]+s[gp2]+s[gm2])
+# 9
+f1=x**2-2*x+10; f2=-x**2+2*x+8
+R[9]=(f1.subs(x,1),f2.subs(x,1),lr(f1,f2,1),solve(f2,x),f1.subs(x,-1)+f2.subs(x,3))
+# 10
+ff=x*(x-2)*(x+1)
+R[10]=(limit(Abs(x-2)*ff/x,x,0), lr((2-x)*ff,(x-2)*ff,2), Abs(3-2)*ff.subs(x,3))
+# 11
+f=x**3+p*x**2+q*x; G=f.subs(x,x+1)-f
+s=solve([Eq(f.subs(x,1),G.subs(x,1)),Eq(diff(f,x).subs(x,1),diff(G,x).subs(x,1))],[p,q],dict=True)[0]
+R[11]=(s,G.subs(s).subs(x,3))
+# 12
 res=[]
-for case in [(x-a)**2*(x-2*a),(x-a)*(x-2*a)**2]:
-  f=case+2*x+1
-  for av in solve(Eq(diff(f,x).subs(x,0),22),a):
-    if av!=0 and f.subs({a:av,x:0})>1: res.append((case,av,f.subs({a:av,x:1})))
-R[17]=res
+for rr,ss in [(2,6),(-2,-6),(2*sqrt(2),3*sqrt(2)),(-2*sqrt(2),-3*sqrt(2))]:
+    av=-(rr+ss); assert simplify(rr*ss-12)==0
+    ff=x**3+av*x**2+12*x+2; res.append((av,ff.subs(x,1)))
+R[12]=(res,max(r1 for _,r1 in res))
+# 13
+al,be,ga=symbols('al be ga'); qq=al*x**2+be*x+ga
+s=solve([Eq(qq.subs(x,0),a),Eq(qq.subs(x,2),4+a),Eq(qq.subs(x,2),6),Eq(diff(qq,x).subs(x,2)/12,Rational(1,2))],[al,be,ga,a],dict=True)[0]
+fq=expand((x**2-2*x)*qq.subs(s)); gq=qq.subs(s)
+R[13]=(s,fq,limit((gq-6)/fq,x,2),gq.subs(x,s[a]+1))
+# 14
+ff=2*x**2+2*x+1; assert simplify((ff.subs(x,x+1)-ff.subs(x,x-1))/2-(4*x+2))==0
+gg=ff+(x-1)**2*(x-3); R[14]=(ff.subs(x,1),gg.subs(x,1),ff.subs(x,2)+gg.subs(x,2))
+# 15
+gg=x*(x+2)*(x-c); FL=x+2; FR=2-3*x
+cv=solve(Eq(diff(FR*gg,x).subs(x,1),10),c)[0]; gg=gg.subs(c,cv)
+R[15]=(cv,lr(-(x+2)*gg,(x+2)*gg,-2),lr(FL*gg,FR*gg,0),gg.subs(x,4))
+# 16
+f=x**3+p*x**2+q*x+r; A_,B_=symbols('A_ B_')
+G1=f+4*x; G2=-f+A_; G3=f-2*x+B_
+s=solve([Eq(G1.subs(x,0),G2.subs(x,0)),Eq(diff(G1,x).subs(x,0),diff(G2,x).subs(x,0)),Eq(G2.subs(x,3),G3.subs(x,3)),Eq(diff(G2,x).subs(x,3),diff(G3,x).subs(x,3)),Eq(f.subs(x,1),2)],[p,q,r,A_,B_],dict=True)[0]
+R[16]=(s,G2.subs(s).subs(x,1)+G3.subs(s).subs(x,4))
 # 18
-f=x**3+a*x**2+b*x+2
-sa=solve(Eq(diff(f,x).subs(x,-1),diff(f,x).subs(x,3)),a)[0]; f=f.subs(a,sa)
-s=diff(f,x).subs(x,-1)
-l1=s*(x+1)+f.subs(x,-1); l2=s*(x-3)+f.subs(x,3)
-T=solve(l1,x)[0]; Sx=solve(l2,x)[0]
-bs=solve(Eq((T-Sx)**2,64),b)
-R[18]=(sa,simplify(l1.subs(x,0)),simplify(l2.subs(x,0)),bs,sum(bs))
+f=x**4-4*x**3-2*x**2+16*x
+ps=solve(Eq(diff(f,x),4),x); vals=[]
+for P in ps:
+  for Q in ps:
+    if P!=Q: A=Q-P; B=f.subs(x,P)-f.subs(x,Q); vals.append((P,Q,A,B,A*B))
+abv=[v[4] for v in vals]; R[18]=(ps,vals,max(abv)+min(abv))
 # 19
-f=x**3+p*x**2-x+2
-assert f.subs(x,0)==2 and diff(f,x).subs(x,0)==-1
-A_=symbols('A',positive=True)
-pp=solve(Eq(diff(f,x).subs(x,-A_),-1),p); 
-fA=f.subs(p,pp[0]); bb=simplify(2-fA.subs(x,-A_))
-tang=expand(-1*(x-A_)+2+bb)
-Av=solve(Eq(tang.subs(x,0),-2),A_)
-f2=fA.subs(A_,Av[0]); b2=bb.subs(A_,Av[0])
-g=Piecewise((f2,x<=0),(f2.subs(x,x-Av[0])+b2,True))
-R[19]=(pp,bb,tang,Av,b2,expand(f2),g.subs(x,4),
- limit((g.subs(x,h)-g.subs(x,0))/h,h,0,'+'),limit((g.subs(x,h)-g.subs(x,0))/h,h,0,'-'),limit(g,x,0,'+'))
+qv=symbols('qv',positive=True)
+ff=x**2*(x**2-2*x+qv)
+R[19]=(limit(diff(ff,x)**2/(x**2*ff),x,oo), limit(ff/diff(ff,x),x,1), factor(2*ff-diff(ff,x)), [ (qq_, 4*qq_) for qq_ in [Rational(9,4),2]], Rational(9,4)*4+8)
 # 20
-al=symbols('alpha')
-for alv in [0,1,-2]:
-  gq=-(x-alv)**2+6*(x-alv)+5; hh=(x-alv)**2*(x-alv-6); f=gq+hh
-  assert diff(f,x).subs(x,alv)==6==diff(gq,x).subs(x,alv) and f.subs(x,alv)==gq.subs(x,alv)
-  be=solve(Eq(diff(gq,x),-2),x)[0]; assert diff(f,x).subs(x,be)==-2
-  P=(alv,gq.subs(x,alv)); Q=(alv+6,gq.subs(x,alv+6)); Rr=(be,f.subs(x,be))
-  area=Abs((Q[0]-P[0])*(Rr[1]-P[1])-(Rr[0]-P[0])*(Q[1]-P[1]))/2
-  R.setdefault(20,[]).append((be-alv,solve(f-gq,x),P,Q,Rr,area))
-for kk in sorted(R): print(kk,R[kk])
+f=x**4-4*x**3+2*x**2+4*x
+cr=solve(diff(f,x),x); R[20]=[(cc,simplify(f.subs(x,cc))) for cc in cr]
+g=f.subs(x,x+1); R['20b']=(expand(g),factor(g-g.subs(x,sqrt(2))))
+for kk in R: print(kk,R[kk])
