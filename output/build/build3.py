@@ -23,7 +23,7 @@ PAGES = [
     ([('Q13', TOP)], [('Q14', TOP)]),
     ([('Q15', TOP)], [('Q16', TOP)]),
     ([('Q17', TOP)], [('Q18', TOP)]),
-    ([('SEC', TOP), ('S1', None)], [('S2', TOP), ('END', 640.0)]),
+    ([('SEC', TOP), ('S1', None)], [('S2', TOP)]),
 ]
 
 CIRC = '①②③④⑤'
@@ -74,7 +74,7 @@ body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.61;color:#000;
 .sec .h{font-family:'GL';font-size:11.5pt;margin-bottom:4pt;-webkit-text-stroke:.15pt #000}
 .sec .d{font-family:'GL';font-size:9pt;line-height:1.55;-webkit-text-stroke:.1pt #000}
 .sec hr{border:0;border-top:1.4pt solid #000;margin:9pt 0 12pt}
-.slab{font-family:'HB';font-weight:700}
+.slab{font-family:'HB';font-weight:700;font-style:italic;font-size:11pt}
 .end{text-align:center;font-family:'GL'}
 .end .a{font-size:24pt;letter-spacing:1pt}
 .end .b{font-size:14pt;line-height:1.75;margin-top:6pt}
@@ -94,10 +94,16 @@ def q_html(n):
             f'<div class="qr" style="--m:{m}pt;margin-left:{m}pt">{rest}<div class="ch{" g" if g else ""}">{chs}</div></div></div>')
 
 def s_html(lab, body, subs, total):
+    # 원본 양식: '단답형 1.'(11pt 굵은 기울임)과 발문이 한 줄에 이어지고, 배점은 발문 끝에 [n점]
     sh = ''.join(f'<div class="sub">({i+1}) {t} [{p}]</div><div style="height:{h}pt"></div>'
                  for i, ((t, p), h) in enumerate(zip(subs, [26, 26, 0])))
-    return (f'<div class="q"><span class="slab">{lab}</span><br>{body}'
-            f'<div class="tot">[총 {total}점]</div></div>{sh}')
+    body = body + f' <span class="pt">[{total}점]</span>'
+    cut = min([i for i in (body.find('\\['), body.find('<div'), body.find('<fieldset')) if i >= 0] or [len(body)])
+    first, rest = body[:cut], body[cut:]
+    C = 12.0    # 원본 PDF 실측: 둘째 줄부터의 시작 위치
+    return (f'<div class="q"><div class="qh" style="padding-left:{C}pt"><div class="qt" style="text-indent:-{C}pt">'
+            f'<span class="slab">{lab}</span> {first}</div></div>'
+            f'<div class="qr" style="--m:{C}pt;margin-left:{C}pt">{rest}</div></div>{sh}')
 
 SEC = ('<div class="sec"><div class="h">&lt;서답형 문제 – 20점&gt;</div>'
        '<div class="d">서답형 문제(서답형 1번~서답형 2번)는 반드시</div>'
@@ -169,6 +175,10 @@ def make_background():
                 if r.y0 > 300:
                     page.add_redact_annot(r, fill=(1, 1, 1)); repl.append((o, '18', sz))
             body = [pymupdf.Rect(36, 336, 296, 780.5), pymupdf.Rect(299.5, 146.5, 559, 780.5)]
+        elif pn == 7:
+            body = [pymupdf.Rect(36, 146.5, 296, 780.5), pymupdf.Rect(299.5, 146.5, 559, 610),
+                    pymupdf.Rect(299.5, 670, 559, 780.5)]
+            repl += [((355.44, 694.80), '선택형 18문제 = 80점', 13.8), ((355.92, 715.56), '서답형  2문제 = 20점', 13.8)]
         else:
             body = [pymupdf.Rect(36, 146.5, 296, 780.5), pymupdf.Rect(299.5, 146.5, 559, 780.5)]
         page.apply_redactions(images=pymupdf.PDF_REDACT_IMAGE_NONE, graphics=pymupdf.PDF_REDACT_LINE_ART_NONE,
