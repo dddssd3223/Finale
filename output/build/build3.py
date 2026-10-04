@@ -55,8 +55,8 @@ body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.61;color:#000;
 .katex-display{margin:3pt 0 3pt;padding-left:calc(33pt - var(--m,0pt))}
 .katex-display>.katex{text-align:left}
 .q{text-align:justify;position:relative;padding-left:0}
-.qh{display:flex}.qh .n{flex:none;font-family:'HB';font-weight:700;font-style:italic;font-size:10pt;letter-spacing:-.2pt}
-.qt{flex:1;text-align:justify}.qr{text-align:justify}
+.qh{position:relative}.qh .n{position:absolute;left:0;top:0;font-family:'HB';font-weight:700;font-style:italic;font-size:10pt;letter-spacing:-.2pt}
+.qt{text-align:justify}.qr{text-align:justify}
 .pt{white-space:nowrap}
 .ch .c{font-family:'GL'}
 .ch{display:flex;flex-wrap:wrap;margin-top:9pt;margin-left:calc(12pt - var(--m,0pt));clear:both}
@@ -88,8 +88,8 @@ def q_html(n):
     cut = min([i for i in (body.find('\\['), body.find('<div'), body.find('<fieldset')) if i >= 0] or [len(body)])
     first, rest = body[:cut], body[cut:]
     m = 5 if n < 10 else 10        # 둘째 문단부터의 들여쓰기(원본 PDF 측정값)
-    nw = 12.3 if n < 10 else 16.8   # 첫 줄 본문 시작 = 번호 폭 + 띄어쓰기      # 이후 문단 들여쓰기 = 번호 폭
-    return (f'<div class="q"><div class="qh"><span class="n" style="width:{nw}pt">{n}.</span><div class="qt">{first}</div></div>'
+    F, C = (15.3, 5.3) if n < 10 else (19.9, 15.5)   # 원본 PDF: 첫 줄 본문 시작 / 둘째 줄 시작      # 이후 문단 들여쓰기 = 번호 폭
+    return (f'<div class="q"><div class="qh" style="padding-left:{C}pt"><span class="n">{n}.</span><div class="qt" style="text-indent:{F - C}pt">{first}</div></div>'
             f'<div class="qr" style="--m:{m}pt;margin-left:{m}pt">{rest}<div class="ch{" g" if g else ""}">{chs}</div></div></div>')
 
 def s_html(lab, body, subs, total):
