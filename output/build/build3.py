@@ -53,7 +53,7 @@ body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.61;color:#000;
 .katex{font-size:1.0em;margin:0 1.6pt}
 .katex-display>.katex{margin:0}
 .katex .text,.katex .text *{font-family:'HB'!important;font-style:normal}
-.katex-display{margin:3pt 0 3pt;padding-left:calc(33pt - var(--m,0pt))}
+.katex-display{margin:4.5pt 0 7pt;padding-left:calc(33pt - var(--m,0pt))}
 .katex-display>.katex{text-align:left}
 .q{text-align:justify;position:relative;padding-left:0}
 .qh{}.qh .n{display:inline-block;text-indent:0;vertical-align:baseline;font-family:'HB';font-weight:700;font-style:italic;font-size:10pt;letter-spacing:-.2pt}
