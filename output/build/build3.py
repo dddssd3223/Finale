@@ -13,7 +13,7 @@ GULIM = os.path.join(FONTS, 'gulim.ttf')
 KATEX_CSS = os.path.join(SCR, 'node_modules', 'katex', 'dist', 'katex.min.css')
 
 # ------------------------------------------------------------------ 본문 배치 (실제 시험지와 동일한 쪽 구성)
-LX, RX, CW = 42.5, 301.6, 251.5          # 단 시작 x, 단 너비(pt)
+LX, RX, CW = 42.5, 306.5, 247.0          # 단 시작 x, 단 너비(pt)
 TOP, MID = 155.0, 462.0                  # 단 첫 문항 y, 둘째 문항 y
 PAGES = [
     ([('Q1', 352.0), ('Q2', 556.0)], [('Q3', TOP), ('Q4', MID)]),
@@ -46,31 +46,32 @@ CSS = r"""
 @page{size:A4;margin:0}
 *{box-sizing:border-box}
 html,body{margin:0;background:transparent}
-body{font-family:'HB','MJ','GL',serif;font-size:10pt;line-height:1.62;color:#000;word-break:keep-all}
+body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.7;color:#000;word-break:keep-all}
 .pg{width:595pt;height:842pt;position:relative;page-break-after:always;overflow:hidden}
 .pg:last-child{page-break-after:auto}
-.blk{position:absolute;width:251.5pt}
+.blk{position:absolute;width:247pt}
 .katex{font-size:1.0em}
 .katex .text,.katex .text *{font-family:'HB'!important;font-style:normal}
-.katex-display{margin:.25em 0 .3em}
+.katex-display{margin:.45em 0 .5em}
 .q{text-align:justify;position:relative;padding-left:0}
-.qh{display:flex}.qh .n{flex:none;font-family:'HB';font-weight:700;font-style:italic;font-size:11pt;margin-right:4pt;letter-spacing:-.2pt}
+.qh{display:flex}.qh .n{flex:none;font-family:'HB';font-weight:700;font-style:italic;font-size:10pt;margin-right:3.5pt;letter-spacing:-.2pt}
 .qt{flex:1;text-align:justify}.qr{text-align:justify}
 .pt{white-space:nowrap}
 .ch .c{font-family:'GL'}
-.ch{display:flex;flex-wrap:wrap;margin-top:5pt;clear:both}
-.ch>span{min-width:45pt;margin-right:0;white-space:nowrap}
+.ch{display:flex;flex-wrap:wrap;margin-top:9pt;clear:both}
+.ch>span{width:20%;white-space:nowrap}
 .ch.g>span{width:33%}
-.cond{border:.6pt solid #000;padding:3pt 6pt;margin:4pt 0;clear:both}
-.ci{display:flex;gap:3pt}.ci .ck{flex:none}
-.bogi{border:.6pt solid #000;margin:5pt 0 0;padding:1pt 7pt 4pt;clear:both}
+.cond{border:.6pt solid #000;padding:5pt 8pt;margin:10pt 0 10pt;clear:both;text-align:left}
+.nw{white-space:nowrap}
+.ci{display:flex;gap:3pt;margin:1pt 0}.ci .ck{flex:none}
+.bogi{border:.6pt solid #000;margin:10pt 0 4pt;padding:1pt 8pt 5pt;clear:both}
 .bogi legend{margin:0 auto;padding:0 5pt;font-family:'GL';font-size:9pt}
 .bi{display:flex;gap:3pt;margin:1pt 0}.bi .bk{flex:none}
 .fig{text-align:center;margin:4pt 0}
-.sub{margin:6pt 0 0;padding-left:15pt;text-indent:-15pt;text-align:justify}
-.sec .h{font-family:'GL';font-size:14pt;margin-bottom:3pt}
-.sec .d{font-family:'GL';font-size:8.1pt;white-space:nowrap}
-.sec hr{border:0;border-top:1.4pt solid #000;margin:5pt 0 6pt}
+.sub{margin:9pt 0 0;padding-left:14pt;text-indent:-14pt;text-align:justify}
+.sec .h{font-family:'GL';font-size:11.5pt;margin-bottom:4pt;-webkit-text-stroke:.15pt #000}
+.sec .d{font-family:'GL';font-size:9pt;line-height:1.55;-webkit-text-stroke:.1pt #000}
+.sec hr{border:0;border-top:1.4pt solid #000;margin:9pt 0 12pt}
 .slab{font-family:'HB';font-weight:700}
 .end{text-align:center;font-family:'GL'}
 .end .a{font-size:24pt;letter-spacing:1pt}
@@ -85,7 +86,7 @@ def q_html(n):
     chs = ''.join(f'<span><span class="c">{CIRC[i]}</span> ' + (c[2:] if c.startswith('T:') else f'\\({c}\\)') + '</span>' for i, c in enumerate(ch))
     cut = min([i for i in (body.find('\\['), body.find('<div'), body.find('<fieldset')) if i >= 0] or [len(body)])
     first, rest = body[:cut], body[cut:]
-    m = 11 if n < 10 else 16      # 이후 문단 들여쓰기 = 번호 폭
+    m = 10 if n < 10 else 14.5      # 이후 문단 들여쓰기 = 번호 폭
     return (f'<div class="q"><div class="qh"><span class="n">{n}.</span><div class="qt">{first}</div></div>'
             f'<div class="qr" style="margin-left:{m}pt">{rest}<div class="ch{" g" if g else ""}">{chs}</div></div></div>')
 
@@ -95,8 +96,9 @@ def s_html(lab, body, subs, total):
     return (f'<div class="q"><span class="slab">{lab}</span><br>{body}'
             f'<div class="tot">[총 {total}점]</div></div>{sh}')
 
-SEC = ('<div class="sec"><div class="h">&lt;서답형 문제 - 20점&gt;</div>'
-       '<div class="d">서답형 문제(1~2번)는 서답형 답안지에 풀이과정을 상세히 쓰시오.</div><hr></div>')
+SEC = ('<div class="sec"><div class="h">&lt;서답형 문제 – 20점&gt;</div>'
+       '<div class="d">서답형 문제(서답형 1번~서답형 2번)는 반드시</div>'
+       '<div class="d"><u>서답형 답안지의 해당란에 풀이과정을 상세히 작성</u>하시오.</div><hr></div>')
 END = ('<div class="end"><div class="a">♥수고하셨습니다♥</div>'
        '<div class="b">선택형 18문제 = 80점<br>서답형&nbsp;&nbsp;2문제 = 20점</div></div>')
 
@@ -106,6 +108,10 @@ def block(key):
     if key == 'S2': return s_html('서답형 2.', S2, S2S, 10)
     if key == 'SEC': return SEC
     if key == 'END': return END
+
+def nobreak(h):
+    # 수식 바로 뒤의 쉼표·마침표가 다음 줄 맨 앞으로 가지 않도록 묶음
+    return re.sub(r'(\\\((?:(?!\\\)).)+?\\\))([,.])', r'<span class="nw">\1\2</span>', h)
 
 def overlay_html():
     pages = []
@@ -123,7 +129,7 @@ def overlay_html():
         h += '</div>'
         pages.append(h)
     return (f'<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="file://{KATEX_CSS}">'
-            f'<style>{font_css()}{CSS}</style></head><body>{"".join(pages)}</body></html>')
+            f'<style>{font_css()}{CSS}</style></head><body>{nobreak("".join(pages))}</body></html>')
 
 # ------------------------------------------------------------------ 바탕(원본 PDF) 가공
 def find_chars(page, target, ymax=400):
