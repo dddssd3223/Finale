@@ -23,7 +23,7 @@ PAGES = [
     ([('Q13', TOP)], [('Q14', TOP)]),
     ([('Q15', TOP)], [('Q16', TOP)]),
     ([('Q17', TOP)], [('Q18', TOP)]),
-    ([('SEC', TOP), ('S1', None)], [('S2', TOP)]),
+    ([('SEC1', TOP), ('S1', None)], [('SEC2', TOP), ('S2', None)]),
 ]
 
 CIRC = '①②③④⑤'
@@ -71,9 +71,9 @@ body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.61;color:#000;
 .bi{display:flex;gap:3pt;margin:1pt 0}.bi .bk{flex:none}
 .fig{text-align:center;margin:4pt 0}
 .sub{margin:9pt 0 0;padding-left:14pt;text-indent:-14pt;text-align:justify}
-.sec .h{font-family:'GL';font-size:11.5pt;margin-bottom:4pt;-webkit-text-stroke:.15pt #000}
-.sec .d{font-family:'GL';font-size:9pt;line-height:1.55;-webkit-text-stroke:.1pt #000}
-.sec hr{border:0;border-top:1.4pt solid #000;margin:9pt 0 12pt}
+.sec{padding-top:4.5pt}.sec .h{font-family:'GL';font-size:11.5pt;line-height:13pt;margin-bottom:2.1pt;-webkit-text-stroke:.15pt #000}
+.sec .d{font-family:'GL';font-size:9pt;line-height:11.25pt;-webkit-text-stroke:.1pt #000}
+.sec hr{border:0;border-top:1.4pt solid #000;margin:7.3pt 0 12.7pt}
 .slab{font-family:'HB';font-weight:700;font-style:italic;font-size:11pt}
 .end{text-align:center;font-family:'GL'}
 .end .a{font-size:24pt;letter-spacing:1pt}
@@ -105,17 +105,21 @@ def s_html(lab, body, subs, total):
             f'<span class="slab">{lab}</span> {first}</div></div>'
             f'<div class="qr" style="--m:{C}pt;margin-left:{C}pt">{rest}</div></div>{sh}')
 
-SEC = ('<div class="sec"><div class="h">&lt;서답형 문제 – 20점&gt;</div>'
-       '<div class="d">서답형 문제(서답형 1번~서답형 2번)는 반드시</div>'
-       '<div class="d"><u>서답형 답안지의 해당란에 풀이과정을 상세히 작성</u>하시오.</div><hr></div>')
+def SEC(kind, total, rng, how):
+    return (f'<div class="sec"><div class="h">&lt;{kind} 문제 – {total}점&gt;</div>'
+            f'<div class="d">{kind} 문제({rng})는 반드시</div>'
+            f'<div class="d"><u>서답형 답안지의 해당란에 {how}</u>하시오.</div><hr></div>')
+SEC1 = SEC('단답형', 10, '단답형 1번', '정답만 작성')
+SEC2 = SEC('서술형', 10, '서술형 1번', '풀이과정을 상세히 작성')
 END = ('<div class="end"><div class="a">♥수고하셨습니다♥</div>'
        '<div class="b">선택형 18문제 = 80점<br>서답형&nbsp;&nbsp;2문제 = 20점</div></div>')
 
 def block(key):
     if key.startswith('Q'): return q_html(int(key[1:]))
-    if key == 'S1': return s_html('서답형 1.', S1, S1S, 10)
-    if key == 'S2': return s_html('서답형 2.', S2, S2S, 10)
-    if key == 'SEC': return SEC
+    if key == 'S1': return s_html('단답형 1.', S1, S1S, 10)
+    if key == 'S2': return s_html('서술형 1.', S2, S2S, 10)
+    if key == 'SEC1': return SEC1
+    if key == 'SEC2': return SEC2
     if key == 'END': return END
 
 def nobreak(h):

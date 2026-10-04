@@ -34,12 +34,13 @@ body{font-family:'GL';color:#000;-webkit-text-stroke:.15pt #000}
 """
 UNIT = 26.5   # 1점당 칸 높이(pt)
 
-def sec(n, subs):
+def sec(n, subs, kind='서술형', unit=None):
+    unit = unit or UNIT
     tot = sum(float(p[:-1]) for _, p in subs)
     h = ['<div class="g">',
-         f'<div class="sh"><span>서답형 {n}</span><span>[{tot:g}점]</span></div><div class="gh">초검</div><div class="gh">재검</div>']
+         f'<div class="sh"><span>{kind} {n}</span><span>[{tot:g}점]</span></div><div class="gh">초검</div><div class="gh">재검</div>']
     for i, (_, p) in enumerate(subs, 1):
-        st = f'height:{float(p[:-1]) * UNIT:.1f}pt'
+        st = f'height:{float(p[:-1]) * unit:.1f}pt'
         h.append(f'<div style="{st}"><span class="l">({i})</span><span class="p">[{p}]</span></div><div></div><div></div>')
     h.append('<div class="sub last">소 계</div><div class="last"></div><div class="last"></div></div>')
     return ''.join(h)
@@ -49,7 +50,7 @@ def build(out):
          '<div class="hd"><div class="ti">( 미적분Ⅰ )<span class="s">과</span> 서답형 답안지</div>'
          '<div class="id">2학년 (     )반 (     )번  이름 (                  )</div></div><div class="rule"></div>'
          '<div class="only">※ 초검·재검란은 채점자 전용 (학생 기재 금지)</div>'
-         + sec(1, S1S) + sec(2, S2S) +
+         + sec(1, S1S, '단답형', 15.0) + sec(1, S2S, '서술형', 42.0) +
          '<div class="tg"><div class="k">서답형 총점 (20점)</div><div></div><div></div>'
          '<div class="k last">채점자 확인</div><div class="last"></div><div class="last"></div></div>'
          '</body></html>')
