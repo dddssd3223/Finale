@@ -13,8 +13,8 @@ GULIM = os.path.join(FONTS, 'gulim.ttf')
 KATEX_CSS = os.path.join(SCR, 'node_modules', 'katex', 'dist', 'katex.min.css')
 
 # ------------------------------------------------------------------ 본문 배치 (실제 시험지와 동일한 쪽 구성)
-LX, RX, CW = 42.5, 306.5, 247.0          # 단 시작 x, 단 너비(pt)
-TOP, MID = 155.0, 462.0                  # 단 첫 문항 y, 둘째 문항 y
+LX, RX, CW = 37.6, 301.6, 251.0          # 단 시작 x, 단 너비(pt)
+TOP, MID = 148.5, 462.0                  # 단 첫 문항 y, 둘째 문항 y
 PAGES = [
     ([('Q1', 352.0), ('Q2', 556.0)], [('Q3', TOP), ('Q4', MID)]),
     ([('Q5', TOP), ('Q6', MID)], [('Q7', TOP)]),
@@ -46,22 +46,22 @@ CSS = r"""
 @page{size:A4;margin:0}
 *{box-sizing:border-box}
 html,body{margin:0;background:transparent}
-body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.7;color:#000;word-break:keep-all}
+body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.76;color:#000;word-break:keep-all}
 .pg{width:595pt;height:842pt;position:relative;page-break-after:always;overflow:hidden}
 .pg:last-child{page-break-after:auto}
-.blk{position:absolute;width:247pt}
+.blk{position:absolute;width:var(--w)}
 .katex{font-size:1.0em}
 .katex .text,.katex .text *{font-family:'HB'!important;font-style:normal}
 .katex-display{margin:.45em 0 .5em}
 .q{text-align:justify;position:relative;padding-left:0}
-.qh{display:flex}.qh .n{flex:none;font-family:'HB';font-weight:700;font-style:italic;font-size:10pt;margin-right:3.5pt;letter-spacing:-.2pt}
+.qh{display:flex}.qh .n{flex:none;font-family:'HB';font-weight:700;font-style:italic;font-size:10.5pt;letter-spacing:-.3pt;line-height:1.6}
 .qt{flex:1;text-align:justify}.qr{text-align:justify}
 .pt{white-space:nowrap}
 .ch .c{font-family:'GL'}
-.ch{display:flex;flex-wrap:wrap;margin-top:9pt;clear:both}
+.ch{display:flex;flex-wrap:wrap;margin-top:10pt;clear:both}
 .ch>span{width:20%;white-space:nowrap}
 .ch.g>span{width:33%}
-.cond{border:.6pt solid #000;padding:5pt 8pt;margin:10pt 0 10pt;clear:both;text-align:left}
+.cond{border:.6pt solid #000;padding:3pt 9pt;margin:6pt 0 9pt 1pt;clear:both;text-align:left}
 .nw{white-space:nowrap}
 .ci{display:flex;gap:3pt;margin:1pt 0}.ci .ck{flex:none}
 .bogi{border:.6pt solid #000;margin:10pt 0 4pt;padding:1pt 8pt 5pt;clear:both}
@@ -86,8 +86,9 @@ def q_html(n):
     chs = ''.join(f'<span><span class="c">{CIRC[i]}</span> ' + (c[2:] if c.startswith('T:') else f'\\({c}\\)') + '</span>' for i, c in enumerate(ch))
     cut = min([i for i in (body.find('\\['), body.find('<div'), body.find('<fieldset')) if i >= 0] or [len(body)])
     first, rest = body[:cut], body[cut:]
-    m = 10 if n < 10 else 14.5      # 이후 문단 들여쓰기 = 번호 폭
-    return (f'<div class="q"><div class="qh"><span class="n">{n}.</span><div class="qt">{first}</div></div>'
+    m = 11 if n < 10 else 15.5
+    nw = 14.5 if n < 10 else 19.8      # 이후 문단 들여쓰기 = 번호 폭
+    return (f'<div class="q"><div class="qh"><span class="n" style="width:{nw}pt">{n}.</span><div class="qt">{first}</div></div>'
             f'<div class="qr" style="margin-left:{m}pt">{rest}<div class="ch{" g" if g else ""}">{chs}</div></div></div>')
 
 def s_html(lab, body, subs, total):
@@ -123,7 +124,7 @@ def overlay_html():
                 if y is None:          # 앞 블록 바로 아래로 이어서 배치
                     flow += block(key); continue
                 if flow: h += flow + '</div>'
-                h += f'<div class="blk" data-k="{key}" style="left:{x}pt;top:{y}pt">'
+                h += f'<div class="blk" data-k="{key}" style="left:{x}pt;top:{y}pt;--w:{253 if x == LX else 248}pt">'
                 flow = block(key)
             if flow: h += flow + '</div>'
         h += '</div>'
