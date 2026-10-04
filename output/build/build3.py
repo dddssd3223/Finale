@@ -8,15 +8,15 @@ from content3 import Q, ANS, S1, S1S, S2, S2S
 HERE = os.path.dirname(os.path.abspath(__file__))
 SCR = os.path.join(HERE, '..')
 FONTS = os.path.join(SCR, 'fonts')
-TPL = os.path.join(SCR, 'src', 'f7.pdf')
+TPL = os.path.join(SCR, 'src', 'form2.pdf')
 GULIM = os.path.join(FONTS, 'gulim.ttf')
 KATEX_CSS = os.path.join(SCR, 'node_modules', 'katex', 'dist', 'katex.min.css')
 
 # ------------------------------------------------------------------ 본문 배치 (실제 시험지와 동일한 쪽 구성)
 LX, RX, CW = 42.2, 301.5, 252.0          # 단 시작 x, 단 너비(pt)
-TOP, MID = 153.5, 462.0                  # 단 첫 문항 y, 둘째 문항 y
+TOP, MID = 152.2, 460.7                  # 단 첫 문항 y, 둘째 문항 y
 PAGES = [
-    ([('Q1', 352.0), ('Q2', 556.0)], [('Q3', TOP), ('Q4', MID)]),
+    ([('Q1', 349.8), ('Q2', 555.8)], [('Q3', TOP), ('Q4', MID)]),
     ([('Q5', TOP), ('Q6', MID)], [('Q7', TOP)]),
     ([('Q8', TOP)], [('Q9', TOP), ('Q10', MID)]),
     ([('Q11', TOP)], [('Q12', TOP)]),
@@ -55,7 +55,7 @@ body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.61;color:#000;
 .katex-display{margin:3pt 0 3pt;padding-left:calc(33pt - var(--m,0pt))}
 .katex-display>.katex{text-align:left}
 .q{text-align:justify;position:relative;padding-left:0}
-.qh{position:relative}.qh .n{position:absolute;left:0;top:0;font-family:'HB';font-weight:700;font-style:italic;font-size:10pt;letter-spacing:-.2pt}
+.qh{}.qh .n{display:inline-block;text-indent:0;vertical-align:baseline;font-family:'HB';font-weight:700;font-style:italic;font-size:10pt;letter-spacing:-.2pt}
 .qt{text-align:justify}.qr{text-align:justify}
 .pt{white-space:nowrap}
 .ch .c{font-family:'GL'}
@@ -89,7 +89,7 @@ def q_html(n):
     first, rest = body[:cut], body[cut:]
     m = 5 if n < 10 else 10        # 둘째 문단부터의 들여쓰기(원본 PDF 측정값)
     F, C = (15.3, 5.3) if n < 10 else (19.9, 15.5)   # 원본 PDF: 첫 줄 본문 시작 / 둘째 줄 시작      # 이후 문단 들여쓰기 = 번호 폭
-    return (f'<div class="q"><div class="qh" style="padding-left:{C}pt"><span class="n">{n}.</span><div class="qt" style="text-indent:{F - C}pt">{first}</div></div>'
+    return (f'<div class="q"><div class="qh" style="padding-left:{C}pt"><div class="qt" style="text-indent:-{C}pt"><span class="n" style="width:{F}pt">{n}.</span>{first}</div></div>'
             f'<div class="qr" style="--m:{m}pt;margin-left:{m}pt">{rest}<div class="ch{" g" if g else ""}">{chs}</div></div></div>')
 
 def s_html(lab, body, subs, total):
