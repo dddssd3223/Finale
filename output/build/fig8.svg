@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="147.96pt" height="117.958336pt" viewBox="0 0 147.96 117.958336" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-04T03:02:24.789551</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 117.958336 
+L 147.96 117.958336 
+L 147.96 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 1.44 115.532039 
+L 146.52 115.532039 
+L 146.52 1.44 
+L 1.44 1.44 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 14.116893 102.855146 
+L 14.116893 74.684272 
+L 42.287767 74.684272 
+L 42.287767 46.513398 
+L 70.458641 46.513398 
+L 98.629515 18.342524 
+L 98.629515 46.513398 
+L 126.800388 46.513398 
+L 126.800388 102.855146 
+z
+" clip-path="url(#pf1c42e8796)" style="fill: #c8c8c8; stroke: #000000; stroke-width: 0.9; stroke-linejoin: miter"/>
+   </g>
+   <g id="matplotlib.axis_1"/>
+   <g id="matplotlib.axis_2"/>
+   <g id="line2d_1">
+    <path d="M 14.116893 74.684272 
+L 42.287767 74.684272 
+" clip-path="url(#pf1c42e8796)" style="fill: none; stroke-dasharray: 1.85,0.8; stroke-dashoffset: 0; stroke: #000000; stroke-width: 0.5"/>
+   </g>
+   <g id="line2d_2">
+    <path d="M 14.116893 46.513398 
+L 42.287767 46.513398 
+" clip-path="url(#pf1c42e8796)" style="fill: none; stroke-dasharray: 1.85,0.8; stroke-dashoffset: 0; stroke: #000000; stroke-width: 0.5"/>
+   </g>
+   <g id="line2d_3">
+    <path d="M 14.116893 18.342524 
+L 98.629515 18.342524 
+" clip-path="url(#pf1c42e8796)" style="fill: none; stroke-dasharray: 1.85,0.8; stroke-dashoffset: 0; stroke: #000000; stroke-width: 0.5"/>
+   </g>
+   <g id="line2d_4">
+    <path d="M 42.287767 102.855146 
+L 42.287767 74.684272 
+" clip-path="url(#pf1c42e8796)" style="fill: none; stroke-dasharray: 1.85,0.8; stroke-dashoffset: 0; stroke: #000000; stroke-width: 0.5"/>
+   </g>
+   <g id="line2d_5">
+    <path d="M 70.458641 102.855146 
+L 70.458641 46.513398 
+" clip-path="url(#pf1c42e8796)" style="fill: none; stroke-dasharray: 1.85,0.8; stroke-dashoffset: 0; stroke: #000000; stroke-width: 0.5"/>
+   </g>
+   <g id="line2d_6">
+    <path d="M 98.629515 102.855146 
+L 98.629515 46.513398 
+" clip-path="url(#pf1c42e8796)" style="fill: none; stroke-dasharray: 1.85,0.8; stroke-dashoffset: 0; stroke: #000000; stroke-width: 0.5"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 3.436798 102.855146 
+Q 73.976275 102.855146 143.621325 102.855146 
+" style="fill: none; stroke: #000000; stroke-width: 0.8; stroke-linecap: round"/>
+    <path d="M 140.421325 101.255146 
+L 143.621325 102.855146 
+L 140.421325 104.455146 
+z
+" style="stroke: #000000; stroke-width: 0.8; stroke-linecap: round"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 14.116893 113.529997 
+Q 14.116893 58.485557 14.116893 4.335546 
+" style="fill: none; stroke: #000000; stroke-width: 0.8; stroke-linecap: round"/>
+    <path d="M 12.516893 7.535546 
+L 14.116893 4.335546 
+L 15.716893 7.535546 
+z
+" style="stroke: #000000; stroke-width: 0.8; stroke-linecap: round"/>
+   </g>
+   <g id="text_1">
+    <!-- $x$ -->
+    <g transform="translate(141.006583 114.144312) scale(0.11 -0.11)">
+     <defs>
+      <path id="Tinos-Italic-5b" d="M 444 263 
+Q 444 175 575 141 
+L 550 0 
+L -28 0 
+Q -78 41 -78 134 
+Q -78 222 20 350 
+Q 119 478 350 691 
+L 1203 1484 
+L 666 2719 
+L 331 2797 
+L 356 2938 
+L 1131 2938 
+L 1584 1819 
+L 1972 2188 
+Q 2172 2378 2253 2487 
+Q 2334 2597 2334 2675 
+Q 2334 2706 2306 2729 
+Q 2278 2753 2150 2797 
+L 2175 2938 
+L 2728 2938 
+Q 2794 2888 2794 2803 
+Q 2794 2619 2363 2209 
+L 1694 1581 
+L 2294 206 
+L 2656 141 
+L 2631 0 
+L 1831 0 
+L 1309 1250 
+L 775 738 
+Q 603 572 523 464 
+Q 444 356 444 263 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#Tinos-Italic-5b" transform="translate(0 0.09375)"/>
+    </g>
+   </g>
+   <g id="text_2">
+    <!-- $y$ -->
+    <g transform="translate(17.497398 9.630371) scale(0.11 -0.11)">
+     <defs>
+      <path id="Tinos-Italic-5c" d="M 163 2938 
+L 963 2938 
+L 1416 650 
+L 2150 1919 
+Q 2350 2269 2350 2522 
+Q 2350 2638 2284 2706 
+Q 2219 2775 2144 2797 
+L 2169 2938 
+L 2763 2938 
+Q 2844 2866 2844 2741 
+Q 2844 2494 2584 2053 
+L 1347 -31 
+Q 991 -638 783 -891 
+Q 575 -1144 372 -1262 
+Q 169 -1381 -69 -1381 
+Q -322 -1381 -534 -1325 
+L -419 -691 
+L -278 -691 
+L -228 -991 
+Q -150 -1063 28 -1063 
+Q 450 -1063 919 -219 
+L 1059 38 
+L 488 2719 
+L 138 2797 
+L 163 2938 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#Tinos-Italic-5c" transform="translate(0 0.09375)"/>
+    </g>
+   </g>
+   <g id="text_3">
+    <!-- O -->
+    <g transform="translate(3.919161 113.299186) scale(0.11 -0.11)">
+     <defs>
+      <path id="Tinos-Regular-32" d="M 916 2100 
+Q 916 1091 1253 637 
+Q 1591 184 2309 184 
+Q 3025 184 3365 637 
+Q 3706 1091 3706 2100 
+Q 3706 3103 3367 3545 
+Q 3028 3988 2309 3988 
+Q 1588 3988 1252 3545 
+Q 916 3103 916 2100 
+z
+M 263 2100 
+Q 263 4238 2309 4238 
+Q 3322 4238 3840 3695 
+Q 4359 3153 4359 2100 
+Q 4359 1031 3834 484 
+Q 3309 -63 2309 -63 
+Q 1313 -63 788 482 
+Q 263 1028 263 2100 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#Tinos-Regular-32"/>
+    </g>
+   </g>
+   <g id="text_4">
+    <!-- $1$ -->
+    <g transform="translate(39.537767 114.144312) scale(0.11 -0.11)">
+     <defs>
+      <path id="Tinos-Regular-14" d="M 1959 250 
+L 2816 166 
+L 2816 0 
+L 563 0 
+L 563 166 
+L 1422 250 
+L 1422 3669 
+L 575 3366 
+L 575 3531 
+L 1797 4225 
+L 1959 4225 
+L 1959 250 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#Tinos-Regular-14" transform="translate(0 0.984375)"/>
+    </g>
+   </g>
+   <g id="text_5">
+    <!-- $2$ -->
+    <g transform="translate(67.708641 114.144312) scale(0.11 -0.11)">
+     <defs>
+      <path id="Tinos-Regular-15" d="M 2847 0 
+L 281 0 
+L 281 459 
+L 863 988 
+Q 1422 1478 1684 1781 
+Q 1947 2084 2061 2406 
+Q 2175 2728 2175 3144 
+Q 2175 3550 1990 3762 
+Q 1806 3975 1388 3975 
+Q 1222 3975 1047 3929 
+Q 872 3884 738 3809 
+L 628 3297 
+L 422 3297 
+L 422 4103 
+Q 991 4238 1388 4238 
+Q 2075 4238 2420 3952 
+Q 2766 3666 2766 3144 
+Q 2766 2794 2630 2483 
+Q 2494 2172 2212 1864 
+Q 1931 1556 1281 1003 
+Q 1003 766 691 481 
+L 2847 481 
+L 2847 0 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#Tinos-Regular-15" transform="translate(0 0.78125)"/>
+    </g>
+   </g>
+   <g id="text_6">
+    <!-- $3$ -->
+    <g transform="translate(95.879515 114.144312) scale(0.11 -0.11)">
+     <defs>
+      <path id="Tinos-Regular-16" d="M 2950 1141 
+Q 2950 575 2562 256 
+Q 2175 -63 1466 -63 
+Q 872 -63 341 72 
+L 306 953 
+L 513 953 
+L 653 366 
+Q 775 297 998 247 
+Q 1222 197 1416 197 
+Q 1906 197 2140 422 
+Q 2375 647 2375 1172 
+Q 2375 1584 2159 1798 
+Q 1944 2013 1491 2034 
+L 1044 2059 
+L 1044 2316 
+L 1491 2344 
+Q 1844 2363 2012 2563 
+Q 2181 2763 2181 3169 
+Q 2181 3591 1998 3783 
+Q 1816 3975 1416 3975 
+Q 1250 3975 1069 3929 
+Q 888 3884 750 3809 
+L 641 3297 
+L 434 3297 
+L 434 4103 
+Q 744 4184 969 4211 
+Q 1194 4238 1416 4238 
+Q 2759 4238 2759 3206 
+Q 2759 2772 2520 2514 
+Q 2281 2256 1844 2194 
+Q 2413 2128 2681 1867 
+Q 2950 1606 2950 1141 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#Tinos-Regular-16" transform="translate(0 0.78125)"/>
+    </g>
+   </g>
+   <g id="text_7">
+    <!-- $4$ -->
+    <g transform="translate(124.050388 114.144312) scale(0.11 -0.11)">
+     <defs>
+      <path id="Tinos-Regular-17" d="M 2531 922 
+L 2531 0 
+L 1994 0 
+L 1994 922 
+L 125 922 
+L 125 1338 
+L 2172 4213 
+L 2531 4213 
+L 2531 1369 
+L 3100 1369 
+L 3100 922 
+L 2531 922 
+z
+M 1994 3478 
+L 1978 3478 
+L 478 1369 
+L 1994 1369 
+L 1994 3478 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#Tinos-Regular-17" transform="translate(0 0.171875)"/>
+    </g>
+   </g>
+   <g id="text_8">
+    <!-- $1$ -->
+    <g transform="translate(5.799806 77.310737) scale(0.11 -0.11)">
+     <use xlink:href="#Tinos-Regular-14" transform="translate(0 0.984375)"/>
+    </g>
+   </g>
+   <g id="text_9">
+    <!-- $2$ -->
+    <g transform="translate(5.799806 49.139863) scale(0.11 -0.11)">
+     <use xlink:href="#Tinos-Regular-15" transform="translate(0 0.78125)"/>
+    </g>
+   </g>
+   <g id="text_10">
+    <!-- $3$ -->
+    <g transform="translate(5.799806 20.968989) scale(0.11 -0.11)">
+     <use xlink:href="#Tinos-Regular-16" transform="translate(0 0.78125)"/>
+    </g>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pf1c42e8796">
+   <rect x="1.44" y="1.44" width="145.08" height="114.092039"/>
+  </clipPath>
+ </defs>
+</svg>
