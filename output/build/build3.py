@@ -62,9 +62,9 @@ body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.61;color:#000;
 .ch{display:flex;flex-wrap:wrap;margin-top:9pt;margin-left:calc(12pt - var(--m,0pt));clear:both}
 .ch>span{width:46.4pt;white-space:nowrap}
 .ch.g>span{width:77pt}
-.cond{border:.6pt solid #000;padding:4pt 6pt 4pt 5.5pt;margin:8.5pt 5pt 10.5pt calc(13pt - var(--m,0pt));clear:both;text-align:left}
+.cond{border:.6pt solid #000;padding:2.2pt 6pt 1.8pt 7pt;margin:8.5pt 5pt 10.5pt calc(13pt - var(--m,0pt));clear:both;text-align:left}
 .nw{white-space:nowrap}
-.ci{display:flex;gap:3pt;margin:1pt 0}.ci .ck{flex:none}
+.ci{padding-left:22.4pt;text-indent:-22.4pt;margin:0}.ci .ck{display:inline-block;width:22.4pt;text-indent:0}
 .bogi{border:.6pt solid #000;margin:8.5pt 5pt 4pt calc(12pt - var(--m,0pt));padding:1pt 6pt 4pt;clear:both}
 .bogi legend{margin:0 auto;padding:0 5pt;font-family:'GL';font-size:9pt}
 .bi{display:flex;gap:3pt;margin:1pt 0}.bi .bk{flex:none}
@@ -87,8 +87,8 @@ def q_html(n):
     chs = ''.join(f'<span><span class="c">{CIRC[i]}</span> ' + (c[2:] if c.startswith('T:') else f'\\({c}\\)') + '</span>' for i, c in enumerate(ch))
     cut = min([i for i in (body.find('\\['), body.find('<div'), body.find('<fieldset')) if i >= 0] or [len(body)])
     first, rest = body[:cut], body[cut:]
-    m = 5 if n < 10 else 10        # 둘째 문단부터의 들여쓰기(원본 PDF 측정값)
-    F, C = (15.3, 5.3) if n < 10 else (19.9, 15.5)   # 원본 PDF: 첫 줄 본문 시작 / 둘째 줄 시작      # 이후 문단 들여쓰기 = 번호 폭
+    m = 9.3 if n < 10 else 15      # 둘째 문단부터의 들여쓰기(원본 PDF 실측)
+    F, C = (15.3, 9.3) if n < 10 else (19.9, 15.6)   # 원본 PDF 실측: 첫 줄 본문 시작 / 둘째 줄 시작      # 이후 문단 들여쓰기 = 번호 폭
     return (f'<div class="q"><div class="qh" style="padding-left:{C}pt"><div class="qt" style="text-indent:-{C}pt"><span class="n" style="width:{F}pt">{n}.</span>{first}</div></div>'
             f'<div class="qr" style="--m:{m}pt;margin-left:{m}pt">{rest}<div class="ch{" g" if g else ""}">{chs}</div></div></div>')
 

@@ -2,7 +2,7 @@
 # 학생용 문항 (본문 HTML, 수식은 \( \) / \[ \] LaTeX)
 def COND(items):
     return '<div class="cond">' + ''.join(
-        f'<div class="ci"><span class="ck">({k})</span><span>{v}</span></div>' for k, v in items) + '</div>'
+        f'<div class="ci"><span class="ck">({k})</span>{v}</div>' for k, v in items) + '</div>'
 def BOGI(items):
     return '<fieldset class="bogi"><legend>&lt;보 기&gt;</legend>' + ''.join(
         f'<div class="bi"><span class="bk">{k}.</span><span>{v}</span></div>' for k, v in items) + '</fieldset>'
