@@ -50,7 +50,7 @@ def build(out):
          '<div class="hd"><div class="ti">( 미적분Ⅰ )<span class="s">과</span> 서답형 답안지</div>'
          '<div class="id">2학년 (     )반 (     )번  이름 (                  )</div></div><div class="rule"></div>'
          '<div class="only">※ 초검·재검란은 채점자 전용 (학생 기재 금지)</div>'
-         + sec(1, S1S, '단답형', 15.0) + sec(1, S2S, '서술형', 42.0) +
+         + sec(1, S1S, '단답형', 15.0) + sec(1, S2S, '서술형', 40.0) +
          '<div class="tg"><div class="k">서답형 총점 (20점)</div><div></div><div></div>'
          '<div class="k last">채점자 확인</div><div class="last"></div><div class="last"></div></div>'
          '</body></html>')
