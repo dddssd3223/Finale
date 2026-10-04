@@ -102,12 +102,12 @@ S2 = dict(
 PTS = {n: Q[n][0] for n in Q}
 CSS = r"""
 @page{size:A4;margin:16mm 14mm 16mm 14mm}
-body{font-family:'MJ','GL',serif;font-size:9.3pt;line-height:1.6;margin:0}
+body{font-family:'HB','MJ','GL',serif;font-size:9.3pt;line-height:1.6;margin:0}
 .katex{font-size:1.02em;font-family:'TN','KaTeX_Main'}
 .katex .mathnormal{font-family:'TN','KaTeX_Math';font-style:italic}
-.katex .text,.katex .text *{font-family:'MJ','TN'!important;font-style:normal}
+.katex .text,.katex .text *{font-family:'HB','MJ','TN'!important;font-style:normal}
 .katex .mord,.katex .mbin,.katex .mrel,.katex .mpunct,.katex .mopen,.katex .mclose,.katex .mop{font-family:'TN','KaTeX_Main'}
-h1{font-family:'MJ','GL';font-weight:700;font-size:15pt;margin:0 0 2mm;letter-spacing:1pt}
+h1{font-family:'HB','GL';font-weight:700;font-size:15pt;margin:0 0 2mm;letter-spacing:1pt}
 .dot{border-bottom:1.2pt dotted #000;width:60%;margin-bottom:3mm}
 .meta{font-size:9pt;margin-bottom:5mm}
 table{border-collapse:collapse;width:100%}

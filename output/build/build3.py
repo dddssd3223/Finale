@@ -34,6 +34,7 @@ def font_css():
 @font-face{{font-family:'MJ';src:url('{f('9Btx3DZF0dXLMZlywRbVRNhxy1Lr.ttf')}')}}
 @font-face{{font-family:'MJ';src:url('{f('9Bty3DZF0dXLMZlywRbVRNhxy2pXV1A0.ttf')}');font-weight:700}}
 @font-face{{font-family:'GL';src:url('{f('gulim_web.ttf')}')}}
+@font-face{{font-family:'HB';src:url('{f('hbatang_web.ttf')}')}}
 @font-face{{font-family:'TN';src:url('{f('buE4poGnedXvwgX8.ttf')}')}}
 @font-face{{font-family:'TN';src:url('{f('buE2poGnedXvwjX-fmE.ttf')}');font-style:italic}}
 @font-face{{font-family:'TN';src:url('{f('buE1poGnedXvwj1AW0Fp.ttf')}');font-weight:700}}
@@ -44,13 +45,13 @@ CSS = r"""
 @page{size:A4;margin:0}
 *{box-sizing:border-box}
 html,body{margin:0;background:transparent}
-body{font-family:'MJ','GL',serif;font-size:10pt;line-height:1.62;color:#000;word-break:keep-all}
+body{font-family:'HB','MJ','GL',serif;font-size:10pt;line-height:1.62;color:#000;word-break:keep-all}
 .pg{width:595pt;height:842pt;position:relative;page-break-after:always;overflow:hidden}
 .pg:last-child{page-break-after:auto}
 .blk{position:absolute;width:251.5pt}
 .katex{font-size:1.02em;font-family:'TN','KaTeX_Main',serif}
 .katex .mathnormal{font-family:'TN','KaTeX_Math';font-style:italic}
-.katex .text,.katex .text *{font-family:'MJ','TN'!important;font-style:normal}
+.katex .text,.katex .text *{font-family:'HB','MJ','TN'!important;font-style:normal}
 .katex .mord,.katex .mbin,.katex .mrel,.katex .mpunct,.katex .mopen,.katex .mclose,.katex .mop,.katex .mathrm{font-family:'TN','KaTeX_Main'}
 .katex-display{margin:.25em 0 .3em}
 .q{text-align:justify;position:relative;padding-left:0}
@@ -68,9 +69,9 @@ body{font-family:'MJ','GL',serif;font-size:10pt;line-height:1.62;color:#000;word
 .fig{text-align:center;margin:4pt 0}
 .sub{margin:6pt 0 0;padding-left:15pt;text-indent:-15pt;text-align:justify}
 .sec .h{font-family:'GL';font-size:14pt;margin-bottom:3pt}
-.sec .d{font-family:'GL';font-size:8.6pt}
+.sec .d{font-family:'GL';font-size:8.1pt;white-space:nowrap}
 .sec hr{border:0;border-top:1.4pt solid #000;margin:5pt 0 6pt}
-.slab{font-family:'MJ';font-weight:700}
+.slab{font-family:'HB';font-weight:700}
 .end{text-align:center;font-family:'GL'}
 .end .a{font-size:24pt;letter-spacing:1pt}
 .end .b{font-size:14pt;line-height:1.75;margin-top:6pt}
