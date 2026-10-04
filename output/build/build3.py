@@ -35,6 +35,7 @@ def font_css():
 @font-face{{font-family:'MJ';src:url('{f('9Bty3DZF0dXLMZlywRbVRNhxy2pXV1A0.ttf')}');font-weight:700}}
 @font-face{{font-family:'GL';src:url('{f('gulim_web.ttf')}')}}
 @font-face{{font-family:'HB';src:url('{f('hbatang_web.ttf')}')}}
+@font-face{{font-family:'HYEQ';src:url('{f('hyhwpeq_web.ttf')}')}}
 @font-face{{font-family:'TN';src:url('{f('buE4poGnedXvwgX8.ttf')}')}}
 @font-face{{font-family:'TN';src:url('{f('buE2poGnedXvwjX-fmE.ttf')}');font-style:italic}}
 @font-face{{font-family:'TN';src:url('{f('buE1poGnedXvwj1AW0Fp.ttf')}');font-weight:700}}
@@ -49,17 +50,16 @@ body{font-family:'HB','MJ','GL',serif;font-size:10pt;line-height:1.62;color:#000
 .pg{width:595pt;height:842pt;position:relative;page-break-after:always;overflow:hidden}
 .pg:last-child{page-break-after:auto}
 .blk{position:absolute;width:251.5pt}
-.katex{font-size:1.02em;font-family:'TN','KaTeX_Main',serif}
-.katex .mathnormal{font-family:'TN','KaTeX_Math';font-style:italic}
-.katex .text,.katex .text *{font-family:'HB','MJ','TN'!important;font-style:normal}
-.katex .mord,.katex .mbin,.katex .mrel,.katex .mpunct,.katex .mopen,.katex .mclose,.katex .mop,.katex .mathrm{font-family:'TN','KaTeX_Main'}
+.katex{font-size:1.0em}
+.katex .text,.katex .text *{font-family:'HB'!important;font-style:normal}
 .katex-display{margin:.25em 0 .3em}
 .q{text-align:justify;position:relative;padding-left:0}
-.q .n{font-family:'TN';font-weight:700;font-style:italic;font-size:10.5pt;margin-right:2.5pt}
-.pt{float:right;margin-left:4pt;white-space:nowrap}
+.qh{display:flex}.qh .n{flex:none;font-family:'HB';font-weight:700;font-style:italic;font-size:11pt;margin-right:4pt;letter-spacing:-.2pt}
+.qt{flex:1;text-align:justify}.qr{text-align:justify}
+.pt{white-space:nowrap}
 .ch .c{font-family:'GL'}
 .ch{display:flex;flex-wrap:wrap;margin-top:5pt;clear:both}
-.ch>span{min-width:48pt;margin-right:0;white-space:nowrap}
+.ch>span{min-width:45pt;margin-right:0;white-space:nowrap}
 .ch.g>span{width:33%}
 .cond{border:.6pt solid #000;padding:3pt 6pt;margin:4pt 0;clear:both}
 .ci{display:flex;gap:3pt}.ci .ck{flex:none}
@@ -80,10 +80,14 @@ body{font-family:'HB','MJ','GL',serif;font-size:10pt;line-height:1.62;color:#000
 
 def q_html(n):
     pt, body, ch = Q[n]
-    body = body.replace('{PT}', f'<span class="pt">[{pt:.1f}점]</span>')
+    body = body.replace('{PT}', f' <span class="pt">[{pt:.1f}점]</span>')
     g = all(c.startswith('T:') for c in ch)
     chs = ''.join(f'<span><span class="c">{CIRC[i]}</span> ' + (c[2:] if c.startswith('T:') else f'\\({c}\\)') + '</span>' for i, c in enumerate(ch))
-    return f'<div class="q"><span class="n">{n}.</span>{body}</div><div class="ch{" g" if g else ""}">{chs}</div>'
+    cut = min([i for i in (body.find('\\['), body.find('<div'), body.find('<fieldset')) if i >= 0] or [len(body)])
+    first, rest = body[:cut], body[cut:]
+    m = 11 if n < 10 else 16      # 이후 문단 들여쓰기 = 번호 폭
+    return (f'<div class="q"><div class="qh"><span class="n">{n}.</span><div class="qt">{first}</div></div>'
+            f'<div class="qr" style="margin-left:{m}pt">{rest}<div class="ch{" g" if g else ""}">{chs}</div></div></div>')
 
 def s_html(lab, body, subs, total):
     sh = ''.join(f'<div class="sub">({i+1}) {t} [{p}]</div><div style="height:{h}pt"></div>'
