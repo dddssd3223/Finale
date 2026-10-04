@@ -12,7 +12,7 @@ def FIG(name, w):
 Q = {}
 PTS = [4.0] * 4 + [4.2] * 4 + [4.4] * 2 + [4.5] * 2 + [4.7] * 3 + [4.9] + [5.2] * 2
 Q[1] = r"""다항함수 \(f(x)\)에 대하여 \(\displaystyle\lim_{h\to0}\frac{f(2+3h)-f(2)}{h}=6\)일 때,
-\[\lim_{h\to0}\frac{f\!\left(2+\frac h2\right)-f\!\left(2-\frac h4\right)}{h}\]
+\[\lim_{h\to0}\frac{f\!\left(2+\dfrac h2\right)-f\!\left(2-\dfrac h4\right)}{h}\]
 의 값은?{PT}""", [r"\dfrac12", r"\dfrac32", "2", "3", r"\dfrac92"]
 Q[2] = r"""다항함수 \(f(x)\)에 대하여 곡선 \(y=x^3f(x)\) 위의 점 \((1,\,3)\)에서의 접선의 기울기가 \(5\)일 때, 곡선 \(y=f(x)\) 위의 점 \((1,\,f(1))\)에서의 접선의 \(y\)절편은?{PT}""", ["-2", "1", "4", "7", "8"]
 Q[3] = r"""함수 \(f(x)=ax^2+b\)가 모든 실수 \(x\)에 대하여
