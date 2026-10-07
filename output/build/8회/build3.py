@@ -169,6 +169,9 @@ def make_background():
         top = pymupdf.Rect(0, 28, 595, 92.5)
         # 2) 제목 '1학년 공통수학1과 중간고사 문제' → '2학년 미적분Ⅰ과 중간고사 문제'
         page.add_redact_annot(pymupdf.Rect(84, 102, 372, 129), fill=(1, 1, 1))
+        # 시행일
+        for r, o, sz in find_chars(page, '7월 11일(토) - 1교시'):
+            page.add_redact_annot(pymupdf.Rect(r.x0, r.y0, 562, r.y1), fill=(1, 1, 1)); repl.append((o, '10월 13일(화) - 1교시', sz))
         # 3) 문항수
         for r, o, sz in find_chars(page, '17, 단답형: 3'):
             page.add_redact_annot(r, fill=(1, 1, 1)); repl.append((o, '18, 서답형: 2', sz))

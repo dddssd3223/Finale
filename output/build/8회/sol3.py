@@ -59,7 +59,7 @@ def build(out):
     ans = ''.join(f'<td>{CIRC[ANS[n]-1]}</td>' for n in range(1, 19))
     h = [f'<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="file://{KATEX_CSS}"><style>{font_css()}{CSS}</style></head><body>']
     h.append('<h1>2학년 (미적분Ⅰ) 과 문제 정답 및 채점기준</h1><div class="dot"></div>'
-             '<div class="meta">시험일자 2026 년 &nbsp;&nbsp;7 월 &nbsp;11 일 &nbsp;&nbsp;&nbsp; 1 교시</div>')
+             '<div class="meta">시험일자 2026 년 &nbsp;&nbsp;10 월 &nbsp;13 일 &nbsp;&nbsp;&nbsp; 1 교시</div>')
     h.append('<table class="big"><tr><th rowspan="2">학년</th><th rowspan="2">과정</th><th rowspan="2">과목<br>코드</th><th rowspan="2">과목명</th>'
              '<th rowspan="2">이수<br>학점</th><th rowspan="2">문항<br>수</th><th rowspan="2">선택<br>형<br>점수</th><th rowspan="2">서답<br>형<br>점수</th>'
              f'<th>번호</th>{head}</tr><tr><th>배점</th>{pts}</tr>'
