@@ -3,16 +3,16 @@
 import sys, io, random
 import numpy as np, pymupdf
 from PIL import Image, ImageFilter
-def copy_look(src, out, dpi=200, ink=70, seed=3):
+def copy_look(src, out, dpi=200, ink=32, seed=3):
     rng = np.random.default_rng(seed); random.seed(seed)
     d = pymupdf.open(src); o = pymupdf.open()
     for i, p in enumerate(d):
         pix = p.get_pixmap(dpi=dpi, colorspace=pymupdf.csGRAY)
         im = Image.frombytes('L', (pix.width, pix.height), pix.samples)
-        im = im.filter(ImageFilter.GaussianBlur(0.55))
+        im = im.filter(ImageFilter.GaussianBlur(0.35))
         a = np.asarray(im).astype(np.float32) / 255.0
-        a = ink / 255.0 + a * (1 - ink / 255.0)               # 가장 진한 부분 ≈ #464646
-        a += rng.normal(0, 0.018, a.shape)                     # 종이·토너 잡음
+        a = ink / 255.0 + a * (1 - ink / 255.0)               # 가장 진한 부분 ≈ #202020
+        a += rng.normal(0, 0.01, a.shape)                     # 종이·토너 잡음
         # 듬성듬성 옅은 얼룩
         h, w = a.shape
         yy, xx = np.mgrid[0:h, 0:w]
@@ -31,4 +31,4 @@ def copy_look(src, out, dpi=200, ink=70, seed=3):
         np_.insert_image(np_.rect, stream=buf.read())
     o.save(out, garbage=3, deflate=True)
 if __name__ == '__main__':
-    copy_look(sys.argv[1], sys.argv[2], ink=int(sys.argv[3]) if len(sys.argv) > 3 else 70)
+    copy_look(sys.argv[1], sys.argv[2], ink=int(sys.argv[3]) if len(sys.argv) > 3 else 32)
