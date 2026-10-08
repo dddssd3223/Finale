@@ -1,0 +1,9 @@
+{
+  "name": "exam-template",
+  "private": true,
+  "description": "양정고 양식 미적분Ⅰ 모의 중간고사 제작 킷",
+  "dependencies": {
+    "katex": "^0.19.0",
+    "playwright-core": "^1.63.0"
+  }
+}
