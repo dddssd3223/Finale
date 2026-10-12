@@ -190,6 +190,17 @@ def fit_size(text, width, lo=6.0, hi=12.0):
         else: lo = m
     return round(lo, 3)
 
+def put_spaced(page, ink_l, ink_r, base, text, size, bw=0.02):
+    """자간을 넓혀 잉크가 ink_l~ink_r에 걸치도록 글자를 하나씩 씀 (실제 시험지의 넓은 자간)"""
+    gl = pymupdf.Font(fontfile=GULIM)
+    x0, x1 = ink_box(text, size)
+    extra = ((ink_r - ink_l) - (x1 - x0)) / max(1, len(text) - 1)
+    x = ink_l - x0
+    for ch in text:
+        if ch != ' ':
+            page.insert_text((x, base), ch, fontname='GL', fontsize=size, render_mode=2, border_width=bw / size)
+        x += gl.text_length(ch, fontsize=size) + extra
+
 def make_background():
     src = pymupdf.open(TPL)
     doc = pymupdf.open()
@@ -244,11 +255,59 @@ def make_background():
         x = put(page, x + 10.4, B, '중간고사', 19.8, 0.6)
         put(page, x + 10.2, B, '문제', 15.0, 0.65)
         # 정보 줄
+        isz = 9.0
+        for l, r_, t in [(67.0, 198.0, '과 정 : ( 2022 개정 교육과정 )'), (222.0, 297.0, '과목코드 : ( 09 )'),
+                         (317.0, 383.0, '이수단위 : ( 4 )'), (405.0, 541.7, '문항수 ( 선택형: 18, 서답형 2)')]:
+            put_spaced(page, l, r_, 142.8, t, isz, 0.35)
+        # 시행일
+        for r, o, sz in find_chars(page, '7월 11일(토) - 1교시'):
+            page.add_redact_annot(pymupdf.Rect(r.x0, r.y0, 562, r.y1), fill=(1, 1, 1)); pass
+        # 3) 문항수
+        for r, o, sz in find_chars(page, '17, 단답형: 3'):
+            page.add_redact_annot(r, fill=(1, 1, 1)); pass
+        if pn == 0:
+            for r, o, sz in find_chars(page, '82'):
+                page.add_redact_annot(r, fill=(1, 1, 1)); repl.append((o, '80', sz))
+            for r, o, sz in find_chars(page, '17'):
+                if r.y0 > 300:
+                    page.add_redact_annot(r, fill=(1, 1, 1)); repl.append((o, '18', sz))
+            body = [pymupdf.Rect(36, 336, 296, 780.5), pymupdf.Rect(299.5, 146.5, 559, 780.5)]
+        elif pn == 7:
+            body = [pymupdf.Rect(36, 146.5, 296, 780.5), pymupdf.Rect(299.5, 146.5, 559, 610),
+                    pymupdf.Rect(299.5, 670, 559, 780.5)]
+            repl += [((355.44, 694.80), '선택형 18문제 = 80점', 13.8), ((355.92, 715.56), '서답형  2문제 = 20점', 13.8)]
+        else:
+            body = [pymupdf.Rect(36, 146.5, 296, 780.5), pymupdf.Rect(299.5, 146.5, 559, 780.5)]
+        page.add_redact_annot(pymupdf.Rect(60, 134.6, 558, 144.6), fill=None)     # 정보 줄
+        page.add_redact_annot(pymupdf.Rect(420, 118, 562, 128.3), fill=None)      # 시행일
+        page.add_redact_annot(pymupdf.Rect(266, 798, 376, 812), fill=None)        # 쪽 번호
+        page.apply_redactions(images=pymupdf.PDF_REDACT_IMAGE_NONE, graphics=pymupdf.PDF_REDACT_LINE_ART_NONE,
+                              text=pymupdf.PDF_REDACT_TEXT_REMOVE)
+        for r in body + [top]:
+            page.add_redact_annot(r, fill=(1, 1, 1))
+        page.apply_redactions(images=pymupdf.PDF_REDACT_IMAGE_REMOVE,
+                              graphics=pymupdf.PDF_REDACT_LINE_ART_REMOVE_IF_COVERED)
+        # 학교 로고(고)를 실제 위치·크기로 옮김
+        page.add_redact_annot(pymupdf.Rect(242, 789, 267, 815), fill=(1, 1, 1))
+        page.apply_redactions(images=pymupdf.PDF_REDACT_IMAGE_REMOVE,
+                              graphics=pymupdf.PDF_REDACT_LINE_ART_REMOVE_IF_COVERED, text=pymupdf.PDF_REDACT_TEXT_REMOVE)
+        page.show_pdf_page(pymupdf.Rect(230.9, 789.3, 230.9 + 25 * 1.04, 789.3 + 26 * 1.05), src, pn,
+                           clip=pymupdf.Rect(242, 789, 267, 815))
+        # 머리글 다시 쓰기 (실제 2학년 시험지 고화질 스캔 실측값)
+        page.insert_font(fontname='GL', fontfile=GULIM)
+        B = 123.48
+        x = put(page, 95.8, B, '2', 20.7, 0.8)
+        x = put(page, 107.7, B, '학년', 15.0, 0.65)
+        x = put(page, 146.8, B, '미적분Ⅰ', 24.0, 0.85, sx=0.91)
+        x = put(page, x + 14.8, B, '과', 15.0, 0.65)
+        x = put(page, x + 10.4, B, '중간고사', 19.8, 0.6)
+        put(page, x + 10.2, B, '문제', 15.0, 0.65)
+        # 정보 줄
         g4 = '문항수 ( 선택형: 18, 서답형 2)'
         sz = fit_size(g4, 541.7 - 405.0)
         for xl, t in [(67.0, '과 정 : ( 2022 개정 교육과정 )'), (222.0, '과목코드 : ( 09 )'),
                       (317.0, '이수단위 : ( 4 )'), (405.0, g4)]:
-            put(page, xl, 142.4, t, round(sz * 0.76, 2), 0.25, sx=1 / 0.76)   # 실제: 납작하고 넓은 글꼴
+            put(page, xl, 142.3, t, round(sz * 0.88, 2), 0.25)
         # 시행일
         dt = '시행일 2026년 10월 13일(화) - 1교시'
         put(page, 428.8, 127.1, dt, fit_size(dt, 553.4 - 428.8, 5, 10), 0.45)
