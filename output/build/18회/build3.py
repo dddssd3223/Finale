@@ -46,7 +46,7 @@ CSS = r"""
 @page{size:A4;margin:0}
 *{box-sizing:border-box}
 html,body{margin:0;background:transparent}
-body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.78;-webkit-text-stroke:.22pt #000;color:#000;word-break:keep-all}
+body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.78;color:#000;word-break:keep-all}
 .pg{width:595pt;height:842pt;position:relative;page-break-after:always;overflow:hidden}
 .pg:last-child{page-break-after:auto}
 .blk{position:absolute;width:var(--w)}
@@ -159,48 +159,6 @@ def find_chars(page, target, ymax=400):
                     out.append((r, sel[0]['origin'], s['size']))
     return out
 
-_INKC = {}
-def ink_box(text, size, sx=1.0):
-    """GL(굴림)로 그린 text의 잉크 경계(원점 기준 x0, x1)"""
-    key = (text, size, sx)
-    if key in _INKC: return _INKC[key]
-    d = pymupdf.open(); p = d.new_page(width=600, height=60)
-    p.insert_font(fontname='GL', fontfile=GULIM)
-    o = pymupdf.Point(20, 40)
-    p.insert_text(o, text, fontname='GL', fontsize=size, morph=(o, pymupdf.Matrix(sx, 1)) if sx != 1 else None)
-    z = 8; pm = p.get_pixmap(matrix=pymupdf.Matrix(z, z), colorspace=pymupdf.csGRAY)
-    import numpy as np
-    g = np.frombuffer(pm.samples, np.uint8).reshape(pm.height, pm.width)
-    xs = np.where((g < 128).any(0))[0]
-    _INKC[key] = (xs.min() / z - 20, xs.max() / z - 20)
-    return _INKC[key]
-
-def put(page, ink_left, base, text, size, bw=0.02, sx=1.0):
-    """잉크 왼쪽 끝을 ink_left에 맞춰 쓰고 잉크 오른쪽 끝을 반환 (bw: 획 두께 pt)"""
-    x0, x1 = ink_box(text, size, sx)
-    o = pymupdf.Point(ink_left - x0, base)
-    page.insert_text(o, text, fontname='GL', fontsize=size, render_mode=2, border_width=bw / size,
-                     morph=(o, pymupdf.Matrix(sx, 1)) if sx != 1 else None)
-    return ink_left - x0 + x1
-
-def fit_size(text, width, lo=6.0, hi=12.0):
-    for _ in range(30):
-        m = (lo + hi) / 2; a, b = ink_box(text, round(m, 3))
-        if b - a > width: hi = m
-        else: lo = m
-    return round(lo, 3)
-
-def put_spaced(page, ink_l, ink_r, base, text, size, bw=0.02):
-    """자간을 넓혀 잉크가 ink_l~ink_r에 걸치도록 글자를 하나씩 씀 (실제 시험지의 넓은 자간)"""
-    gl = pymupdf.Font(fontfile=GULIM)
-    x0, x1 = ink_box(text, size)
-    extra = ((ink_r - ink_l) - (x1 - x0)) / max(1, len(text) - 1)
-    x = ink_l - x0
-    for ch in text:
-        if ch != ' ':
-            page.insert_text((x, base), ch, fontname='GL', fontsize=size, render_mode=2, border_width=bw / size)
-        x += gl.text_length(ch, fontsize=size) + extra
-
 def make_background():
     src = pymupdf.open(TPL)
     doc = pymupdf.open()
@@ -213,10 +171,10 @@ def make_background():
         page.add_redact_annot(pymupdf.Rect(84, 102, 372, 129), fill=(1, 1, 1))
         # 시행일
         for r, o, sz in find_chars(page, '7월 11일(토) - 1교시'):
-            page.add_redact_annot(pymupdf.Rect(r.x0, r.y0, 562, r.y1), fill=(1, 1, 1)); pass
+            page.add_redact_annot(pymupdf.Rect(r.x0, r.y0, 562, r.y1), fill=(1, 1, 1)); repl.append((o, '10월 13일(화) - 1교시', sz))
         # 3) 문항수
         for r, o, sz in find_chars(page, '17, 단답형: 3'):
-            page.add_redact_annot(r, fill=(1, 1, 1)); pass
+            page.add_redact_annot(r, fill=(1, 1, 1)); repl.append((o, '18, 서답형: 2', sz))
         if pn == 0:
             for r, o, sz in find_chars(page, '82'):
                 page.add_redact_annot(r, fill=(1, 1, 1)); repl.append((o, '80', sz))
@@ -230,93 +188,19 @@ def make_background():
             repl += [((355.44, 694.80), '선택형 18문제 = 80점', 13.8), ((355.92, 715.56), '서답형  2문제 = 20점', 13.8)]
         else:
             body = [pymupdf.Rect(36, 146.5, 296, 780.5), pymupdf.Rect(299.5, 146.5, 559, 780.5)]
-        page.add_redact_annot(pymupdf.Rect(60, 134.6, 558, 144.6), fill=None)     # 정보 줄
-        page.add_redact_annot(pymupdf.Rect(420, 118, 562, 128.3), fill=None)      # 시행일
-        page.add_redact_annot(pymupdf.Rect(266, 798, 376, 812), fill=None)        # 쪽 번호
         page.apply_redactions(images=pymupdf.PDF_REDACT_IMAGE_NONE, graphics=pymupdf.PDF_REDACT_LINE_ART_NONE,
                               text=pymupdf.PDF_REDACT_TEXT_REMOVE)
         for r in body + [top]:
             page.add_redact_annot(r, fill=(1, 1, 1))
         page.apply_redactions(images=pymupdf.PDF_REDACT_IMAGE_REMOVE,
                               graphics=pymupdf.PDF_REDACT_LINE_ART_REMOVE_IF_COVERED)
-        # 학교 로고(고)를 실제 위치·크기로 옮김
-        page.add_redact_annot(pymupdf.Rect(242, 789, 267, 815), fill=(1, 1, 1))
-        page.apply_redactions(images=pymupdf.PDF_REDACT_IMAGE_REMOVE,
-                              graphics=pymupdf.PDF_REDACT_LINE_ART_REMOVE_IF_COVERED, text=pymupdf.PDF_REDACT_TEXT_REMOVE)
-        page.show_pdf_page(pymupdf.Rect(230.9, 789.3, 230.9 + 25 * 1.04, 789.3 + 26 * 1.05), src, pn,
-                           clip=pymupdf.Rect(242, 789, 267, 815))
-        # 머리글 다시 쓰기 (실제 2학년 시험지 고화질 스캔 실측값)
+        # 머리글 다시 쓰기 (굴림)
         page.insert_font(fontname='GL', fontfile=GULIM)
-        B = 123.48
-        x = put(page, 95.8, B, '2', 20.7, 0.8)
-        x = put(page, 107.7, B, '학년', 15.0, 0.65)
-        x = put(page, 146.8, B, '미적분Ⅰ', 24.0, 0.85, sx=0.91)
-        x = put(page, x + 14.8, B, '과', 15.0, 0.65)
-        x = put(page, x + 10.4, B, '중간고사', 19.8, 0.6)
-        put(page, x + 10.2, B, '문제', 15.0, 0.65)
-        # 정보 줄
-        isz = 9.0
-        for l, r_, t in [(67.0, 198.0, '과 정 : ( 2022 개정 교육과정 )'), (222.0, 297.0, '과목코드 : ( 09 )'),
-                         (317.0, 383.0, '이수단위 : ( 4 )'), (405.0, 541.7, '문항수 ( 선택형: 18, 서답형 2)')]:
-            put_spaced(page, l, r_, 142.8, t, isz, 0.35)
-        # 시행일
-        for r, o, sz in find_chars(page, '7월 11일(토) - 1교시'):
-            page.add_redact_annot(pymupdf.Rect(r.x0, r.y0, 562, r.y1), fill=(1, 1, 1)); pass
-        # 3) 문항수
-        for r, o, sz in find_chars(page, '17, 단답형: 3'):
-            page.add_redact_annot(r, fill=(1, 1, 1)); pass
-        if pn == 0:
-            for r, o, sz in find_chars(page, '82'):
-                page.add_redact_annot(r, fill=(1, 1, 1)); repl.append((o, '80', sz))
-            for r, o, sz in find_chars(page, '17'):
-                if r.y0 > 300:
-                    page.add_redact_annot(r, fill=(1, 1, 1)); repl.append((o, '18', sz))
-            body = [pymupdf.Rect(36, 336, 296, 780.5), pymupdf.Rect(299.5, 146.5, 559, 780.5)]
-        elif pn == 7:
-            body = [pymupdf.Rect(36, 146.5, 296, 780.5), pymupdf.Rect(299.5, 146.5, 559, 610),
-                    pymupdf.Rect(299.5, 670, 559, 780.5)]
-            repl += [((355.44, 694.80), '선택형 18문제 = 80점', 13.8), ((355.92, 715.56), '서답형  2문제 = 20점', 13.8)]
-        else:
-            body = [pymupdf.Rect(36, 146.5, 296, 780.5), pymupdf.Rect(299.5, 146.5, 559, 780.5)]
-        page.add_redact_annot(pymupdf.Rect(60, 134.6, 558, 144.6), fill=None)     # 정보 줄
-        page.add_redact_annot(pymupdf.Rect(420, 118, 562, 128.3), fill=None)      # 시행일
-        page.add_redact_annot(pymupdf.Rect(266, 798, 376, 812), fill=None)        # 쪽 번호
-        page.apply_redactions(images=pymupdf.PDF_REDACT_IMAGE_NONE, graphics=pymupdf.PDF_REDACT_LINE_ART_NONE,
-                              text=pymupdf.PDF_REDACT_TEXT_REMOVE)
-        for r in body + [top]:
-            page.add_redact_annot(r, fill=(1, 1, 1))
-        page.apply_redactions(images=pymupdf.PDF_REDACT_IMAGE_REMOVE,
-                              graphics=pymupdf.PDF_REDACT_LINE_ART_REMOVE_IF_COVERED)
-        # 학교 로고(고)를 실제 위치·크기로 옮김
-        page.add_redact_annot(pymupdf.Rect(242, 789, 267, 815), fill=(1, 1, 1))
-        page.apply_redactions(images=pymupdf.PDF_REDACT_IMAGE_REMOVE,
-                              graphics=pymupdf.PDF_REDACT_LINE_ART_REMOVE_IF_COVERED, text=pymupdf.PDF_REDACT_TEXT_REMOVE)
-        page.show_pdf_page(pymupdf.Rect(230.9, 789.3, 230.9 + 25 * 1.04, 789.3 + 26 * 1.05), src, pn,
-                           clip=pymupdf.Rect(242, 789, 267, 815))
-        # 머리글 다시 쓰기 (실제 2학년 시험지 고화질 스캔 실측값)
-        page.insert_font(fontname='GL', fontfile=GULIM)
-        B = 123.48
-        x = put(page, 95.8, B, '2', 20.7, 0.8)
-        x = put(page, 107.7, B, '학년', 15.0, 0.65)
-        x = put(page, 146.8, B, '미적분Ⅰ', 24.0, 0.85, sx=0.91)
-        x = put(page, x + 14.8, B, '과', 15.0, 0.65)
-        x = put(page, x + 10.4, B, '중간고사', 19.8, 0.6)
-        put(page, x + 10.2, B, '문제', 15.0, 0.65)
-        # 정보 줄
-        g4 = '문항수 ( 선택형: 18, 서답형 2)'
-        sz = fit_size(g4, 541.7 - 405.0)
-        for xl, t in [(67.0, '과 정 : ( 2022 개정 교육과정 )'), (222.0, '과목코드 : ( 09 )'),
-                      (317.0, '이수단위 : ( 4 )'), (405.0, g4)]:
-            put(page, xl, 142.3, t, round(sz * 0.88, 2), 0.25)
-        # 시행일
-        dt = '시행일 2026년 10월 13일(화) - 1교시'
-        put(page, 428.8, 127.1, dt, fit_size(dt, 553.4 - 428.8, 5, 10), 0.45)
-        # 쪽 번호
-        xs = [259.6 + 10.5 * i for i in range(6)]
-        for xl, ch in zip(xs, '양정고등학교'):
-            put(page, xl, 809.9, ch, 9.2, 0.45)
-        for xl, ch in [(322.3, '<'), (327.6, '8'), (340.3, '-'), (350.8, str(pn + 1)), (355.6, '>')]:
-            put(page, xl, 809.9, ch, 9.2, 0.45)
+        gl = pymupdf.Font(fontfile=GULIM)
+        x, y = 83.28, 123.48
+        for t, sz in [(' 2', 20.04), ('학년 ', 15.0), ('미적분Ⅰ', 21.0), ('과 ', 15.0), ('중간고사', 17.5), (' 문제', 15.0)]:
+            page.insert_text((x, y), t, fontname='GL', fontsize=sz, render_mode=2, border_width=0.02)
+            x += gl.text_length(t, fontsize=sz)
         for o, t, sz in repl:
             page.insert_text(o, t, fontname='GL', fontsize=sz, render_mode=2, border_width=0.02)
     return doc
