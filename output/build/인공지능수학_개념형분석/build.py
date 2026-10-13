@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """인공지능 수학 1~5회 개념형 문항 분석자료"""
 import os, re, sys, subprocess, importlib.util
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from extra import EXTRA
 HERE = os.path.dirname(os.path.abspath(__file__))
 AIM = os.path.dirname(HERE)
 SCR = os.path.join(AIM, '..')
@@ -260,8 +262,8 @@ th,td{border:.6pt solid #999;padding:2.5pt 5pt;text-align:center;font-size:8.8pt
 th{background:#eef0f3;font-family:'GY','GL';font-weight:400}
 .st{width:auto}.tp{width:100%}.l{text-align:left}.sm{font-size:7.9pt;color:#444}
 .bar{display:inline-block;height:7pt;background:#5b7db1;border-radius:1pt;vertical-align:middle}
-.leg{flex:1;border:.6pt solid #bbb;background:#fafafa;padding:5pt 8pt;font-size:8.6pt;line-height:1.7}
-.sec{margin-top:12pt}.sec.first{margin-top:14pt}.grp{break-inside:avoid}
+.leg{margin-bottom:6pt;border:.6pt solid #bbb;background:#fafafa;padding:5pt 8pt;font-size:8.6pt;line-height:1.7}
+.sec{margin-top:12pt}.sec.first{margin-top:8pt}.grp{break-inside:avoid}
 .sech{display:flex;align-items:baseline;gap:8pt;border-bottom:1.4pt solid #222;padding-bottom:2pt;margin:0 0 5pt}
 .sech .sn{font-family:'GY','GL';font-size:12.5pt}.sech .pg{font-family:'GY','GL';color:#666;font-size:8.6pt}
 .sech .cnt{margin-left:auto;font-family:'GY','GL';font-size:8.6pt;color:#666}
@@ -272,7 +274,7 @@ th{background:#eef0f3;font-family:'GY','GL';font-weight:400}
 .no{font-weight:400}.tt{color:#333}.sr{color:#777;font-size:8pt}
 .ans{margin-left:auto;font-weight:400;color:#b42318}
 .src{font-size:7.6pt;padding:.5pt 5pt;border-radius:7pt;color:#fff;font-family:'GY','GL'}
-.k1{background:#3866b0}.k2{background:#2f8a4f}.k3{background:#c4741c}
+.k1{background:#3866b0}.k4{background:#7a4fb0}.sec.ex{break-before:page;margin-top:0}.ext td{font-size:8.6pt;line-height:1.5}.ansc{color:#b42318}.k2{background:#2f8a4f}.k3{background:#c4741c}
 .q{padding:4pt 9pt 3pt}
 .chs{margin-top:3pt}.chs.r5,.chs.r2{display:grid;column-gap:6pt}.chs.r5{grid-template-columns:repeat(5,1fr)}.chs.r2{grid-template-columns:repeat(2,1fr)}
 .cc{display:flex;gap:4pt;align-items:baseline;padding:.6pt 3pt;border-radius:2pt}
@@ -301,12 +303,47 @@ def font_css():
             f"@font-face{{font-family:'HB';src:url('{f('hbatang_web.ttf')}')}}"
             f"@font-face{{font-family:'HYEQ';src:url('{f('hyhwpeq_web.ttf')}')}}")
 
+def chlayout(cs):
+    hasm = any('\\(' in c2 for c2 in cs)
+    plain = [re.sub(r'\\\(.*?\\\)', 'xx', c2) for c2 in cs]
+    wide = max(sum(1 if '가' <= ch <= '힣' else 0.5 for ch in p) for p in plain)
+    if hasm: return 'chs r5' if max(len(c2) for c2 in cs) <= 30 else 'chs r2'
+    return 'chs r5' if wide <= 8 else ('chs r2' if wide <= 32 else 'chs')
+
+def head():
+    return ('<h1>인공지능 수학 1~5회 개념형 문항 분석</h1>'
+            '<div class="sub">씨마스 교과서 Ⅰ. 인공지능과 빅데이터 ~ Ⅱ. 텍스트 데이터 처리 · 계산 없이 개념·용어·사실로 푸는 문항 모음 + 미출제 개념 보충 문항 10</div>'
+            '<div class="leg"><b>보는 법</b> &nbsp;카드 머리: 회차·번호 / 주제 / 출처 유형 / 원 출처 / 정답 &nbsp;·&nbsp; '
+            '<span class="ox o">○</span> 옳은 문장(또는 고르는 것) &nbsp;<span class="ox x">×</span> 틀린 문장 &nbsp;·&nbsp; 정답 선지는 음영 &nbsp;·&nbsp; <b>포인트</b> = 함정과 교과서 문장</div>')
+
+def extra_section():
+    keys = ['NAND(부정 논리곱) ∼(A∧B): 둘 다 참일 때만 거짓 / NOR(부정 논리합) ∼(A∨B): 둘 다 거짓일 때만 참 (30–31쪽 탐구 활동)',
+            '데이터 = 관찰·측정으로 얻은 가공되지 않은 정보 (33쪽)',
+            '정해진 범주가 있으면 수에 대응(붓꽃 0·1·2, 에너지 등급 1~5), 텍스트는 범주가 없어 집합·벡터로 (47쪽)',
+            '편향성 최소화를 위한 데이터 정제, 윤리 문제(차별·불공정·사생활 침해) (40–41쪽)',
+            '자카드 유사도: 0 ≤ J ≤ 1, J(A, A)=1, 공통 원소 없으면 0 (70쪽 지식 Plus)']
+    out = ('<div class="sec ex"><div class="grp"><div class="sech"><span class="sn">미출제 개념 보충 문항</span><span class="pg">1~5회에서 다루지 않은 교과서 내용</span>'
+           f'<span class="cnt">{len(EXTRA)}문항</span></div><div class="key">' + ''.join(f'<div>{k}</div>' for k in keys) + '</div>')
+    for i, e in enumerate(EXTRA):
+        cs = e['c']
+        items = ''.join(f'<div class="cc"><span class="cn">{CIRC[j]}</span><span>{c2}</span></div>' for j, c2 in enumerate(cs))
+        cardh = (f'<div class="card"><div class="hd"><span class="no">보충 {i+1}번</span><span class="tt">{e["t"]}</span>'
+                 f'<span class="src k4">보충 문항</span><span class="sr">{e["pg"]}</span></div>'
+                 f'<div class="q">{e["q"]}<div class="{chlayout(cs)}">{items}</div></div></div>')
+        out += cardh + ('</div>' if i == 0 else '')
+    out += '</div>'
+    rows = ''.join(f'<tr><td>{i+1}</td><td class="ansc">{CIRC[e["a"]-1]}</td><td class="l">{e["t"]}</td><td class="l">{e["p"]}</td></tr>' for i, e in enumerate(EXTRA))
+    out += ('<div class="sec"><div class="sech"><span class="sn">보충 문항 정답 및 해설</span></div>'
+            f'<table class="tp ext"><tr><th style="width:5%">번호</th><th style="width:6%">정답</th><th style="width:20%">주제</th><th>포인트</th></tr>{rows}</table></div>')
+    return out
+
 def build(out):
-    body = summary()
+    body = head()
     for i, (nm, pg, keys, its) in enumerate(SECTIONS):
         body += (f'<div class="sec{" first" if i == 0 else ""}"><div class="grp"><div class="sech"><span class="sn">{nm}</span><span class="pg">{pg}</span><span class="cnt">{len(its)}문항</span></div>'
                  f'<div class="key">' + ''.join(f'<div>{k}</div>' for k in keys) + '</div>'
                  + card(*its[0]) + '</div>' + ''.join(card(r, n, kd) for r, n, kd in its[1:]) + '</div>')
+    body += extra_section()
     h = (f'<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="file://{KATEX_CSS}">'
          f'<style>{font_css()}{CSS}</style></head><body>{body}</body></html>')
     open(os.path.join(HERE, 'an_src.html'), 'w').write(h)
