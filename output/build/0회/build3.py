@@ -23,7 +23,7 @@ PAGES = [
     ([('Q13', TOP)], [('Q14', TOP)]),
     ([('Q15', TOP)], [('Q16', TOP)]),
     ([('Q17', TOP)], [('Q18', TOP)]),
-    ([('SEC1', TOP), ('S1', None)], [('SEC2', TOP), ('S2', None)]),
+    ([('SEC1', TOP), ('S1', None)], [('S2', TOP), ('END', 696)]),
 ]
 
 CIRC = '①②③④⑤'
@@ -35,6 +35,9 @@ def font_css():
 @font-face{{font-family:'MJ';src:url('{f('9Bty3DZF0dXLMZlywRbVRNhxy2pXV1A0.ttf')}');font-weight:700}}
 @font-face{{font-family:'GL';src:url('{f('gulim_web.ttf')}')}}
 @font-face{{font-family:'HB';src:url('{f('hbatang_web.ttf')}')}}
+@font-face{{font-family:'HCRB';src:url('{f('hcrbatang.ttf')}')}}
+@font-face{{font-family:'HCRD';src:url('{f('hcrdotum.woff')}')}}
+@font-face{{font-family:'FS';src:url('file:///usr/share/fonts/truetype/freefont/FreeSans.ttf')}}
 @font-face{{font-family:'HYEQ';src:url('{f('hyhwpeq_web.ttf')}')}}
 @font-face{{font-family:'TN';src:url('{f('buE4poGnedXvwgX8.ttf')}')}}
 @font-face{{font-family:'TN';src:url('{f('buE2poGnedXvwjX-fmE.ttf')}');font-style:italic}}
@@ -46,36 +49,42 @@ CSS = r"""
 @page{size:A4;margin:0}
 *{box-sizing:border-box}
 html,body{margin:0;background:transparent}
-body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.78;color:#000;word-break:keep-all}
+body{font-family:'HCRB','HB','MJ','GL',serif;font-size:9pt;line-height:1.78;color:#000;word-break:keep-all}
 .pg{width:595pt;height:842pt;position:relative;page-break-after:always;overflow:hidden}
 .pg:last-child{page-break-after:auto}
 .blk{position:absolute;width:var(--w)}
 .katex{font-size:1.0em;margin:0 1.6pt}
 .katex-display>.katex{margin:0}
-.katex .text,.katex .text *{font-family:'HB'!important;font-style:normal}
-.katex-display{margin:4.5pt 0 7pt;padding-left:calc(33pt - var(--m,0pt))}
+.katex .text,.katex .text *{font-family:'HCRB','HB'!important;font-style:normal}
+.katex-display{margin:2pt 0 2.5pt;padding-left:24pt}
 .katex-display>.katex{text-align:left}
 .q{text-align:justify;position:relative;padding-left:0}
 .qh{}.qh .n{display:inline-block;text-indent:0;vertical-align:baseline;font-family:'HB';font-weight:700;font-style:italic;font-size:10pt;letter-spacing:-.2pt}
 .qt{text-align:justify}.qr{text-align:justify}
 .pt{white-space:nowrap}
 .ch .c{font-family:'GL'}
-.ch{display:flex;flex-wrap:wrap;margin-top:9pt;margin-left:calc(12pt - var(--m,0pt));clear:both}
-.ch>span{width:46.4pt;white-space:nowrap}
+.ch{display:flex;flex-wrap:wrap;margin-top:1pt;margin-left:0;clear:both}
+.ch>span{width:50pt;white-space:nowrap}
 .ch.g>span{width:77pt}
-.cond{border:.6pt solid #000;padding:2.2pt 6pt 1.8pt 7pt;margin:8.5pt 5pt 10.5pt calc(13pt - var(--m,0pt));clear:both;text-align:left}
+.cond{border:.6pt solid #000;padding:2pt 6pt 2pt 6pt;margin:4pt 0 4pt 0;clear:both;text-align:left;line-height:1.5}
 .nw{white-space:nowrap}
 .ci{padding-left:22.4pt;text-indent:-22.4pt;margin:0}.ci .ck{display:inline-block;width:22.4pt;text-indent:0}
-.bogi{border:.6pt solid #000;margin:8.5pt 5pt 4pt calc(12pt - var(--m,0pt));padding:1pt 6pt 4pt;clear:both}
+.bogi{border:.6pt solid #000;margin:4pt 0 4pt 0;padding:1pt 6pt 4pt;clear:both}
 .bogi legend{margin:0 auto;padding:0 5pt;font-family:'GL';font-size:9pt}
 .bi{display:flex;gap:3pt;margin:1pt 0;text-align:left}.bi .bk{flex:none}
 .fig{text-align:center;margin:4pt 0}
-.sub{margin:9pt 0 0;padding-left:14pt;text-indent:-14pt;text-align:justify}
+.sub{margin:0;text-align:justify}
 .sec{padding-top:4.5pt}.sec .h{font-family:'GL';font-size:11.5pt;line-height:13pt;margin-bottom:2.1pt;-webkit-text-stroke:.15pt #000}
 .sec .d{font-family:'GL';font-size:9pt;line-height:11.25pt;-webkit-text-stroke:.1pt #000}
 .sec hr{border:0;border-top:1.4pt solid #000;margin:7.3pt 0 12.7pt}
 .slab{font-family:'HB';font-weight:700;font-style:italic;font-size:11pt}
-.end{text-align:center;font-family:'GL'}
+.end{text-align:center}
+.sech{font-family:'GL';font-size:13pt;line-height:16pt;-webkit-text-stroke:.2pt #000;padding-top:2pt}
+.secr{border:0;border-top:1.4pt solid #000;margin:8pt 0 10pt}
+.sh{font-family:'GL';font-size:13pt;line-height:16pt;-webkit-text-stroke:.35pt #000;margin:0 0 3pt}
+.endx{position:absolute;left:0;width:100%;text-align:center}
+.endx .a{font-family:'HCRD','FS';font-size:21pt;line-height:24pt}
+.endx .b{font-family:'HCRB','HB';font-size:12.8pt;line-height:16pt}
 .end .a{font-size:24pt;letter-spacing:1pt}
 .end .b{font-size:14pt;line-height:1.75;margin-top:6pt}
 .tot{text-align:right}
@@ -90,8 +99,14 @@ def q_html(n):
     first, rest = body[:cut], body[cut:]
     m = 9.3 if n < 10 else 15      # 둘째 문단부터의 들여쓰기(원본 PDF 실측)
     F, C = (15.3, 9.3) if n < 10 else (19.9, 15.6)   # 원본 PDF 실측: 첫 줄 본문 시작 / 둘째 줄 시작      # 이후 문단 들여쓰기 = 번호 폭
-    return (f'<div class="q"><div class="qh" style="padding-left:{C}pt"><div class="qt" style="text-indent:-{C}pt"><span class="n" style="width:{F}pt">{n}.</span>{first}</div></div>'
-            f'<div class="qr" style="--m:{m}pt;margin-left:{m}pt">{rest}<div class="ch{" g" if g else ""}">{chs}</div></div></div>')
+    # 실제 시험지: 둘째 줄·조건 상자·선택지 모두 번호와 같은 왼쪽 선에서 시작 (들여쓰기 없음)
+    return (f'<div class="q"><div class="qh"><div class="qt"><span class="n" style="width:{F}pt">{n}.</span>{first}</div></div>'
+            f'<div class="qr">{rest}<div class="ch{" g" if g else ""}">{chs}</div></div></div>')
+
+def s_html2(head, body, subs):
+    # 실제 시험지: '서답형 n' 제목 줄 → 발문 → (1)(2)… 소문항(들여쓰기 없음), 배점은 소문항 끝 [n점, …]
+    sh = ''.join(f'<div class="sub">({i+1}) {t} [{p}]</div>' for i, (t, p) in enumerate(subs))
+    return f'<div class="sh">{head}</div><div class="q"><div class="qt">{body}</div></div>{sh}'
 
 def s_html(lab, body, subs, total, gaps=(26, 26, 0)):
     # 원본 양식: '단답형 1.'(11pt 굵은 기울임)과 발문이 한 줄에 이어지고, 배점은 발문 끝에 [n점]
@@ -109,15 +124,15 @@ def SEC(kind, total, rng, how):
     return (f'<div class="sec"><div class="h">&lt;{kind} 문제 – {total}점&gt;</div>'
             f'<div class="d">{kind} 문제({rng})는 반드시</div>'
             f'<div class="d"><u>서답형 답안지의 해당란에 {how}</u>하시오.</div><hr></div>')
-SEC1 = SEC('서답형', 10, '서답형 1번', '풀이과정을 상세히 작성')
-SEC2 = SEC('서답형', 10, '서답형 2번', '정답만 작성')
-END = ('<div class="end"><div class="a">♥수고하셨습니다♥</div>'
-       '<div class="b">선택형 18문제 = 80점<br>서답형&nbsp;&nbsp;2문제 = 20점</div></div>')
+SEC1 = '<div class="sech">&lt;서답형 문제 – 20점&gt;</div><hr class="secr">'
+SEC2 = ''
+END = ('<div class="endx" style="top:0"><div class="a">수고하셨습니다 (ᐢ. ꒳ .ᐢ)ꕤ</div>'
+       '<div class="b" style="margin-top:6pt">선택형 18문제 = 80점<br>서답형&nbsp;&nbsp;2문제 = 20점</div></div>')
 
 def block(key):
     if key.startswith('Q'): return q_html(int(key[1:]))
-    if key == 'S1': return s_html('서답형 1.', S1, S1S, 10, (40, 0))
-    if key == 'S2': return s_html('서답형 2.', S2, S2S, 10, (22, 22, 0))
+    if key == 'S1': return s_html2('서답형 1', S1, S1S)
+    if key == 'S2': return s_html2('서답형 2', S2, S2S)
     if key == 'SEC1': return SEC1
     if key == 'SEC2': return SEC2
     if key == 'END': return END
@@ -183,9 +198,7 @@ def make_background():
                     page.add_redact_annot(r, fill=(1, 1, 1)); repl.append((o, '18', sz))
             body = [pymupdf.Rect(36, 336, 296, 780.5), pymupdf.Rect(299.5, 146.5, 559, 780.5)]
         elif pn == 7:
-            body = [pymupdf.Rect(36, 146.5, 296, 780.5), pymupdf.Rect(299.5, 146.5, 559, 610),
-                    pymupdf.Rect(299.5, 670, 559, 780.5)]
-            repl += [((355.44, 694.80), '선택형 18문제 = 80점', 13.8), ((355.92, 715.56), '서답형  2문제 = 20점', 13.8)]
+            body = [pymupdf.Rect(36, 146.5, 296, 780.5), pymupdf.Rect(299.5, 146.5, 559, 780.5)]
         else:
             body = [pymupdf.Rect(36, 146.5, 296, 780.5), pymupdf.Rect(299.5, 146.5, 559, 780.5)]
         page.apply_redactions(images=pymupdf.PDF_REDACT_IMAGE_NONE, graphics=pymupdf.PDF_REDACT_LINE_ART_NONE,
