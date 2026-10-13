@@ -90,8 +90,8 @@ body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.78;color:#000;
 .secr{border:0;border-top:1.4pt solid #000;margin:8pt 0 5.7pt}
 .sh{font-family:'HCRB';font-size:13pt;line-height:16pt;-webkit-text-stroke:.35pt #000;margin:0 0 3pt}
 .endx{position:absolute;left:0;width:100%;text-align:center}
-.endx .a{font-family:'HCRD','FS';font-size:24pt;line-height:26pt;white-space:nowrap;transform:translateX(-3pt) scaleX(0.96)}
-.endx .b{font-family:'HCRB','HB';font-size:14pt;line-height:19.7pt}
+.endx .a{font-family:'HB','FS';font-size:20.5pt;line-height:26pt;white-space:nowrap}
+.endx .b{font-family:'HB';font-size:14pt;line-height:19.7pt}
 .end .a{font-size:24pt;letter-spacing:1pt}
 .end .b{font-size:14pt;line-height:1.75;margin-top:6pt}
 .tot{text-align:right}
@@ -124,7 +124,7 @@ DPAD = {'Q2.0': 19.2, 'Q5.0': 19.8, 'Q6.0': 19.2, 'Q8.0': 24.7, 'Q9.0': 28.2, 'Q
 # 조건 상자 줄 간격 등(원본 실측)
 CONDST = {18: 'line-height:15.3pt;padding-bottom:9pt', 17: 'line-height:13.5pt;padding-bottom:5pt'}
 # 줄별 추가 스타일(원본 실측: 키 큰 수식 뒤 줄 간격 등)
-JLSTYLE = {'Q16.1': 'padding-bottom:10pt', 'Q17.1': 'padding-bottom:8pt'}
+JLSTYLE = {'Q16.1': 'padding-bottom:2pt', 'Q17.1': 'padding-bottom:8pt'}
 
 def dpad(body, key):
     cnt = [0]
@@ -276,13 +276,12 @@ def make_background():
         # 1) 결재란·출제 정보 행 제거 (실제 배부용 시험지와 동일하게)
         top = pymupdf.Rect(0, 28, 595, 92.5)
         # 2) 제목 '1학년 공통수학1과 중간고사 문제' → '2학년 미적분Ⅰ과 중간고사 문제'
-        page.add_redact_annot(pymupdf.Rect(84, 102, 372, 129), fill=(1, 1, 1))
+        page.add_redact_annot(pymupdf.Rect(84, 100, 400, 129), fill=(1, 1, 1))
         # 시행일
         for r, o, sz in find_chars(page, '7월 11일(토) - 1교시'):
             page.add_redact_annot(pymupdf.Rect(r.x0, r.y0, 562, r.y1), fill=(1, 1, 1)); repl.append((o, '10월 13일(화) - 1교시', sz))
-        # 3) 문항수
-        for r, o, sz in find_chars(page, '17, 단답형: 3'):
-            page.add_redact_annot(r, fill=(1, 1, 1)); repl.append((o, '18, 서답형: 2', sz))
+        # 3) 정보 줄(과정·과목코드·이수단위·문항수) 전체 다시 씀
+        page.add_redact_annot(pymupdf.Rect(40, 134.7, 558, 144.1), fill=(1, 1, 1))
         if pn == 0:
             # 1쪽 위: 준수사항 상자·안내문·굵은 선을 모두 지우고 실제 시험지 배치대로 다시 그림 (redraw_p1_head)
             body = [pymupdf.Rect(36, 146.5, 296, 780.5), pymupdf.Rect(299.5, 146.5, 559, 780.5)]
@@ -299,15 +298,22 @@ def make_background():
         # 머리글 다시 쓰기 (굴림)
         page.insert_font(fontname='GL', fontfile=GULIM)
         gl = pymupdf.Font(fontfile=GULIM)
-        x, y = 83.28, 123.48
-        for t, sz in [(' 2', 20.04), ('학년 ', 15.0), ('미적분Ⅰ', 21.0), ('과 ', 15.0), ('중간고사', 17.5), (' 문제', 15.0)]:
-            page.insert_text((x, y), t, fontname='GL', fontsize=sz, render_mode=2, border_width=0.02)
-            x += gl.text_length(t, fontsize=sz)
+        # 제목·정보 줄: 실제 시험지 스캔에서 잰 글자 위치·크기
+        for x, t, sz in TITLE:
+            page.insert_text((x, 123.48), t, fontname='GL', fontsize=sz, render_mode=2, border_width=0.02)
+        for x, t in INFO:
+            page.insert_text((x, INFO_Y), t, fontname='GL', fontsize=INFO_FS, render_mode=2, border_width=0.02)
         for o, t, sz in repl:
             page.insert_text(o, t, fontname='GL', fontsize=sz, render_mode=2, border_width=0.02)
         if pn == 0:
             redraw_p1_head(page, gl)
     return doc
+
+TITLE = [(92.3, '2', 20.04), (106.46, '학년', 15.0), (143.8, '미적분Ⅰ', 23.0), (246.96, '과', 15.0),
+         (269.3, '중간고사', 19.0), (347.45, ' 문제', 15.0)]
+INFO_Y, INFO_FS = 142.8, 9.4
+INFO = [(70.2, '과 정 : ( 2022 개정 교육과정 )'), (223.4, '과목코드 : ( 09 )'), (319.4, '이수단위 : ( 4 )'),
+        (409.8, '문항수 ( 선택형: 18, 서답형 2)')]
 
 BOX_LW = 0.36  # 양식 박스 선 두께(pt); Chromium은 1px(0.75pt) 미만 테두리를 1px로 올리므로 PDF에서 직접 조정
 
