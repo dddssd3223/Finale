@@ -1,0 +1,16 @@
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'r5'))
+from figs import Flow, net, K
+net('fig_sa_mlp', dict(w11=1, w12=1, w21=0.5, w22=0.5, w31=1, w32=-1))
+f = Flow(2.7, 3.05)
+f.node('s', 'term', 1.1, 2.88, 0.6, 0.24, ['시작'])
+f.node('i', 'box', 1.1, 2.48, 1.0, 0.28, [r'$a \leftarrow 0,\ n \leftarrow 1$'])
+f.node('p', 'box', 1.1, 2.03, 1.0, 0.28, [r'$a \leftarrow a+n^2$'])
+f.node('q', 'box', 1.1, 1.58, 1.0, 0.28, [r'$n \leftarrow n+1$'])
+f.node('d', 'dia', 1.1, 1.06, 0.9, 0.4, [r'$n>4\,?$'])
+f.node('o', 'doc', 1.1, 0.52, 0.8, 0.3, [r'$a$를 인쇄'])
+f.node('e', 'term', 1.1, 0.14, 0.6, 0.24, ['끝'])
+f.arrow([f.P('s', 'b'), f.P('i', 't')]); f.arrow([f.P('i', 'b'), f.P('p', 't')]); f.arrow([f.P('p', 'b'), f.P('q', 't')])
+f.arrow([f.P('q', 'b'), f.P('d', 't')]); f.arrow([f.P('d', 'b'), f.P('o', 't')], '예', (1.22, 0.78)); f.arrow([f.P('o', 'b'), f.P('e', 't')])
+f.arrow([f.P('d', 'r'), (2.2, 1.06), (2.2, 2.03), f.P('p', 'r')], '아니요', (1.88, 1.17))
+f.save('fig_sa_flow')
