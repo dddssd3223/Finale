@@ -46,26 +46,33 @@ CALC = [
 
 def calc_section():
     out = ('<div class="sec cl-sec"><div class="sech"><span class="sn">주제별 계산 연습</span><span class="pg">주제마다 2문항 · 답만 쓰기</span>'
-           f'<span class="cnt">{sum(len(v) for _, v in CALC)}문항</span></div><div class="clgrid">')
+           f'<span class="cnt">{sum(len(v) for _, v in CALC)}문항</span></div>')
     n = 0; ans = []
-    for t, items in CALC:
-        out += f'<div class="clt"><div class="clh">{t}</div>'
-        for q, a in items:
-            n += 1; ans.append((n, a))
-            out += f'<div class="clq"><span class="cn2">{n}</span><div>{q}</div></div>'
+    for pg, part in enumerate((CALC[:5], CALC[5:])):
+        cols = (part[:2], part[2:]) if pg == 0 else (part[:2], part[2:])
+        out += f'<div class="clpage{" p2" if pg else ""}">'
+        for col in cols:
+            out += '<div class="clcol">'
+            for t, items in col:
+                out += f'<div class="clt"><div class="clh">{t}</div>'
+                for q, a in items:
+                    n += 1; ans.append((n, a))
+                    out += f'<div class="clq"><span class="cn2">{n}</span><div>{q}</div></div>'
+                out += '</div>'
+            out += '</div>'
         out += '</div>'
-    out += '</div><div class="clans"><b>정답</b> ' + ' &nbsp;·&nbsp; '.join(f'{k}) {a}' for k, a in ans) + '</div></div>'
+    out += '<div class="clans"><b>정답</b> ' + ' &nbsp;·&nbsp; '.join(f'{k}) {a}' for k, a in ans) + '</div></div>'
     return out
 
 CALC_CSS = r"""
 .cl-sec{break-before:page;margin-top:0}
-.clgrid{columns:2;column-gap:10pt}
-.clt{break-inside:avoid;border:.6pt solid #bbb;border-radius:2pt;margin:0 0 5pt}
-.clh{font-family:'GY','GL';background:#eef0f3;padding:1.5pt 6pt;font-size:8.6pt;border-bottom:.6pt solid #ccc;color:#1f4e9a}
-.clq{display:flex;gap:4pt;padding:2.5pt 6pt;font-size:8.5pt;line-height:1.5}
+.clpage{display:flex;gap:14pt;align-items:flex-start}.clpage.p2{break-before:page}.clcol{flex:1;min-width:0}.p2 .clq{padding-bottom:66pt}
+.clt{break-inside:avoid;border:.6pt solid #bbb;border-radius:2pt;margin:0 0 10pt}
+.clh{font-family:'GY','GL';background:#eef0f3;padding:3pt 8pt;font-size:9.4pt;border-bottom:.6pt solid #ccc;color:#1f4e9a}
+.clq{display:flex;gap:6pt;padding:6pt 8pt 52pt;font-size:9.3pt;line-height:1.7}
 .clq+.clq{border-top:.6pt dashed #ddd}
-.cn2{flex:none;font-family:'GY','GL';color:#fff;background:#555;border-radius:6pt;width:12pt;height:12pt;text-align:center;line-height:12pt;font-size:7.6pt;margin-top:1pt}
-.clq .bx{padding:1.5pt 5pt;margin:2pt 0;font-size:8.2pt}.clq .gt{font-size:7.8pt;margin:2pt auto}
-.clans{margin-top:4pt;border-top:1pt solid #333;padding-top:4pt;font-size:8.4pt;line-height:1.75;color:#b42318}
+.cn2{flex:none;font-family:'GY','GL';color:#fff;background:#555;border-radius:6pt;width:14pt;height:14pt;text-align:center;line-height:14pt;font-size:8.4pt;margin-top:1pt}
+.clq .bx{padding:3pt 7pt;margin:4pt 0;font-size:9pt}.clq .gt{font-size:8.6pt;margin:4pt auto}
+.clans{margin-top:8pt;border-top:1pt solid #333;padding-top:6pt;font-size:9pt;line-height:1.9;break-inside:avoid;color:#b42318}
 .clans b{font-family:'GY','GL';color:#111;margin-right:4pt}
 """
