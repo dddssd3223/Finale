@@ -49,13 +49,13 @@ CSS = r"""
 @page{size:A4;margin:0}
 *{box-sizing:border-box}
 html,body{margin:0;background:transparent}
-body{font-family:'HCRB','HB','MJ','GL',serif;font-size:9pt;line-height:1.78;color:#000;word-break:keep-all}
+body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.78;color:#000;word-break:keep-all}
 .pg{width:595pt;height:842pt;position:relative;page-break-after:always;overflow:hidden}
 .pg:last-child{page-break-after:auto}
 .blk{position:absolute;width:var(--w)}
 .katex{font-size:1.0em;margin:0 1.6pt}
 .katex-display>.katex{margin:0}
-.katex .text,.katex .text *{font-family:'HCRB','HB'!important;font-style:normal}
+.katex .text,.katex .text *{font-family:'HB'!important;font-style:normal}
 .katex-display{margin:2pt 0 2.5pt;padding-left:24pt}
 .katex-display>.katex{text-align:left}
 .q{text-align:justify;position:relative;padding-left:0}
@@ -79,9 +79,9 @@ body{font-family:'HCRB','HB','MJ','GL',serif;font-size:9pt;line-height:1.78;colo
 .sec hr{border:0;border-top:1.4pt solid #000;margin:7.3pt 0 12.7pt}
 .slab{font-family:'HB';font-weight:700;font-style:italic;font-size:11pt}
 .end{text-align:center}
-.sech{font-family:'GL';font-size:13pt;line-height:16pt;-webkit-text-stroke:.2pt #000;padding-top:2pt}
+.sech{font-family:'HCRB';font-size:13pt;line-height:16pt;-webkit-text-stroke:.2pt #000;padding-top:2pt}
 .secr{border:0;border-top:1.4pt solid #000;margin:8pt 0 10pt}
-.sh{font-family:'GL';font-size:13pt;line-height:16pt;-webkit-text-stroke:.35pt #000;margin:0 0 3pt}
+.sh{font-family:'HCRB';font-size:13pt;line-height:16pt;-webkit-text-stroke:.35pt #000;margin:0 0 3pt}
 .endx{position:absolute;left:0;width:100%;text-align:center}
 .endx .a{font-family:'HCRD','FS';font-size:21pt;line-height:24pt}
 .endx .b{font-family:'HCRB','HB';font-size:12.8pt;line-height:16pt}
