@@ -16,9 +16,9 @@ KATEX_CSS = os.path.join(SCR, 'node_modules', 'katex', 'dist', 'katex.min.css')
 LX, RX, CW = 42.2, 301.5, 252.0          # 단 시작 x, 단 너비(pt)
 TOP = 150.2                              # 단 첫 문항 y (원본 스캔 실측으로 맞춤)
 PAGES = [
-    ([('P1', 340)], [('Q1', TOP), ('Q2', 345), ('Q3', 495)]),
-    ([('Q4', TOP), ('Q5', 380)], [('Q6', TOP), ('Q7', 466)]),
-    ([('Q8', TOP)], [('SEC1', TOP), ('S1', None), ('S2', None), ('END', 650)]),
+    ([('P1', 320), ('Q1', None)], [('Q2', TOP), ('Q3', 400)]),
+    ([('Q4', TOP), ('Q5', 395)], [('Q6', TOP)]),
+    ([('Q7', TOP), ('Q8', 490)], [('SEC1', TOP), ('S1', None), ('S2', None), ('END', 650)]),
 ]
 
 CIRC = '①②③④⑤'
@@ -83,8 +83,9 @@ body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.78;color:#000;
 .br::before{content:'';position:absolute;right:-.7pt;top:0;width:5pt;border-top:.7pt solid #000}
 .br::after{content:attr(data-l);position:absolute;right:-18pt;top:46%;font-size:8.4pt}
 .bogi .bp{text-align:justify;padding:1pt 0}
-.poem{padding:12pt 18pt 8pt 34pt;font-size:9.6pt;line-height:1.75}
-.poem .st{margin-bottom:9pt}
+.poem{padding:5pt 10pt 3pt 10pt;font-size:9.2pt;line-height:1.42}
+.psg + .q{margin-top:12pt}
+.poem .st{margin-bottom:4pt}
 .gt{border-collapse:collapse;width:100%;margin:5pt 0;font-size:8.6pt}
 .gt td{border:.6pt solid #000;padding:2pt 4pt;text-align:center}
 .cond{border:.6pt solid #000;padding:2pt 6pt 2pt 6pt;margin:4pt 0 4pt 0;clear:both;text-align:left;line-height:1.5}
