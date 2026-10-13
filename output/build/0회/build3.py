@@ -281,7 +281,7 @@ def make_background():
         for r, o, sz in find_chars(page, '7월 11일(토) - 1교시'):
             page.add_redact_annot(pymupdf.Rect(r.x0, r.y0, 562, r.y1), fill=(1, 1, 1)); repl.append((o, '10월 13일(화) - 1교시', sz))
         # 3) 정보 줄(과정·과목코드·이수단위·문항수) 전체 다시 씀
-        page.add_redact_annot(pymupdf.Rect(40, 134.7, 558, 144.1), fill=(1, 1, 1))
+        page.add_redact_annot(pymupdf.Rect(40, 135.0, 558, 143.3), fill=(1, 1, 1))
         if pn == 0:
             # 1쪽 위: 준수사항 상자·안내문·굵은 선을 모두 지우고 실제 시험지 배치대로 다시 그림 (redraw_p1_head)
             body = [pymupdf.Rect(36, 146.5, 296, 780.5), pymupdf.Rect(299.5, 146.5, 559, 780.5)]
@@ -311,7 +311,7 @@ def make_background():
 
 TITLE = [(92.3, '2', 20.04), (106.46, '학년', 15.0), (143.8, '미적분Ⅰ', 23.0), (246.96, '과', 15.0),
          (269.3, '중간고사', 19.0), (347.45, ' 문제', 15.0)]
-INFO_Y, INFO_FS = 142.8, 9.4
+INFO_Y, INFO_FS = 142.3, 9.4
 INFO = [(70.2, '과 정 : ( 2022 개정 교육과정 )'), (223.4, '과목코드 : ( 09 )'), (319.4, '이수단위 : ( 4 )'),
         (409.8, '문항수 ( 선택형: 18, 서답형 2)')]
 
