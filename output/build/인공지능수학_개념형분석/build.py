@@ -3,7 +3,7 @@
 import os, re, sys, subprocess, importlib.util
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from extra import EXTRA
-from sa import sa_section, SA_CSS
+from terms import terms_section, TERMS_CSS
 HERE = os.path.dirname(os.path.abspath(__file__))
 AIM = os.path.dirname(HERE)
 SCR = os.path.join(AIM, '..')
@@ -345,9 +345,9 @@ def build(out):
                  f'<div class="key">' + ''.join(f'<div>{k}</div>' for k in keys) + '</div>'
                  + card(*its[0]) + '</div>' + ''.join(card(r, n, kd) for r, n, kd in its[1:]) + '</div>')
     body += extra_section()
-    body += sa_section(CIRC)
+    body += terms_section()
     h = (f'<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="file://{KATEX_CSS}">'
-         f'<style>{font_css()}{CSS}{SA_CSS}</style></head><body>{body}</body></html>')
+         f'<style>{font_css()}{CSS}{TERMS_CSS}</style></head><body>{body}</body></html>')
     open(os.path.join(HERE, 'an_src.html'), 'w').write(h)
     subprocess.run(['node', os.path.join(HERE, 'render3.js'), 'an_src.html', 'an_tmp.pdf', 'bg'], cwd=HERE, check=True)
     os.replace(os.path.join(HERE, 'an_tmp.pdf'), out)
