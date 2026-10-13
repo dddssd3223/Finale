@@ -251,9 +251,9 @@ def summary():
 
 CSS = r"""@page{size:A4;margin:13mm 12mm 12mm}
 body{font-family:'HB','GL';font-size:9.3pt;color:#111;line-height:1.55;margin:0}
-h1{font-family:'GY','GL';font-size:16pt;text-align:center;margin:0 0 3pt;-webkit-text-stroke:.35pt #000}
+h1{font-family:'GY','GL';font-size:16pt;text-align:center;margin:0 0 3pt}
 .sub{text-align:center;color:#555;font-family:'GY','GL';font-size:8.8pt;margin-bottom:9pt}
-h2{font-family:'GY','GL';font-size:11.5pt;margin:11pt 0 5pt;border-bottom:1.2pt solid #222;padding-bottom:2pt;-webkit-text-stroke:.2pt #000}
+h2{font-family:'GY','GL';font-size:11.5pt;margin:11pt 0 5pt;border-bottom:1.2pt solid #222;padding-bottom:2pt}
 .row{display:flex;gap:10pt;align-items:flex-start}
 table{border-collapse:collapse}
 th,td{border:.6pt solid #999;padding:2.5pt 5pt;text-align:center;font-size:8.8pt}
@@ -263,14 +263,14 @@ th{background:#eef0f3;font-family:'GY','GL';font-weight:400}
 .leg{flex:1;border:.6pt solid #bbb;background:#fafafa;padding:5pt 8pt;font-size:8.6pt;line-height:1.7}
 .sec{margin-top:12pt}.sec.first{margin-top:14pt}.grp{break-inside:avoid}
 .sech{display:flex;align-items:baseline;gap:8pt;border-bottom:1.4pt solid #222;padding-bottom:2pt;margin:0 0 5pt}
-.sech .sn{font-family:'GY','GL';font-size:12.5pt;-webkit-text-stroke:.25pt #000}.sech .pg{font-family:'GY','GL';color:#666;font-size:8.6pt}
+.sech .sn{font-family:'GY','GL';font-size:12.5pt}.sech .pg{font-family:'GY','GL';color:#666;font-size:8.6pt}
 .sech .cnt{margin-left:auto;font-family:'GY','GL';font-size:8.6pt;color:#666}
 .key{background:#f3f6fb;border-left:3pt solid #5b7db1;padding:4pt 8pt;margin:0 0 7pt;font-size:8.8pt;line-height:1.65}
 .key div::before{content:'▪ ';color:#5b7db1}
 .card{border:.6pt solid #aaa;border-radius:2pt;margin:0 0 7pt;break-inside:avoid}
 .hd{display:flex;align-items:center;gap:6pt;background:#f2f2f2;padding:2.5pt 7pt;border-bottom:.6pt solid #ccc;font-family:'GY','GL';font-size:8.6pt}
-.no{font-weight:700;-webkit-text-stroke:.25pt #000}.tt{color:#333}.sr{color:#777;font-size:8pt}
-.ans{margin-left:auto;font-weight:700;color:#b42318;-webkit-text-stroke:.2pt #b42318}
+.no{font-weight:400}.tt{color:#333}.sr{color:#777;font-size:8pt}
+.ans{margin-left:auto;font-weight:400;color:#b42318}
 .src{font-size:7.6pt;padding:.5pt 5pt;border-radius:7pt;color:#fff;font-family:'GY','GL'}
 .k1{background:#3866b0}.k2{background:#2f8a4f}.k3{background:#c4741c}
 .q{padding:4pt 9pt 3pt}
@@ -278,7 +278,7 @@ th{background:#eef0f3;font-family:'GY','GL';font-weight:400}
 .cc{display:flex;gap:4pt;align-items:baseline;padding:.6pt 3pt;border-radius:2pt}
 .cc.on{background:#fff1c9}
 .cn{flex:none;font-family:'GY','GL'}
-.ox{flex:none;display:inline-block;width:10pt;text-align:center;font-family:'GY','GL';font-weight:700;margin-right:2pt}
+.ox{flex:none;display:inline-block;width:10pt;text-align:center;font-family:'GY','GL';font-weight:400;margin-right:2pt}
 .ox.o{color:#2f8a4f}.ox.x{color:#b42318}
 .trap{border-top:.6pt dashed #bbb;padding:3pt 9pt 4pt;font-size:8.7pt;background:#fffaf2}
 .trap b:first-child{font-family:'GY','GL';color:#c4741c;margin-right:4pt}
@@ -291,7 +291,8 @@ th{background:#eef0f3;font-family:'GY','GL';font-weight:400}
 .bogi legend{margin:0 auto;padding:0 5pt;font-family:'GY','GL';font-size:8.6pt}
 .bi{display:flex;gap:3pt;margin:1pt 0;text-align:left;align-items:baseline}.bi .bk{flex:none}
 .fig{text-align:center;margin:4pt 0}
-.katex{font-size:1.05em}"""
+.katex{font-size:1.05em}
+b,strong,th{font-weight:400}b{color:#1f4e9a}.trap b:first-child{color:#c4741c}"""
 
 def font_css():
     f = lambda n: 'file://' + os.path.join(FONTS, n)
