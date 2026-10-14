@@ -1,0 +1,16 @@
+node_modules/
+# 상용 글꼴은 저장소에 올리지 않는다 (fonts/README.md 참고)
+fonts/gulim.ttf
+fonts/gulim_web.ttf
+fonts/hbatang_web.ttf
+fonts/hyhwpeq_web.ttf
+fonts/HYHWPEQ.TTF
+# 빌드 산출물
+rounds/*/overlay*.html
+rounds/*/overlay*.pdf
+rounds/*/*_src.html
+rounds/*/sol.html
+rounds/*/ans.html
+rounds/*/blocks.json
+rounds/*/__pycache__/
+**/__pycache__/

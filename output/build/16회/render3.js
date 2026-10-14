@@ -1,0 +1,12 @@
+const fs=require('fs'),path=require('path');
+const katex=require('../node_modules/katex');const {chromium}=require('../node_modules/playwright-core');
+(async()=>{const [inp,out]=process.argv.slice(2);let h=fs.readFileSync(inp,'utf8');
+const r=(s,d)=>katex.renderToString(s,{displayMode:d,throwOnError:true,strict:false});
+h=h.replace(/\\\[([\s\S]+?)\\\]/g,(m,s)=>r(s,true)).replace(/\\\(([\s\S]+?)\\\)/g,(m,s)=>r(s,false));
+fs.writeFileSync(inp.replace('_src',''),h);
+const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome'});const p=await b.newPage();
+await p.goto('file://'+path.resolve(inp.replace('_src','')),{waitUntil:'networkidle'});await p.evaluate(()=>document.fonts.ready);
+await p.evaluate(require('./eqfont.js'));await p.evaluate(()=>document.fonts.ready);
+const ov=await p.evaluate(()=>[...document.querySelectorAll('.blk')].map(e=>{const r=e.getBoundingClientRect();return {k:e.dataset.k,top:r.top*0.75,bottom:r.bottom*0.75}}));
+fs.writeFileSync(path.join(path.dirname(inp),'blocks.json'),JSON.stringify(ov));
+await p.pdf({path:out,format:'A4',preferCSSPageSize:true,printBackground:process.argv[4]==='bg'});await b.close()})();
