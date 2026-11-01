@@ -74,7 +74,7 @@ body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.78;color:#000;
 .ch.g>span{width:77pt}
 .cond{border:.6pt solid #000;padding:2pt 6pt 2pt 6pt;margin:4pt 0 4pt 0;clear:both;text-align:left;line-height:1.5}
 .nw{white-space:nowrap}
-.ci{display:flex;align-items:baseline;margin:0}.ci .ck{flex:none;width:22.4pt}.cit{flex:1;min-width:0;text-align:justify}.ci.blk2{display:block}.ci.blk2 .ck{display:block;width:auto}.cond>div:not(.ci){text-align:justify}
+.ci{display:flex;align-items:baseline;margin:0}.ci .ck{flex:none;width:22.4pt}.cit{flex:1;min-width:0;text-align:justify}.cond>div:not(.ci){text-align:justify}
 .bit{flex:1;min-width:0;text-align:justify}
 .bogi{min-inline-size:0;border:.6pt solid #000;margin:4pt 0 4pt 0;padding:1pt 6pt 4pt;clear:both}
 .bogi legend{margin:0 auto;padding:0 5pt;font-family:'GL';font-size:9pt}
@@ -267,11 +267,7 @@ def boxes(h, key):
             out.append(h[i:a - 6] + '<div class="bit">' + jl(h[a:b], f'{key}.b{n}') + '</div>'); i = b + 7
         elif t.startswith('<div class="ci">'):
             a = m.end(); b = _match_close(h, m.start(), 'div')
-            inner = h[a:b]
-            if inner.lstrip().startswith('\\['):      # 이름표 바로 뒤가 디스플레이 수식이면 원본처럼 (가) 다음 줄에 수식
-                out.append(h[i:m.start()] + t.replace('class="ci"', 'class="ci blk2"') + '<div class="cit">' + inner + '</div>')
-            else:
-                out.append(h[i:a] + '<div class="cit">' + jl(inner, f'{key}.c{n}') + '</div>')
+            out.append(h[i:a] + '<div class="cit">' + jl(h[a:b], f'{key}.c{n}') + '</div>')
             i = b
         else:                              # 이름표 없는 상자 줄
             a = m.end(); b = _match_close(h, a - 5, 'div')
