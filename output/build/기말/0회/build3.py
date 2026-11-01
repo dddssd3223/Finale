@@ -74,8 +74,9 @@ body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.78;color:#000;
 .ch.g>span{width:77pt}
 .cond{border:.6pt solid #000;padding:2pt 6pt 2pt 6pt;margin:4pt 0 4pt 0;clear:both;text-align:left;line-height:1.5}
 .nw{white-space:nowrap}
-.ci{padding-left:22.4pt;text-indent:-22.4pt;margin:0}.ci .ck{display:inline-block;width:22.4pt;text-indent:0}
-.bogi{border:.6pt solid #000;margin:4pt 0 4pt 0;padding:1pt 6pt 4pt;clear:both}
+.ci{display:flex;align-items:baseline;margin:0}.ci .ck{flex:none;width:22.4pt}.cit{flex:1;min-width:0;text-align:justify}.ci.blk2{display:block}.ci.blk2 .ck{display:block;width:auto}.cond>div:not(.ci){text-align:justify}
+.bit{flex:1;min-width:0;text-align:justify}
+.bogi{min-inline-size:0;border:.6pt solid #000;margin:4pt 0 4pt 0;padding:1pt 6pt 4pt;clear:both}
 .bogi legend{margin:0 auto;padding:0 5pt;font-family:'GL';font-size:9pt}
 .bi{display:flex;gap:3pt;margin:1pt 0;text-align:left;align-items:baseline}.bi .bk{flex:none}
 .fig{text-align:center;margin:4pt 0}
@@ -107,7 +108,8 @@ except FileNotFoundError:
 
 MEASURE = False   # True: 1차 렌더(어절 폭 측정용)
 BREAKS = {}       # key -> 줄을 끊을 공백 위치(문자열 오프셋) 목록 (autobreak로 계산)
-COLW = 251.5      # 줄 너비(pt)
+COLW = 251.5      # 줄 너비(pt) 기본값
+WIDTH = {}        # key -> 그 문단의 실제 너비(pt) (측정값)
 SHRINK = 0.6      # 줄에 다음 어절을 붙일 때 공백을 최대 이만큼 줄일 수 있음(0.6 = 원래 폭의 40%까지)
 _TOK = re.compile(r'\\\([\s\S]+?\\\)|\\\[[\s\S]+?\\\]|<[^>]+>|⏎| ')
 
@@ -171,7 +173,7 @@ def jl(h, key=''):
     for p in parts[:-1]:
         i = max([m.end() for m in _BLK.finditer(p)] or [0])
         k = f'{key}.{len(out)}'
-        w = JLW.get(k) or (COLW if key in BREAKS else None)
+        w = JLW.get(k) or (WIDTH.get(key, COLW) if key in BREAKS else None)
         st = (f'width:{w:.1f}pt;text-align-last:justify;' if w else '') + JLSTYLE.get(k, '')
         st = f' style="{st}"' if st else ''
         out.append(p[:i] + f'<span class="jl" data-id="{k}"{st}>{p[i:].lstrip()}</span>')
@@ -185,7 +187,9 @@ def autobreak(mk):
     R = defaultdict(lambda: {'s': None, 'e': None, 'b': {}, 'a': {}})
     for m in mk:
         d = R[m['r']]
-        if m['t'] in 'se': d[m['t']] = m['x']
+        if m['t'] in 'se':
+            d[m['t']] = m['x']
+            if m['t'] == 's' and m.get('w'): d['w'] = m['w']
         else: d[m['t']][m['i']] = m['x']
     br = defaultdict(list)
     INF = float('inf')
@@ -193,6 +197,7 @@ def autobreak(mk):
         key = rk.split('#')[0]
         gaps = sorted(d['b'])
         if not gaps or d['s'] is None or d['e'] is None: continue
+        W = d.get('w') or COLW; WIDTH[key] = W
         # 어절 k의 [시작, 끝]: 0번은 run 시작~첫 공백, k번은 공백 k-1 뒤~공백 k 앞(마지막은 run 끝)
         st = [d['s']] + [d['a'][g] for g in gaps]
         en = [d['b'][g] for g in gaps] + [d['e']]
@@ -200,9 +205,9 @@ def autobreak(mk):
         n = len(st)
         def cost(i, j, last):     # 어절 i..j 한 줄
             nat = en[j] - st[i]; S = sum(sp[i:j]); k = j - i
-            if nat - SHRINK * S > COLW: return INF
-            if last and nat <= COLW: return 0.0
-            adj = COLW - nat
+            if nat - SHRINK * S > W: return INF
+            if last and nat <= W: return 0.0
+            adj = W - nat
             if k == 0: return 1e4 if adj > 40 else (adj / 4) ** 2
             per = adj / k
             return (per ** 2) if per >= 0 else (per ** 2) * 0.5
@@ -210,7 +215,7 @@ def autobreak(mk):
         best[0] = (0, 0.0, -1)
         for j in range(1, n + 1):
             for i in range(j - 1, -1, -1):
-                if en[j - 1] - st[i] > COLW * 2.2: break
+                if en[j - 1] - st[i] > W * 2.2: break
                 c = cost(i, j - 1, j == n)
                 if c == INF or best[i][0] == INF: continue
                 cand = (best[i][0] + 1, best[i][1] + c, i)
@@ -222,7 +227,7 @@ def autobreak(mk):
             j = i
         br[key] += sorted(cuts)
         li = best[n][2]                          # 마지막 줄이 단보다 넓으면(공백을 줄여야 들어가면) 그 줄도 압축 대상으로
-        if en[n - 1] - st[li] > COLW:
+        if en[n - 1] - st[li] > W:
             br[key].append(('E', int(rk.split('#')[1])))
     return br
 
@@ -241,6 +246,39 @@ def dpad(body, key):
         return f'<div class="dw" style="padding-left:{DPAD[k]}pt">{m.group(0)}</div>' if k in DPAD else m.group(0)
     return re.sub(r'\\\[[\s\S]+?\\\]', rep, body)
 
+def _match_close(h, i, tag):
+    """h[i:]가 <tag ...>로 시작할 때, 짝이 맞는 </tag>의 시작 위치"""
+    d = 0
+    for m in re.finditer(rf'<(/?){tag}\b[^>]*>', h[i:]):
+        d += -1 if m.group(1) else 1
+        if d == 0: return i + m.start()
+    return len(h)
+
+def boxes(h, key):
+    """조건 상자 (가)(나)…·보기 ㄱㄴㄷ 안의 글도 본문처럼 줄바꿈 계산·양끝 맞춤"""
+    out, i, n = [], 0, 0
+    pat = re.compile(r'<div class="ci"><span class="ck">[^<]*</span>|<div class="cond">\s*<div>|(?<=</div>)<div>(?=[^<]*?[가-힣])|<div class="bi"><span class="bk">[^<]*</span><span>')
+    while True:
+        m = pat.search(h, i)
+        if not m: out.append(h[i:]); break
+        t = m.group(0)
+        if t.endswith('<span>'):          # 보기 항목
+            a = m.end(); b = _match_close(h, a - 6, 'span')
+            out.append(h[i:a - 6] + '<div class="bit">' + jl(h[a:b], f'{key}.b{n}') + '</div>'); i = b + 7
+        elif t.startswith('<div class="ci">'):
+            a = m.end(); b = _match_close(h, m.start(), 'div')
+            inner = h[a:b]
+            if inner.lstrip().startswith('\\['):      # 이름표 바로 뒤가 디스플레이 수식이면 원본처럼 (가) 다음 줄에 수식
+                out.append(h[i:m.start()] + t.replace('class="ci"', 'class="ci blk2"') + '<div class="cit">' + inner + '</div>')
+            else:
+                out.append(h[i:a] + '<div class="cit">' + jl(inner, f'{key}.c{n}') + '</div>')
+            i = b
+        else:                              # 이름표 없는 상자 줄
+            a = m.end(); b = _match_close(h, a - 5, 'div')
+            out.append(h[i:a] + jl(h[a:b], f'{key}.c{n}')); i = b
+        n += 1
+    return ''.join(out)
+
 def q_html(n):
     pt, body, ch = Q[n]
     body = dpad(body, f'Q{n}')
@@ -251,6 +289,7 @@ def q_html(n):
     g = all(c.startswith('T:') for c in ch)
     w = CHW.get(n)
     chs = ''.join(f'<span{f" style=width:{w}pt" if w else ""}><span class="c">{CIRC[i]}</span> ' + (c[2:] if c.startswith('T:') else f'\\({c}\\)') + '</span>' for i, c in enumerate(ch))
+    body = boxes(body, f'Q{n}')
     F = 15.3 if n < 10 else 19.9   # 원본 PDF 실측: 번호 폭
     # 실제 시험지: 둘째 줄·조건 상자·선택지 모두 번호와 같은 왼쪽 선에서 시작 (들여쓰기 없음), 줄바꿈 위치도 원본과 동일
     return (f'<div class="q"><div class="qt">{jl(f"<span class=n style=width:{F}pt>{n}.</span>" + body, f"Q{n}")}</div>'
@@ -263,6 +302,7 @@ def s_html2(head, body, subs):
     else:
         sh = ''.join(f'<div class="sub">{jl(f"({i+1}) {t} [{p}]", f"{head}-{i+1}")}</div>' for i, (t, p) in enumerate(subs))
     c = 's1' if head.endswith('1') else 's2'
+    body = boxes(body, head)
     return f'<div class="{c}"><div class="sh">{head}</div><div class="q"><div class="qt">{jl(body, head)}</div></div>{sh}</div>'
 
 def s_html(lab, body, subs, total, gaps=(26, 26, 0)):
@@ -298,7 +338,7 @@ def nobreak(h):
     # 수식 바로 뒤의 쉼표·마침표가 다음 줄 맨 앞으로 가지 않도록 묶음
     return re.sub(r'(\\\((?:(?!\\\)).)+?\\\))([,.])', r'<span class="nw">\1\2</span>', h)
 
-MCSS = '.qt,.s1 .q,.s2 .q{white-space:nowrap}.qt .cond,.qt .bogi,.qt .fig{white-space:normal}'
+MCSS = '.qt,.s1 .q,.s2 .q{white-space:nowrap}.qt .cond,.qt .bogi,.qt .fig{white-space:normal}.cit,.cond>div,.bit{white-space:nowrap;overflow:hidden}'
 
 def overlay_html():
     pages = []

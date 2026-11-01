@@ -22,6 +22,6 @@ const dm=await p.evaluate(()=>{const pgs=[...document.querySelectorAll('.pg')];r
 fs.writeFileSync(path.join(path.dirname(inp),'dm.json'),JSON.stringify(dm));
 const ch=await p.evaluate(()=>{const pgs=[...document.querySelectorAll('.pg')];return [...document.querySelectorAll('.ch')].map(e=>{const pg=e.closest('.pg'),R=pg.getBoundingClientRect(),r=e.getBoundingClientRect();return {k:e.closest('.blk').dataset.k,pg:pgs.indexOf(pg),x0:(r.left-R.left)*0.75,top:(r.top-R.top)*0.75,bot:(r.bottom-R.top)*0.75}})});
 fs.writeFileSync(path.join(path.dirname(inp),'ch.json'),JSON.stringify(ch));
-const mk=await p.evaluate(()=>[...document.querySelectorAll('i.mk')].map(e=>({r:e.dataset.r,i:+e.dataset.i,t:e.dataset.t,x:e.getBoundingClientRect().left*0.75})));
+const mk=await p.evaluate(()=>[...document.querySelectorAll('i.mk')].map(e=>({r:e.dataset.r,i:+e.dataset.i,t:e.dataset.t,x:e.getBoundingClientRect().left*0.75,w:(e.closest('.cit,.bit,.cond>div,.qt,.q')||e.parentElement).clientWidth*0.75})));
 if(mk.length)fs.writeFileSync(path.join(path.dirname(inp),'mk.json'),JSON.stringify(mk));
 await p.pdf({path:out,format:'A4',preferCSSPageSize:true,printBackground:process.argv[4]==='bg'});await b.close()})();
