@@ -105,18 +105,96 @@ try:   # 줄별 너비(pt): 원본 스캔에서 그 줄의 오른쪽 끝을 재�
 except FileNotFoundError:
     JLW = {}
 
+MEASURE = False   # True: 1차 렌더(어절 폭 측정용)
+BREAKS = {}       # key -> 줄을 끊을 공백 위치(문자열 오프셋) 목록 (autobreak로 계산)
+COLW = 251.5      # 줄 너비(pt)
+SHRINK = 0.6      # 줄에 다음 어절을 붙일 때 공백을 최대 이만큼 줄일 수 있음(0.6 = 원래 폭의 40%까지)
+_TOK = re.compile(r'\\\([\s\S]+?\\\)|\\\[[\s\S]+?\\\]|<[^>]+>|⏎| ')
+
+def spaces(h):
+    """최상위(상자·그림 밖) 본문의 '끊을 수 있는 공백' 위치, 문단(run) 시작·끝 위치"""
+    out, run, depth, inl = [], 0, 0, 0
+    starts, ends = {0: 0}, {}
+    for m in _TOK.finditer(h):
+        t = m.group(0)
+        if t.startswith('\\['):
+            if depth == 0: ends[run] = m.start(); run += 1; starts[run] = m.end()
+        elif t.startswith('<'):
+            name = re.match(r'</?\s*(\w+)', t)
+            name = name.group(1).lower() if name else ''
+            if name in ('div', 'fieldset'):
+                if t.startswith('</'):
+                    depth -= 1
+                    if depth == 0: run += 1; starts[run] = m.end()
+                else:
+                    if depth == 0: ends[run] = m.start()
+                    depth += 1
+            elif name == 'br':
+                if depth == 0: ends[run] = m.start(); run += 1; starts[run] = m.end()
+            elif name in ('span', 'u', 'b', 'i', 'sup', 'sub') and not t.endswith('/>'):
+                inl += -1 if t.startswith('</') else 1
+        elif t == ' ' and depth == 0 and inl == 0:
+            out.append((run, m.start()))
+    ends.setdefault(run, len(h))
+    return out, starts, ends
+
+def mark(h, key):
+    sp, starts, ends = spaces(h)
+    ins = {}
+    for r, st in starts.items():
+        ins.setdefault(st, []).append(f'<i class="mk" data-r="{key}#{r}" data-i="-1" data-t="s"></i>')
+    for r, en in ends.items():
+        ins.setdefault(en, []).insert(0, f'<i class="mk" data-r="{key}#{r}" data-i="-1" data-t="e"></i>')
+    for n, (r, off) in enumerate(sp):
+        ins.setdefault(off, []).append(f'<i class="mk" data-r="{key}#{r}" data-i="{n}" data-t="b"></i>')
+        ins.setdefault(off + 1, []).append(f'<i class="mk" data-r="{key}#{r}" data-i="{n}" data-t="a"></i>')
+    out, last = [], 0
+    for off in sorted(ins):
+        out.append(h[last:off]); out.append(''.join(ins[off])); last = off
+    out.append(h[last:])
+    return ''.join(out)
+
 def jl(h, key=''):
-    """'⏎' = 원본 시험지의 줄바꿈 위치. 그 줄은 원본에서 잰 오른쪽 끝까지 양끝 맞춤."""
+    """'⏎' = 줄바꿈 위치. 그 줄은 단 너비까지 양끝 맞춤(넘치면 낱말 간격을 줄임)."""
+    if MEASURE:
+        return mark(h, key)
+    if key in BREAKS:
+        sp = spaces(h)[0]
+        for off in sorted((sp[g][1] for g in BREAKS[key]), reverse=True):
+            h = h[:off] + '⏎' + h[off + 1:]
     parts = h.split('⏎')
     out = []
     for p in parts[:-1]:
         i = max([m.end() for m in _BLK.finditer(p)] or [0])
         k = f'{key}.{len(out)}'
-        w = JLW.get(k)
+        w = JLW.get(k) or (COLW if key in BREAKS else None)
         st = (f'width:{w:.1f}pt;text-align-last:justify;' if w else '') + JLSTYLE.get(k, '')
         st = f' style="{st}"' if st else ''
         out.append(p[:i] + f'<span class="jl" data-id="{k}"{st}>{p[i:].lstrip()}</span>')
     return ''.join(out) + parts[-1]
+
+def autobreak(mk):
+    """측정한 어절 폭으로 줄 끊을 위치 결정: 다음 어절이 공백을 줄여서라도 들어가면 앞줄에 붙임."""
+    from collections import defaultdict
+    R = defaultdict(lambda: {'s': None, 'e': None, 'b': {}, 'a': {}})
+    for m in mk:
+        d = R[m['r']]
+        if m['t'] in 'se': d[m['t']] = m['x']
+        else: d[m['t']][m['i']] = m['x']
+    br = defaultdict(list)
+    for rk, d in R.items():
+        key = rk.split('#')[0]
+        gaps = sorted(d['b'])
+        if not gaps or d['s'] is None or d['e'] is None: continue
+        x0, sp_sum = d['s'], 0.0
+        for j, g in enumerate(gaps):
+            end = d['b'][gaps[j + 1]] if j + 1 < len(gaps) else d['e']   # 공백 g 다음 어절의 끝
+            sp = d['a'][g] - d['b'][g]
+            if end - x0 - SHRINK * (sp_sum + sp) > COLW:
+                br[key].append(g); x0 = d['a'][g]; sp_sum = 0.0
+            else:
+                sp_sum += sp
+    return br
 
 # 디스플레이 수식 왼쪽 여백(pt): 원본 스캔 실측 (measure_dm.py)
 DPAD = {}
@@ -190,6 +268,8 @@ def nobreak(h):
     # 수식 바로 뒤의 쉼표·마침표가 다음 줄 맨 앞으로 가지 않도록 묶음
     return re.sub(r'(\\\((?:(?!\\\)).)+?\\\))([,.])', r'<span class="nw">\1\2</span>', h)
 
+MCSS = '.qt,.s1 .q,.s2 .q{white-space:nowrap}.qt .cond,.qt .bogi,.qt .fig{white-space:normal}'
+
 def overlay_html():
     pages = []
     for L, R in PAGES:
@@ -206,7 +286,7 @@ def overlay_html():
         h += '</div>'
         pages.append(h)
     return (f'<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="file://{KATEX_CSS}">'
-            f'<style>{font_css()}{CSS}</style></head><body>{nobreak("".join(pages))}</body></html>')
+            f'<style>{font_css()}{CSS}{MCSS if MEASURE else ""}</style></head><body>{nobreak("".join(pages))}</body></html>')
 
 # ------------------------------------------------------------------ 바탕(원본 PDF) 가공
 def find_chars(page, target, ymax=400):
@@ -333,6 +413,13 @@ def thin_boxes(doc):
             if n != c: doc.update_stream(xref, n)
 
 def build(out_pdf):
+    global MEASURE, BREAKS
+    MEASURE = True
+    open(os.path.join(HERE, 'overlay_src.html'), 'w').write(overlay_html())
+    subprocess.run(['node', os.path.join(HERE, 'render3.js'), 'overlay_src.html', 'overlay.pdf'], cwd=HERE, check=True)
+    MEASURE = False
+    BREAKS = autobreak(json.load(open(os.path.join(HERE, 'mk.json'))))
+    # 측정 오프셋은 마킹 전 문자열 기준: 마커는 공백 앞뒤에만 끼워 넣었으므로 공백 순번으로 다시 찾는다
     open(os.path.join(HERE, 'overlay_src.html'), 'w').write(overlay_html())
     subprocess.run(['node', os.path.join(HERE, 'render3.js'), 'overlay_src.html', 'overlay.pdf'], cwd=HERE, check=True)
     ov = pymupdf.open(os.path.join(HERE, 'overlay.pdf'))
