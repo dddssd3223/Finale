@@ -159,9 +159,13 @@ def jl(h, key=''):
     if MEASURE:
         return mark(h, key)
     if key in BREAKS:
-        sp = spaces(h)[0]
-        for off in sorted((sp[g][1] for g in BREAKS[key]), reverse=True):
-            h = h[:off] + '⏎' + h[off + 1:]
+        sp, _, ends = spaces(h)
+        ed = []
+        for g in BREAKS[key]:
+            if isinstance(g, tuple): ed.append((ends[g[1]], 'ins'))
+            else: ed.append((sp[g][1], 'rep'))
+        for off, how in sorted(ed, reverse=True):
+            h = h[:off] + '⏎' + h[off + (1 if how == 'rep' else 0):]
     parts = h.split('⏎')
     out = []
     for p in parts[:-1]:
@@ -174,7 +178,9 @@ def jl(h, key=''):
     return ''.join(out) + parts[-1]
 
 def autobreak(mk):
-    """측정한 어절 폭으로 줄 끊을 위치 결정: 다음 어절이 공백을 줄여서라도 들어가면 앞줄에 붙임."""
+    """측정한 어절 폭으로 줄 끊을 위치 결정 (문단 전체 최적화).
+    1) 줄 수를 가장 적게, 2) 그 안에서 줄마다 벌어지는 간격(공백 하나당 늘어나는 폭)의 제곱합이 최소가 되도록.
+    다음 어절은 공백을 원래 폭의 (1-SHRINK)까지 줄여서라도 들어가면 앞줄에 붙일 수 있음."""
     from collections import defaultdict
     R = defaultdict(lambda: {'s': None, 'e': None, 'b': {}, 'a': {}})
     for m in mk:
@@ -182,18 +188,42 @@ def autobreak(mk):
         if m['t'] in 'se': d[m['t']] = m['x']
         else: d[m['t']][m['i']] = m['x']
     br = defaultdict(list)
+    INF = float('inf')
     for rk, d in R.items():
         key = rk.split('#')[0]
         gaps = sorted(d['b'])
         if not gaps or d['s'] is None or d['e'] is None: continue
-        x0, sp_sum = d['s'], 0.0
-        for j, g in enumerate(gaps):
-            end = d['b'][gaps[j + 1]] if j + 1 < len(gaps) else d['e']   # 공백 g 다음 어절의 끝
-            sp = d['a'][g] - d['b'][g]
-            if end - x0 - SHRINK * (sp_sum + sp) > COLW:
-                br[key].append(g); x0 = d['a'][g]; sp_sum = 0.0
-            else:
-                sp_sum += sp
+        # 어절 k의 [시작, 끝]: 0번은 run 시작~첫 공백, k번은 공백 k-1 뒤~공백 k 앞(마지막은 run 끝)
+        st = [d['s']] + [d['a'][g] for g in gaps]
+        en = [d['b'][g] for g in gaps] + [d['e']]
+        sp = [d['a'][g] - d['b'][g] for g in gaps]
+        n = len(st)
+        def cost(i, j, last):     # 어절 i..j 한 줄
+            nat = en[j] - st[i]; S = sum(sp[i:j]); k = j - i
+            if nat - SHRINK * S > COLW: return INF
+            if last and nat <= COLW: return 0.0
+            adj = COLW - nat
+            if k == 0: return 1e4 if adj > 40 else (adj / 4) ** 2
+            per = adj / k
+            return (per ** 2) if per >= 0 else (per ** 2) * 0.5
+        best = [(INF, INF, -1)] * (n + 1)   # (줄 수, 비용, 앞 끊는 위치)
+        best[0] = (0, 0.0, -1)
+        for j in range(1, n + 1):
+            for i in range(j - 1, -1, -1):
+                if en[j - 1] - st[i] > COLW * 2.2: break
+                c = cost(i, j - 1, j == n)
+                if c == INF or best[i][0] == INF: continue
+                cand = (best[i][0] + 1, best[i][1] + c, i)
+                if cand[:2] < best[j][:2]: best[j] = cand
+        cuts, j = [], n
+        while j > 0:
+            i = best[j][2]
+            if i > 0: cuts.append(gaps[i - 1])   # 어절 i 앞의 공백에서 줄바꿈
+            j = i
+        br[key] += sorted(cuts)
+        li = best[n][2]                          # 마지막 줄이 단보다 넓으면(공백을 줄여야 들어가면) 그 줄도 압축 대상으로
+        if en[n - 1] - st[li] > COLW:
+            br[key].append(('E', int(rk.split('#')[1])))
     return br
 
 # 디스플레이 수식 왼쪽 여백(pt): 원본 스캔 실측 (measure_dm.py)
