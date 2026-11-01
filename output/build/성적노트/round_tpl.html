@@ -1,0 +1,102 @@
+<title>__TITLE__</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+/* 레이아웃: 휴대폰 한 화면 성적표 — 점수 → 영역별 → 문항 ○/✗ → 서답형 → 감점 내역 → 추이 */
+:root{
+  --paper:#f6f7f9; --card:#ffffff; --ink:#18213a; --muted:#5f6880; --line:#dfe3ea;
+  --navy:#24407a; --navy-soft:#e8edf7; --red:#c8281e; --red-soft:#fbe9e7; --ok:#2f7d4f; --ok-soft:#e6f2ea;
+  --display:'Gowun Batang','AppleMyungjo','Noto Serif KR',serif;
+  --body:'IBM Plex Sans KR',-apple-system,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0f1424; --card:#171e33; --ink:#e7ebf5; --muted:#9aa3bb; --line:#2a3350;
+  --navy:#8fb0f0; --navy-soft:#1f2b4d; --red:#ff7a6e; --red-soft:#3a1f22; --ok:#6fcf97; --ok-soft:#173326; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0f1424; --card:#171e33; --ink:#e7ebf5; --muted:#9aa3bb; --line:#2a3350;
+  --navy:#8fb0f0; --navy-soft:#1f2b4d; --red:#ff7a6e; --red-soft:#3a1f22; --ok:#6fcf97; --ok-soft:#173326; color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 28px}
+.wrap{max-width:460px;margin:0 auto;display:grid;gap:12px}
+.num{font-variant-numeric:tabular-nums}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.eyebrow{font-size:12px;letter-spacing:.06em;color:var(--muted)}
+.hero .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+h1{font-size:17px;font-weight:600;margin:2px 0 0}
+.pill{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--red-soft);color:var(--red)} .pill.navy{background:var(--navy-soft);color:var(--navy)}
+.big{display:flex;align-items:baseline;gap:6px;margin-top:10px}
+.big b{font-family:var(--display);font-size:56px;line-height:1;letter-spacing:-.01em}
+.big span{color:var(--muted);font-size:15px}
+.delta{font-size:13px;font-weight:600;margin-left:auto}
+.delta.up{color:var(--ok)} .delta.down{color:var(--red)}
+.parts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.parts div{background:var(--paper);border-radius:10px;padding:8px 10px}
+.parts b{display:block;font-size:18px;font-weight:600}
+.parts span{font-size:11.5px;color:var(--muted)}
+h2{font-size:14px;font-weight:600;margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline}
+h2 small{font-weight:400;color:var(--muted);font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.cell{border-radius:10px;background:var(--paper);padding:6px 2px;text-align:center;line-height:1.2}
+.cell .n{font-size:11px;color:var(--muted)}
+.cell .m{font-size:17px;font-weight:600;color:var(--ok)}
+.cell.x{background:var(--red-soft)} .cell.x .m,.cell.x .n{color:var(--red)}
+.cell .a{font-size:10.5px;color:var(--red)}
+.sa{display:grid;gap:8px}
+.sa .r{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px}
+.sa .nm{width:66px;color:var(--muted)}
+.tag{font-size:12.5px;border-radius:7px;padding:3px 8px;background:var(--ok-soft);color:var(--ok)}
+.tag.x{background:var(--red-soft);color:var(--red)}
+.sa .sum{margin-left:auto;font-weight:600}
+.notes{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.notes li{font-size:13.5px;line-height:1.5}
+.notes .h{display:flex;gap:6px;align-items:baseline;font-weight:600}
+.notes .h em{font-style:normal;color:var(--red);font-size:12.5px}
+.notes .h .cat{font-size:11px;font-weight:600;color:var(--red);background:var(--red-soft);border-radius:5px;padding:1px 6px}
+.notes p{margin:2px 0 0;color:var(--muted)}
+.good{font-size:13.5px;color:var(--ok)}
+svg text{font-family:var(--body);fill:var(--muted);font-size:10.5px}
+footer{text-align:center;color:var(--muted);font-size:11.5px}
+</style>
+
+<div class="wrap" id="app"></div>
+
+<script>
+const D = __DATA__;
+const CIRC='①②③④⑤', fmt=v=>(Math.round(v*10)/10).toFixed(1).replace(/\.0$/,'');
+const mcScore=D.mc.filter(q=>q.a===q.m).reduce((s,q)=>s+q.p,0);
+const saParts=D.sa.map(s=>({...s,got:s.items.reduce((a,i)=>a+i.g,0),max:s.items.reduce((a,i)=>a+i.p,0)}));
+const total=mcScore+saParts.reduce((a,s)=>a+s.got,0);
+const prev=D.history.length>1?D.history[D.history.length-2].total:null;
+const wrong=D.mc.filter(q=>q.a!==q.m);
+const lvl=total>=D.goal?['목표 달성','ok']:total>=D.cut1?['1등급권','navy']:['목표까지 '+fmt(D.goal-total)+'점','warn'];
+
+let h=`<section class="card hero">
+  <div class="top"><div><div class="eyebrow">${D.subject} · ${D.exam}</div><h1>${D.label} 성적표</h1></div><span class="pill ${lvl[1]}">${lvl[0]}</span></div>
+  <div class="big"><b class="num">${fmt(total)}</b><span>/ 100</span>${prev!==null?`<span class="delta ${total>=prev?'up':'down'} num">지난 회차 대비 ${total>=prev?'▲':'▼'} ${fmt(Math.abs(total-prev))}</span>`:''}</div>
+  <div class="parts"><div><b class="num">${fmt(mcScore)}</b><span>선택형 / 80</span></div>${saParts.map(s=>`<div><b class="num">${fmt(s.got)}</b><span>${s.name} / ${s.max}</span></div>`).join('')}</div>
+</section>`;
+
+h+=`<section class="card"><h2>선택형 <small>${18-wrong.length} / 18 정답</small></h2><div class="grid">${D.mc.map(q=>{const ok=q.a===q.m;
+  return `<div class="cell ${ok?'':'x'}"><div class="n">${q.n}번</div><div class="m">${ok?'○':CIRC[q.m-1]}</div>${ok?'':`<div class="a">정답 ${CIRC[q.a-1]}</div>`}</div>`}).join('')}</div></section>`;
+
+h+=`<section class="card"><h2>서답형</h2><div class="sa">${saParts.map(s=>`<div class="r"><span class="nm">${s.name}</span>${s.items.map(i=>`<span class="tag ${i.g<i.p?'x':''} num">${i.k} ${fmt(i.g)}/${i.p}</span>`).join('')}<span class="sum num">${fmt(s.got)}/${s.max}</span></div>`).join('')}</div></section>`;
+
+const notes=D.notes.length?`<ul class="notes">${D.notes.map(n=>`<li><div class="h"><span>${n.q}</span><em class="num">−${fmt(n.pt)}</em>${n.cat?`<span class="cat">${n.cat}</span>`:''}</div><p>${n.note}</p></li>`).join('')}</ul>`:'<div class="good">감점 없이 만점이에요.</div>';
+h+=`<section class="card"><h2>감점 내역 <small>−${fmt(100-total)}점</small></h2>${notes}${D.praise?`<p class="good" style="margin:12px 0 0">${D.praise}</p>`:''}</section>`;
+
+if(D.history.length>1){
+  const H=D.history,W=320,Hh=120,L=28,R=10,T=18,B=22,y0=Math.min(70,...H.map(x=>x.total))-2,y1=100;
+  const xs=i=>L+(W-L-R)*i/(H.length-1),ys=v=>T+(Hh-T-B)*(1-(v-y0)/(y1-y0));
+  let g='';[y0,90,y1].forEach(v=>{g+=`<line x1="${L}" x2="${W-R}" y1="${ys(v)}" y2="${ys(v)}" stroke="var(--line)"/><text x="${L-5}" y="${ys(v)+4}" text-anchor="end">${Math.round(v)}</text>`});
+  g+=`<line x1="${L}" x2="${W-R}" y1="${ys(D.goal)}" y2="${ys(D.goal)}" stroke="var(--ok)" stroke-dasharray="4 3"/><text x="${L+4}" y="${ys(D.goal)-4}" style="fill:var(--ok)">목표 ${D.goal}</text>`;
+  g+=`<polyline points="${H.map((x,i)=>xs(i)+','+ys(x.total)).join(' ')}" fill="none" stroke="var(--navy)" stroke-width="2" stroke-linejoin="round"/>`;
+  H.forEach((x,i)=>{const last=i===H.length-1;g+=`<circle cx="${xs(i)}" cy="${ys(x.total)}" r="${last?4.5:2.6}" fill="${last?'var(--navy)':'var(--card)'}" stroke="var(--navy)" stroke-width="2"/><text x="${xs(i)}" y="${Hh-6}" text-anchor="middle">${x.r}</text>`});
+  const li=H.length-1;g+=`<text x="${xs(li)}" y="${ys(H[li].total)-9}" text-anchor="end" style="fill:var(--ink);font-weight:600">${fmt(H[li].total)}</text>`;
+  h+=`<section class="card"><h2>회차별 점수 <small>최근 ${H.length}회</small></h2><svg viewBox="0 0 ${W} ${Hh}" width="100%" role="img" aria-label="회차별 점수 추이">${g}</svg></section>`;
+}
+h+=`<footer>${D.footer}</footer>`;
+document.getElementById('app').innerHTML=h;
+</script>
