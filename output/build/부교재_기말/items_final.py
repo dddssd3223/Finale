@@ -8,6 +8,10 @@ for _k in range(1, 9):
     _s = importlib.util.spec_from_file_location(f'wbfinal_p{_k}', os.path.join(_P, f'items_p{_k}.py'))
     _m = importlib.util.module_from_spec(_s); _s.loader.exec_module(_m)
     I.update(_m.I); D.update(_m.D)
+def _fix(b):   # 수식 안의 &lt; &gt; → < >
+    import re
+    return re.sub(r'\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)', lambda m: m.group(0).replace('&lt;', '<').replace('&gt;', '>'), b)
+I = {k: (_fix(v[0]), [_fix(c) for c in v[1]] if v[1] else v[1]) + tuple(v[2:]) for k, v in I.items()}
 FIGDIR = _P
 NOTES = {
     'D16': '빠른정답 ②(24)는 오류로 보임. 직접 풀이·정수 전수 검사 모두 ①(22). DB는 빠른정답 유지, 출제 시 22 기준.',
