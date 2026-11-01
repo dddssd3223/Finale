@@ -153,7 +153,7 @@ footer{color:var(--muted);font-size:12px;margin-top:28px}
     <div class="goal">
       <div class="eyebrow" style="color:inherit;opacity:.8">미적분Ⅰ 기말 · 12월 중순 · 부교재 p.80–189</div>
       <div class="score num" style="margin-top:8px">93<small style="color:inherit;opacity:.8">점 이상</small></div>
-      <p>중간 88.8점은 1등급 컷 경계였어요. 1학기처럼 기말 1컷이 90 근처로 오르면 93점이 안전선이에요.</p>
+      <p>중간 1컷은 90.1이었고 88.8점으로 1.3점 모자랐어요. 1학기 기말과 2학기 중간 모두 1컷이 90.1이라, 기말도 90 안팎으로 보고 93점을 안전선으로 잡았어요.</p>
       <ul>
         <li>기본·2등급 문항 전부 정답, 킬러 하나만 허용</li>
         <li>매 회 근 구조·중복도 문항 1개 고정 연습</li>
@@ -162,7 +162,7 @@ footer{color:var(--muted);font-size:12px;margin-top:28px}
     </div>
   </section>
 
-  <footer>모의고사 점수는 업로드한 OMR·서답형 스캔을 채점한 결과예요. 등급컷은 예상치예요.</footer>
+  <footer>모의고사 점수는 업로드한 OMR·서답형 스캔을 채점한 결과예요. 미적분Ⅰ 중간 1컷 90.1은 실제 값이고, 나머지 등급컷은 예상치예요.</footer>
 </div>
 
 <script>
@@ -173,11 +173,11 @@ const fmt=v=>(Math.round(v*10)/10).toFixed(1).replace(/\.0$/,'');
 
 /* 실제 시험 */
 const exams=[
-  {name:'미적분Ⅰ',date:'10월 13일(화)',score:88.8,cut1:88.6,cut2:75.3,lo:60,
-   pill:['1등급 경계','warn'],
+  {name:'미적분Ⅰ',date:'10월 13일(화)',score:88.8,cut1:90.1,cut2:75.3,lo:60,
+   pill:['2등급 · 1컷까지 1.3점','warn'],
    parts:[['선택형','74.8','80'],['서답형 1','10','10'],['서답형 2','4','10']],
    loss:['18번 f(x)/f(x²) 불연속 (5.2점) · 근이 ±쌍으로 생기는 구조를 놓침','서답형 2 (2)(3) (6점) · 판별식 경계의 정수 세기, (2)→(3) 연쇄'],
-   note:'1컷 학원 예상 88.6 · 내 예상 87'},
+   note:'실제 1컷 90.1 · 2컷은 학원 예상'},
   {name:'인공지능 수학',date:'10월 14일(수)',score:100,cut1:92,cut2:76,lo:60,
    pill:['만점 · 1등급','ok'],
    parts:[['선택형','76','76'],['단답형','24','24'],['적중','20/20','문항']],

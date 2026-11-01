@@ -32,6 +32,13 @@ h1{font-size:17px;font-weight:600;margin:2px 0 0}
 .big span{color:var(--muted);font-size:15px}
 .delta{font-size:13px;font-weight:600;margin-left:auto}
 .delta.up{color:var(--ok)} .delta.down{color:var(--red)}
+.cutbar{position:relative;height:30px;margin:18px 0 2px}
+.cutbar .track{position:absolute;left:0;right:0;top:12px;height:6px;border-radius:3px;background:var(--line)}
+.cutbar .fill{position:absolute;left:0;top:12px;height:6px;border-radius:3px;background:var(--navy)}
+.cutbar .tick{position:absolute;top:6px;width:2px;height:18px;background:var(--muted)}
+.cutbar .tick span{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--muted);white-space:nowrap}
+.cutbar .me{position:absolute;top:8px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--card);border:3px solid var(--navy)}
+.cutnote{font-size:12.5px;color:var(--muted)} .cutnote b{color:var(--ink);font-weight:600}
 .parts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
 .parts div{background:var(--paper);border-radius:10px;padding:8px 10px}
 .parts b{display:block;font-size:18px;font-weight:600}
@@ -71,11 +78,18 @@ const saParts=D.sa.map(s=>({...s,got:s.items.reduce((a,i)=>a+i.g,0),max:s.items.
 const total=mcScore+saParts.reduce((a,s)=>a+s.got,0);
 const prev=D.history.length>1?D.history[D.history.length-2].total:null;
 const wrong=D.mc.filter(q=>q.a!==q.m);
-const lvl=total>=D.goal?['목표 달성','ok']:total>=D.cut1?['1등급권','navy']:['목표까지 '+fmt(D.goal-total)+'점','warn'];
+const grade=total>=D.cut1?1:total>=D.cut2?2:3;
+const lvl=grade===1?['예상 1등급','ok']:grade===2?['예상 2등급','navy']:['예상 3등급 이하','warn'];
 
+function cutbar(){const lo=Math.min(60,Math.floor((Math.min(total,D.cut2)-5)/10)*10),pos=v=>((v-lo)/(100-lo)*100).toFixed(1)+'%';
+  return `<div class="cutbar" aria-hidden="true"><div class="track"></div><div class="fill" style="width:${pos(total)}"></div>
+  <div class="tick" style="left:${pos(D.cut2)}"><span>2컷 ${fmt(D.cut2)}</span></div><div class="tick" style="left:${pos(D.cut1)}"><span>1컷 ${fmt(D.cut1)}</span></div>
+  <div class="me" style="left:${pos(total)}"></div></div>
+  <div class="cutnote">${grade===1?`예상 1컷보다 <b>${fmt(total-D.cut1)}점</b> 위`:`예상 1컷까지 <b>${fmt(D.cut1-total)}점</b>`} · 난도 지수 ${fmt(D.idx)} (실제 중간 25.6)</div>`}
 let h=`<section class="card hero">
   <div class="top"><div><div class="eyebrow">${D.subject} · ${D.exam}</div><h1>${D.label} 성적표</h1></div><span class="pill ${lvl[1]}">${lvl[0]}</span></div>
   <div class="big"><b class="num">${fmt(total)}</b><span>/ 100</span>${prev!==null?`<span class="delta ${total>=prev?'up':'down'} num">지난 회차 대비 ${total>=prev?'▲':'▼'} ${fmt(Math.abs(total-prev))}</span>`:''}</div>
+  ${cutbar()}
   <div class="parts"><div><b class="num">${fmt(mcScore)}</b><span>선택형 / 80</span></div>${saParts.map(s=>`<div><b class="num">${fmt(s.got)}</b><span>${s.name} / ${s.max}</span></div>`).join('')}</div>
 </section>`;
 
@@ -88,14 +102,16 @@ const notes=D.notes.length?`<ul class="notes">${D.notes.map(n=>`<li><div class="
 h+=`<section class="card"><h2>감점 내역 <small>−${fmt(100-total)}점</small></h2>${notes}${D.praise?`<p class="good" style="margin:12px 0 0">${D.praise}</p>`:''}</section>`;
 
 if(D.history.length>1){
-  const H=D.history,W=320,Hh=120,L=28,R=10,T=18,B=22,y0=Math.min(70,...H.map(x=>x.total))-2,y1=100;
+  const H=D.history,W=320,Hh=120,L=28,R=10,T=18,B=22,y0=Math.min(70,...H.map(x=>x.total),...H.map(x=>x.cut1||100))-2,y1=100;
   const xs=i=>L+(W-L-R)*i/(H.length-1),ys=v=>T+(Hh-T-B)*(1-(v-y0)/(y1-y0));
   let g='';[y0,90,y1].forEach(v=>{g+=`<line x1="${L}" x2="${W-R}" y1="${ys(v)}" y2="${ys(v)}" stroke="var(--line)"/><text x="${L-5}" y="${ys(v)+4}" text-anchor="end">${Math.round(v)}</text>`});
-  g+=`<line x1="${L}" x2="${W-R}" y1="${ys(D.goal)}" y2="${ys(D.goal)}" stroke="var(--ok)" stroke-dasharray="4 3"/><text x="${L+4}" y="${ys(D.goal)-4}" style="fill:var(--ok)">목표 ${D.goal}</text>`;
+  if(H.every(x=>x.cut1)){g+=`<polyline points="${H.map((x,i)=>xs(i)+','+ys(x.cut1)).join(' ')}" fill="none" stroke="var(--red)" stroke-width="1.4" stroke-dasharray="4 3"/>`;
+    const lowI=H.reduce((m,x,i)=>x.cut1<H[m].cut1?i:m,0);
+    g+=`<text x="${xs(lowI)}" y="${ys(H[lowI].cut1)+13}" text-anchor="middle" style="fill:var(--red)">예상 1컷</text>`;}
   g+=`<polyline points="${H.map((x,i)=>xs(i)+','+ys(x.total)).join(' ')}" fill="none" stroke="var(--navy)" stroke-width="2" stroke-linejoin="round"/>`;
   H.forEach((x,i)=>{const last=i===H.length-1;g+=`<circle cx="${xs(i)}" cy="${ys(x.total)}" r="${last?4.5:2.6}" fill="${last?'var(--navy)':'var(--card)'}" stroke="var(--navy)" stroke-width="2"/><text x="${xs(i)}" y="${Hh-6}" text-anchor="middle">${x.r}</text>`});
   const li=H.length-1;g+=`<text x="${xs(li)}" y="${ys(H[li].total)-9}" text-anchor="end" style="fill:var(--ink);font-weight:600">${fmt(H[li].total)}</text>`;
-  h+=`<section class="card"><h2>회차별 점수 <small>최근 ${H.length}회</small></h2><svg viewBox="0 0 ${W} ${Hh}" width="100%" role="img" aria-label="회차별 점수 추이">${g}</svg></section>`;
+  h+=`<section class="card"><h2>회차별 점수 <small>점선: 회차별 예상 1컷</small></h2><svg viewBox="0 0 ${W} ${Hh}" width="100%" role="img" aria-label="회차별 점수 추이">${g}</svg></section>`;
 }
 h+=`<footer>${D.footer}</footer>`;
 document.getElementById('app').innerHTML=h;
