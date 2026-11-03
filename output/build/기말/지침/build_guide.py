@@ -30,7 +30,8 @@ def slots_str(k):
 
 def card(k):
     a = A[k]; g = a.get('exam_guide', {}); mt = meta.get(k, ['', '', '', '']); d = m.D.get(k)
-    head = (f'<div class="kh"><span class="key">{k}</span><span class="sec">{E(mt[3])}</span>'
+    stag = '<span class="stg">분석집</span>' if a.get('study') else ''
+    head = (f'<div class="kh"><span class="key">{k}</span>{stag}<span class="sec">{E(mt[3])}</span>'
             f'<span class="src">{E(mt[1])}</span><span class="dif">난도 {E(mt[2])}</span></div>')
     info = (f'<div class="inf"><span>{E(slots_str(k))}</span><span>추천 <b>{E(g.get("slot"))}</b></span>'
             f'<span>수준 <b>{E(g.get("level"))}</b></span></div>')
@@ -48,10 +49,22 @@ def card(k):
     nos = f'<div class="no">숫자만 바꾼 변형 {len(no)}개 (분석 생략)</div>' if no else ''
     lp = f'<div class="lp"><span class="lb">라이브 경향</span>{E(a.get("live_pattern"))}</div>' if a.get('live_pattern') else ''
     li = lambda xs: ''.join(f'<li>{E(x)}</li>' for x in xs or [])
-    rec = f'<div class="bx rec"><div class="lb">새 변형 레시피</div><ol>{li(g.get("recipes"))}</ol></div>'
+    st = a.get('study')
+    marks = {r.get('i'): r.get('overlap') for r in (st or {}).get('recipes', [])}
+    MK = {'same': '<span class="mk s">분석집과 같음</span>', 'direction': '<span class="mk d">분석집 방향</span>'}
+    rec = ''.join(f'<li>{E(x)}{MK.get(marks.get(i), "")}</li>' for i, x in enumerate(g.get('recipes') or []))
+    if st and st.get('extra_recipe'):
+        rec += f'<li class="ex">{E(st["extra_recipe"])}<span class="mk n">분석집 대비 추가</span></li>'
+    rec = f'<div class="bx rec"><div class="lb">새 변형 레시피</div><ol>{rec}</ol></div>'
     tr = f'<div class="bx"><div class="lb">함정</div><ul>{li(g.get("traps"))}</ul></div>' if g.get('traps') else ''
     av = f'<div class="bx av"><div class="lb">겹치면 안 되는 기존 변형</div><ul>{li(g.get("avoid"))}</ul></div>' if g.get('avoid') else ''
-    return f'<div class="card">{head}{info}{core}{tab}{nos}{lp}{rec}<div class="two">{tr}{av}</div></div>'
+    sb = ''
+    if st:
+        dirs = ''.join(f'<li>{E(x)}</li>' for x in st.get('directions', []))
+        sb = (f'<div class="bx sb"><div class="lb">분석집 (학생 공부 자료)</div>'
+              f'<div><span class="k2">학생이 아는 판정</span>{E(st.get("known") or st.get("note_core"))}</div>'
+              f'<div><span class="k2">분석집 변형 방향</span><ul>{dirs}</ul></div></div>')
+    return f'<div class="card">{head}{info}{core}{tab}{nos}{lp}{sb}{rec}<div class="two">{tr}{av}</div></div>'
 
 def main(out):
     front = open(os.path.join(HERE, 'front.md')).read()

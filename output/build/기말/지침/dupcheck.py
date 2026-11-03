@@ -9,9 +9,10 @@
 - 금지(동일 문항): 골격 포함도 >= 0.85 이고 본문 숫자 목록이 같음, 또는 원문 포함도 >= 0.95 → 절대 출제 불가
 - 허용(숫자만 다름): 골격 포함도 >= 0.85 이고 숫자 목록이 다름 → 숫자만 바꾼 문항 (사용자 허용)
 - 주의(구조 유사): 골격 포함도 0.60~0.85 → 구조가 많이 닮음. 변형 정도 확인
+- 금지(구조 변경 미달): 17·18·서답형2가 익스텐션·분석집 어느 문항과든 골격 0.60 이상
 
 사용
-  python3 dupcheck.py build <corpus.json>          # 지문 만들기 (원문 corpus는 저장소 밖)
+  python3 dupcheck.py build <corpus.json> [study.json]   # 지문 만들기 (익스텐션 + 분석집, 원문은 저장소 밖)
   python3 dupcheck.py check <content3.py> [...]    # 시험 RAW 문항 검사
 """
 import sys, os, re, json, gzip, base64, zlib, array, importlib.util
@@ -48,15 +49,23 @@ def pack(v):
 def unpack(b):
     a = array.array('I'); a.frombytes(base64.b64decode(b)); return set(a)
 
-def build(corpus):
+def build(corpus, study=None):
+    """corpus: 익스텐션 1,746문항(corpus.json), study: 양정고2 부교재 분석집(study.json, 원문 143 + 변형 290)"""
     C = json.load(open(corpus))
     out = []
+    def add(i, key, hdr, text, src):
+        r = norm(text)
+        out.append(dict(id=i, key=key, hdr=hdr, src=src, R=pack(shingles(r)), K=pack(shingles(skel(r))), nums=nums(text)))
     for o in C:
-        r = norm(o['problem'])
-        out.append(dict(id=o['id'], key=o['key'], hdr=o['hdr'], R=pack(shingles(r)), K=pack(shingles(skel(r))), nums=nums(o['problem'])))
+        add(o['id'], o['key'], o['hdr'], o['problem'], 'EXT')
+    if study:
+        for s in json.load(open(study)):
+            add(f"STUDY-{s['key']}-원문", s['key'], f"분석집 {s['key']} 원문", s['problem'], 'STUDY')
+            for v in s['variants']:
+                add(f"STUDY-{s['key']}-변형{v['no']}", s['key'], f"분석집 {s['key']} 변형{v['no']}", v['problem'], 'STUDY')
     with gzip.open(FP, 'wt', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False)
-    print('지문', len(out), '→', FP, os.path.getsize(FP) // 1024, 'KB')
+    print('지문', len(out), '(익스텐션', sum(d['src'] == 'EXT' for d in out), '· 분석집', sum(d['src'] == 'STUDY' for d in out), ') →', FP, os.path.getsize(FP) // 1024, 'KB')
 
 def load():
     with gzip.open(FP, 'rt', encoding='utf-8') as f:
@@ -75,8 +84,11 @@ def score(text, D, top=3):
     res.sort(key=lambda x: (-x[0], -x[1]))
     return res[:top]
 
-def verdict(ck, cr, same):
+HIGH = {17, 18, 'S2', '17', '18'}   # 구조 변경 필수 자리: 익스텐션·분석집 모두 골격 0.60 미만이어야 함
+
+def verdict(ck, cr, same, no=None):
     if cr >= 0.95 or (ck >= 0.85 and same): return '금지(동일 문항)'
+    if no in HIGH and ck >= 0.60: return '금지(구조 변경 미달)'
     if ck >= 0.85: return '허용(숫자만 다름)'
     if ck >= 0.60: return '주의(구조 유사)'
     return '통과'
@@ -95,9 +107,10 @@ def check(paths):
             ch = v[1] if isinstance(v, (tuple, list)) and isinstance(v[1], list) and v[1] and isinstance(v[1][0], str) else []
             text = body + ''.join('|' + c for c in ch)
             ck, cr, d, same = score(text, D, 1)[0]
-            vd = verdict(ck, cr, same)
+            vd = verdict(ck, cr, same, no)
             if vd.startswith('금지'): bad += 1
-            print(f'{os.path.basename(os.path.dirname(os.path.abspath(p)))} {no:>3}: {vd:12s} 골격 {ck:.2f} 원문 {cr:.2f}  ← {d["id"]} {d["hdr"]}')
+            tag = '분석집' if d.get('src') == 'STUDY' else '익스텐션'
+            print(f'{os.path.basename(os.path.dirname(os.path.abspath(p)))} {no:>3}: {vd:12s} 골격 {ck:.2f} 원문 {cr:.2f}  ← [{tag}] {d["id"]} {d["hdr"]}')
     return bad
 
 def check_items(path):
@@ -107,12 +120,13 @@ def check_items(path):
     for no, it in list(ns.get('ITEMS', {}).items()) + list(ns.get('SITEMS', {}).items()):
         extra = ''.join(v for _, v in (it.get('cond') or [])) + ''.join(v for _, v in (it.get('bogi') or [])) + (it.get('after') or '')
         text = it['body'] + extra + ''.join(q[0] if isinstance(q, (list, tuple)) else str(q) for q in it.get('subs', [])) + ''.join('|' + str(c) for c in (it.get('choices') or []))
-        ck, cr, d, same = score(text, D, 1)[0]; vd = verdict(ck, cr, same)
+        ck, cr, d, same = score(text, D, 1)[0]; vd = verdict(ck, cr, same, no)
         bad += vd.startswith('금지')
-        print(f'{no}: {vd} 골격 {ck:.2f} 원문 {cr:.2f} ← {d["id"]} {d["hdr"]}')
+        tag = '분석집' if d.get('src') == 'STUDY' else '익스텐션'
+        print(f'{no}: {vd} 골격 {ck:.2f} 원문 {cr:.2f} ← [{tag}] {d["id"]} {d["hdr"]}')
     return bad
 
 if __name__ == '__main__':
-    if sys.argv[1] == 'build': build(sys.argv[2])
+    if sys.argv[1] == 'build': build(sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else None)
     elif sys.argv[1] == 'items': sys.exit(1 if check_items(sys.argv[2]) else 0)
     else: sys.exit(1 if check(sys.argv[2:]) else 0)
