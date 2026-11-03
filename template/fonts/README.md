@@ -29,3 +29,10 @@ TTCollection('gulim.ttc').fonts[0].save('gulim.ttf')
 ```
 
 글꼴이 빠지면 빌드는 되지만 모양이 원본 양식과 달라집니다. 특히 수식이 한글 수식 편집기 모양으로 나오지 않습니다.
+
+## 세션이 초기화됐을 때 상용 글꼴 다시 만들기 (`tools/`)
+
+- 굴림·한컴바탕·함초롬바탕 원본은 `dddssd3223/NewK` 저장소에 있음 (`gulim.ttc`, `한컴폰트.vol1~6.egg`, 브랜치 `claude/fervent-bohr-yqgh37`의 `HCRBatangR.ttf`).
+- `python3 tools/unegg.py <egg 폴더> <출력 폴더>`: 분할 EGG 압축 풀기 → `HBATANG.TTF` 등.
+- `python3 tools/webfont.py HBATANG.TTF hbatang_web.ttf`, `python3 tools/webfont.py gulim.ttf gulim_web.ttf`: 비트맵 표 제거·cmap 재작성 (Chromium OTS가 원본 cmap을 거부함).
+- `python3 tools/eqmerge.py hyhwpeq_web.ttf`: HyhwpEQ 원본이 없을 때 `output/`의 예전 PDF에 들어 있는 HyhwpEQ 부분 글꼴(글리프 번호 유지)을 모아 다시 만듦.

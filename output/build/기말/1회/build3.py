@@ -416,6 +416,8 @@ def redraw_p1_head(page, gl):
     rx0, rx1, ry, rw = P1_RULE
     page.draw_line((rx0, ry), (rx1, ry), color=(0, 0, 0), width=rw)
 
+FOOT_LOGO = pymupdf.Rect(244.6, 792, 262.6, 812)
+
 def make_background():
     src = pymupdf.open(TPL)
     doc = pymupdf.open()
@@ -456,6 +458,9 @@ def make_background():
             page.insert_text(o, t, fontname='GL', fontsize=sz, render_mode=2, border_width=0.02)
         if pn == 0:
             redraw_p1_head(page, gl)
+        # 꼬리말 동그라미 '고': 최신 PyMuPDF는 redaction 뒤 이 글자를 가늘게 다시 그리므로 원본 양식에서 그대로 옮겨 붙임
+        page.draw_rect(FOOT_LOGO, color=None, fill=(1, 1, 1))
+        page.show_pdf_page(FOOT_LOGO, src, pn, clip=FOOT_LOGO)
     return doc
 
 TITLE = [(92.3, '2', 20.04), (106.46, '학년', 15.0), (143.8, '미적분Ⅰ', 23.0), (246.96, '과', 15.0),
