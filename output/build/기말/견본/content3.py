@@ -12,7 +12,7 @@ import os as _os
 _P = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 'parts')
 ITEMS, SITEMS = {}, {}
 for _f in sorted(_os.listdir(_P)):
-    if _f.startswith('p') and _f.endswith('.py'):
+    if _f[0] in 'pq' and _f.endswith('.py'):  # p: 1차 부품, q: 출처 비율 재조정(나중 파일이 덮어씀)
         _ns = {}; exec(open(_os.path.join(_P, _f)).read(), _ns)
         ITEMS.update(_ns.get('ITEMS', {})); SITEMS.update(_ns.get('SITEMS', {}))
 
