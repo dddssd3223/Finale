@@ -30,25 +30,43 @@ def orig(key):
     ans_t = '' if a else f'<div class="oa">정답 {E(str(ans))}</div>'
     return body + chs(ch, a) + ans_t
 
-def card(no, key, mine, var, lv_new, sol, wrong, ansmark):
+def card(no, key, mine, var, lv_new, sol, wrong, ansmark, src=''):
     a = A[key]; d = F.D[key]
+    if src.startswith('학교 자체'):
+        return self_card(no, key, mine, var, lv_new, sol, wrong, ansmark, src)
     return f'''<div class="card"><div class="hd"><span class="no">{no}</span><span class="k">원본 {key}</span><span class="s">{E(F.I[key][3])} · {E(d[1])}</span>
 <span class="lv">난도 {LV[d[0]]} → {lv_new}</span></div>
 <div class="two"><div class="col"><div class="lab">부교재 원문</div>{orig(key)}</div><div class="col"><div class="lab">견본 {no}{ansmark}</div>{mine}</div></div>
 <table class="ex"><tr><th>원본 핵심</th><td>{E(a["original_core"])}</td></tr>
 <tr><th>변형 내용</th><td>{var}</td></tr><tr><th>견본 풀이</th><td>{sol}</td></tr>{f"<tr><th>오답 설계</th><td>{wrong}</td></tr>" if wrong else ""}</table></div>'''
 
+def self_card(no, key, mine, var, lv_new, sol, wrong, ansmark, src):
+    return f'''<div class="card"><div class="hd"><span class="no">{no}</span><span class="k">학교 자체 출제</span><span class="s">가장 가까운 유형 {key} · {E(F.I[key][3])}</span>
+<span class="lv">난도 {lv_new}</span></div>
+<div class="two"><div class="col"><div class="lab">가장 가까운 부교재 유형 ({key})</div>{orig(key)}</div><div class="col"><div class="lab">견본 {no}{ansmark}</div>{mine}</div></div>
+<table class="ex"><tr><th>자체 설계</th><td>{var}</td></tr><tr><th>견본 풀이</th><td>{sol}</td></tr>{f"<tr><th>오답 설계</th><td>{wrong}</td></tr>" if wrong else ""}</table></div>'''
+
 def build(out):
     cards = []
     for n, r in sorted(C.RAW.items()):
         it = C.ITEMS[n]
         mine = r[0] + chs(r[1], r[2])
-        cards.append(card(f'{n}번', r[3], mine, it['var'], it['level'], it['sol'], it['wrong'], f' · 정답 {CIRC[r[2]-1]}'))
+        cards.append(card(f'{n}번', r[3], mine, it['var'], it['level'], it['sol'], it['wrong'], f' · 정답 {CIRC[r[2]-1]}', it['src']))
     for s, lab in (('S1', '서답형 1'), ('S2', '서답형 2')):
         it = C.SITEMS[s]
         body = getattr(C, s) + ''.join(f'<div class="sub">({i}) {q[0]} <span class="pt">[{q[1]}]</span></div>' for i, q in enumerate(it['subs'], 1))
         sol = '<br>'.join(it['rubric'])
-        cards.append(card(lab, it['key'], body, it['var'], it['level'], sol, it.get('wrong', ''), ' · 정답 ' + ' / '.join(it['ans'])))
+        cards.append(card(lab, it['key'], body, it['var'], it['level'], sol, it.get('wrong', ''), ' · 정답 ' + ' / '.join(it['ans']), it['src']))
+    def kind(r_src, key):
+        if r_src.startswith('학교 자체'): return '학교 자체'
+        m = json.load(open(os.path.join(WB, 'meta.json')))[key][3]
+        return 'Level Up' if 'Level Up' in m else ('평가원' if ('평가원' in m or '대표기출' in m) else 'EBS 유형')
+    rows = [(f'{n}', C.RAW[n][3], kind(C.RAW[n][4], C.RAW[n][3])) for n in sorted(C.RAW)] + [(s, C.SITEMS[s]['key'], kind(C.SITEMS[s]['src'], C.SITEMS[s]['key'])) for s in ('S1', 'S2')]
+    import collections as _co
+    cnt = _co.Counter(k for *_, k in rows)
+    SUMMARY = ('<table class="sum"><tr><th>번호</th>' + ''.join(f'<td>{n.replace("S", "서")}</td>' for n, _, _ in rows) + '</tr><tr><th>원본</th>' + ''.join(f'<td>{k}</td>' for _, k, _ in rows) +
+               '</tr><tr><th>출처</th>' + ''.join(f'<td class="k{"PELS"[["평가원","EBS 유형","Level Up","학교 자체"].index(t)]}">{t.replace(" 유형","").replace("학교 ","")}</td>' for *_, t in rows) + '</tr></table>'
+               + '<div class="sub0">' + ' · '.join(f'{t} {cnt[t]}' for t in ('평가원', 'EBS 유형', 'Level Up', '학교 자체')) + '</div>')
     css = r"""@page{size:A4;margin:11mm 10mm 12mm}
 body{font-family:'HB','MJ';font-size:8.8pt;line-height:1.55;margin:0;color:#111}
 .katex{font-size:1.02em;font-family:'TN','KaTeX_Main'}
@@ -71,10 +89,11 @@ fieldset.bogi{border:.6pt solid #000;margin:3pt 0;padding:2pt 6pt;min-inline-siz
 table.ex{border-collapse:collapse;width:100%;border-top:.6pt solid #333}
 .ex th{width:17mm;font-family:'GL';font-weight:400;font-size:7.8pt;background:#fafafa;border:.4pt solid #bbb;padding:2pt 4pt;text-align:left;vertical-align:top}
 .ex td{border:.4pt solid #bbb;padding:2pt 5pt;font-size:8.2pt}
+table.sum{border-collapse:collapse;width:100%;margin:0 0 1mm}.sum th,.sum td{border:.5pt solid #999;font-size:7pt;padding:1pt 1pt;text-align:center;font-family:'GL';font-weight:400}.sum th{background:#eef0f3;width:9mm}.kP{color:#c0392b}.kL{color:#1f4fd6}.kS{color:#7b3fb0}.kE{color:#555}
 """
     h = (f'<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="file://{KATEX_CSS}"><style>{font_css()}{css}</style></head><body>'
          '<h1>미적분Ⅰ 기말 견본 · 부교재 원문 1:1 대응과 변형 설명</h1>'
-         '<div class="sub0">왼쪽 부교재 원문, 오른쪽 견본 문항 · 빨간 번호 = 정답 · 17·18·서답형2는 구조 변경 (출제 지침서 0-4)</div>'
+         '<div class="sub0">왼쪽 부교재 원문, 오른쪽 견본 문항 · 빨간 번호 = 정답 · 17·18·서답형2는 구조 변경 · 출처 배치는 2학기 중간과 동일(평가원 6 · EBS 6 · Level Up 6 · 자체 2)</div>' + SUMMARY
          + ''.join(cards) + '</body></html>')
     # 렌더러의 display 수식 측정은 시험지 쪽(.pg) 전용이라 가운데 정렬 인라인 수식으로 바꿈
     h = re.sub(r'\\\[([\s\S]+?)\\\]', lambda m: '<div class="dm">\\(\\displaystyle ' + m.group(1) + '\\)</div>', h)

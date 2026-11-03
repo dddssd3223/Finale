@@ -12,10 +12,11 @@ from content3 import ITEMS, SITEMS
 SOL = {n: (it['sol'], it['wrong']) for n, it in ITEMS.items()}
 import re as _re
 _fx=lambda s: _re.sub(r'\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)', lambda m: m.group(0).replace('&lt;','<').replace('&gt;','>'), s)
-D = {n: (_fx(SOL[n][0]), f"부교재 {F.I[r[3]][3]} — {r[3]} ({F.D[r[3]][1]})", LV[F.D[r[3]][0]], r[5], r[6], SOL[n][1]) for n, r in RAW.items()}
+D = {n: (_fx(SOL[n][0]), (r[4] if r[4].startswith("학교 자체") else f"부교재 {F.I[r[3]][3]} — {r[3]} ({F.D[r[3]][1]})"), ("—" if r[4].startswith("학교 자체") else LV[F.D[r[3]][0]]), r[5], r[6], SOL[n][1]) for n, r in RAW.items()}
 from content3 import S1S, S2S
-S1 = dict(ans=SITEMS['S1']['ans'], sol=SITEMS['S1']['rubric'], src=f"부교재 {SRC_S['S1'][1]} — {SRC_S['S1'][0]}", var=SRC_S['S1'][2])
-S2 = dict(ans=SITEMS['S2']['ans'], sol=SITEMS['S2']['rubric'], src=f"부교재 {SRC_S['S2'][1]} — {SRC_S['S2'][0]}", var=SRC_S['S2'][2])
+_srcs = lambda s: SRC_S[s][1] if SRC_S[s][1].startswith('학교 자체') else f"부교재 {SRC_S[s][1]} — {SRC_S[s][0]}"
+S1 = dict(ans=SITEMS['S1']['ans'], sol=SITEMS['S1']['rubric'], src=_srcs('S1'), var=SRC_S['S1'][2])
+S2 = dict(ans=SITEMS['S2']['ans'], sol=SITEMS['S2']['rubric'], src=_srcs('S2'), var=SRC_S['S2'][2])
 
 PTS = {n: Q[n][0] for n in Q}
 CSS = r"""
@@ -71,7 +72,7 @@ def build(out):
                  f'<div class="r"><div class="k">난도</div><div class="v">원본 {d0} → 변형 후 {d1}</div></div>'
                  f'<div class="r"><div class="k">변형 포인트</div><div class="v">{var}</div></div>'
                  f'<div class="r"><div class="k">오답 설계</div><div class="v">{wr}</div></div></div>')
-    for lab, d, nn in [('서답형 1 (19번)', S1, LV[F.D[SRC_S['S1'][0]][0]]+' → '+SRC_S['S1'][3]), ('서답형 2 (20번)', S2, LV[F.D[SRC_S['S2'][0]][0]]+' → '+SRC_S['S2'][3])]:
+    for lab, d, nn in [('서답형 1 (19번)', S1, ('자체' if SRC_S['S1'][1].startswith('학교 자체') else LV[F.D[SRC_S['S1'][0]][0]])+' → '+SRC_S['S1'][3]), ('서답형 2 (20번)', S2, LV[F.D[SRC_S['S2'][0]][0]]+' → '+SRC_S['S2'][3])]:
         h.append(f'<div class="p"><div class="hd">{lab}</div>'
                  f'<div class="r"><div class="k">원본 출처</div><div class="v">{d["src"]}</div></div>'
                  f'<div class="r"><div class="k">난도</div><div class="v">원본 {nn}</div></div>'
