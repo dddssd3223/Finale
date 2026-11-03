@@ -12,8 +12,8 @@ import os as _os
 _P = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 'parts')
 ITEMS, SITEMS = {}, {}
 for _f in sorted(_os.listdir(_P)):
-    if _f[0] in 'pq' and _f.endswith('.py'):  # p: 1차 부품, q: 출처 비율 재조정(나중 파일이 덮어씀)
-        _ns = {}; exec(open(_os.path.join(_P, _f)).read(), _ns)
+    if _f[0] in 'pqr' and _f.endswith('.py') and not _f.startswith('verify'):  # p: 1차 부품, q: 출처 비율 재조정, r: 재활용(나중 파일이 덮어씀)
+        _ns = {'_P': _P}; exec(open(_os.path.join(_P, _f)).read(), _ns)
         ITEMS.update(_ns.get('ITEMS', {})); SITEMS.update(_ns.get('SITEMS', {}))
 
 def _body(it):
