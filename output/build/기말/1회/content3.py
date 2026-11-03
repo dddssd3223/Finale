@@ -110,3 +110,12 @@ S2S = [(r"함수 \(f(x)\)의 극솟값을 구하시오.", "4점, 답만 적으�
 SA_ANS = {'S1': ['6', '21'], 'S2': ['-1', '5', '7']}
 SRC_S = {'S1': ('I20', '2022년 수능완성 [22054-0161]', '주기 2→3, 적분 구간 변경, 2단계 서술', '중'),
          'S2': ('D64', '2027학년도 수능 6월 모의평가 21번', '식 f′(t)−4t²+4 → f′(t)−5t²+2, 불연속점 t=3→2, 3단계', '상')}
+
+# 서답형2 교체 (분석집 반영 기준: 원래 D64 숫자 변형은 '금지(구조 변경 미달)') → parts/r1_s2.py
+import os as _os
+_ns = {}; exec(open(_os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 'parts', 'r1_s2.py')).read(), _ns)
+_S2 = _ns['SITEMS']['S2']
+S2 = _fix(_S2['body'] + (COND(_S2['cond']) if _S2.get('cond') else '') + (_S2.get('after') or ''))
+S2S = _S2['subs']
+SA_ANS['S2'] = _S2['ans']
+SRC_S['S2'] = (_S2['key'], _S2['src'], _S2['var'], _S2['level'])
