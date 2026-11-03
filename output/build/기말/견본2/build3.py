@@ -183,7 +183,7 @@ def jl(h, key=''):
         out.append(p[:i] + f'<span class="jl" data-id="{k}"{st}>{p[i:].lstrip()}</span>')
     return ''.join(out) + parts[-1]
 
-RAG_PT = 4.0     # 공백 하나당 4pt 넘게 벌어질 줄은 양끝 맞춤하지 않고 오른쪽을 비움
+RAG_PT = 2.5     # 공백 하나당 2.5pt 넘게 벌어질 줄은 양끝 맞춤하지 않고 오른쪽을 비움
 RAGGED = {}
 
 def autobreak(mk):

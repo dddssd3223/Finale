@@ -4,7 +4,7 @@ const katex=require('../node_modules/katex');const {chromium}=require('../node_m
 const r=(s,d)=>katex.renderToString(s,{displayMode:d,throwOnError:true,strict:false});
 h=h.replace(/\\\[([\s\S]+?)\\\]/g,(m,s)=>r(s,true)).replace(/\\\(([\s\S]+?)\\\)/g,(m,s)=>r(s,false));
 fs.writeFileSync(inp.replace('_src',''),h);
-const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome'});const p=await b.newPage();
+const b=await chromium.launch({executablePath:(()=>{for(const c of ['/opt/pw-browsers/chromium-1243/chrome-linux64/chrome','/opt/pw-browsers/chromium-1194/chrome-linux/chrome','/opt/pw-browsers/chromium']){try{if(fs.statSync(c).isFile())return c}catch(e){}}return undefined})()});const p=await b.newPage();
 await p.goto('file://'+path.resolve(inp.replace('_src','')),{waitUntil:'networkidle'});await p.evaluate(()=>document.fonts.ready);
 await p.evaluate(require('./eqfont.js'));await p.evaluate(()=>document.fonts.ready);
 // 한글(HWP) '글자에 따라' 줄 간격 흉내: 키 큰 인라인 수식(분수·극한)은 위아래 여백을 높이에 비례해 준다

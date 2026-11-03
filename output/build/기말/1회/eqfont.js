@@ -20,6 +20,10 @@ module.exports = function () {
       } else if (node.nodeType === 3 && node.nodeValue.trim()) {
         const p = node.parentElement;
         const ital = !!p.closest('.mathnormal,.mathit');
+        // 다시 만든 HyhwpEQ에 없는 글리프(예: 기울임 l, o)가 하나라도 있으면 그 글자 덩어리는 KaTeX 글꼴로 둔다
+        const MISSING = new Set([0xE004,0xE015,0xE016,0xE01B,0xE01D,0xE01E,0xE01F,0xE021,0xE023,0xE024,0xE029,0xE02A,0xE02B,0xE02D,0xE02E,0xE02F,0xE030,0xE032,0xE033,0xE03E,0xE03F,0xE040,0xE041,0xE042,0xE043,0xE04E,0xE051,0xE057,0xE0B1,0xE0F0,0xE0F3]);
+        const tgt = ch => (ital && IT[ch]) ? IT[ch] : ((ital && /[A-Z]/.test(ch)) || UP[ch] !== undefined) ? UP[ch] : null;
+        if ([...node.nodeValue].some(ch => MISSING.has(tgt(ch)))) continue;
         let out = '', any = false, upperIt = false;
         for (const ch of node.nodeValue) {
           if (ital && IT[ch]) { out += String.fromCharCode(IT[ch]); any = true; }
