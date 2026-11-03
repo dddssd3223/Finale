@@ -1,0 +1,86 @@
+# -*- coding: utf-8 -*-
+"""견본 ↔ 부교재 원문 1:1 대응 · 변형 설명 PDF"""
+import os, sys, re, json, subprocess, html
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+from build3 import font_css, KATEX_CSS
+import content3 as C
+WB = '/home/user/Finale/output/build/부교재_기말'
+sys.path.insert(0, WB); import items_final as F
+A = json.load(open('/home/user/Finale/output/build/기말/지침/analysis.json'))
+CIRC = '①②③④⑤'
+LV = {1: '하', 2: '하', 3: '하', 4: '중하', 5: '중', 6: '중상', 7: '상', 8: '최상', 9: '최상'}
+FIGDIR = os.path.join(WB, 'parts')
+E = html.escape
+fix = lambda s: re.sub(r'\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)', lambda m: m.group(0).replace('&lt;', '<').replace('&gt;', '>'), s)
+
+def chs(ch, ans=None):
+    if not ch: return ''
+    out = []
+    for i, c in enumerate(ch, 1):
+        t = c[2:] if c.startswith('T:') else f'\\({c}\\)'
+        out.append(f'<span class="c{" ok" if ans == i else ""}">{CIRC[i-1]} {t}</span>')
+    return '<div class="chs">' + ''.join(out) + '</div>'
+
+def orig(key):
+    body, ch, ans, src = F.I[key]
+    body = body.replace('src="fig_', f'src="file://{FIGDIR}/fig_')
+    a = None
+    if isinstance(ans, str) and ans and ans[0] in CIRC: a = CIRC.index(ans[0]) + 1
+    ans_t = '' if a else f'<div class="oa">정답 {E(str(ans))}</div>'
+    return body + chs(ch, a) + ans_t
+
+def card(no, key, mine, var, lv_new, sol, wrong, ansmark):
+    a = A[key]; d = F.D[key]
+    return f'''<div class="card"><div class="hd"><span class="no">{no}</span><span class="k">원본 {key}</span><span class="s">{E(F.I[key][3])} · {E(d[1])}</span>
+<span class="lv">난도 {LV[d[0]]} → {lv_new}</span></div>
+<div class="two"><div class="col"><div class="lab">부교재 원문</div>{orig(key)}</div><div class="col"><div class="lab">견본 {no}{ansmark}</div>{mine}</div></div>
+<table class="ex"><tr><th>원본 핵심</th><td>{E(a["original_core"])}</td></tr>
+<tr><th>변형 내용</th><td>{var}</td></tr><tr><th>견본 풀이</th><td>{sol}</td></tr>{f"<tr><th>오답 설계</th><td>{wrong}</td></tr>" if wrong else ""}</table></div>'''
+
+def build(out):
+    cards = []
+    for n, r in sorted(C.RAW.items()):
+        it = C.ITEMS[n]
+        mine = r[0] + chs(r[1], r[2])
+        cards.append(card(f'{n}번', r[3], mine, it['var'], it['level'], it['sol'], it['wrong'], f' · 정답 {CIRC[r[2]-1]}'))
+    for s, lab in (('S1', '서답형 1'), ('S2', '서답형 2')):
+        it = C.SITEMS[s]
+        body = getattr(C, s) + ''.join(f'<div class="sub">({i}) {q[0]} <span class="pt">[{q[1]}]</span></div>' for i, q in enumerate(it['subs'], 1))
+        sol = '<br>'.join(it['rubric'])
+        cards.append(card(lab, it['key'], body, it['var'], it['level'], sol, it.get('wrong', ''), ' · 정답 ' + ' / '.join(it['ans'])))
+    css = r"""@page{size:A4;margin:11mm 10mm 12mm}
+body{font-family:'HB','MJ';font-size:8.8pt;line-height:1.55;margin:0;color:#111}
+.katex{font-size:1.02em;font-family:'TN','KaTeX_Main'}
+.katex .mathnormal{font-family:'TN','KaTeX_Math';font-style:italic}
+.katex .text,.katex .text *{font-family:'HB','MJ','TN'!important;font-style:normal}
+h1{font-family:'GL';font-weight:400;font-size:15pt;text-align:center;margin:0 0 1mm}
+.sub0{text-align:center;font-family:'GL';font-size:8.5pt;color:#555;margin-bottom:4mm}
+.card{border:.8pt solid #333;margin:0 0 4mm;break-inside:avoid}
+.hd{display:flex;gap:6pt;align-items:baseline;background:#eef0f3;border-bottom:.6pt solid #333;padding:2pt 5pt;font-family:'GL'}
+.no{background:#111;color:#fff;padding:0 5pt;font-size:10pt}.k{font-size:9pt}.s{flex:1;font-size:7.8pt;color:#444}.lv{font-size:8pt;color:#c0392b}
+.two{display:grid;grid-template-columns:1fr 1fr}
+.col{padding:4pt 6pt;min-width:0}.col+.col{border-left:.6pt solid #999}
+.lab{font-family:'GL';font-size:7.8pt;color:#1f4e9a;margin-bottom:2pt}
+.chs{display:flex;flex-wrap:wrap;gap:2pt 12pt;margin-top:3pt}.c.ok{color:#c0392b}
+.oa{font-family:'GL';font-size:8pt;color:#c0392b;margin-top:2pt}
+.cond{border:.6pt solid #000;padding:2pt 5pt;margin:3pt 0}.ci{display:block;padding-left:1.9em;text-indent:-1.9em}.ck{margin-right:3pt}
+fieldset.bogi{border:.6pt solid #000;margin:3pt 0;padding:2pt 6pt;min-inline-size:0}fieldset.bogi legend{font-size:8pt;padding:0 4pt}
+.bi{display:block;padding-left:1.4em;text-indent:-1.4em}.bk{margin-right:3pt}.fig{text-align:center;margin:3pt 0}.fig img{max-width:100%}
+.dm{text-align:center;margin:2pt 0}.sub{margin-top:2pt}.pt{font-size:7.5pt;color:#555}
+table.ex{border-collapse:collapse;width:100%;border-top:.6pt solid #333}
+.ex th{width:17mm;font-family:'GL';font-weight:400;font-size:7.8pt;background:#fafafa;border:.4pt solid #bbb;padding:2pt 4pt;text-align:left;vertical-align:top}
+.ex td{border:.4pt solid #bbb;padding:2pt 5pt;font-size:8.2pt}
+"""
+    h = (f'<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="file://{KATEX_CSS}"><style>{font_css()}{css}</style></head><body>'
+         '<h1>미적분Ⅰ 기말 견본 · 부교재 원문 1:1 대응과 변형 설명</h1>'
+         '<div class="sub0">왼쪽 부교재 원문, 오른쪽 견본 문항 · 빨간 번호 = 정답 · 17·18·서답형2는 구조 변경 (출제 지침서 0-4)</div>'
+         + ''.join(cards) + '</body></html>')
+    # 렌더러의 display 수식 측정은 시험지 쪽(.pg) 전용이라 가운데 정렬 인라인 수식으로 바꿈
+    h = re.sub(r'\\\[([\s\S]+?)\\\]', lambda m: '<div class="dm">\\(\\displaystyle ' + m.group(1) + '\\)</div>', h)
+    src = os.path.join(HERE, 'cmp_src.html'); open(src, 'w').write(fix(h))
+    subprocess.run(['node', os.path.join(HERE, 'render3.js'), 'cmp_src.html', 'cmp_tmp.pdf', 'bg'], cwd=HERE, check=True)
+    os.replace(os.path.join(HERE, 'cmp_tmp.pdf'), out)
+
+if __name__ == '__main__':
+    build(sys.argv[1])
