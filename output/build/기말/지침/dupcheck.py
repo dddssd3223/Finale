@@ -99,6 +99,18 @@ def check(paths):
             print(f'{p.split("/")[-2]} {no:>3}: {vd:12s} 골격 {ck:.2f} 원문 {cr:.2f}  ← {d["id"]} {d["hdr"]}')
     return bad
 
+def check_items(path):
+    """출제 중인 부품 파일(ITEMS={번호: dict(body, choices, ...)}, SITEMS={'S1': dict(body, subs=[...])})을 검사"""
+    D = load(); bad = 0
+    ns = {}; exec(open(path).read(), ns)
+    for no, it in list(ns.get('ITEMS', {}).items()) + list(ns.get('SITEMS', {}).items()):
+        text = it['body'] + ''.join('|' + str(c) for c in (it.get('choices') or [])) + ''.join(q[0] if isinstance(q, (list, tuple)) else str(q) for q in it.get('subs', []))
+        ck, cr, d, same = score(text, D, 1)[0]; vd = verdict(ck, cr, same)
+        bad += vd.startswith('금지')
+        print(f'{no}: {vd} 골격 {ck:.2f} 원문 {cr:.2f} ← {d["id"]} {d["hdr"]}')
+    return bad
+
 if __name__ == '__main__':
     if sys.argv[1] == 'build': build(sys.argv[2])
+    elif sys.argv[1] == 'items': sys.exit(1 if check_items(sys.argv[2]) else 0)
     else: sys.exit(1 if check(sys.argv[2:]) else 0)
