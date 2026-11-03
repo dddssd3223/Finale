@@ -97,7 +97,7 @@ def check(paths):
             ck, cr, d, same = score(text, D, 1)[0]
             vd = verdict(ck, cr, same)
             if vd.startswith('금지'): bad += 1
-            print(f'{p.split("/")[-2]} {no:>3}: {vd:12s} 골격 {ck:.2f} 원문 {cr:.2f}  ← {d["id"]} {d["hdr"]}')
+            print(f'{os.path.basename(os.path.dirname(os.path.abspath(p)))} {no:>3}: {vd:12s} 골격 {ck:.2f} 원문 {cr:.2f}  ← {d["id"]} {d["hdr"]}')
     return bad
 
 def check_items(path):
