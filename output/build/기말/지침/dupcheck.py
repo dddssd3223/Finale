@@ -21,6 +21,7 @@ N = 6
 
 def norm(t):
     t = re.sub(r'!\[[^\]]*\]\([^)]*\)', '', t)
+    t = re.sub(r'<[^>]+>', '', t)
     t = t.replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
     t = re.sub(r'\\(?:left|right|displaystyle|textstyle|limits|quad|qquad|,|;|!| )', '', t)
     t = re.sub(r'\\[dt]?frac', 'frac', t)
@@ -104,7 +105,8 @@ def check_items(path):
     D = load(); bad = 0
     ns = {}; exec(open(path).read(), ns)
     for no, it in list(ns.get('ITEMS', {}).items()) + list(ns.get('SITEMS', {}).items()):
-        text = it['body'] + ''.join('|' + str(c) for c in (it.get('choices') or [])) + ''.join(q[0] if isinstance(q, (list, tuple)) else str(q) for q in it.get('subs', []))
+        extra = ''.join(v for _, v in (it.get('cond') or [])) + ''.join(v for _, v in (it.get('bogi') or [])) + (it.get('after') or '')
+        text = it['body'] + extra + ''.join(q[0] if isinstance(q, (list, tuple)) else str(q) for q in it.get('subs', [])) + ''.join('|' + str(c) for c in (it.get('choices') or []))
         ck, cr, d, same = score(text, D, 1)[0]; vd = verdict(ck, cr, same)
         bad += vd.startswith('금지')
         print(f'{no}: {vd} 골격 {ck:.2f} 원문 {cr:.2f} ← {d["id"]} {d["hdr"]}')
