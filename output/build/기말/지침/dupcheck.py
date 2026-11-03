@@ -85,7 +85,10 @@ def check(paths):
     for p in paths:
         spec = importlib.util.spec_from_file_location('c3', p); m = importlib.util.module_from_spec(spec)
         sys.path.insert(0, os.path.dirname(os.path.abspath(p))); spec.loader.exec_module(m)
-        raw = getattr(m, 'RAW')
+        raw = dict(getattr(m, 'RAW'))
+        for s in ('S1', 'S2'):  # 서답형: 본문 + 소문항
+            if hasattr(m, s):
+                raw[s] = (getattr(m, s) + ''.join(q[0] for q in getattr(m, s + 'S', [])), None)
         for no, v in sorted(raw.items(), key=lambda x: str(x[0])):
             body = v[0] if isinstance(v, (tuple, list)) else str(v)
             ch = v[1] if isinstance(v, (tuple, list)) and isinstance(v[1], list) and v[1] and isinstance(v[1][0], str) else []
