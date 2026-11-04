@@ -109,7 +109,7 @@ jobs:
           while IFS= read -r TASK; do
             DIR="$(dirname "$TASK")"; NAME="$(basename "$DIR")"; BR="codex/풀이-${NAME}"
             git checkout -B "$BR" "$BASE"
-            IMGS=""; for im in "$DIR"/*.png; do [ -f "$im" ] && IMGS="$IMGS -i $im"; done
+            IMGS=""; for im in "$DIR"/*.png; do [ -f "$im" ] && IMGS="$IMGS -i $(basename "$im")"; done
             ( cd "$DIR" && codex exec -s workspace-write -c approval_policy="never" --skip-git-repo-check --color never $IMGS "TASK.md를 읽고 그대로 따른다. 이 폴더 밖의 파일은 읽지 않는다. 결과는 이 폴더의 codex_answers.md에 쓴다." 2>&1 | tee codex_solve_log.txt ) || true
             tail -c 150000 "$DIR/codex_solve_log.txt" > "$DIR/codex_solve_log.tmp" && mv "$DIR/codex_solve_log.tmp" "$DIR/codex_solve_log.txt"
             git add --sparse "$DIR"
