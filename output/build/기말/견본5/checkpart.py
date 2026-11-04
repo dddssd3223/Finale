@@ -50,7 +50,7 @@ if big:
         if not os.path.exists(f):
             print(f'{n}: 독립 검토 기록 없음 ({os.path.relpath(f, os.path.dirname(rdir))}) → 관문 3 미완, 블라인드 측정 금지'); continue
         R = __import__('json').load(open(f)); ok = []
-        ax = str(R.get('axis', ''))[:1]; ct = {k: str(v).split()[0] if v else '' for k, v in R.get('core_test', {}).items()}
+        ax = str(R.get('axis', ''))[:1]; ct = {k: ('불통' if str(v).lstrip().startswith('불통') else ('통' if str(v).lstrip().startswith('통') else '')) for k, v in R.get('core_test', {}).items()}
         if ax == '①' and ct.get('principle') != '불통': ok.append('원리 교체형인데 원문 원리 줄이 통함')
         if ax == '②' and ct.get('setting') != '불통': ok.append('설정 교체형인데 원문 설정 줄이 통함')
         if ax not in ('①', '②'): ok.append(f'축 {ax!r}(①·②만 허용)')

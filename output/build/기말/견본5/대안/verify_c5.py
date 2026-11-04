@@ -56,9 +56,10 @@ for av in possible:
 assert len(accepted)==1
 fstar,gstar=accepted[0]
 assert s.expand(fstar-x*(x-3)**2)==0 and gstar==9*x-9
-answers=[fstar.subs(x,0),gstar.subs(x,0),(fstar+gstar).subs(x,2)]
-assert answers==[0,-9,11]
-assert it['ans']==['(1) 0','(2) -9','(3) 11']
+crit=s.solve(s.diff(fstar,x),x); mins=[c for c in crit if s.diff(fstar,x,2).subs(x,c)>0]
+answers=[mins[0],gstar.subs(x,0),abs(fstar.subs(x,2))+2*gstar.subs(x,2)]
+assert answers==[3,-9,20]
+assert it['ans']==['(1) 3','(2) -9','(3) 20']
 assert [q[1] for q in it['subs']]==['4점, 답만 적으시오.','4점, 답만 적으시오.','2점, 답만 적으시오.']
 # 모든 실수에서 h=x|x|(x+3). 특히 0의 좌우미분계수는 모두 0.
 hp=x*x*(x+3)
@@ -93,8 +94,9 @@ def ablation(label,fv,gv,omitted):
     }
     assert all(v for k,v in checks.items() if k!=omitted),(label,checks)
     assert not checks[omitted]
-    vals=[fv.subs(x,0),gv.subs(x,0),(fv+gv).subs(x,2)]
-    assert vals!=answers and vals[2]!=answers[2]
+    cr=[c for c in s.solve(s.diff(fv,x),x) if c.is_real and s.diff(fv,x,2).subs(x,c)>0]
+    vals=[sorted(cr) if len(cr)!=1 else cr[0],gv.subs(x,0),abs(fv.subs(x,2))+2*gv.subs(x,2)]
+    assert vals!=answers
     print(f'ABLATION S2 {label}: 필요(f={s.factor(fv)}, g={s.factor(gv)}, 답={vals})')
 
 ablation('h의 미분가능성',(x-2)**2*(x+3),x-1,'미분가능')
