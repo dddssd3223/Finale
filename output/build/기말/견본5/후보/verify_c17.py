@@ -82,7 +82,7 @@ assert it['ans'] == 4 and choices[3] == -20
 wrong = {
     -8: 4*(1-R(6,2)),             # 첫 가족의 r를 a/2로 오인
     -12: (4*x*(x-4)).subs(x, 1),  # r=a 가족만 남김
-    -16: (-16*x).subs(x, 1),      # 최종 함수의 이차항 누락
+    -16: (-4*x*(x+2*R(3,2))).subs(x, 1),  # r=-2a 가족에 원문의 상한 a<=3/2를 그대로 옮김
     -24: s.diff(fstar,x).subs(x,1) # 함숫값 대신 미분계수
 }
 assert all(k == v and k in choices and k != -20 for k,v in wrong.items())

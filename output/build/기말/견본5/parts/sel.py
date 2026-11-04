@@ -10,6 +10,7 @@ _C1, _C2 = _g('대안/c1.py'), _g('대안/c2.py')     # Codex (1·3·5·7 / 9·1
 ITEMS = {
     1: _B1[1], 3: _B1[3], 5: _C1[5], 7: _B1[7],          # review/compare1_7.json
     9: _C2[9], 11: _C2[11], 13: _B2[13], 15: _C2[15],    # review/compare9_15.json
+    17: _g('후보/c17.py')[17],                            # review/codex17.json (관문 3 통과, 오답 근거 수정)
     18: _g('후보/p18.py')[18],                            # review/claude18.json (관문 3 통과)
 }
 SITEMS = {'S2': _g('대안/c5.py', 'SITEMS')['S2']}       # review/codexS2.json (관문 3 통과, 검토 수정 반영)
