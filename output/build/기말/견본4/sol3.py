@@ -87,7 +87,8 @@ def build(out):
                  f'<div class="r"><div class="k">변형 포인트</div><div class="v">{d["var"]}</div></div></div>')
     h.append('</body></html>')
     src_html = os.path.join(HERE, 'sol_src.html')
-    open(src_html, 'w').write(_fx(''.join(h)))
+    _h = _re.sub(r'\\\[([\s\S]+?)\\\]', lambda m: '<div style="text-align:center;margin:2pt 0">\\(\\displaystyle ' + m.group(1) + '\\)</div>', ''.join(h))   # 해설 속 가운데 줄 수식 → 가운데 정렬 인라인(렌더러의 display 측정은 시험지 전용)
+    open(src_html, 'w').write(_fx(_h))
     subprocess.run(['node', os.path.join(HERE, 'render3.js'), 'sol_src.html', 'sol_tmp.pdf', 'bg'], cwd=HERE, check=True)
     os.replace(os.path.join(HERE, 'sol_tmp.pdf'), out)
 
