@@ -98,21 +98,36 @@ jobs:
         if: steps.solve.outputs.found == 'true'
         with:
           node-version: '22'
-      - name: Codex 블라인드 풀이
+      - uses: actions/setup-python@v5
+        if: steps.solve.outputs.found == 'true'
+        with:
+          python-version: '3.12'
+      - name: Codex 블라인드 작업(풀이·출제)
         if: steps.solve.outputs.found == 'true'
         run: |
+          pip install -q sympy numpy matplotlib
           npm install -g @openai/codex
           printenv OPENAI_API_KEY | codex login --with-api-key
           git config user.name "codex-coauthor"
           git config user.email "codex-coauthor@users.noreply.github.com"
+          curl -sS https://api.openai.com/v1/models -H "Authorization: Bearer $OPENAI_API_KEY" | python3 -c "import json,sys;print('\n'.join(sorted(m['id'] for m in json.load(sys.stdin).get('data',[]))))" > /tmp/models.txt || true
           BASE="$GITHUB_SHA"
           while IFS= read -r TASK; do
             DIR="$(dirname "$TASK")"; NAME="$(basename "$DIR")"; BR="codex/풀이-${NAME}"
             git checkout -B "$BR" "$BASE"
+            git sparse-checkout set "$DIR"          # 이 작업 폴더만 남김(다른 풀이 폴더·해설 차단)
+            cp /tmp/models.txt "$DIR/models_available.txt"
+            MODEL="$(grep -m1 '^MODEL:' "$TASK" | sed 's/^MODEL:[ ]*//')"
+            EFFORT="$(grep -m1 '^EFFORT:' "$TASK" | sed 's/^EFFORT:[ ]*//')"
+            if [ -n "$MODEL" ] && ! grep -qx "$MODEL" /tmp/models.txt; then
+              CAND="$(grep -i -m1 "$MODEL" /tmp/models.txt || true)"; echo "모델 '$MODEL' → '$CAND'"; MODEL="$CAND"
+            fi
+            OPTS=""; [ -n "$MODEL" ] && OPTS="$OPTS -m $MODEL"; [ -n "$EFFORT" ] && OPTS="$OPTS -c model_reasoning_effort=\"$EFFORT\""
+            echo "MODEL=$MODEL EFFORT=$EFFORT" | tee "$DIR/codex_run_info.txt"
             IMGS=""; for im in "$DIR"/*.png; do [ -f "$im" ] && IMGS="$IMGS -i $(basename "$im")"; done
-            ( cd "$DIR" && codex exec -s workspace-write -c approval_policy="never" --skip-git-repo-check --color never "TASK.md를 읽고 그대로 따른다. 이 폴더 밖의 파일은 읽지 않는다. 결과는 이 폴더의 codex_answers.md에 쓴다." $IMGS < /dev/null 2>&1 | tee codex_solve_log.txt ) || true
+            ( cd "$DIR" && codex exec -s workspace-write -c approval_policy="never" --skip-git-repo-check --color never $OPTS "TASK.md를 읽고 그대로 따른다. 이 폴더 밖의 파일은 읽지 않는다. 결과는 TASK.md가 정한 파일에 쓴다." $IMGS < /dev/null 2>&1 | tee codex_solve_log.txt ) || true
             tail -c 150000 "$DIR/codex_solve_log.txt" > "$DIR/codex_solve_log.tmp" && mv "$DIR/codex_solve_log.tmp" "$DIR/codex_solve_log.txt"
             git add --sparse "$DIR"
-            git commit -m "Codex 블라인드 풀이: ${NAME}" || echo "변경 없음"
+            git commit -m "Codex 블라인드 작업: ${NAME}" || echo "변경 없음"
             git push -f origin "$BR"
           done < /tmp/solve.txt
