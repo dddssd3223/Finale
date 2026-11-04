@@ -134,13 +134,16 @@ fQ = 3*x**4                                          # (가)의 경계근 r=0
 fN = fA - 16                                         # p>0 무시: 변곡점 높이를 0으로
 assert sp.diff(fQ, x).subs(x, 1) == 12 and h_increasing(fQ) and disc_points(fQ) == [0]
 assert sp.diff(fN, x).subs(x, 1) == 12 and h_increasing(fN) and disc_points(fN) == [-16, 0]
-wv = dict(odd=w_odd, Q=ASK(fQ), N=ASK(fN))
-assert wv == dict(odd=46, Q=6, N=-74)
-assert all(v in CH and v != ans for v in wv.values())
-assert [CH.index(v) + 1 for v in (46, 6, -74)] == [2, 3, 5]
-for v, lab in ((46, '②'), (6, '③'), (-74, '⑤')):
+fR = 3*x**4 - 8*x**3 + 6*x**2                         # (1-r)^2=1을 r=1로 잘못 풂
+assert sp.expand(sp.diff(fR, x) - 12*x*(x-1)**2) == 0 and sp.diff(fR, x).subs(x, 1) == 0
+wv = dict(odd=w_odd, Q=ASK(fQ), R=ASK(fR), N=ASK(fN))
+assert wv == dict(odd=46, Q=6, R=26, N=-74)
+assert all(v in CH and v != ans for v in (46, 6, 26))
+assert [CH.index(v) + 1 for v in (46, 26, 6)] == [3, 4, 5]
+assert all(v > 0 for v in CH)                         # f>=0이므로 음수 선지 없음
+for v, lab in ((46, '③'), (26, '④'), (6, '⑤')):
     assert lab in it['wrong'] and str(v) in it['wrong']
-print('오답 근거 값: ②46(홀수차항 미소거) ③6(경계 r=0, f=3x^4) ⑤-74(p>0 무시, 변곡점 높이 0) — 모두 선지에 있음')
+print('오답 근거 값: ③46(홀수차항 미소거) ④26(r=1로 잘못 풂) ⑤6(경계 r=0, f=3x^4) — 모두 선지에 있음, 음수 선지 없음 (참고: p>0 무시 -74는 선지 밖)')
 
 # ---------- 조건 빼 보기 ----------
 print('--- 조건 빼 보기 ---')
