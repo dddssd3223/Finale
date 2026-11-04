@@ -142,7 +142,7 @@ for fexpr in [x**3 * (x - 8), x**3 * (x - 6)]:
     print('   수치', sp.factor(fexpr), '값이 튀는 t:', jumps)
 
 # 선지
-ch17 = [-12, -7, -5, 50, 742]
+ch17 = [-12, -7, -2, 3, 8]   # 등차 배열, -7 = t=-a 누락
 assert ch17 == sorted(ch17) and ch17.index(ans17) == 0
 # 오답 근거: -7 (꼭짓점이 아닌 원상 u 누락: m=6만), -5 (m=6 누락), 50 (정지점만 보고 f(1)<1 미확인: -7+57), 742 (f(1)<1 미확인: 네 함수 모두)
 assert -7 + 57 == 50 and -7 - 5 + 57 + 697 == 742
@@ -203,7 +203,7 @@ assert ans18 == 820
 assert -11 not in ks_exact(2) and sp.Rational(-19, 2) < sp.Rational(-256, 27)
 assert ks_exact(-2)[:2] == [-1, 0] and len(ks_exact(-2)) == 11 and len(ks_exact(2)) == 10
 # 선지와 오답 근거
-ch18 = [480, 600, 820, 980, 1200]
+ch18 = [380, 600, 820, 1040, 1260]   # 등차 배열, 600 = N(2)=11 처리
 assert ch18 == sorted(ch18) and ch18.index(ans18) == 2
 assert sum(map(fp10, [1, 2])) == 480            # a<0 누락
 assert sum(map(fp10, [1, -1])) == 600           # a=2 의 k=-11 포함(또는 k=0 포함)으로 N(2)=11 처리

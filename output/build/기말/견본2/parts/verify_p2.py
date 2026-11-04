@@ -41,7 +41,7 @@ assert sp.factor(V5) == 4*t*(t - 1)*(t - 5)
 sc = sign_changes(V5, t, 0); assert sc == [1, 5], sc                            # t=0은 출발 시각(제외)
 assert V5.subs(t, 0) == 0                                                        # 함정: 출발 시각 속도 0
 ch = chk(5, A5.subs(t, sc[1]))
-assert A5.subs(t, 1) in ch and A5.subs(t, 0) in ch and A5.subs(t, 1) + A5.subs(t, 5) in ch   # 함정 값 -16, 20, 64
+assert A5.subs(t, 1) + A5.subs(t, 5) in ch   # 함정 값 64 (선지 등차 배열 64~80)
 
 # ---------- 6번 ----------
 v1 = (t - 1)**2
@@ -64,7 +64,7 @@ s = np.sign(np.round(vv, 12)); nz = s != 0
 idx = np.where(np.diff(s[nz]) != 0)[0]
 assert len(idx) == 1 and abs(g[nz][idx[0]] - 3) < 1e-4
 ch = chk(6, ans6)
-assert pos(1) + pos(3) in ch and pos(2) + pos(3) in ch and pos(1) in ch and pos(2) in ch  # 함정 값 2, 7/3, 1/3, 2/3
+assert pos(1) + pos(3) in ch and pos(2) + pos(3) in ch  # 함정 값 2, 7/3 (선지 등차 배열 1~7/3)
 
 # ---------- 7번 ----------
 b, c, d = sp.symbols('b c d')
@@ -76,7 +76,7 @@ f7 = sp.expand(f.subs(sol[0])); assert sp.expand(f7 - ((x + 1)**2*(x - 8) + 8)) 
 crit = sp.solve(sp.diff(f7, x), x); assert sorted(crit) == [-1, 5]
 assert sp.diff(f7, x, 2).subs(x, -1) < 0 and sp.diff(f7, x, 2).subs(x, 5) > 0   # -1 극대, 5 극소 (함정)
 ch = chk(7, f7.subs(x, 5))
-assert f7.subs(x, -1) in ch and f7.subs(x, 0) in ch and f7.subs(x, 2) in ch and f7.subs(x, 4) in ch
+assert f7.subs(x, 4) in ch   # 함정 값 -92 (선지 등차 배열 -100~-68)
 
 # ---------- 8번 ----------
 cs = sp.symbols('c0:7'); K = sp.Symbol('K')

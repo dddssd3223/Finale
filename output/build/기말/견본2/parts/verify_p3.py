@@ -43,7 +43,7 @@ ans9 = dist(V.subs(b, 0), 0, 4)
 trap9a = dist(V.subs(b, 6), 0, 4)              # 중근을 전환으로 셈
 trap9b = sp.integrate(V.subs(b, 0), (t, 0, 4))  # 변위
 assert (ans9, trap9a, trap9b) == (48, 56, 32)
-chk(9, ans9, [trap9a, trap9b])
+chk(9, ans9, [trap9a])
 
 # ---- 10번: 연속 조건 + 적분 조건 → a, b 유일, 누적 적분 부등식
 f0 = a*x**3 + x - 1
@@ -110,5 +110,5 @@ ans12 = abs(xP6 - xQ6); assert (xP6, xQ6, ans12) == (36, -18, 54)
 trap12 = abs(xP6 - sp.integrate(v2.subs(C, -16), (t, 0, 6)))  # [0,T] 가정
 trap12b = xP6 + dist(V2, 0, 6)                                # 이동 거리 합
 assert (trap12, trap12b) == (60, sp.Rational(170, 3))
-chk(12, ans12, [trap12, trap12b])
+chk(12, ans12, [trap12])
 print('ALL OK')

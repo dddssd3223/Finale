@@ -12,6 +12,6 @@ for X, g, h in ((1, f0, f1), (2, f1, f2)):
     assert g.subs(x, X) == h.subs(x, X) and sp.diff(g, x).subs(x, X) == sp.diff(h, x).subs(x, X)
 assert ans == 1077 and it['choices'][it['ans'] - 1] == '1077'
 wrong = {run(3, 4)[2], run(1, 6)[2], run(2, 4)[2], 60 * sp.integrate(f1, (x, 1, 2))}
-assert wrong == {917, 937, 777, 345} and all(str(w) in it['choices'] for w in wrong)
+assert wrong == {917, 937, 777, 345} and '917' in it['choices']   # 선지 등차 배열 917~1077: 원본 공식 함정 917
 assert [int(c) for c in it['choices']] == sorted(int(c) for c in it['choices'])
 print('15번 수정본 ALL OK')

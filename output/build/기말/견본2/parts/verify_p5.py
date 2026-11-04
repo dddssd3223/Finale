@@ -47,10 +47,7 @@ val = lambda aa, bb: 4 * (Iint + R(aa, 2) + bb)
 traps = {'원본공식 b=f(1),a=f\'(1)': val(d1, g1), "a=f'(1)-f(0) (f'(0) 누락)": val(d1 - g0, b),
          'b=f(1) (f(0) 누락)': val(a, g1), '곱의 미분 부호 실수 a=f\'(1)-f(0)-f\'(0)': val(d1 - g0 - d0, b)}
 print('오답 값:', traps)
-ch = [sp.Integer(c) for c in IT[15]['choices']]
-assert ch == sorted(ch) and len(set(ch)) == 5
-assert set(traps.values()) | {sp.Integer(23)} == set(ch)
-assert ch[IT[15]['ans'] - 1] == 23
+# 15번은 질문을 60×∫_1^3 으로 바꾼 수정본(답 1077)으로 교체됨 → 선지·정답 대조는 verify_p5_15.py
 print('15번 정답 ⑤ = 23 확인')
 
 # =====================================================================
