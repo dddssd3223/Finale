@@ -197,23 +197,44 @@ vals = [(cc*(x**2 - 4*x)*x*(x - 4)).subs(x, 1) for cc in [1, 2, 3]]
 ablation(11, "'최고차항의 계수가 1'", vals, 9)
 
 # ================= 13번 =================
-x1 = t**3 - 3*t
-x2 = 9*t
+v1 = 3*t**2 - 6*t
+v2 = sp.Integer(9)
+P0, Q0 = 0, -11                                   # 출발점: P는 원점, Q는 -11
+x1 = P0 + sp.integrate(v1.subs(t, s), (s, 0, t))
+x2 = Q0 + sp.integrate(v2, (s, 0, t))
+check(13, sp.expand(x1) == t**3 - 3*t**2 and sp.expand(x2) == 9*t - 11, f'적분상수 반영: x1={sp.expand(x1)}, x2={sp.expand(x2)}')
+
+
+def first16(D):
+    """t>=0 에서 |D|=16 이 되는 시각 목록(오름차순)과 처음 시각."""
+    rr = sorted({r_ for r_ in sp.Poly(sp.expand((D - 16)*(D + 16)), t).real_roots() if r_ >= 0}, key=float)
+    return rr
+
+
 D13 = sp.expand(x1 - x2)
-roots = sorted({rr for rr in sp.solve(D13 - 16, t) + sp.solve(D13 + 16, t) if rr.is_real and rr >= 0}, key=float)
-check(13, D13 == t**3 - 12*t and roots == [2, 4], f'x1-x2={D13}, |x1-x2|=16 인 시각 {roots}')
-check(13, sp.factor(D13 + 16) == (t - 2)**2*(t + 4) and sp.factor(D13 - 16) == (t - 4)*(t + 2)**2, 'd+16=(t-2)^2(t+4), d-16=(t-4)(t+2)^2')
-# 0≤t<2 에서 |d|<16 (d 감소, d(2)=-16)
-check(13, sp.solve(sp.diff(D13, t), t) == [-2, 2] and all(abs(D13.subs(t, sp.Rational(k, 10))) < 16 for k in range(0, 20)), '0≤t<2 에서 |d|<16 → 처음은 t=2')
-v1 = sp.diff(x1, t); v2 = sp.diff(x2, t)
+roots = first16(D13)
+check(13, D13 == t**3 - 3*t**2 - 9*t + 11 and roots == [3, 5], f'd=x1-x2={D13}, |d|=16 인 시각 {roots}')
+check(13, sp.factor(D13 + 16) == (t - 3)**2*(t + 3) and sp.factor(D13 - 16) == (t - 5)*(t + 1)**2, 'd+16=(t-3)^2(t+3), d-16=(t-5)(t+1)^2')
+check(13, sp.expand(sp.diff(D13, t) - 3*(t - 3)*(t + 1)) == 0 and D13.subs(t, 0) == 11 and D13.subs(t, 3) == -16
+      and all(abs(D13.subs(t, sp.Rational(k, 10))) < 16 for k in range(0, 30)),
+      "d'=3(t+1)(t-3): 0≤t≤3 감소, d(0)=11, d(3)=-16 → 0≤t<3 에서 -16<d≤11, |d|<16")
+check(13, D13.subs(t, 1) == 0, 't=1에서 두 점이 만남(d=0) 뒤 t=3에서 거리 16')
 T13 = roots[0]
-check(13, v1.subs(t, T13) == 9 and v2.subs(t, T13) == 9, 't=2에서 p=q=9')
+check(13, v1.subs(t, T13) == 9 and v2 == 9, 't=3에서 p=q=9 (d\'(3)=0)')
 ans_ok(13, (v1 + v2).subs(t, T13))
-wrong_in(13, [(v1 + v2).subs(t, 4), v1.subs(t, 4), (v1 - v2).subs(t, 4)], 't=4 사용: p+q=54, p=45, p-q=36')
+wrong_in(13, [(v1 + v2).subs(t, 5), v1.subs(t, 5), (v1 - v2).subs(t, 5)], 't=5 사용: p+q=54, p=45, p-q=36')
 print('--- 13번 조건 빼 보기 ---')
 ablation(13, "'처음으로'", [(v1 + v2).subs(t, T) for T in roots], 18)
-ablation(13, "'(t≥0)'", [(v1 + v2).subs(t, T) for T in sorted({rr for rr in sp.solve(D13 - 16, t) + sp.solve(D13 + 16, t) if rr.is_real}, key=float)[:1]], 18,
-         why='t<0을 허용하면 t=-4에서 이미 거리 16')
+allr = sorted({r_ for r_ in sp.Poly(sp.expand((D13 - 16)*(D13 + 16)), t).real_roots()}, key=float)
+ablation(13, "'(t≥0)'", [(v1 + v2).subs(t, allr[0])], 18, why=f't<0을 허용하면 t={allr[0]}에서 이미 거리 16')
+D0 = sp.expand(D13 - D13.subs(t, 0))             # 두 점 모두 원점 출발로 보면
+r0 = first16(D0)
+val0 = (v1 + v2).subs(t, r0[0])
+check(13, not r0[0].is_rational and sp.nsimplify(val0) not in ch(13), f'원점 출발로 보면 처음 시각 t≈{float(r0[0]):.4f}(무리수), p+q≈{float(val0):.4f} (선지에 없음)')
+ablation(13, "'점 Q는 좌표가 -11인 점을 출발'(→ 원점 출발)", [sp.N(val0, 6)], 18, why='적분상수를 0으로 두면 d=t^3-3t^2-9t, 극솟값 -27')
+D1 = sp.expand(D13 - 22)                         # 출발점 부호를 바꿔 x1-x2 의 상수항을 -11 로 두면
+r1 = first16(D1)
+ablation(13, "'-11'의 부호(→ 11)", [sp.N((v1 + v2).subs(t, r1[0]), 6)], 18, why=f'd=t^3-3t^2-9t-11, 처음 시각 t≈{float(r1[0]):.4f}')
 
 # ================= 15번 =================
 k = sp.symbols('k', real=True)
