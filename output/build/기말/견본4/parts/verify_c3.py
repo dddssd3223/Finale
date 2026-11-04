@@ -1,144 +1,196 @@
 # -*- coding: utf-8 -*-
-"""18번: 도함수의 실근 유형을 전수 분류하고 모든 조건에 반례를 만든다."""
+"""18번: 일반 사차함수의 정지점 유형 전수 분류, 유일성, 세 조건 빼 보기."""
 from pathlib import Path
+import html
+import re
 import runpy
 import sys
 import sympy as s
 
 HERE = Path(__file__).resolve().parent
-IT = runpy.run_path(str(HERE / 'c3.py'))['ITEMS']
-assert set(IT) == {18}
-it = IT[18]
+it = runpy.run_path(str(HERE / 'c3.py'))['ITEMS'][18]
 sys.path.insert(0, str(HERE.parents[2] / '부교재_기말'))
 import items_final as F
-x, y, t, a, b, c, u, v = s.symbols('x y t a b c u v', real=True)
+x, y, t, u, v, h, k = s.symbols('x y t u v h k', real=True)
 
-def kink_count(poly, variable=x):
-    """절댓값이 미분불가능한 점 = 다항식의 단순 실근. 중복도까지 정확히 계산."""
-    return sum(m == 1 for _, m in s.Poly(poly, variable).real_roots(multiple=False))
+
+def kink_count(poly):
+    """|poly|가 미분불가능한 점은 poly의 단순 실근뿐이다."""
+    return sum(mult == 1 for _, mult in s.Poly(poly, x).real_roots(multiple=False))
+
 
 def integral(poly):
-    return s.simplify(15*s.integrate(poly, (x, -1, 1)))
+    return s.simplify(15 * s.integrate(poly, (x, -1, 1)))
 
-# 전수 분류 근거: f'는 실계수 삼차식이다.
-# (A) 단순 실근 하나/삼중 실근 하나: 유일한 최소 높이에서 g=0.
-# (B) 이중 실근과 단순 실근: 최소 높이에서 g=0, 정지변곡 높이에서 g=1.
-# (C) 서로 다른 실근 셋: 두 극솟값이 다르면 불연속 높이 3개.
-#     두 극솟값이 같으면 그 높이에서 g=0, 극댓값 높이에서 g=2.
-# 따라서 (가)(나)는 (C)의 같은 두 극솟값=0을 강제한다.
-single_min = x**4+x*x+1
-flat_min = x**4+1
-assert kink_count(single_min-1) == kink_count(flat_min-1) == 0
-assert s.discriminant(s.diff(single_min, x), x) < 0
-assert s.factor(s.diff(flat_min, x)) == 4*x**3
-unequal_minima = x**4-2*x*x+x+1
-assert s.discriminant(s.diff(unequal_minima, x), x) > 0
-critical_values = s.Poly(s.resultant(unequal_minima-t, s.diff(unequal_minima, x), x), t)
-assert critical_values.degree() == 3 and s.discriminant(critical_values.as_expr(), t) != 0
 
-# 모든 (B)형: 삼차항이 없으므로 f'=4(x-r)^2(x+2r), r!=0.
+def profile(poly):
+    """정지점의 높이와 사이 구간을 모두 검사. 정지 높이 밖에서는 개수 불변.
+
+    반환: (높이, 왼쪽 구간의 g, 그 높이의 g, 오른쪽 구간의 g).
+    사용 예들의 계수와 정지 높이는 모두 유리수이므로 근을 정확하게 센다.
+    """
+    critical = s.Poly(s.diff(poly, x), x).real_roots(multiple=False)
+    levels = sorted({s.simplify(poly.subs(x, root)) for root, _ in critical})
+    samples = [levels[0] - 1]
+    samples += [(a + b) / 2 for a, b in zip(levels, levels[1:])]
+    samples += [levels[-1] + 1]
+    counts = [kink_count(poly - sample) for sample in samples]
+    return [(z, counts[j], kink_count(poly - z), counts[j + 1])
+            for j, z in enumerate(levels)]
+
+
+def conditions(poly, p):
+    rows = profile(poly)
+    discontinuities = {z for z, left, at, right in rows if left != at or at != right}
+    at_p = kink_count(poly - p)
+    if p in {row[0] for row in rows}:
+        right_p = next(row[3] for row in rows if row[0] == p)
+    else:
+        # 정지 높이가 아니면 그 근방에서 g가 일정하다.
+        right_p = at_p
+    return (discontinuities == {s.Integer(0), s.sympify(p)},
+            right_p == at_p,
+            s.simplify(poly.subs(x, -1) + poly.subs(x, 1)) == 0)
+
+
+# ===== 전수 분류: 실계수 삼차식 f'의 가능한 실근 유형은 아래 네 가지뿐이다.
+# A1. 단순 실근 하나 + 비실수 켤레근: 유일한 극소점.
+# A2. 세 번 겹친 실근 하나: 유일한 극소점.
+# B. 두 번 겹친 실근 하나 + 단순 실근 하나: 정지변곡점 + 극소점.
+# C. 서로 다른 실근 셋: 극소, 극대, 극소. 두 극솟값의 같음/다름을 분류.
+# 최고차항이 양수이므로 A의 유일한 정지 높이 m에서 g(m)=0, 우극한=2.
+# 따라서 (가)가 p=0인 한 점 집합인 경우까지 포함해 A는 (나)에 모순이다.
+q, z = s.symbols('q z', real=True)
+quadratic = y**2 + q*y + z
+assert s.expand(quadratic - ((y + q/2)**2 + z - q*q/4)) == 0
+# 비실수 켤레근이면 z-q²/4>0: f'=4(y-r)*quadratic의 부호는 y-r의 부호.
+assert profile(x**4 + x*x) == [(0, 0, 0, 2)]
+assert profile(x**4) == [(0, 0, 0, 2)]
+print('EXHAUSTIVE A1/A2: 유일한 극소 높이 (g, 우극한)=(0,2), 불가능')
+
+# B형 전체를 평행이동한 표준형. r!=0, k는 임의의 실수.
+# 두 정지점의 가중평균을 원점으로 옮기면 모든 B형이 이 식으로 표시된다.
 r = s.symbols('r', real=True, nonzero=True)
-degenerate = x**4-6*r*r*x*x+8*r**3*x+1
-assert s.expand(s.diff(degenerate, x)-4*(x-r)**2*(x+2*r)) == 0
-minimum = degenerate.subs(x, -2*r)
-shoulder = degenerate.subs(x, r)
-assert s.simplify(minimum) == 1-24*r**4
-assert s.simplify(shoulder) == 1+3*r**4
-assert s.factor(degenerate-shoulder) == (x-r)**3*(x+3*r)
-assert s.factor(degenerate-minimum) == (x+2*r)**2*(x*x-4*r*x+6*r*r)
-assert s.discriminant(x*x-4*r*x+6*r*r, x) == -8*r*r
-# 위 두 인수분해가 (B)형 전체에서 g(최소)=0, g(정지변곡)=1임을 보인다.
+B = y**4 - 6*r*r*y*y + 8*r**3*y + k
+assert s.expand(s.diff(B, y) - 4*(y-r)**2*(y+2*r)) == 0
+low, shoulder = B.subs(y, -2*r), B.subs(y, r)
+assert s.simplify(low) == k - 24*r**4
+assert s.simplify(shoulder - low) == 27*r**4  # 항상 양수
+assert s.expand(B-shoulder - (y-r)**3*(y+3*r)) == 0
+assert s.expand(B-low - (y+2*r)**2*(y*y-4*r*y+6*r*r)) == 0
+assert s.discriminant(y*y-4*r*y+6*r*r, y) == -8*r*r
+# 정지변곡 높이에서 단순 실근은 하나이고 양옆 높이에서는 두 개.
+assert profile(x**4-6*x*x+8*x+24) == [(0, 0, 0, 2), (27, 2, 1, 2)]
+print('EXHAUSTIVE B: 최소 (0,2), 정지변곡 (1,2), 모두 (나)에 모순')
 
-# (C)형에서 같은 두 최소 높이가 0이면 f는 두 제곱인수의 곱이다.
-sq = s.Poly((x-u)**2*(x-v)**2, x)
-assert sq.coeff_monomial(x**3) == -2*(u+v)
-assert s.factor(sq.coeff_monomial(1)) == u*u*v*v
-possible_u = s.solve(u**4-1, u)
-assert possible_u == [-1, 1]  # u는 실수로 선언되어 있다.
-candidates = {s.expand((x-uu)**2*(x+uu)**2) for uu in possible_u}
-assert len(candidates) == 1
+# C형 전체: 왼쪽 극소점을 y=0으로 옮기고 두 인접 간격을 a,b>0으로 둔다.
+# 임의의 수평/수직 이동이 허용되므로 특정 계수의 사차함수에 국한되지 않는다.
+a, b = s.symbols('a b', positive=True)
+C = s.integrate(4*y*(y-a)*(y-a-b), y)
+assert s.expand(s.diff(C, y)-4*y*(y-a)*(y-a-b)) == 0
+min_left, maximum, min_right = [s.factor(C.subs(y, rr)) for rr in (0, a, a+b)]
+assert min_left == 0
+assert s.simplify(maximum-a**3*(a+2*b)/3) == 0
+assert s.simplify(maximum-min_right-b**3*(2*a+b)/3) == 0
+assert s.factor(min_right-min_left) == (a-b)*(a+b)**3/3
+# 두 극솟값이 다르면 아래쪽 최소, 위쪽 최소, 최대의 서로 다른 높이 셋.
+# 각 높이에서 (좌극한,g,우극한)은 (0,0,2), (2,2,4), (4,2,2).
+# 두 최소 높이가 같으면 (0,0,4), (4,2,2)의 두 높이.
+# 아래는 두 최소 높이 순서를 모두 확인하는 정확한 대표 사례이고,
+# 위의 양수 간격 공식/단조구간 논증이 모든 a,b>0를 포괄한다.
+unequal = s.expand(C.subs({y:x, a:1, b:2}))
+assert profile(unequal) == [(-9, 0, 0, 2), (0, 2, 2, 4), (s.Rational(5,3), 4, 2, 2)]
+reflected = s.expand(unequal.subs(x, 3-x))
+assert profile(reflected) == profile(unequal)
+assert min_right.subs({a:1, b:2}) < min_left
+assert min_right.subs({a:2, b:1}) > min_left
+assert s.expand(C.subs(b, a) - y**2*(2*a-y)**2) == 0
+print('EXHAUSTIVE C: 최소 높이 다름 -> 불연속 3개; 같음 -> 최소 (0,4), 최대 (2,2)')
+
+# (가)(나)로 C의 같은 두 극솟값=0, 극댓값=p>0만 남는다.
+# f=(x-u)²(x-v)², u!=v; (다)의 두 항은 비음수이므로 각각 0.
+# 아래 검사는 u,v의 위치 조합 전부를 상징적으로 푼다. 격자 탐색이 아니다.
+square = (x-u)**2 * (x-v)**2
+minus_one = s.factor(square.subs(x, -1))
+plus_one = s.factor(square.subs(x, 1))
+solutions = s.solve([minus_one, plus_one], [u, v], dict=True)
+assert {tuple(sol[z] for z in (u,v)) for sol in solutions} == {(-1,1), (1,-1)}
+candidates = {s.expand(square.subs(sol)) for sol in solutions}
+assert candidates == {x**4-2*x*x+1}
 f = candidates.pop()
-assert f == x**4-2*x*x+1
-critical = s.solve(s.diff(f, x), x)
-assert critical == [-1, 0, 1]
-levels = sorted({f.subs(x, rr) for rr in critical})
-assert levels == [0, 1]
-table = {tt: kink_count(f-tt) for tt in [-1, 0, s.Rational(1, 2), 1, 2]}
-assert list(table.values()) == [0, 0, 4, 2, 2]
-# 정지점 높이 사이에서는 단순 실근 수가 불변이다. 모든 높이 구간과 경계를 확인했다.
-print('EXHAUSTIVE 18: derivative cases A(simple/triple), B(double+simple), C(unequal/equal minima): OK')
-print('18 g(t) table:', table, '; unique (a,b,p)=(-2,0,1)')
+assert profile(f) == [(0, 0, 0, 4), (1, 4, 2, 2)]
+assert conditions(f, 1) == (True, True, True)
+print('UNIQUE 18: f=(x²-1)², p=1; 모든 실계수 사차함수 중 유일')
 
+# ===== 지정 정답, 선지 등차와 오답 근거: 4개 모두 실제 계산값을 대조.
 answer = integral(f)
 choices = list(map(s.sympify, it['choices']))
 assert it['author'] == 'codex' and it['ans'] == 1
-assert len(set(choices)) == len(choices) == 5
+assert answer == choices[it['ans']-1] == 16
+assert len(choices) == len(set(choices)) == 5
 assert len({choices[j+1]-choices[j] for j in range(4)}) == 1
-assert choices[0] == answer == 16 and choices.count(answer) == 1
-wrong = [integral(x**4+aa*x*x+1) for aa in [-1, 0, 1, 2]]
-assert wrong == [26, 36, 46, 56] == choices[1:]
-assert kink_count((x*x+1)**2-1) == 0  # 마지막 오답에는 서로 다른 두 극소점이 없다.
-print(f'18: answer={answer}, position=1, AP={choices}, all distractors={wrong}: OK')
+wrong = [integral(x**4+c*x*x+1) for c in (-1,0,1,2)]
+assert wrong == choices[1:] == [26,36,46,56]
+written_wrong = [s.Integer(value) for value in re.findall(r'[②③④⑤]\s*\\\((\d+)\\\)', it['wrong'])]
+assert written_wrong == wrong
+assert profile((x*x+1)**2) == [(1,0,0,2)]
+print(f'ANSWER 18: {answer}, position=1, AP={choices}, wrong={wrong}: OK')
 
-# (가) 삭제: f=x^4+1, p=2는 (나)를 만족시키나 적분값은 36.
-without_a = x**4+1
-assert kink_count(without_a-2) == 2 and integral(without_a) == 36 != answer
-print('ABLATION 18 (가): 필요(f=x⁴+1, p=2이면 (나) 성립, 답 36)')
+# ===== 조건을 하나씩 삭제. 남은 조건은 함수의 정확한 g 표로 재확인.
+# (가) 삭제: 불연속점은 -1만, p=1에서 g는 국소적으로 상수 2.
+# (나) 삭제: 극댓값이 0, 극솟값이 p=-1/4인 경우가 살아남는다.
+# (다) 삭제: 두 극소점 사이 거리가 달라지는 다른 사차함수가 남는다.
+ablations = [
+    ('(가)', x**4-1, s.Integer(1), (False,True,True), -24),
+    ('(나)', x**4-x*x, -s.Rational(1,4), (True,False,True), -4),
+    ('(다)', (x*x-2)**2, s.Integer(4), (True,True,False), 86),
+]
+for label, poly, p, expected, value in ablations:
+    assert conditions(poly, p) == expected
+    assert integral(poly) == value != answer
+    print(f'ABLATION 18 {label}: 필요(f={s.expand(poly)}, p={p}, 조건={expected}, 답 {value})')
 
-# (나) 삭제: r=24^(-1/4), f(r*y)=(y^4-6y²+8y+24)/24.
-# 극소 높이=0, 정지변곡 높이=9/8의 두 높이에서만 불연속이다.
-scaled = (y**4-6*y*y+8*y+24)/24
-assert s.factor(s.diff(scaled, y)) == (y-1)**2*(y+2)/6
-ablation_levels = sorted({scaled.subs(y, q) for q in [-2, 1]})
-assert ablation_levels == [0, s.Rational(9, 8)]
-table_b = {tt: kink_count(scaled-tt, y) for tt in [-1, 0, 1, s.Rational(9, 8), 2]}
-assert list(table_b.values()) == [0, 0, 2, 1, 2]
-rr = 24**(-s.Rational(1, 4))
-without_b = degenerate.subs(r, rr)
-ablation_answer = integral(without_b)
-assert s.simplify(ablation_answer-(36-5*s.sqrt(6))) == 0
-assert ablation_answer != answer
-print(f'ABLATION 18 (나): 필요(정지변곡 반례 g={table_b}, 답 {ablation_answer})')
+# 본문의 최고차항 계수와 사차 조건도 실제로 필요하다.
+scaled = 2*(x*x-1)**2
+assert conditions(scaled, 2) == (True,True,True)
+assert integral(scaled) == 32 != answer
+print('ABLATION 18 최고차항 계수 1: 필요(2(x²-1)², p=2, 답 32)')
+higher = (x*x-1)**4
+assert s.Poly(higher,x).LC() == 1 and s.degree(higher,x) == 8
+assert conditions(higher,1) == (True,True,True)
+assert integral(higher) == s.Rational(256,21) != answer
+print('ABLATION 18 사차함수: 필요((x²-1)⁴, p=1, 답 256/21)')
 
-# 본문에서 함수의 각 고정 계수 조건도 실제로 일하는지 확인한다.
-# 최고차항 1을 삭제하면 2(x²-1/√2)²: 상수항1, 삼차항0, (가)(나) 모두 성립.
-without_leading = 2*(x*x-1/s.sqrt(2))**2
-assert s.expand(without_leading).subs(x, 0) == 1
-assert set(s.solve(s.diff(without_leading, x), x)) == {-2**(-s.Rational(1, 4)), s.Integer(0), 2**(-s.Rational(1, 4))}
-assert s.simplify(integral(without_leading)-(42-20*s.sqrt(2))) == 0
-assert integral(without_leading) != answer
-print('ABLATION 18 최고차항 계수: 필요(2(x²-1/√2)²이면 답 42-20√2)')
+# ===== 원문 I44 직접 풀이 및 저장된 선지/정답과 대조. 자료 원문은 복사하지 않는다.
+A, Bc, D, z = s.symbols('A B D z', real=True)
+original = x**3 + A*x*x + Bc*x + D
+symmetry = s.Poly(s.expand(original.subs(x,-z)+original.subs(x,z+2)-2*original.subs(x,1)),z)
+sol_A = s.solve(symmetry.all_coeffs(), A)
+assert sol_A == {A:-3}
+sol_B = s.solve(s.diff(original.subs(sol_A),x).subs(x,-1), Bc)
+assert sol_B == [-9]
+original = original.subs({A:-3, Bc:-9})
+assert s.solve(s.diff(original,x),x) == [-1,3]
+sol_D = s.solve(original.subs(x,3),D)
+assert sol_D == [27]
+original = original.subs(D,27)
+assert profile(original) == [(0,1,1,3), (32,3,1,1)]
+original_answer = s.integrate(original,(x,-1,1))
+original_data = F.I['I44']
+assert original_answer == 52
+assert original_data[2] == '④'
+assert s.sympify(original_data[1]['①②③④⑤'.index(original_data[2])]) == original_answer
+print('ORIGINAL I44: 정적분=52, 저장된 정답 ④의 선지=52: OK')
 
-# 삼차항0을 삭제하면 (x-2)²(x-1/2)²: 상수항1, 같은 두 최소0, 다른 높이 g=2.
-without_cubic = (x-2)**2*(x-s.Rational(1, 2))**2
-middle = s.Rational(5, 4)
-p_shift = without_cubic.subs(x, middle)
-assert p_shift == s.Rational(81, 256)
-assert kink_count(without_cubic-p_shift) == 2
-assert integral(without_cubic) == s.Rational(237, 2) != answer
-print('ABLATION 18 삼차항 계수: 필요((x-2)²(x-1/2)²이면 답 237/2)')
+# ===== 원문과 같은 기준: HTML 태그와 공백 제거, 수식 소스와 조건 라벨 포함.
+def text_length(text):
+    return len(re.sub(r'\s', '', html.unescape(re.sub(r'<[^>]+>', '', text))))
 
-# 상수항1을 삭제하면 (x²-2)²: 같은 두 최소0, 극대4에서 g=2.
-without_constant = (x*x-2)**2
-assert kink_count(without_constant-4) == 2 and integral(without_constant) == 86 != answer
-print('ABLATION 18 상수항: 필요((x²-2)²이면 답 86)')
-
-# 원문을 직접 풀기: 적분 대칭 → 이차항, 주어진 정지점 → 일차항,
-# 두 불연속 높이 중 작은 값0 → 상수항. 원문 문장을 복사하지 않는다.
-original = x**3+a*x*x+b*x+c
-z = s.symbols('z', real=True)
-symmetry = s.Poly(s.expand(original.subs(x, -z)+original.subs(x, z+2)-2*original.subs(x, 1)), z)
-coeff_a = s.solve(symmetry.all_coeffs(), a)
-assert coeff_a == {a: -3}
-ob = s.solve(s.diff(original.subs(coeff_a), x).subs(x, -1), b)
-assert ob == [-9]
-original = original.subs({a: -3, b: ob[0]})
-crit_o = s.solve(s.diff(original, x), x)
-assert crit_o == [-1, 3]
-co = s.solve(original.subs(x, 3), c)
-assert co == [27]
-original = original.subs(c, co[0])
-assert original.subs(x, -1) > 0
-assert s.integrate(original, (x, -1, 1)) == 52 and F.I['I44'][2] == '④'
-print('ORIGINAL I44: integral=52, stored answer ④: OK')
+assert [label for label,_ in it['cond']] == ['가','나','다']
+problem = it['body'] + ''.join(f'({label}){text}' for label,text in it['cond']) + it.get('after','')
+old_length, new_length = text_length(original_data[0]), text_length(problem)
+assert old_length == 301
+assert old_length <= new_length <= 330
+assert 'x^4+ax^2+bx+1' not in it['body']
+print(f'LENGTH 18: 원문 {old_length}자 / 재작성 {new_length}자; 조건 3개: OK')
 print('ALL OK')
