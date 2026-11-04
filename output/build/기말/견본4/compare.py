@@ -93,6 +93,30 @@ def build(out):
               + ''.join(f'<tr class="{"h" if v["라이브(학교 기출)"][0] >= 0.85 else ("m" if v["라이브(학교 기출)"][0] >= 0.60 else "")}"><td>{nm(n)}</td><td>{(C.ITEMS[int(n)]["key"] if n.isdigit() else C.SITEMS[n]["key"])}</td><td>{E(v["라이브(학교 기출)"][2]["hdr"])}</td><td>{v["라이브(학교 기출)"][0]:.2f}</td><td>{v["라이브(학교 기출)"][1]:.2f}</td><td>{_lab(v["라이브(학교 기출)"][0])}</td></tr>' for n, v in LV_ROWS)
               + '</table><p>' + ('라이브와 틀이 같거나 닮은 문항: ' + ', '.join(f'{nm(n)}({E(d["hdr"].split(" · ")[0])} 골격 {ck:.2f})' for n, (ck, cr, d) in hi)
               + '. 모두 원문이 단순한 1–13번이라 숫자만 바꾸면 학교 기출과 겹치기 쉬운 자리다. ' if hi else '') + '17·18·서답형2는 라이브와 모두 0.60 미만이다.</p></div>')
+    # 17·18 관문·후보 경쟁 (지침 0-4 설계 카드): review/*.json + 블라인드 측정 result.json
+    import json as _js, glob
+    RV = os.environ.get('REVIEW_DIR', os.path.join(HERE, 'review'))
+    MS = os.environ.get('MEASURE_DIR', '/home/user/Finale/output/build/기말/공동출제/풀이')
+    meas = {}
+    for f in glob.glob(os.path.join(MS, '측정_견본4[ef]', 'result.json')):
+        for n, tag, t, d, bt, bd in _js.load(open(f))['rows']: meas[n] = (d, bd, t, bt)
+    chosen = {str(n): it.get('cand') for n, it in C.ITEMS.items() if it.get('cand')}
+    GR = []
+    for f in sorted(glob.glob(os.path.join(RV, '*.json'))):
+        c = os.path.basename(f)[:-5]; R = _js.load(open(f)); n = int(re.sub(r'\D', '', c))
+        who = {'claude': 'Claude', 'codex': 'Codex', 'draft': '이전 초안(대조군)'}[re.sub(r'\d', '', c)]
+        ct = R.get('core_test', {}); sp = lambda v: str(v).split()[0] if v else '—'
+        pick = chosen.get(str(n)) == c
+        m = meas.get(n) if pick else None
+        mtxt = f'체감 {m[0]:.1f} (학교 {m[1]:.1f}, {m[0]-m[1]:+.1f}) · {m[2]:.1f}분' if m else '—'
+        why = R.get('short') or ('채택' if pick else '')
+        GR.append((n, not pick, f'<tr class="{"ok" if pick else ""}"><td>{n}번</td><td>{who}</td><td>{str(R.get("axis", ""))[:1] if str(R.get("axis", ""))[:1] in "①②" else "숫자 변형"}</td><td>{sp(ct.get("setting"))} / {sp(ct.get("principle"))}</td>'
+                  f'<td>{R.get("d_step")}</td><td>{E(R.get("pattern_short", "없음"))}</td><td>{R.get("verdict")}</td><td>{mtxt}</td><td>{E(why)}</td></tr>'))
+    GATE_T = ('' if not GR else '<div class="lv0"><div class="lab">17·18번 관문과 후보 경쟁 (지침 0-4 설계 카드)</div>'
+              '<p>관문 순서: 중복·정답·조건 빼 보기 → 흔한 패턴(patterns.py) → 독립 검토(원문 핵심 한 줄이 변형에서 통하는지, d_step 0.75 이상) → 앵커(학교 8·12·17·18)를 섞은 블라인드 측정 → 형식·말투. '
+              '17·18은 Claude·Codex가 후보를 하나씩 내고, 출제에 참여하지 않은 검토자가 출제자 이름을 가린 채 골랐다. 이전 17번 초안은 관문이 실패 사례를 잡는지 확인하려고 대조군으로 넣었다.</p>'
+              '<table class="lt gt"><tr><th>번호</th><th>후보</th><th>축</th><th>설정 줄 / 원리 줄</th><th>d_step</th><th>흔한 패턴</th><th>검토</th><th>측정(앵커 보정)</th><th>비고</th></tr>'
+              + ''.join(r for *_, r in sorted(GR)) + '</table><p>①형(17번)은 원문 원리 줄이, ②형(18번)은 원문 설정 줄이 \'불통\'이어야 통과다. 측정은 관문 3을 통과한 후보만 했다. 학교 같은 번호와의 차가 ±1.5 안이면 통과다.</p></div>')
     css = r"""@page{size:A4;margin:11mm 10mm 12mm}
 body{font-family:'HB','MJ';font-size:8.8pt;line-height:1.55;margin:0;color:#111}
 .katex{font-size:1.02em;font-family:'TN','KaTeX_Main'}
@@ -116,12 +140,12 @@ table.ex{border-collapse:collapse;width:100%;border-top:.6pt solid #333}
 .ex th{width:17mm;font-family:'GL';font-weight:400;font-size:7.8pt;background:#fafafa;border:.4pt solid #bbb;padding:2pt 4pt;text-align:left;vertical-align:top}
 .ex td{border:.4pt solid #bbb;padding:2pt 5pt;font-size:8.2pt}
 table.lt{border-collapse:collapse;width:100%;margin:2pt 0}.lt th,.lt td{border:.4pt solid #aaa;font-size:7.4pt;padding:1pt 3pt;text-align:left}.lt th{font-family:'GL';font-weight:400;background:#eef0f3}.lt tr.h td{background:#fde8e4}.lt tr.m td{background:#fff6dd}
-.lv0{border:.6pt solid #999;padding:3pt 6pt;margin:0 0 4mm}.lv0 p{margin:2pt 0;font-size:8pt}
+.lv0{border:.6pt solid #999;padding:3pt 6pt;margin:0 0 4mm}.lt tr.ok td{background:#e8f4ea}.gt td:nth-child(-n+8),.gt th{white-space:nowrap}.gt td:last-child{white-space:normal}.lv0 p{margin:2pt 0;font-size:8pt}
 table.sum{border-collapse:collapse;width:100%;margin:0 0 1mm}.sum th,.sum td{border:.5pt solid #999;font-size:7pt;padding:1pt 1pt;text-align:center;font-family:'GL';font-weight:400}.sum th{background:#eef0f3;width:9mm}.kP{color:#c0392b}.kL{color:#1f4fd6}.kS{color:#7b3fb0}.kE{color:#555}
 """
     h = (f'<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="file://{KATEX_CSS}"><style>{font_css()}{css}</style></head><body>'
          '<h1>미적분Ⅰ 기말 견본4 · 부교재 원문 1:1 대응과 변형 설명</h1>'
-         '<div class="sub0">왼쪽 부교재 원문, 오른쪽 견본 문항 · 빨간 번호 = 정답 · 17·18·서답형2는 구조 변경 · 2학기 중간 출처 배치: 평가원 6 · EBS 6 · Level Up 6 · 자체 2</div>' + SUMMARY + LIVE_T
+         '<div class="sub0">왼쪽 부교재 원문, 오른쪽 견본 문항 · 빨간 번호 = 정답 · 17·18·서답형2는 구조 변경 · 2학기 중간 출처 배치: 평가원 6 · EBS 6 · Level Up 6 · 자체 2</div>' + SUMMARY + LIVE_T + GATE_T
          + ''.join(cards) + '</body></html>')
     # 렌더러의 display 수식 측정은 시험지 쪽(.pg) 전용이라 가운데 정렬 인라인 수식으로 바꿈
     h = re.sub(r'\\\[([\s\S]+?)\\\]', lambda m: '<div class="dm">\\(\\displaystyle ' + m.group(1) + '\\)</div>', h)
