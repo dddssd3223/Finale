@@ -10,3 +10,4 @@
 - 재실행: 시크릿 이름 API_KEY
 - 재실행 2: 한글 경로 처리 수정
 - 재실행 3: codex 0.166 옵션(-s workspace-write)
+- 재실행 4: codex login

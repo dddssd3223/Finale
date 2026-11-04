@@ -17,6 +17,7 @@ jobs:
       contents: write
     env:
       OPENAI_API_KEY: ${{ secrets.API_KEY || secrets.OPENAI_API_KEY }}
+      CODEX_API_KEY: ${{ secrets.API_KEY || secrets.OPENAI_API_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,6 +36,8 @@ jobs:
           pip install sympy numpy matplotlib
           npm install -g @openai/codex
           codex --version
+          printenv OPENAI_API_KEY | codex login --with-api-key
+          codex login status
           # 지침·검사 스크립트가 /home/user/Finale 절대 경로를 쓰므로 같은 경로로 연결
           sudo mkdir -p /home/user && sudo ln -sfn "$GITHUB_WORKSPACE" /home/user/Finale
       - name: 지시서 찾기
