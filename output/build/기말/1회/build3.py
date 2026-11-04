@@ -16,7 +16,7 @@ KATEX_CSS = os.path.join(SCR, 'node_modules', 'katex', 'dist', 'katex.min.css')
 LX, RX, CW = 42.2, 301.5, 252.0          # 단 시작 x, 단 너비(pt)
 TOP = 150.2                              # 단 첫 문항 y (원본 스캔 실측으로 맞춤)
 PAGES = [
-    ([('Q1', 328.5), ('Q2', 602.0)], [('Q3', TOP), ('Q4', 433.2)]),
+    ([('Q1', 328.5), ('Q2', 530.0)], [('Q3', TOP), ('Q4', 433.2)]),
     ([('Q5', TOP), ('Q6', 434.4)], [('Q7', TOP), ('Q8', 437.0)]),
     ([('Q9', TOP)], [('Q10', TOP)]),
     ([('Q11', TOP)], [('Q12', TOP)]),
@@ -164,20 +164,27 @@ def jl(h, key=''):
         sp, _, ends = spaces(h)
         ed = []
         for g in BREAKS[key]:
-            if isinstance(g, tuple): ed.append((ends[g[1]], 'ins'))
-            else: ed.append((sp[g][1], 'rep'))
-        for off, how in sorted(ed, reverse=True):
+            if isinstance(g, tuple): ed.append((ends[g[1]], 'ins', None))
+            else: ed.append((sp[g][1], 'rep', g))
+        rag = [g in RAGGED.get(key, ()) for _, _, g in sorted(ed)]
+        for off, how, _ in sorted(ed, reverse=True):
             h = h[:off] + '⏎' + h[off + (1 if how == 'rep' else 0):]
+    else:
+        rag = []
     parts = h.split('⏎')
     out = []
     for p in parts[:-1]:
         i = max([m.end() for m in _BLK.finditer(p)] or [0])
         k = f'{key}.{len(out)}'
         w = JLW.get(k) or (WIDTH.get(key, COLW) if key in BREAKS else None)
+        if len(out) < len(rag) and rag[len(out)]: w = None
         st = (f'width:{w:.1f}pt;text-align-last:justify;' if w else '') + JLSTYLE.get(k, '')
         st = f' style="{st}"' if st else ''
         out.append(p[:i] + f'<span class="jl" data-id="{k}"{st}>{p[i:].lstrip()}</span>')
     return ''.join(out) + parts[-1]
+
+RAG_PT = 2.5     # 공백 하나당 2.5pt 넘게 벌어질 줄은 양끝 맞춤하지 않고 오른쪽을 비움
+RAGGED = {}
 
 def autobreak(mk):
     """측정한 어절 폭으로 줄 끊을 위치 결정 (문단 전체 최적화).
@@ -224,6 +231,9 @@ def autobreak(mk):
         while j > 0:
             i = best[j][2]
             if i > 0: cuts.append(gaps[i - 1])   # 어절 i 앞의 공백에서 줄바꿈
+            if j < n:                            # 어절 i..j-1 줄(마지막 줄 제외)이 너무 벌어지면 왼쪽 정렬
+                k = j - 1 - i; adj = W - (en[j - 1] - st[i])
+                if k == 0 or adj / k > RAG_PT: RAGGED.setdefault(key, set()).add(gaps[j - 1])
             j = i
         br[key] += sorted(cuts)
         li = best[n][2]                          # 마지막 줄이 단보다 넓으면(공백을 줄여야 들어가면) 그 줄도 압축 대상으로
@@ -485,6 +495,7 @@ def thin_boxes(doc):
 
 def build(out_pdf):
     global MEASURE, BREAKS
+    RAGGED.clear()
     MEASURE = True
     open(os.path.join(HERE, 'overlay_src.html'), 'w').write(overlay_html())
     subprocess.run(['node', os.path.join(HERE, 'render3.js'), 'overlay_src.html', 'overlay.pdf'], cwd=HERE, check=True)
