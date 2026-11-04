@@ -148,6 +148,8 @@ def mark(h, key):
     for r, en in ends.items():
         ins.setdefault(en, []).insert(0, f'<i class="mk" data-r="{key}#{r}" data-i="-1" data-t="e"></i>')
     for n, (r, off) in enumerate(sp):
+        if h[off + 1:].startswith('\\('):          # 수식 바로 앞 공백: 이 자리에서는 줄을 바꾸지 않음(줄이 수식으로 시작하지 않게)
+            NOBRK.setdefault(key, set()).add(n)
         ins.setdefault(off, []).append(f'<i class="mk" data-r="{key}#{r}" data-i="{n}" data-t="b"></i>')
         ins.setdefault(off + 1, []).append(f'<i class="mk" data-r="{key}#{r}" data-i="{n}" data-t="a"></i>')
     out, last = [], 0
@@ -185,6 +187,7 @@ def jl(h, key=''):
 
 RAG_PT = 2.5     # 공백 하나당 2.5pt 넘게 벌어질 줄은 양끝 맞춤하지 않고 오른쪽을 비움
 RAGGED = {}
+NOBRK = {}       # 키별: 줄을 바꾸면 안 되는 공백 번호(바로 뒤가 수식)
 
 def autobreak(mk):
     """측정한 어절 폭으로 줄 끊을 위치 결정 (문단 전체 최적화).
@@ -218,15 +221,19 @@ def autobreak(mk):
             if k == 0: return 1e4 if adj > 40 else (adj / 4) ** 2
             per = adj / k
             return (per ** 2) if per >= 0 else (per ** 2) * 0.5
-        best = [(INF, INF, -1)] * (n + 1)   # (줄 수, 비용, 앞 끊는 위치)
-        best[0] = (0, 0.0, -1)
-        for j in range(1, n + 1):
-            for i in range(j - 1, -1, -1):
-                if en[j - 1] - st[i] > W * 2.2: break
-                c = cost(i, j - 1, j == n)
-                if c == INF or best[i][0] == INF: continue
-                cand = (best[i][0] + 1, best[i][1] + c, i)
-                if cand[:2] < best[j][:2]: best[j] = cand
+        nob = NOBRK.get(key, set())
+        for strict in (True, False):           # 먼저 '수식 앞에서 끊지 않기'를 지켜 보고, 불가능할 때만 풂
+            best = [(INF, INF, -1)] * (n + 1)   # (줄 수, 비용, 앞 끊는 위치)
+            best[0] = (0, 0.0, -1)
+            for j in range(1, n + 1):
+                for i in range(j - 1, -1, -1):
+                    if en[j - 1] - st[i] > W * 2.2: break
+                    if strict and i > 0 and gaps[i - 1] in nob: continue
+                    c = cost(i, j - 1, j == n)
+                    if c == INF or best[i][0] == INF: continue
+                    cand = (best[i][0] + 1, best[i][1] + c, i)
+                    if cand[:2] < best[j][:2]: best[j] = cand
+            if best[n][0] != INF: break
         cuts, j = [], n
         while j > 0:
             i = best[j][2]
@@ -495,7 +502,7 @@ def thin_boxes(doc):
 
 def build(out_pdf):
     global MEASURE, BREAKS
-    RAGGED.clear()
+    RAGGED.clear(); NOBRK.clear()
     MEASURE = True
     open(os.path.join(HERE, 'overlay_src.html'), 'w').write(overlay_html())
     subprocess.run(['node', os.path.join(HERE, 'render3.js'), 'overlay_src.html', 'overlay.pdf'], cwd=HERE, check=True)
