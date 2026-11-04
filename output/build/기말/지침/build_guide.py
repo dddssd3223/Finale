@@ -87,7 +87,7 @@ def main(out):
              f'<div class="subt">일반 익스텐션 768문항 · 익스텐션 라이브(전국 학교 기출) 978문항 → 부교재 원본 {nkey}문항 전수 분석</div>'
              f'<div class="cards"><div><b>{nkey}</b>원본</div><div><b>1,746</b>변형 자료</div><div><b>{sum(tc.values())}</b>구조적 변형 요소</div>'
              f'<div><b>{nrec}</b>새 레시피</div><div><b>{ncalc}</b>단순 계산형</div></div>'
-             f'<div class="legend">자료 표기: G1-005 = 일반 익스텐션 1권 5번, L2-176 = 익스텐션 라이브 2권 176번 · 효과 = 원본 대비 난도 변화</div></div>')
+             f'<div class="legend">17·18·서답형2 자리로 쓸 때는 아래 레시피를 참고만 하고 0-4 기준으로 설계 · 자료 표기: G1-005 = 일반 익스텐션 1권 5번, L2-176 = 익스텐션 라이브 2권 176번 · 효과 = 원본 대비 난도 변화</div></div>')
     css = open(os.path.join(HERE, 'guide.css')).read().replace('FONTS', 'file://' + FONTS)
     doc = f'<!doctype html><html><head><meta charset="utf-8"><style>{css}</style></head><body>{cover}<div class="front">{fh}</div>{toptab}{"".join(body)}</body></html>'
     src = os.path.join(HERE, 'guide_src.html'); open(src, 'w').write(doc)
