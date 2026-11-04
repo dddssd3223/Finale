@@ -42,7 +42,7 @@ jobs:
         run: |
           BEFORE='${{ github.event.before }}'
           if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then BEFORE="${GITHUB_SHA}~1"; fi
-          git diff --name-only "$BEFORE" "$GITHUB_SHA" -- 'output/build/기말/공동출제/*_codex.md' > /tmp/tasks.txt || true
+          git -c core.quotePath=false diff --name-only "$BEFORE" "$GITHUB_SHA" -- 'output/build/기말/공동출제/*_codex.md' > /tmp/tasks.txt || true
           cat /tmp/tasks.txt
           test -s /tmp/tasks.txt
       - name: Codex 출제
@@ -51,7 +51,7 @@ jobs:
           git config user.email "codex-coauthor@users.noreply.github.com"
           BASE="$GITHUB_SHA"
           while IFS= read -r TASK; do
-            [ -f "$TASK" ] || continue
+            [ -f "$TASK" ] || { echo "::error::지시서 파일 없음: $TASK"; exit 1; }
             ROUND="$(basename "$TASK" _codex.md)"
             BR="codex/${ROUND}"
             git checkout -B "$BR" "$BASE"
