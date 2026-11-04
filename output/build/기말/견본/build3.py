@@ -53,7 +53,7 @@ body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.78;color:#000;
 .pg{width:595pt;height:842pt;position:relative;page-break-after:always;overflow:hidden}
 .pg:last-child{page-break-after:auto}
 .blk{position:absolute;width:var(--w)}
-.katex{font-size:1.0em;margin:0 1.6pt}
+.katex{font-size:1.0em;margin:0 1.6pt;white-space:nowrap}
 .katex-display>.katex{margin:0}
 .katex .text,.katex .text *{font-family:'HB'!important;font-style:normal}
 .katex-display{margin:2pt 0 2.5pt;padding-left:24pt}
@@ -341,8 +341,8 @@ def block(key):
     if key == 'END': return END
 
 def nobreak(h):
-    # 수식 바로 뒤의 쉼표·마침표가 다음 줄 맨 앞으로 가지 않도록 묶음
-    return re.sub(r'(\\\((?:(?!\\\)).)+?\\\))([,.])', r'<span class="nw">\1\2</span>', h)
+    # 수식 안에서는 줄바꿈 금지(.katex nowrap), 수식 바로 뒤에 붙은 조사·문장부호(가, 라, 와, 의, ',', '.' 등)도 수식과 한 덩어리로 묶음
+    return re.sub(r'(\\\((?:(?!\\\)).)+?\\\))([^\s<\\(]+)', r'<span class="nw">\1\2</span>', h)
 
 MCSS = '.qt,.s1 .q,.s2 .q{white-space:nowrap}.qt .cond,.qt .bogi,.qt .fig{white-space:normal}.cit,.cond>div,.bit{white-space:nowrap;overflow:hidden}'
 
