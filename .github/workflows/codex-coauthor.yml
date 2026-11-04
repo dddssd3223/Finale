@@ -1,6 +1,6 @@
 # Codex 공동 출제: Claude 세션이 작업 지시서(output/build/기말/공동출제/<회차>_codex.md)를 푸시하면
 # Codex CLI가 AGENTS.md·지시서대로 문항(c*.py)과 검증 스크립트를 만들어 codex/<회차> 브랜치에 푸시한다.
-# 필요: 저장소 Settings → Secrets and variables → Actions → OPENAI_API_KEY
+# 필요: 저장소 Settings → Secrets and variables → Actions → API_KEY (OpenAI 키)
 name: codex-coauthor
 on:
   push:
@@ -16,14 +16,14 @@ jobs:
     permissions:
       contents: write
     env:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.API_KEY || secrets.OPENAI_API_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: 키 확인
         run: |
-          if [ -z "$OPENAI_API_KEY" ]; then echo "::error::저장소 시크릿 OPENAI_API_KEY가 없습니다"; exit 1; fi
+          if [ -z "$OPENAI_API_KEY" ]; then echo "::error::저장소 시크릿 API_KEY가 없습니다"; exit 1; fi
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

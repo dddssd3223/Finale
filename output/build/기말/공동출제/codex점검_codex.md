@@ -7,3 +7,4 @@
 - 번호대 1–4 기준(front.md '1–4번' 절): 숫자·조건 변경 위주의 쉬운 문항, 배점 4.0.
 - 형식은 output/build/기말/견본3/parts/p1.py와 같다(ITEMS = {1: dict(...)}), dict에 author='codex'.
 - 검증: verify_c1.py ALL OK, `cd output/build/기말/견본3 && python3 checkpart.py ../codex점검/parts/c1.py` 통과.
+- 재실행: 시크릿 이름 API_KEY
