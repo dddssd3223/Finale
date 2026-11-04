@@ -2,6 +2,7 @@
 """10·12·14·16: 정답, 경우 분기, 오답, 원문 및 16번 조건 빼 보기."""
 from pathlib import Path
 import runpy
+import re
 import sys
 import sympy as s
 
@@ -20,6 +21,11 @@ def check(n, value, pos, wrong):
     assert len({choices[j+1]-choices[j] for j in range(4)}) == 1
     assert choices[pos-1] == value and choices.count(value) == 1
     assert set(wrong) == set(choices)-{value}
+    listed = re.findall(r'([①②③④⑤]) \\\((.*?)\\\)', it['wrong'])
+    assert len(listed) == 4
+    for label, number in listed:
+        assert s.sympify(number) == choices['①②③④⑤'.index(label)]
+    assert {s.sympify(number) for _, number in listed} == set(wrong)
     print(f'{n}: answer={value}, position={pos}, AP={choices}, all distractors={wrong}: OK')
 
 def original(key, value, expected, label):
@@ -79,17 +85,40 @@ assert all(bb <= 2 for bb in outside_roots)
 assert qo.subs(x, s.Rational(1, 3)) == 0
 original('I40', ao.subs(b, 1)+1, s.Integer(-1), '②')
 
-# 14: y방향과 x방향으로 각각 적분. a>3이면 원점 이외의 교점(a,a)은 정사각형 밖.
-S1 = s.integrate(x*x/a, (x, 0, 3))
-S2 = S1
-S3 = 9-S1-S2
-aa = s.solve(S3-2*(S1+S2), a)
-assert aa == [6] and aa[0] > 3
-assert S1.subs(a, 6) == S2.subs(a, 6) == s.Rational(3, 2)
-assert S3.subs(a, 6) == 6
+# 14: 직사각형 [0,4]×[0,2]. 곡선과 윗변의 교점에 따라 실제 넓이를 분기한다.
+y, u = s.symbols('y u', positive=True)
+ap = s.symbols('ap', positive=True)
+# 두 곡선의 원점 이외 교점은 (a,a), a>2이면 내부에서 겹치지 않는다.
+assert s.factor((x*x/ap)**2/ap-x) == x*(x-ap)*(x*x+ap*x+ap*ap)/ap**3
+assert s.discriminant(x*x+ap*x+ap*ap, x) == -3*ap**2
+assert s.simplify((y*y/ap)**2/ap-y) == y**4/ap**3-y
+# 0<y<=2<a이면 y^4/a^3<y: 왼쪽 부분은 아래쪽 부분과 겹치지 않는다.
+S1 = s.integrate(y*y/ap, (y, 0, 2))
+S2_inside = s.simplify(s.integrate(x*x/ap, (x, 0, s.sqrt(2*ap))) + 2*(4-s.sqrt(2*ap)))
+S2_outside = s.integrate(x*x/ap, (x, 0, 4))
+assert S1 == 8/(3*ap)
+assert s.simplify(S2_inside-(8-4*s.sqrt(2*ap)/3)) == 0
+assert S2_inside.subs(ap, 8) == S2_outside.subs(ap, 8) == s.Rational(8, 3)
+# 2<a<=8 ⇔ 2<u=sqrt(2a)<=4. 목표값과의 차이를 양수인 식으로 정리한다.
+excess = s.simplify((S1+S2_inside-s.Rational(8, 3)).subs(ap, u*u/2))
+certificate = 4*(4-u)/3+16/(3*u*u)
+assert s.simplify(excess-certificate) == 0  # 2<u<=4에서 첫 항>=0, 둘째 항>0
+# a>8에서는 일차방정식으로 귀결되고 유일한 후보 9가 범위를 만족한다.
+S3 = 8-S1-S2_outside
+aa = s.solve(8-3*(S1+S2_outside), ap)
+assert aa == [9] and aa[0] > 8
+actual = [q.subs(ap, 9) for q in [S1, S2_outside, S3]]
+assert actual == [s.Rational(8, 27), s.Rational(64, 27), s.Rational(16, 3)]
+assert sum(actual) == 8 and actual[2] == 2*sum(actual[:2])
 assert (HERE / 'fig_c_14.svg').is_file()
-wrong = [s.solve(S3-S1, a)[0], s.solve(S3-S1-S2, a)[0], s.solve(9-S2-2*(S1+S2), a)[0], s.solve(9-2*S1-S2-2*(S1+S2), a)[0]]
+# ①계수 3을 2로, ②적분을 끝값으로, ③S1 누락, ⑤S1 중복 합산.
+wrong = [s.solve(S3-S1-S2_outside, ap)[0],
+         s.solve(S1+16/ap-s.Rational(8, 3), ap)[0],
+         s.solve(S2_outside-s.Rational(8, 3), ap)[0],
+         s.solve(2*S1+S2_outside-s.Rational(8, 3), ap)[0]]
+assert wrong == [6, 7, 8, 10]
 check(14, aa[0], 4, wrong)
+print('CASES 14: 2<a<=8 excluded by positive excess; a>8 gives unique a=9')
 o1 = s.Rational(9, 2)/a
 o2 = 9/a
 o3 = 9-o1-o2
@@ -97,42 +126,80 @@ roots = s.solve(o2**2-o1*o3, a)
 assert roots == [s.Rational(7, 2)] and roots[0] > 3
 original('J15', 12*roots[0], s.Integer(42), '42')
 
-# 16: P=0 또는 P'=0. 좌우미분계수의 곱도 모든 후보에서 확인한다.
-P = (x+1)*(x-1)**2*(x-2)**2
+# 16: 절댓값의 좌우미분계수. P(t)!=0이면 곱=P'(t)^2, P(t)=0이면 곱=-P'(t)^2.
+P = (x+1)**3*(x-3)+a
 dp = s.factor(s.diff(P, x))
-assert dp == (x-1)*(x-2)*(5*x*x-5*x-4)
-zeros = set(s.solve(P, x))
+assert dp == 4*(x+1)**2*(x-2)
 stationary = set(s.solve(dp, x))
-assert len(zeros) == 3 and len(stationary) == 4
-assert zeros & stationary == {s.Integer(1), s.Integer(2)}
+assert stationary == {-1, 2}
+assert s.simplify(P.subs(x, -1)) == a
+assert s.simplify(P.subs(x, 2)) == a-27
+assert s.solve_univariate_inequality(dp > 0, x, relational=False) == s.Interval.open(2, s.oo)
+assert s.solve_univariate_inequality(dp < 0, x, relational=False) == s.Union(s.Interval.open(-s.oo, -1), s.Interval.open(-1, 2))
+assert s.limit(P, x, -s.oo) == s.limit(P, x, s.oo) == s.oo
+# 따라서 a<27이면 실근 2개, a=27이면 1개, a>27이면 0개이다.
+# 매개변수의 모든 구간을 조사한다. 판별식의 영점 밖에서는 실근 수가 변하지 않으며,
+# P와 P'의 공통근도 두 경계에서만 생긴다. 각 구간을 Sturm 정리로 대조한다.
+discriminant = s.factor(s.discriminant(P, x))
+assert discriminant == 256*a*a*(a-27)
+assert s.solve(discriminant, a) == [0, 27]
+cases = [('a<0', -1, 2, 0, 4), ('a=0', 0, 2, 1, 3),
+         ('0<a<27', 1, 2, 0, 4), ('a=27', 27, 1, 1, 2),
+         ('a>27', 28, 0, 0, 2)]
+for label, av, nzeros, noverlap, ntotal in cases:
+    poly = s.Poly(P.subs(a, av), x)
+    count = poly.count_roots(-s.oo, s.oo)
+    overlap = {r for r in stationary if poly.eval(r) == 0}
+    assert count == nzeros and len(overlap) == noverlap
+    assert count+len(stationary)-len(overlap) == ntotal
+    print(f'CASES 16 {label}: P zeros={count}, overlap={sorted(overlap)}, solutions={ntotal}')
+assert [av for _, av, _, _, count in cases if count == 3] == [0]
+P0 = P.subs(a, 0)
+zeros = set(s.solve(P0, x))
 solutions = zeros | stationary
-assert len(solutions) == 5
-assert s.simplify(sum(solutions)) == 3
-for r in solutions:
-    pr = s.simplify(P.subs(x, r))
-    dr = s.simplify(dp.subs(x, r))
-    if pr == 0:
-        # 차분몫의 좌우극한은 ±|P'(r)|. 접하는 근에서는 둘 다 0이다.
-        product = -dr**2
-    else:
-        product = dr**2
-    assert s.simplify(product) <= 0
-assert s.discriminant(5*x*x-5*x-4, x) == 105
-for r in [-1, 1, 2]:
-    assert (5*x*x-5*x-4).subs(x, r) != 0
-sum_dp, sum_p = s.simplify(sum(stationary)), sum(zeros)
-check(16, s.simplify(sum(solutions)), 5, [sum_dp+len(zeros), sum_dp+sum_p, sum_dp+sum_p-1, sum_dp])
+assert zeros == {-1, 3} and solutions == {-1, 2, 3}
+assert sum(solutions) == 4
+# 각 후보에서 좌우 차분몫의 극한을 직접 계산한다. a=27의 접하는 근도 확인한다.
+h = s.symbols('h', real=True)
+for av, r, want in [(0, -1, 0), (0, 2, 0), (0, 3, -4096), (1, -1, 0), (27, -1, 0), (27, 2, 0)]:
+    poly = P.subs(a, av)
+    quotient = (s.Abs(poly.subs(x, r+h))-s.Abs(poly.subs(x, r)))/h
+    dr = s.limit(quotient, h, 0, dir='+')
+    dl = s.limit(quotient, h, 0, dir='-')
+    assert s.simplify(dr*dl) == want
+# a=1일 때 x=-1은 P와 |P| 모두 극값이 아닌 정지점이지만 미분계수 곱은 0이다.
+P1 = P.subs(a, 1)
+assert P1.subs(x, -1) == 1 and dp.subs(x, -1) == 0
+assert P1.subs(x, -s.Rational(11, 10)) > 1 > P1.subs(x, -s.Rational(9, 10)) > 0
+assert dp.subs(x, -s.Rational(11, 10)) < 0 and dp.subs(x, -s.Rational(9, 10)) < 0
+boundary_zeros = {r for r in s.solve(P.subs(a, 27), x) if r.is_real}
+assert boundary_zeros == {2}
+boundary_solutions = boundary_zeros | stationary
+# ①P의 근을 겹친 횟수대로 합산, ②a=27을 잘못 선택, ③P=0만, ④중복 제거 전의 합.
+wrong = [sum(s.Poly(P0, x).all_roots()), sum(boundary_solutions),
+         sum(zeros), sum(zeros)+sum(stationary)]
+assert wrong == [0, 1, 2, 3]
+check(16, sum(solutions), 5, wrong)
 
-# 조건 빼 보기: 남은 조건을 만족하는 구체적인 반례/추가해를 사용한다.
-alternative_f = x*x  # 함수식을 삭제하면 허용. 곱=4t²의 해는 0 하나.
-alternative_solutions = s.solve(s.diff(alternative_f, x)**2, x)
-assert alternative_solutions == [0] and sum(alternative_solutions) != sum(solutions)
-print('ABLATION 16 함수식: 필요(f=x²이면 답 0, 원래 답 3)')
-assert P.subs(x, 3) != 0 and dp.subs(x, 3)**2 > 0
-print('ABLATION 16 좌우미분계수 곱 부등식: 필요(삭제하면 모든 실수 t가 허용되어 유한한 합이 정해지지 않음)')
-assert {r for r in zeros if dp.subs(x, r) != 0} == {-1}
-assert sum_dp == 4
-print('TRAP 16: <0이면 -1만, 절댓값을 벗기면 합 4, 중복을 제거하지 않으면 합 6')
+# 조건을 하나씩 지웠을 때 답이 달라지거나 정해지지 않음을 구체적으로 확인한다.
+# 함수식 삭제: |x²-1|이면 후보 {-1,0,1}로 3개이지만 합은 0이다.
+alternative_P = x*x-1
+alternative_solutions = set(s.solve(alternative_P, x)) | set(s.solve(s.diff(alternative_P, x), x))
+assert len(alternative_solutions) == 3 and sum(alternative_solutions) == 0 != sum(solutions)
+print('ABLATION 16 함수식: 필요(f=|x²-1|이면 해 3개, 합 0)')
+# 개수 조건 삭제: a=27에서도 미분계수 곱 조건으로 해를 고를 수 있으나 합은 1이다.
+assert sum(boundary_solutions) == 1 != sum(solutions)
+print('ABLATION 16 서로 다른 해 3개: 필요(a=27이면 해 {-1,2}, 합 1)')
+# 부등식 삭제: t를 제한하는 조건이 없어 모든 실수가 허용된다.
+assert s.FiniteSet(0, 1, 2, 3).is_subset(s.S.Reals)
+print('ABLATION 16 좌우미분계수 곱 부등식: 필요(모든 실수 t가 허용되어 해 3개와 유한한 합이 정해지지 않음)')
+# <=를 <로 바꾸면 겹치지 않은 실근만 남는다. 모든 경우에 최대 2개이므로 3개는 불가능하다.
+simple_counts = []
+for _, av, _, _, _ in cases:
+    intervals = s.Poly(P.subs(a, av), x).intervals()
+    simple_counts.append(sum(mult == 1 for _, mult in intervals))
+assert simple_counts == [2, 1, 2, 0, 0]
+print('TRAP 16: strict <0 gives at most 2 solutions; a=27 repeated zero has product 0')
 
 Po = x**4-4*x**3+8*x-32
 zo = set(s.solve(Po, x))
