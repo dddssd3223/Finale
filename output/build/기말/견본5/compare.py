@@ -100,23 +100,38 @@ def build(out):
     meas = {}
     for f in glob.glob(os.path.join(MS, os.environ.get('MEASURE_GLOB', '측정_견본5*'), 'result.json')):
         for n, tag, t, d, bt, bd in _js.load(open(f))['rows']: meas[n] = (d, bd, t, bt)
-    chosen = {str(n): it.get('cand') for n, it in C.ITEMS.items() if it.get('cand')}
+    chosen = {str(n): it.get('cand') for n, it in list(C.ITEMS.items()) + list(C.SITEMS.items()) if it.get('cand')}
     GR = []
     for f in sorted(glob.glob(os.path.join(RV, '*.json'))):
-        c = os.path.basename(f)[:-5]; R = _js.load(open(f)); n = int(re.sub(r'\D', '', c))
-        who = {'claude': 'Claude', 'codex': 'Codex', 'draft': '이전 초안(대조군)'}[re.sub(r'\d', '', c)]
-        ct = R.get('core_test', {}); sp = lambda v: str(v).split()[0] if v else '—'
+        c = os.path.basename(f)[:-5]
+        if not re.fullmatch(r'(claudeB|claude|codex|draft)(\d+|S2)', c): continue
+        R = _js.load(open(f)); n = c[-2:] if c.endswith('S2') else int(re.sub(r'\D', '', c))
+        who = {'claude': 'Claude A팀', 'claudeB': 'Claude B팀', 'codex': 'Codex', 'draft': '이전 초안(대조군)'}[re.sub(r'(\d+|S2)$', '', c)]
+        ct = R.get('core_test', {}); sp = lambda v: ('불통' if str(v).lstrip().startswith('불통') else ('통' if str(v).lstrip().startswith('통') else '—'))
         pick = chosen.get(str(n)) == c
-        m = meas.get(n) if pick else None
+        m = meas.get(20 if n == 'S2' else n) if pick else None
         mtxt = f'체감 {m[0]:.1f} (학교 {m[1]:.1f}, {m[0]-m[1]:+.1f}) · {m[2]:.1f}분' if m else '—'
         why = R.get('short') or ('채택' if pick else '')
-        GR.append((n, not pick, f'<tr class="{"ok" if pick else ""}"><td>{n}번</td><td>{who}</td><td>{str(R.get("axis", ""))[:1] if str(R.get("axis", ""))[:1] in "①②" else "숫자 변형"}</td><td>{sp(ct.get("setting"))} / {sp(ct.get("principle"))}</td>'
+        GR.append((n, not pick, f'<tr class="{"ok" if pick else ""}"><td>{"서답형2" if n == "S2" else str(n) + "번"}</td><td>{who}</td><td>{str(R.get("axis", ""))[:1] if str(R.get("axis", ""))[:1] in "①②" else "숫자 변형"}</td><td>{sp(ct.get("setting"))} / {sp(ct.get("principle"))}</td>'
                   f'<td>{R.get("d_step")}</td><td>{E(R.get("pattern_short", "없음"))}</td><td>{R.get("verdict")}</td><td>{mtxt}</td><td>{E(why)}</td></tr>'))
     GATE_T = ('' if not GR else '<div class="lv0"><div class="lab">17·18번 관문과 후보 경쟁 (지침 0-4 설계 카드)</div>'
               '<p>관문 순서: 중복·정답·조건 빼 보기 → 흔한 패턴(patterns.py) → 독립 검토(원문 핵심 한 줄이 변형에서 통하는지, d_step 0.75 이상) → 앵커(학교 8·12·17·18)를 섞은 블라인드 측정 → 형식·말투. '
-              '17·18은 Claude·Codex가 후보를 하나씩 내고, 출제에 참여하지 않은 검토자가 출제자 이름을 가린 채 골랐다. 이전 17번 초안은 관문이 실패 사례를 잡는지 확인하려고 대조군으로 넣었다.</p>'
+              '17·18·서답형2는 여러 출제자가 후보를 하나씩 내고, 출제에 참여하지 않은 검토자가 출제자 이름을 가린 채 골랐다.</p>'
               '<table class="lt gt"><tr><th>번호</th><th>후보</th><th>축</th><th>설정 줄 / 원리 줄</th><th>d_step</th><th>흔한 패턴</th><th>검토</th><th>측정(앵커 보정)</th><th>비고</th></tr>'
-              + ''.join(r for *_, r in sorted(GR)) + '</table><p>①형(17번)은 원문 원리 줄이, ②형(18번)은 원문 설정 줄이 \'불통\'이어야 통과다. 측정은 관문 3을 통과한 후보만 했다. 학교 같은 번호와의 차가 ±1.5 안이면 통과다.</p></div>')
+              + ''.join(r for *_, r in sorted(GR, key=lambda z: (99 if z[0] == 'S2' else z[0], z[1]))) + '</table><p>①형(17번)은 원문 원리 줄이, ②형(18번)은 원문 설정 줄이 \'불통\'이어야 통과다. 측정은 관문 3을 통과한 후보만 했다. 학교 같은 번호와의 차가 ±1.5 안이면 통과다.</p></div>')
+    # 같은 번호 두 벌(Claude B팀·Codex) 비교 선택 (review/compare*.json, map.json)
+    PK = []
+    mp = os.path.join(RV, 'map.json')
+    if os.path.exists(mp):
+        M = _js.load(open(mp))
+        for f in sorted(glob.glob(os.path.join(RV, 'compare*.json'))):
+            for n, d in _js.load(open(f)).items():
+                lab = M.get(n, {}); pick = d.get('pick', '')
+                other = [k for k in lab if k != pick]
+                PK.append((int(n), f'<tr><td>{n}번</td><td>{E(lab.get(pick, pick))}</td><td>{E(lab.get(other[0], "")) if other else ""}</td><td>{E(str(d.get("reason", ""))[:140])}</td></tr>'))
+    PICK_T = ('' if not PK else '<div class="lv0"><div class="lab">같은 번호 두 벌 비교 (Claude B팀 · Codex)</div>'
+              '<p>Codex가 사용 한도 초과로 멈춘 동안 Claude B팀이 같은 번호를 냈고, 새 키로 Codex가 다시 낸 뒤 출제자 이름을 가린 검토자가 번호마다 하나를 골랐다.</p>'
+              '<table class="lt gt"><tr><th>번호</th><th>채택</th><th>탈락</th><th>이유</th></tr>' + ''.join(r for _, r in sorted(PK)) + '</table></div>')
     css = r"""@page{size:A4;margin:11mm 10mm 12mm}
 body{font-family:'HB','MJ';font-size:8.8pt;line-height:1.55;margin:0;color:#111}
 .katex{font-size:1.02em;font-family:'TN','KaTeX_Main'}
@@ -145,7 +160,7 @@ table.sum{border-collapse:collapse;width:100%;margin:0 0 1mm}.sum th,.sum td{bor
 """
     h = (f'<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="file://{KATEX_CSS}"><style>{font_css()}{css}</style></head><body>'
          '<h1>미적분Ⅰ 기말 견본5 · 부교재 원문 1:1 대응과 변형 설명</h1>'
-         '<div class="sub0">왼쪽 부교재 원문, 오른쪽 견본 문항 · 빨간 번호 = 정답 · 17·18·서답형2는 구조 변경 · 2학기 중간 출처 배치: 평가원 6 · EBS 6 · Level Up 6 · 자체 2</div>' + SUMMARY + LIVE_T + GATE_T
+         '<div class="sub0">왼쪽 부교재 원문, 오른쪽 견본 문항 · 빨간 번호 = 정답 · 17·18·서답형2는 구조 변경 · 2학기 중간 출처 배치: 평가원 6 · EBS 6 · Level Up 6 · 자체 2</div>' + SUMMARY + LIVE_T + GATE_T + PICK_T
          + ''.join(cards) + '</body></html>')
     # 렌더러의 display 수식 측정은 시험지 쪽(.pg) 전용이라 가운데 정렬 인라인 수식으로 바꿈
     h = re.sub(r'\\\[([\s\S]+?)\\\]', lambda m: '<div class="dm">\\(\\displaystyle ' + m.group(1) + '\\)</div>', h)
