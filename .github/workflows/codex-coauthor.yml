@@ -5,7 +5,7 @@ name: codex-coauthor
 on:
   push:
     branches: ['claude/**']
-    paths: ['output/build/기말/공동출제/*_codex.md']
+    paths: ['output/build/기말/공동출제/*_codex.md', 'output/build/기말/공동출제/풀이/*/TASK.md']
 concurrency:
   group: codex-coauthor
   cancel-in-progress: false
@@ -47,8 +47,9 @@ jobs:
           if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then BEFORE="${GITHUB_SHA}~1"; fi
           git -c core.quotePath=false diff --name-only "$BEFORE" "$GITHUB_SHA" -- 'output/build/기말/공동출제/*_codex.md' > /tmp/tasks.txt || true
           cat /tmp/tasks.txt
-          test -s /tmp/tasks.txt
+          if [ -s /tmp/tasks.txt ]; then echo "found=true" >> "$GITHUB_OUTPUT"; else echo "found=false" >> "$GITHUB_OUTPUT"; fi
       - name: Codex 출제
+        if: steps.task.outputs.found == 'true'
         run: |
           git config user.name "codex-coauthor"
           git config user.email "codex-coauthor@users.noreply.github.com"
@@ -67,3 +68,51 @@ jobs:
             git commit -m "Codex 공동 출제: ${ROUND} (${TASK})" || echo "변경 없음"
             git push -f origin "$BR"
           done < /tmp/tasks.txt
+
+  # 블라인드 풀이: 문제 폴더만 받아(sparse checkout, 다른 파일·해설 없음) Codex가 풀고 codex/풀이-<이름> 브랜치에 답을 푸시
+  solve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    env:
+      OPENAI_API_KEY: ${{ secrets.API_KEY || secrets.OPENAI_API_KEY }}
+      CODEX_API_KEY: ${{ secrets.API_KEY || secrets.OPENAI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          filter: blob:none
+          sparse-checkout: |
+            output/build/기말/공동출제/풀이
+          sparse-checkout-cone-mode: true
+      - name: 풀이 지시서 찾기
+        id: solve
+        run: |
+          BEFORE='${{ github.event.before }}'
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then BEFORE="${GITHUB_SHA}~1"; fi
+          git -c core.quotePath=false diff --name-only "$BEFORE" "$GITHUB_SHA" -- 'output/build/기말/공동출제/풀이/*/TASK.md' > /tmp/solve.txt || true
+          cat /tmp/solve.txt
+          if [ -s /tmp/solve.txt ]; then echo "found=true" >> "$GITHUB_OUTPUT"; else echo "found=false" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/setup-node@v4
+        if: steps.solve.outputs.found == 'true'
+        with:
+          node-version: '22'
+      - name: Codex 블라인드 풀이
+        if: steps.solve.outputs.found == 'true'
+        run: |
+          npm install -g @openai/codex
+          printenv OPENAI_API_KEY | codex login --with-api-key
+          git config user.name "codex-coauthor"
+          git config user.email "codex-coauthor@users.noreply.github.com"
+          BASE="$GITHUB_SHA"
+          while IFS= read -r TASK; do
+            DIR="$(dirname "$TASK")"; NAME="$(basename "$DIR")"; BR="codex/풀이-${NAME}"
+            git checkout -B "$BR" "$BASE"
+            IMGS=""; for im in "$DIR"/*.png; do [ -f "$im" ] && IMGS="$IMGS -i $im"; done
+            ( cd "$DIR" && codex exec -s workspace-write -c approval_policy="never" --skip-git-repo-check --color never $IMGS "TASK.md를 읽고 그대로 따른다. 이 폴더 밖의 파일은 읽지 않는다. 결과는 이 폴더의 codex_answers.md에 쓴다." 2>&1 | tee codex_solve_log.txt ) || true
+            tail -c 150000 "$DIR/codex_solve_log.txt" > "$DIR/codex_solve_log.tmp" && mv "$DIR/codex_solve_log.tmp" "$DIR/codex_solve_log.txt"
+            git add --sparse "$DIR"
+            git commit -m "Codex 블라인드 풀이: ${NAME}" || echo "변경 없음"
+            git push -f origin "$BR"
+          done < /tmp/solve.txt
