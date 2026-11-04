@@ -106,4 +106,98 @@ assert sp.integrate((x - 2) * (8 - x), (x, 2, 8)) == 36
 assert S['S2']['ans'] == ['(1) 6', '(2) 2', '(3) 36']
 assert [s[1][:2] for s in S['S2']['subs']] == ['4점', '4점', '2점']
 print('S2 OK: (1) 6, (2) 2, (3) 36')
+# ===== 조건 제거 검사(ABLATION) =====
+# 조건을 하나씩 지우고 답이 그대로인지 / 바뀌는지 / 정해지지 않는지 본다. 군더더기는 FAIL 이 아니라 보고만 한다.
+print('--- 조건 제거 검사 ---')
+
+
+def ablation(no, cname, vals, ans, why='', est=False, undef=None):
+    """vals: 가능한 답 목록(각 원소는 값 또는 소문항별 튜플)"""
+    if undef is not None:
+        msg = f'필요({undef})'
+    else:
+        sv = list(dict.fromkeys(vals))
+        if sv == [ans]:
+            msg = f'성립 조건(답 그대로 {ans}; {why})' if est else f'군더더기(답 그대로{"; " + why if why else ""})'
+        elif isinstance(ans, tuple):
+            parts = []
+            for i in range(len(ans)):
+                col = list(dict.fromkeys(v[i] for v in sv))
+                parts.append(f'({i + 1}) ' + ('그대로 ' + str(ans[i]) if col == [ans[i]] else ' | '.join(map(str, col))))
+            same = all(len(set(v[i] for v in sv)) == 1 for i in range(len(ans)))
+            msg = f'필요({"답 바뀜" if same else "정해지지 않음"}: {", ".join(parts)}{"; " + why if why else ""})'
+        elif len(sv) >= 2:
+            msg = f'필요(정해지지 않음: 가능한 답 {", ".join(map(str, sv))}{"; " + why if why else ""})'
+        else:
+            msg = f'필요(답 바뀜 {ans} → {sv[0]}{"; " + why if why else ""})'
+    print(f'ABLATION {no} {cname}: {msg}')
+
+
+# ----- S1: 조건 = [(단, k는 상수)], (1)·(2)의 '모든', (2)의 'x≥0', 부등식의 등호 -----
+def kmax(lo):
+    """구간 [lo, ∞) 에서 h ≥ 0 이 되는 k 의 최댓값 (= 그 구간에서 h+k 의 최솟값)"""
+    return sp.minimum(h + k, x, sp.Reals if lo is None else sp.Interval(lo, sp.oo))
+ablation('S1(2)', "'x≥0인'(→ 모든 실수)", [kmax(None)], kmax(0))
+hk = lambda kv: h.subs(k, kv)
+# x>0 (등호 제외): h'(0)=24>0 이라 x>0 에서도 inf = h(0) → k=10 에서 h(x)>0 (x>0)
+assert sp.diff(h, x).subs(x, 0) == 24 and sp.minimum(hk(10), x, sp.Interval.open(0, sp.oo)) == 0
+assert all(hk(10).subs(x, sp.Rational(i, 100)) > 0 for i in range(1, 1001))
+ablation('S1(2)', "'x≥0'의 등호(→ x>0)", [10], kmax(0), why='h(x)>h(0)=10-k (0<x 근방)라 끝점을 빼도 k≤10')
+# '모든' 제거('어떤 x에 대하여'): h→∞ 이므로 모든 k 에서 성립 → 최댓값 없음
+assert sp.limit(h, x, sp.oo) == sp.oo
+ablation('S1', "'모든 실수 x에 대하여'(→ 어떤 x)", [], -9, undef='h(x)→∞라 모든 k에서 성립, 최댓값 없음')
+# 등호 제거(f>g): (1) k<-9 → 최댓값 없음
+assert sp.minimum(hk(-9), x) == 0
+ablation('S1', "부등식의 등호(≥ → >)", [], -9, undef='(1)은 k<-9, (2)는 k<10이 되어 최댓값 없음')
+ablation('S1', "'(단, k는 상수이다)'", [-9], -9, est=True, why='k가 x에 따라 변하지 않는다는 선언')
+
+# ----- S2: 조건 = [최고차항 계수 1], [삼차함수], [g 연속], [극댓값 9], [g(0)=-16] -----
+def tri(G, A):
+    """(1) g'(a), (2) a, (3) ∫₀¹⁰ g"""
+    dl = sp.limit((G - G.subs(x, A)) / (x - A), x, A, '-')
+    dr = sp.limit((G - G.subs(x, A)) / (x - A), x, A, '+')
+    d1 = sp.nsimplify(dl) if dl == dr else '없음'
+    I3 = sp.nsimplify(sp.integrate(G, (x, 0, 10)))
+    return (d1, sp.nsimplify(A), I3)
+def lmax_num(fun, lo=-30, hi=30, Nn=12001):
+    xs = [lo + (hi - lo) * i / (Nn - 1) for i in range(Nn)]
+    ys = [float(fun(v)) for v in xs]
+    return sorted({round(ys[i], 4) for i in range(1, Nn - 1) if ys[i] > ys[i - 1] and ys[i] >= ys[i + 1]})
+ANS2 = tri(gg(2, 8), 2)
+assert ANS2 == (6, 2, 36)
+# 최고차항 계수 1 제거: f=α(x-a)^2(x-b), g=|α|(x-a)|x-b|. 예 α=4, a=1, b=4
+G4 = 4 * gg(1, 4)
+assert lmax_num(lambda v: 4 * (v - 1) * abs(v - 4)) == [9.0] and G4.subs(x, 0) == -16
+ablation('S2', "'최고차항의 계수 1'", [ANS2, tri(G4, 1)], ANS2, why='예: f=4(x-1)^2(x-4)')
+# 삼차 제거(사차): f=(x-a)^2(x-b)^2, g=(x-a)(x-b)^2, 극댓값 4(b-a)^3/27=9, g(0)=-a b^2=-16
+dl_ = sp.Rational(243, 4)**sp.Rational(1, 3)
+aq = [r_ for r_ in sp.Poly(sp.expand(a * (a + dl_)**2 - 16), a).nroots() if abs(sp.im(r_)) < 1e-12]
+aq = float(sp.re(aq[0])); bq = aq + float(dl_)
+assert abs(-aq * bq**2 + 16) < 1e-9
+assert [round(m, 3) for m in lmax_num(lambda v: (v - aq) * (v - bq)**2)] == [9.0]
+d1q = round((aq - bq)**2, 3)      # g'(a)=(a-b)^2
+ablation('S2', "'삼차함수'", [ANS2, (d1q, round(aq, 3), '…')], ANS2, why='예: f=(x-a)^2(x-b)^2 (사차), a≈%.3f' % aq)
+# 연속 제거: f=(x-a)(x-2)(x-8), 0<a<2, g=|f|/(x-a) (x≠a), g(a)=0 → 극댓값 9(x=5), g(0)=-16, x=a 에서 불연속
+v_ct = [ANS2]
+for A in (1, sp.Rational(1, 2)):
+    fA = sp.Abs((x - A) * (x - 2) * (x - 8))
+    gfun = lambda v, A=A: abs((v - A) * (v - 2) * (v - 8)) / (v - A)
+    Af = float(A)
+    # x<a, x>a 각각의 극댓값(끝점 제외) + x=a 에서는 g(a)=0, 좌극한 <0< 우극한 이라 극값 아님
+    lm = lmax_num(gfun, -30, Af - 1e-9, 6001) + lmax_num(gfun, Af + 1e-9, 30, 12001)
+    lL, lR = sp.limit(fA / (x - A), x, A, '-'), sp.limit(fA / (x - A), x, A, '+')
+    assert lm == [9.0] and lL < 0 < lR and sp.simplify((fA / (x - A)).subs(x, 0)) == -16, (A, lm, lL, lR)
+    v_ct.append(('없음', A, '…'))
+ablation('S2', "'g(x)는 실수 전체에서 연속'", v_ct, ANS2, why='예: f=(x-a)(x-2)(x-8), 0<a<2 (g(a)=0)')
+# 극댓값 9 제거: b-a=δ 자유, g(0)=-a|a+δ|=-16
+v_mx = []
+for dv in (6, 15):
+    for A in sp.solve(-a * (a + dv) + 16, a):
+        if A >= -dv:
+            v_mx.append(tri(gg(A, A + dv), A))
+ablation('S2', "'극댓값 9'", v_mx, ANS2, why='b-a가 자유 (예: b-a=15이면 a=1)')
+# g(0)=-16 제거: a 자유(평행이동) → (1)은 6 그대로, (2)(3) 정해지지 않음
+v_g0 = [tri(gg(A, A + 6), A) for A in (2, 0, 4)]
+ablation('S2', "'g(0)=-16'", v_g0, ANS2, why='g(x)=(x-a)|x-a-6|의 평행이동')
+
 print('ALL OK')
