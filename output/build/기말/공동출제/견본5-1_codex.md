@@ -1,5 +1,5 @@
 MODEL: gpt-6-astra
-EFFORT: high
+EFFORT: medium
 
 # Codex 작업 지시서 1/2: 견본5 17·18번 후보 + 서답형2
 

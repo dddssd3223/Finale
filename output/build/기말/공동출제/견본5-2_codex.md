@@ -1,5 +1,5 @@
 MODEL: gpt-6-astra
-EFFORT: high
+EFFORT: medium
 
 # Codex 작업 지시서 2/2: 견본5 홀수 번호 1–15 (8문항)
 
