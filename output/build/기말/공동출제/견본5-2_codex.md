@@ -3,6 +3,8 @@ EFFORT: medium
 
 # Codex 작업 지시서 2/2: 견본5 홀수 번호 1–15 (8문항)
 
+> 재실행(새 키): 같은 번호를 Claude B팀도 이미 냈다. 나중에 검토자가 둘을 비교해 나은 쪽을 고른다. 독립성을 위해 `output/build/기말/견본5/parts/p*.py`, `verify_p*.py`, `후보/p*.py`, `후보/q*.py`는 열지 않는다. 내 파일(c*.py)만 쓴다.
+
 먼저 다음 셋을 읽는다.
 - `AGENTS.md`
 - `output/build/기말/견본5/BRIEF.md`
