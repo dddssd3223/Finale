@@ -1,5 +1,4 @@
 MODEL: gpt-4.1-mini
-EFFORT: low
 
 # 기준 프로필 풀이 (Codex 약한 풀이자)
 
