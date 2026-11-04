@@ -333,4 +333,89 @@ check(fo2 == sp.Rational(29, 3), f'원문 f(2)={fo2} = ⑤ 29/3')
 Ao2 = analyze([(x**4 - x**3 + 4, -sp.oo, 1), (8 - (x**4 - x**3 + 4), 1, sp.oo)])
 check(Ao2['corners'] == [1] and Ao2['S'] == [], "원문: f'(c)≠0 이면 꺾여 S=∅")
 
+# ---------------------------------------------------------------------
+# 7. 조건 제거 검사(ABLATION): 조건을 하나씩 지우고 답이 그대로인지 / 바뀌는지 / 정해지지 않는지
+#    군더더기는 FAIL 로 처리하지 않고 보고만 한다(아래 근거 확인만 check 로 건다).
+#    동차성(1절): f 의 근을 λ배 하면 g 는 λ^4 배로 닮아 S 의 원소 개수, 실근 개수는 그대로, 극솟값은 λ^4 배, f(0) 은 λ^3 배
+# ---------------------------------------------------------------------
+print('--- 조건 제거 검사 ---')
+
+
+def ablation(no, cname, vals, ans, why='', est=False, undef=None):
+    if undef is not None:
+        msg = f'필요({undef})'
+    elif not vals:
+        msg = '필요(남은 조건을 만족시키는 경우가 없음)'
+    else:
+        sv = []
+        for v in sorted(vals, key=lambda v: float(N(v))):
+            if all(abs(N(v - u)) > 1e-30 for u in sv):
+                sv.append(v)
+        show = lambda v: str(v) if v.is_Rational else f'≈{float(N(v)):.3f}(무리수)'
+        if len(sv) == 1 and abs(N(sv[0] - ans)) < 1e-30:
+            msg = f'성립 조건(답 그대로 {ans}; {why})' if est else f'군더더기(답 그대로{"; " + why if why else ""})'
+        elif len(sv) >= 2:
+            msg = f'필요(정해지지 않음: 가능한 답 {", ".join(map(show, sv[:4]))}{" 등" if len(sv) > 4 else ""}{"; " + why if why else ""})'
+        else:
+            msg = f'필요(답 바뀜 {ans} → {show(sv[0])}{"; " + why if why else ""})'
+    print(f'ABLATION {no} {cname}: {msg}')
+
+
+def scaled_f0(f1, c1, need):
+    """c=c1 정규형 f1 에 대해 need 조건을 확인하고, 극솟값이 -81 이 되도록 λ 배 했을 때의 f(0)"""
+    ga, na, da, A = conds(f1, c1)
+    flags = dict(ga=ga, na=na)
+    assert all(flags[k_] for k_ in need), (f1, c1, flags)
+    assert len(A['mins']) == 1 and N(A['mins'][0]) < 0, A['mins']
+    lam = (81 / (-A['mins'][0]))**sp.Rational(1, 4)
+    return sp.nsimplify(lam**3 * f1.subs(x, 0)), flags, A
+
+
+# (가) 제거: ② f=(x-c)^2(x+2c), ③ f=x^3 도 (나)(다) 를 만족
+v_ga = [ANS]
+v2_, fl2, A2_ = scaled_f0(sp.expand((x - 1)**2 * (x + 2)), sp.Integer(1), ['na'])
+v3_, fl3, A3_ = scaled_f0(x**3, sp.Integer(1), ['na'])
+check(not fl2['ga'] and not fl3['ga'], f'(가) 제거 근거: ② 극솟값 {A2_["mins"]}, ③ 극솟값 {A3_["mins"]} (c=1), 둘 다 S=∅')
+v_ga += [v2_, v3_]
+ablation(18, '(가) |S|=1', v_ga, ANS, why='② f=(x-c)^2(x+2c), ③ f=x^3 도 (나)(다)를 만족')
+
+# (나) 제거: ⑤ f=(x-c)(x^2+cx+r) (허근 2개, 실근 c 하나), c^2/4<r<17c^2/32 이면 S={0}, 극솟값 1개
+v_na = [ANS]
+for r0 in (sp.Rational(3, 10), sp.Rational(2, 5)):
+    f5 = sp.expand((x - 1) * (x**2 + x + r0))
+    assert sp.Poly(f5, x).coeff_monomial(x**2) == 0
+    v5, fl5, A5 = scaled_f0(f5, sp.Integer(1), ['ga'])
+    check(fl5['ga'] and not fl5['na'] and A5['S'] == [0],
+          f'(나) 제거 근거: f=(x-1)(x^2+x+{r0}), c=1 → S={A5["S"]}, g=0 실근 {roots_g0(f5, 1)}개, 극솟값 {[float(N(m)) for m in A5["mins"]]}')
+    v_na.append(v5)
+ablation(18, '(나) g(x)=0의 실근 2개', v_na, ANS, why='⑤ f=(x-c)(x^2+cx+r) (실근 c 하나)도 (가)(다)를 만족')
+
+# (다) 제거: ① c>0 이면 모두 (가)(나) 만족
+v_da = []
+for cc in (2, 4, 6):
+    f1 = sp.expand((x - cc) * (x + sp.Rational(cc, 2))**2)
+    ga, na, da, A = conds(f1, sp.Integer(cc))
+    if ga and na:
+        v_da.append(f1.subs(x, 0))
+ablation(18, '(다) 극솟값 -81', v_da, ANS, why='① c>0 이면 모두 (가)(나) 성립, f(0)=-c^3/4')
+
+# x^2 의 계수 0 제거(f=x^3+px^2+ax+b): f=(x-c)(x-c+6)^2 는 평행이동이라 모두 (가)(나)(다) 만족
+v_x2 = []
+for cc in (4, 0, 1):
+    fT = sp.expand((x - cc) * (x - cc + 6)**2)
+    ga, na, da, A = conds(fT, sp.Integer(cc))
+    if ga and na and da:
+        v_x2.append(fT.subs(x, 0))
+ablation(18, "f의 꼴 x^3+ax+b의 'x^2의 계수 0'", v_x2, ANS, why='예: f=(x-c)(x-c+6)^2, c=4, 0, 1')
+
+# 최고차항의 계수 1 제거: f=α(x-c)(x+c/2)^2, 극솟값 -81αc^4/256 → α=256/c^4
+v_lc = []
+for cc in (4, 2):
+    al_ = sp.Rational(256, cc**4)
+    fA = sp.expand(al_ * (x - cc) * (x + sp.Rational(cc, 2))**2)
+    ga, na, da, A = conds(fA, sp.Integer(cc))
+    if ga and na and da:
+        v_lc.append(fA.subs(x, 0))
+ablation(18, "f의 꼴 x^3+ax+b의 '최고차항의 계수 1'", v_lc, ANS, why='예: f=16(x-2)(x+1)^2, c=2')
+
 print('ALL OK' if allok else 'SOME FAILED')

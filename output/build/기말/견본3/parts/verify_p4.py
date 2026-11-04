@@ -141,5 +141,135 @@ ch = ans_ok(16, G16.subs(x, 2))
 g_wrong0 = (4*x**2 + 2).subs(x, 2); g_wrongm = (4*x**2 - 3*x + 2).subs(x, 2)
 check(16, g_wrong0 == 18 and g_wrongm == 12 and 18 in ch and 12 in ch, '오답 18(일차항 0), 12(부호 실수) 선지에 있음')
 
+# ===== 조건 제거 검사(ABLATION) =====
+# 조건을 하나씩 지우고, 남은 조건을 만족시키는 경우를 다시 구해 답이 그대로인지 / 바뀌는지 / 정해지지 않는지 본다.
+# 군더더기는 FAIL로 처리하지 않고 보고만 한다(ok 에 반영하지 않음).
+def ablation(no, cname, vals, ans, why='', est=False, undef=None, key=None):
+    if undef is not None:
+        msg = f'필요({undef})'
+    elif not vals:
+        msg = '필요(남은 조건을 만족시키는 경우가 없음)'
+    else:
+        sv = sorted(set(vals), key=key or (lambda v: float(v)))
+        fmt = (lambda v: f'「{v}」') if isinstance(ans, str) else str
+        if sv == [ans]:
+            msg = f'성립 조건(답 그대로 {fmt(ans)}; {why})' if est else f'군더더기(답 그대로{"; " + why if why else ""})'
+        elif len(sv) >= 2:
+            msg = f'필요(정해지지 않음: 가능한 답 {", ".join(map(fmt, sv[:4]))}{" 등" if len(sv) > 4 else ""}{"; " + why if why else ""})'
+        else:
+            msg = f'필요(답 바뀜 {fmt(ans)} → {fmt(sv[0])}{"; " + why if why else ""})'
+    print(f'ABLATION {no} {cname}: {msg}')
+
+print('--- 조건 제거 검사 ---')
+# ----- 13번: 조건 = [동시에 원점 출발], [Q가 t=3에서 운동 방향을 바꿈], [0≤t≤4], [t≥0] -----
+def maxabs13(dexpr, lo=0, hi=4):
+    cs_ = [r for r in sp.solve(sp.diff(dexpr, t), t) if r.is_real and lo <= r <= hi] + [lo, hi]
+    return sp.nsimplify(sp.simplify(max(abs(dexpr.subs(t, r)) for r in cs_)))
+d_of = lambda av, C=0: C + sp.integrate((v1 - v2.subs(a, av)).subs(t, s), (s, 0, t))
+ablation(13, "'동시에 원점을 출발'", [maxabs13(d_of(-36, C)) for C in (0, 5, -10)], m13,
+         why='t=0에서 x1-x2=C가 자유')
+v13 = []
+for av in (-36, 0, -12, -48):
+    v13.append(maxabs13(d_of(av)))
+ablation(13, "'Q가 t=3에서 운동 방향을 바꿈'", v13, m13, why='a가 자유')
+dd = d_of(-36)
+check(13, sp.limit(dd, t, sp.oo) == sp.oo, '구간 제거 시 |x1-x2| → ∞ (ABLATION 근거)')
+ablation(13, "'0≤t≤4'", [], m13, undef='t≥0 전체에서 |x1-x2|=3t^4-16t^3+18t^2 → ∞, 최댓값 없음')
+ablation(13, "'(t≥0)'", [maxabs13(dd)], m13, est=True, why='0≤t≤4가 따로 있어 겹침, 시각의 정의역 선언')
+
+# ----- 14번: 조건 = [닫힌구간], [왼끝 0], [양수 t] -----
+check(14, all(fpp.subs(x, sp.Rational(k, 10)) < 0 for k in range(0, 11)) and sp.solve(fpp, x) == [sp.Rational(-1, 2), 2],
+      "(0,1)에서 y''<0 → y' 감소 (ABLATION 근거)")
+ablation(14, "'닫힌구간'(→ 열린구간 (0,t))", [], g1 + g3,
+         undef="t=1일 때 (0,1)에서 y'이 감소해 최솟값이 없음 → g(1) 정의되지 않음")
+check(14, sp.limit(fp, x, -sp.oo) == -sp.oo, "x→-∞ 에서 y'→-∞ (ABLATION 근거)")
+ablation(14, "'왼끝 0'(→ (-∞,t])", [], g1 + g3, undef="y'=4x^3-9x^2-12x+4 → -∞ (x→-∞), 기울기의 최솟값 없음")
+ablation(14, "'양수 t'", [g_exact(1)[1] + g_exact(3)[1]], g1 + g3, est=True, why='t=1, 3만 쓰지만 [0,t]가 구간이 되려면 필요')
+
+# ----- 15번: 조건 = [다항함수], [x>0에서 f>g], [f(1)=g(1)+1], [S'(t)=t^3+at^2+3t] -----
+def area_abs(he, lo, hi):
+    rs = sorted({r for r in sp.real_roots(sp.Poly(sp.expand(he), x)) if lo < r < hi}, key=float)
+    pts = [lo] + rs + [hi]
+    return sum(abs(sp.integrate(he, (x, u, w))) for u, w in zip(pts, pts[1:]))
+def ans15(he, Sval2=None, area=None):
+    """h=f-g 로 ㄱ, ㄴ, ㄷ 판정 → 정답 문자열"""
+    hp_ = sp.diff(he, x); E = sp.Rational(1, 10**6)
+    t1 = hp_.subs(x, 1) == 0 and hp_.subs(x, 1 - E)*hp_.subs(x, 1 + E) < 0
+    S2_ = area_abs(he, 0, 2) if Sval2 is None else Sval2
+    A_ = area_abs(he, -1, 3) if area is None else area
+    tv = {'ㄱ': t1, 'ㄴ': S2_ == 2, 'ㄷ': A_ == 2*S2_}
+    return ', '.join(k for k in 'ㄱㄴㄷ' if tv[k]) or '(없음)'
+key15 = lambda v: v
+ANS15 = ans15(H)
+assert ANS15 == 'ㄴ'
+# f(1)=g(1)+1 제거: a 자유(단 x>0에서 h>0 ⇔ a>-2√3)
+v15 = []
+for av in (-3, -2, 0, 1):
+    he = x**3 + av*x**2 + 3*x
+    assert all(he.subs(x, sp.Rational(k, 10)) > 0 for k in range(1, 200))
+    v15.append(ans15(he))
+ablation(15, "'f(1)=g(1)+1'", v15, ANS15, key=key15, why='a가 자유')
+# x>0에서 f>g 제거: S'(t)=|h(t)| (t>0), h 다항식 ⇒ h^2=P^2 ⇒ h=±P. h(1)=1 이고 P(t)=|h(t)|≥0
+P15 = x**3 + a*x**2 + 3*x
+v15 = []
+for eps in (1, -1):
+    for av in sp.solve(eps*P15.subs(x, 1) - 1, a):
+        Pv = P15.subs(a, av)
+        if sp.minimum(Pv, x, sp.Interval.open(0, sp.oo)) >= 0:      # P=|h| ≥ 0 이어야 함
+            v15.append(ans15(eps*Pv))
+check(15, v15 == ['ㄴ'], 'h=-P 경우는 P(1)=-1<0 으로 탈락 (ABLATION 근거)')
+ablation(15, "'x>0인 모든 실수 x에 대하여 f(x)>g(x)'", v15, ANS15, key=key15,
+         why="S'(t)=|f(t)-g(t)|와 f(1)=g(1)+1만으로 f-g=(x-1)^3+1이 정해짐")
+# 다항함수 제거(연속함수): x≥0 에서 h=(x-1)^3+1, x<0 은 임의(연속). ㄷ은 [0,3] 넓이 27/4 > 4 라 항상 거짓
+v15 = []
+for cv in (0, 3, -5):          # x<0 에서 h=cv*x 로 이어 붙인 연속함수
+    A_ = sp.integrate(sp.Abs(cv*x), (x, -1, 0)) + area_abs(H, 0, 3)
+    v15.append(ans15(H, area=A_))
+check(15, area_abs(H, 0, 3) == sp.Rational(27, 4), '∫₀³h = 27/4 > 4 = 2S(2) (ABLATION 근거)')
+ablation(15, "'다항함수'", v15, ANS15, key=key15, est=True,
+         why="S(t)의 미분가능(연속) 보장; x<0 부분이 정해지지 않아도 ㄷ은 [0,3] 넓이 27/4>4라 거짓")
+# S'(t) 식 제거: 예 f-g=1 이면 ㄱ 거짓, ㄴ 참(S(2)=2), ㄷ 참(넓이 4)
+ablation(15, "'S'(t)=t^3+at^2+3t'", [ans15(sp.Integer(1) + 0*x), ANS15], ANS15, key=key15, why='예: f-g=1')
+
+# ----- 16번: 조건 = [다항함수], [모든 실수 x], (가), (나) -----
+def ok16(gg, ff, xs=None):
+    l_ = sp.integrate((t*ff).subs(x, t), (t, 1, x)) - sp.integrate((t*gg).subs(x, t), (t, -1, x))
+    r_ = x**4 - x**2 - 2
+    A_ = (sp.expand(l_ - r_) == 0) if xs is None else all(sp.simplify((l_ - r_).subs(x, v)) == 0 for v in xs)
+    B_ = (sp.expand(ff - x*sp.diff(gg, x)) == 0) if xs is None else all((ff - x*sp.diff(gg, x)).subs(x, v) == 0 for v in xs)
+    return A_, B_
+vs = []
+for gg in (4*x**2 + 3*x + 2, x, x**2):
+    A_, B_ = ok16(gg, x*sp.diff(gg, x))
+    if B_: vs.append(gg.subs(x, 2))
+ablation(16, "(가)", vs, G16.subs(x, 2), why='(나)만으로는 g가 자유')
+vs = []
+for C_ in (0, 5, -1):
+    gg = 3*x + C_; ff = gg + 4*x**2 - 2
+    A_, B_ = ok16(gg, ff)
+    if A_: vs.append(gg.subs(x, 2))
+ablation(16, "(나)", vs, G16.subs(x, 2), why='예: g=3x+C, f=g+4x^2-2')
+# 다항함수 제거: (가) 미분 → x f - x g = 4x^3-2x, (나) 대입 → x g' - g = 4x^2-2 (x≠0)
+gfn = sp.Function('gfn')
+gen = sp.dsolve(sp.Eq(x*gfn(x).diff(x) - gfn(x), 4*x**2 - 2), gfn(x)).rhs
+C1 = [c for c in gen.free_symbols if c != x][0]
+check(16, sp.expand(gen - (4*x**2 + C1*x + 2)) == 0, f'미분방정식 일반해 {gen} (x>0, x<0 따로 C) (ABLATION 근거)')
+# x>0, x<0 의 상수 Cp, Cm: g'(0) 존재((나)의 x=0) ⇒ Cp=Cm, 그다음 (가)의 x=1 ⇒ C=3
+Cp, Cm = sp.symbols('Cp Cm', real=True)
+gR, gL = 4*x**2 + Cp*x + 2, 4*x**2 + Cm*x + 2
+eqC = [sp.diff(gR, x).subs(x, 0) - sp.diff(gL, x).subs(x, 0),
+       -(sp.integrate(t*gL.subs(x, t), (t, -1, 0)) + sp.integrate(t*gR.subs(x, t), (t, 0, 1))) - (1 - 1 - 2)]
+solC = sp.solve(eqC, [Cp, Cm], dict=True)
+vs = [gR.subs(sC).subs(x, 2) for sC in solC]
+ablation(16, "'다항함수'", vs, G16.subs(x, 2), est=True,
+         why="(나)에서 g가 미분가능하면 g=4x^2+Cx+2로 정해짐; 적분·미분이 성립하도록 하는 전제")
+vs = []
+for C_ in (0, 7):
+    gg = 3*x + C_; ff = x*sp.diff(gg, x)
+    A_, B_ = ok16(gg, ff, xs=[1])
+    if A_ and B_: vs.append(gg.subs(x, 2))
+vs.append(G16.subs(x, 2))
+ablation(16, "'모든 실수 x에 대하여'", vs, G16.subs(x, 2), why='x=1에서만 성립하면 예: g=3x+C')
+
 print('ALL OK' if ok else 'SOME FAIL')
 raise SystemExit(0 if ok else 1)

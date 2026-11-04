@@ -139,4 +139,167 @@ chk(12, ans12, [w12.subs(x, 4)])
 # 배점대 단원·출처
 assert [IT[n]['key'] for n in (9, 10, 11, 12)] == ['M42', 'D58', 'I46', 'D41']
 print('정답 위치:', [IT[n]['ans'] for n in sorted(IT)])
+# ===== 조건 제거 검사(ABLATION) =====
+import itertools
+# 조건을 하나씩 지우고, 남은 조건을 만족시키는 경우를 다시 구해 답이 그대로인지 / 바뀌는지 / 정해지지 않는지 본다.
+# 군더더기는 FAIL로 처리하지 않고 보고만 한다(아래 검사는 assert를 걸지 않는다).
+def ablation(no, cname, vals, ans, why='', est=False, undef=None):
+    """vals: 조건을 지웠을 때 가능한 답(표본 포함) 목록, undef: 답이 없거나 정해지지 않는 이유(문자열)"""
+    if undef is not None:
+        msg = f'필요({undef})'
+    elif not vals:
+        msg = '필요(남은 조건을 만족시키는 경우가 없음)'
+    else:
+        sv = sorted(set(sp.nsimplify(v) for v in vals), key=lambda v: float(v))
+        if sv == [sp.nsimplify(ans)]:
+            msg = f'성립 조건(답 그대로 {ans}; {why})' if est else f'군더더기(답 그대로{"; " + why if why else ""})'
+        elif len(sv) >= 2:
+            msg = f'필요(정해지지 않음: 가능한 답 {", ".join(map(str, sv[:4]))}{" 등" if len(sv) > 4 else ""}{"; " + why if why else ""})'
+        else:
+            msg = f'필요(답 바뀜 {ans} → {sv[0]}{"; " + why if why else ""})'
+    print(f'ABLATION {no} {cname}: {msg}')
+
+print('--- 조건 제거 검사 ---')
+# ----- 9번: 조건 = [정수 k], [서로 다른 실근], [5 이상] -----
+h9 = 2*x**3 - 3*x**2 - 12*x
+# '정수' 제거: 0<k≤7 인 실수 k가 모두 해당 → 개수가 유한하지 않음
+fr = [Rational(1, 2), Rational(13, 2), Rational(7, 3)]
+assert all(cnt9(kv) >= 5 for kv in fr)
+ablation(9, "'정수'", [], ans9, undef=f'0<k≤7인 모든 실수 k가 해당(예: k={fr}) → 개수가 유한하지 않음')
+# '서로 다른' 제거: 중근을 겹쳐 센다
+def cnt9_mult(kv):
+    if kv < 0: return 0
+    if kv == 0: return sum(m for r_, m in sp.roots(Poly(h9, x)).items() if r_.is_real)
+    tot = 0
+    for e_ in (h9 - kv, h9 + kv):
+        P_ = Poly(expand(e_), x)
+        tot += len(sp.real_roots(P_))          # real_roots 는 중복도만큼 나열
+    return tot
+g9m = [kv for kv in range(-3, 31) if cnt9_mult(kv) >= 5]
+ablation(9, "'서로 다른'", [len(g9m)], ans9, est=True,
+         why=f'중근을 겹쳐 세도 k={g9m[0]}~{g9m[-1]}; 실근 개수를 세는 기준을 정하는 관용 표현')
+
+# ----- 10번: 조건 = [최고차항 계수 1], [f(0)=0], [극값 없음], [극한 = 2], [접선 y절편 -8] -----
+c3, rr = symbols('c3 rr', real=True)
+F10 = c3*x**3 + p*x**2 + q*x + rr
+V10 = [c3, p, q, rr, a]
+C10 = {
+    '최고차항의 계수 1': ([c3 - 1], lambda d: d[c3] == 1),
+    'f(0)=0': ([rr], lambda d: d[rr] == 0),
+    '극값을 갖지 않는다': ([], lambda d: 4*d[p]**2 - 12*d[c3]*d[q] <= 0),
+    '극한값 2': ([F10.subs(x, a) - 8, diff(F10, x).subs(x, a) - 4*a],
+                lambda d: d[a] != 0 and F10.subs(d).subs(x, d[a]) == 8 and diff(F10.subs(d), x).subs(x, d[a]) == 4*d[a]),
+    '접선의 y절편 -8': ([(F10 - x*diff(F10, x)).subs(x, a) + 8],
+                     lambda d: (F10 - x*diff(F10, x)).subs(d).subs(x, d[a]) == -8),
+}
+def solve10(drop):
+    keep = [k_ for k_ in C10 if k_ != drop]
+    eqs = sum((C10[k_][0] for k_ in keep), [])
+    out = set()
+    grid = [Rational(n, 2) for n in range(-12, 13)]
+    sols = []
+    for vs_ in itertools.combinations([c3, rr, q, p, a], len(eqs)):   # 앞쪽 미지수부터 풀어 나머지를 자유 변수로
+        sols = solve(eqs, list(vs_), dict=True)
+        if sols and all(len(s_) == len(eqs) for s_ in sols): break
+    for s_ in sols:
+        free = [v for v in V10 if v not in s_]
+        for vals in itertools.product(grid, repeat=len(free)):
+            d = dict(zip(free, vals))
+            try:
+                d.update({k_: sp.sympify(e).subs(d) for k_, e in s_.items()})
+            except Exception:
+                continue
+            if any(not d[v].is_finite for v in V10) or d[c3] == 0:
+                continue
+            if all(C10[k_][1](d) for k_ in keep):
+                out.add(F10.subs(d).subs(x, 1))
+                if len(out) > 6: return out
+    return out
+for drop in C10:
+    v10 = solve10(drop)
+    ablation(10, f"'{drop}'", v10, ans10)
+# 극한값을 실제 limit 로 한 번 더 확인(극한값 조건을 남긴 경우의 대표 해)
+assert limit((x**3 - 2*x**2 + 4*x - 8)/(x**2 - 4), x, 2) == 2
+
+# ----- 11번: 조건 = [이차함수], (가) 극대 x=-1, (가) 극소 x=3, (가) 극대/극소 구분, (나) 차 32 -----
+def gfun(fe):
+    return integrate(fe.subs(x, t), (t, 0, x))
+def ext11(fe):
+    """g'=f 의 부호 변화로 극대점·극소점과 값"""
+    rs = sorted(set(r_ for r_ in sp.real_roots(Poly(expand(fe), x))), key=float)
+    G_ = gfun(fe); mx, mn = [], []
+    for r_ in rs:
+        L_, R_ = fe.subs(x, r_ - Rational(1, 10**6)), fe.subs(x, r_ + Rational(1, 10**6))
+        if L_ > 0 > R_: mx.append((r_, G_.subs(x, r_)))
+        if L_ < 0 < R_: mn.append((r_, G_.subs(x, r_)))
+    return mx, mn
+def ok11(fe, need_max=True, need_min=True, need_order=True, need_diff=True):
+    mx, mn = ext11(fe)
+    pts = [r_ for r_, _ in mx + mn]
+    if need_order:
+        if need_max and [r_ for r_, _ in mx] != [-1]: return None
+        if need_min and [r_ for r_, _ in mn] != [3]: return None
+    else:
+        if sorted(pts) != [-1, 3]: return None
+    if len(mx) != 1 or len(mn) != 1: return None
+    if need_diff and mx[0][1] - mn[0][1] != 32: return None
+    return mn[0][1]
+# 극대/극소 구분 제거: 'x=-1, x=3에서 극값' → K=±3
+v = [ok11(Kv*(x + 1)*(x - 3), need_order=False) for Kv in (3, -3)]
+ablation(11, "(가)의 '극대·극소 구분'", [w for w in v if w is not None], ans11)
+# 'x=-1에서 극대' 제거: f=K(x-s)(x-3), s<3, K>0 를 (나)로 맞춤
+vs = []
+for sv in (-1, 0, 1, -3):
+    Kv = solve(K*(3 - sv)**3/6 - 32, K)[0]
+    w = ok11(Kv*(x - sv)*(x - 3), need_max=False)
+    if w is not None: vs.append(w)
+ablation(11, "(가)의 'x=-1에서 극대'", vs, ans11)
+vs = []
+for sv in (3, 2, 1, 5):
+    Kv = solve(K*(sv + 1)**3/6 - 32, K)[0]
+    w = ok11(Kv*(x + 1)*(x - sv), need_min=False)
+    if w is not None: vs.append(w)
+ablation(11, "(가)의 'x=3에서 극소'", vs, ans11)
+vs = [ok11(Kv*(x + 1)*(x - 3), need_diff=False) for Kv in (1, 2, 3)]
+ablation(11, "(나) '극댓값과 극솟값의 차 32'", vs, ans11)
+# '이차함수' 제거(다항함수): f=K(x+1)(x-3)(x^2+1) 도 (가)(나)를 만족
+m4 = (x + 1)*(x - 3)*(x**2 + 1)
+Kv = solve(K*(-integrate(m4, (x, -1, 3))) - 32, K)[0]
+vs = [ok11(3*(x + 1)*(x - 3)), ok11(Kv*m4)]
+ablation(11, "'이차함수'", vs, ans11, why=f'예: f={Kv}(x+1)(x-3)(x^2+1)')
+
+# ----- 12번: 조건 = [삼차함수], (가) |f| 미분가능, (나) 접점 -1·기울기 4, (나) 통과점 (5,f(5)) -----
+def ok12(fe, need_a=True, need_slope=True, need_pass=True, deg=3):
+    P_ = Poly(expand(fe), x)
+    if deg is not None and P_.degree() != deg: return None
+    if need_a:   # |f| 미분가능 ⇔ 모든 실근에서 f'=0 ⇔ 중복도 1인 실근이 없음
+        from collections import Counter
+        if any(m == 1 for m in Counter(sp.real_roots(P_)).values()): return None
+    sl = diff(fe, x).subs(x, -1)
+    if need_slope and sl != 4: return None
+    L_ = sl*(x + 1) + fe.subs(x, -1)
+    if need_pass and (fe - L_).subs(x, 5) != 0: return None
+    return fe.subs(x, 4)
+# (가) 제거: f = 4(x+1)+m + P(x+1)^2(x-5)
+vs = [ok12(4*(x + 1) + mv + pv*(x + 1)**2*(x - 5), need_a=False)
+      for mv, pv in ((Rational(-8, 3), Rational(1, 3)), (0, 1), (1, -2))]
+ablation(12, "(가) '|f(x)|가 실수 전체에서 미분가능'", [w for w in vs if w is not None], ans12)
+# 기울기 4 제거: f=p(x-r)^3 이 통과 조건을 만족 ⇔ r=1, p 자유
+rsol = solve(expand(((x - r)**3 - (3*(-1 - r)**2*(x + 1) + (-1 - r)**3)).subs(x, 5)), r)
+assert rsol == [1]
+vs = [ok12(pv*(x - 1)**3, need_slope=False) for pv in (Rational(1, 3), 1, -2)]
+ablation(12, "(나)의 '기울기가 4'", [w for w in vs if w is not None], ans12)
+# 통과점 제거: f=p(x-r)^3, 3p(1+r)^2=4, r 자유
+vs = []
+for rv in (1, 0, 2):
+    pv = Rational(4, 3)/(1 + rv)**2
+    w = ok12(pv*(x - rv)**3, need_pass=False)
+    if w is not None: vs.append(w)
+ablation(12, "(나)의 '점 (5, f(5))를 지난다'", vs, ans12)
+# '삼차함수' 제거: 사차 f=4x+5+(x+1)^2(x-5)^2 (실근 없음 → |f|=f 미분가능) 도 (가)(나)를 만족
+f4 = 4*x + 5 + (x + 1)**2*(x - 5)**2
+assert sp.real_roots(Poly(expand(f4), x)) == []
+vs = [ok12(F12), ok12(f4, deg=4)]
+ablation(12, "'삼차함수'", [w for w in vs if w is not None], ans12, why='예: f=4x+5+(x+1)^2(x-5)^2')
+
 print('ALL OK')
