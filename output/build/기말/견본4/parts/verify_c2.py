@@ -85,40 +85,26 @@ assert all(bb <= 2 for bb in outside_roots)
 assert qo.subs(x, s.Rational(1, 3)) == 0
 original('I40', ao.subs(b, 1)+1, s.Integer(-1), '②')
 
-# 14: 직사각형 [0,4]×[0,2]. 곡선과 윗변의 교점에 따라 실제 넓이를 분기한다.
-y, u = s.symbols('y u', positive=True)
+# 14: 정사각형 [0,3]×[0,3], 곡선 y=x^2/a가 넓이를 이등분 (Claude 재출제)
 ap = s.symbols('ap', positive=True)
-# 두 곡선의 원점 이외 교점은 (a,a), a>2이면 내부에서 겹치지 않는다.
-assert s.factor((x*x/ap)**2/ap-x) == x*(x-ap)*(x*x+ap*x+ap*ap)/ap**3
-assert s.discriminant(x*x+ap*x+ap*ap, x) == -3*ap**2
-assert s.simplify((y*y/ap)**2/ap-y) == y**4/ap**3-y
-# 0<y<=2<a이면 y^4/a^3<y: 왼쪽 부분은 아래쪽 부분과 겹치지 않는다.
-S1 = s.integrate(y*y/ap, (y, 0, 2))
-S2_inside = s.simplify(s.integrate(x*x/ap, (x, 0, s.sqrt(2*ap))) + 2*(4-s.sqrt(2*ap)))
-S2_outside = s.integrate(x*x/ap, (x, 0, 4))
-assert S1 == 8/(3*ap)
-assert s.simplify(S2_inside-(8-4*s.sqrt(2*ap)/3)) == 0
-assert S2_inside.subs(ap, 8) == S2_outside.subs(ap, 8) == s.Rational(8, 3)
-# 2<a<=8 ⇔ 2<u=sqrt(2a)<=4. 목표값과의 차이를 양수인 식으로 정리한다.
-excess = s.simplify((S1+S2_inside-s.Rational(8, 3)).subs(ap, u*u/2))
-certificate = 4*(4-u)/3+16/(3*u*u)
-assert s.simplify(excess-certificate) == 0  # 2<u<=4에서 첫 항>=0, 둘째 항>0
-# a>8에서는 일차방정식으로 귀결되고 유일한 후보 9가 범위를 만족한다.
-S3 = 8-S1-S2_outside
-aa = s.solve(8-3*(S1+S2_outside), ap)
-assert aa == [9] and aa[0] > 8
-actual = [q.subs(ap, 9) for q in [S1, S2_outside, S3]]
-assert actual == [s.Rational(8, 27), s.Rational(64, 27), s.Rational(16, 3)]
-assert sum(actual) == 8 and actual[2] == 2*sum(actual[:2])
-assert (HERE / 'fig_c_14.svg').is_file()
-# ①계수 3을 2로, ②적분을 끝값으로, ③S1 누락, ⑤S1 중복 합산.
-wrong = [s.solve(S3-S1-S2_outside, ap)[0],
-         s.solve(S1+16/ap-s.Rational(8, 3), ap)[0],
-         s.solve(S2_outside-s.Rational(8, 3), ap)[0],
-         s.solve(2*S1+S2_outside-s.Rational(8, 3), ap)[0]]
-assert wrong == [6, 7, 8, 10]
-check(14, aa[0], 4, wrong)
-print('CASES 14: 2<a<=8 excluded by positive excess; a>8 gives unique a=9')
+side = s.integrate(x*x/ap, (x, 0, 3))                                   # a>=3: 변 AB와 만남
+top = s.simplify(s.integrate(x*x/ap, (x, 0, s.sqrt(3*ap))) + 3*(3-s.sqrt(3*ap)))   # 0<a<3: 변 BC와 만남
+assert s.simplify(top-(9-2*s.sqrt(3*ap))) == 0 and side.subs(ap, 3) == top.subs(ap, 3) == 3
+c_side = [r for r in s.solve(side-s.Rational(9, 2), ap)]
+assert c_side == [2] and not (c_side[0] >= 3)                          # 함정: 모순
+c_top = [r for r in s.solve(top-s.Rational(9, 2), ap) if r < 3]
+assert c_top == [s.Rational(27, 16)]
+# 넓이 함수는 a에 대해 감소 → 해 유일 (수치 확인)
+import numpy as _np
+A = lambda v: (9/v if v >= 3 else 9-2*(3*v)**0.5)
+vals = [A(v) for v in _np.linspace(0.05, 20, 4000)]
+assert all(vals[k] >= vals[k+1]-1e-12 for k in range(len(vals)-1))
+it = IT[14]; ch = list(map(s.sympify, it['choices']))
+assert it['author'] == 'claude' and it['ans'] == 4 and ch[3] == 16*c_top[0] == 27
+assert len({ch[k+1]-ch[k] for k in range(4)}) == 1 and len(set(ch)) == 5
+assert 16*c_side[0] == 32 and 32 in ch                                  # ⑤ 함정 값
+assert 16*s.solve(9-3*s.sqrt(3*ap)-s.Rational(9, 2), ap)[0] == 12 and 12 in ch   # ① 오답
+print('14: answer 27 (a=27/16), trap a=2 contradicts a>=3, distractors 32·12 in choices: OK')
 o1 = s.Rational(9, 2)/a
 o2 = 9/a
 o3 = 9-o1-o2
