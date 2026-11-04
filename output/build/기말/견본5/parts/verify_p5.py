@@ -81,7 +81,7 @@ def J16_k(fq, gl, lo, hi):
 rJ, _, _ = J16_k((x - 4)**2, -2*x + k, 7, 16)
 assert len(rJ) == 1 and abs(rJ[0] - 10) < 1e-2
 # J33: -1<=x<1 f=-x^2+ax, f(x)=f(x-2)+4, 연속 → a=2, A(x=-2)+B(x=3) = 38/3 (②)
-aJ = solve(Eq := (-1 + a) - ((-1 - a) + 4), a)[0]
+aJ = solve((-1 + a) - ((-1 - a) + 4), a)[0]
 assert aJ == 2
 PJ = periodic_pieces(-x**2 + aJ*x, 4)
 assert area_abs(PJ, -2, 0) + area_abs(PJ, 0, 3) == Rational(38, 3)
@@ -117,7 +117,6 @@ ans3 = f3s.subs(x, -1)
 w3_min_at1 = 3                                     # x=1을 극소로 봄
 w3_odd = -3                                        # 원점 대칭으로 봄 (상수항 무시)
 S3b = solve([diff(f3, x).subs(x, 1), (a + b + 1) - 3], [a, b], dict=True)[0]   # 상수항 부호 실수
-assert f3.subs(S3b).subs(x, -1) + 0 == -1 - 2 or True
 w3_sign = (a*x**3 + b*x - 1).subs(S3b).subs(x, -1)
 assert w3_sign == -3
 w3_center = f3s.subs(x, 0)                          # 대칭의 중심 (0, -1)
@@ -179,8 +178,6 @@ for drop in [x**3, 3*x**2, 4*x]:
     print(f'ABLATION 1 우변 항 {drop}: 필요(답 바뀜: {desc})')
 print('ABLATION 1 방정식 F(x)=0 (→ f(x)=0): 필요(정해지지 않음: f(x)=3x^2+12x+16=0 은 실근 없음)')
 # 3번: '극값 3' 을 빼면 a 미정, x=1 을 빼면 미정 / 상수항 -1을 0으로 하면 답 바뀜
-for av in [-1, -2, -3]:
-    pass
 fa = a*x**3 - 3*a*x - 1
 print(f'ABLATION 3 극값 3: 필요(정해지지 않음: f=ax^3-3ax-1, 극솟값 {fa.subs(x, -1)} (a<0) 등 a에 따라 달라짐)')
 print('ABLATION 3 x=1: 필요(정해지지 않음: 극값을 갖는 위치가 정해지지 않으면 a, b 미정)')
@@ -200,7 +197,9 @@ vals7 = sorted({area_abs(periodic_pieces(base7.subs(a, av), 12), -1, 3) for av i
 print(f'ABLATION 7 연속: 필요(정해지지 않음: a=5,6,7 에서 넓이 {vals7})')
 assert len(vals7) == 3
 a4 = solve((-3 + a) - (base7.subs(x, -1) + 4), a)[0]
-print(f'ABLATION 7 이동량 12(→ 4): 필요(답 바뀜 {ans7} → {area_abs(periodic_pieces(base7.subs(a, a4), 4), -1, 3)})')
+v74 = area_abs(periodic_pieces(base7.subs(a, a4), 4), -1, 3)
+assert abs(float(v74) - 28) > 1e-6
+print(f'ABLATION 7 이동량 12(→ 4): 필요(답 바뀜 {ans7} → {sp.N(v74, 6)})')
 print(f'ABLATION 7 왼쪽 경계 x=-1(→ x=-2): 필요(답 바뀜 {ans7} → {area_abs(P7, -2, 3)})')
 
 print('정답 위치:', [IT[n]['ans'] for n in sorted(IT)])
