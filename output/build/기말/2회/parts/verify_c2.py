@@ -45,23 +45,23 @@ def original(key, result):
 
 # 9: determine the cubic, then independently check the two shaded areas.
 family = (x-1)*(x-2)*(x+c)
-cs = s.solve(s.diff(family, x).subs(x, 0)+10, c)
-assert cs == [4]
+diff = s.simplify(3*family.subs(x, 3)/2-s.integrate(family, (x, 0, 3)))
+assert diff == s.Rational(27, 4)+3*c/2
+cs = s.solve(diff-s.Rational(51, 4), c)
+assert cs == [4]                                  # B-A가 c의 일차식 → 해 하나
 f = s.expand(family.subs(c, cs[0]))
 line = f.subs(x, 3)*x/3
 intersections = s.solve(f-line, x)
 inside = [v for v in intersections if 0 < v < 3]
 assert len(inside) == 1
 u = inside[0]
-assert s.simplify(u-(-2+2*s.sqrt(15)/3)) == 0
 assert (f-line).subs(x, 0) > 0 and (f-line).subs(x, 1) < 0
 A = s.integrate(f-line, (x, 0, u))
 B = s.integrate(line-f, (x, u, 3))
-assert A > 0 and B > 0
-answer = s.simplify(B-A)
-diff = s.simplify(3*family.subs(x, 3)/2-s.integrate(family, (x, 0, 3)))
-assert diff == s.Rational(27, 4)+3*c/2
-check(9, answer, 3, {r'\dfrac{47}4': diff.subs(c, s.Rational(10, 3))})
+assert A > 0 and B > 0 and s.simplify(B-A-s.Rational(51, 4)) == 0
+answer = f.subs(x, 0)
+assert answer == 8
+check(9, answer, 3, {'4': cs[0]})
 old_c = s.solve(s.diff(family, x).subs(x, 0)+7, c)
 assert old_c == [3]
 original('J58', diff.subs(c, old_c[0]))

@@ -6,7 +6,7 @@
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-11-05T17:10:12.615880</dc:date>
+    <dc:date>2026-11-05T18:24:10.698756</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -39,7 +39,7 @@ z
    </g>
    <g id="FillBetweenPolyCollection_1">
     <defs>
-     <path id="m5d12b9b906" d="M 17.715 -61.5 
+     <path id="mf22804191a" d="M 17.715 -61.5 
 L 17.715 -23.0616 
 L 17.757238 -23.105244 
 L 17.799476 -23.148888 
@@ -644,13 +644,13 @@ L 17.715 -61.5
 z
 "/>
     </defs>
-    <g clip-path="url(#pb2df82c82e)">
-     <use xlink:href="#m5d12b9b906" x="0" y="147.024" style="fill: #dbdbdb"/>
+    <g clip-path="url(#p02e7112c33)">
+     <use xlink:href="#mf22804191a" x="0" y="147.024" style="fill: #dbdbdb"/>
     </g>
    </g>
    <g id="FillBetweenPolyCollection_2">
     <defs>
-     <path id="m3ec0c5bbfb" d="M 30.344159 -36.111188 
+     <path id="m348b6795bf" d="M 30.344159 -36.111188 
 L 30.344159 -36.111188 
 L 30.519647 -35.808201 
 L 30.695135 -35.506954 
@@ -1255,8 +1255,8 @@ L 30.344159 -36.111188
 z
 "/>
     </defs>
-    <g clip-path="url(#pb2df82c82e)">
-     <use xlink:href="#m3ec0c5bbfb" x="0" y="147.024" style="fill: #dbdbdb"/>
+    <g clip-path="url(#p02e7112c33)">
+     <use xlink:href="#m348b6795bf" x="0" y="147.024" style="fill: #dbdbdb"/>
     </g>
    </g>
    <g id="matplotlib.axis_1"/>
@@ -1300,17 +1300,17 @@ L 85.284123 43.491683
 L 87.724965 29.17496 
 L 89.759 16.254313 
 L 89.759 16.254313 
-" clip-path="url(#pb2df82c82e)" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: square"/>
+" clip-path="url(#p02e7112c33)" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: square"/>
    </g>
    <g id="line2d_2">
     <path d="M 17.715 123.9624 
 L 82.815 56.6952 
-" clip-path="url(#pb2df82c82e)" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: square"/>
+" clip-path="url(#p02e7112c33)" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: square"/>
    </g>
    <g id="line2d_3">
     <path d="M 82.815 56.6952 
 L 82.815 123.9624 
-" clip-path="url(#pb2df82c82e)" style="fill: none; stroke-dasharray: 1.85,0.8; stroke-dashoffset: 0; stroke: #000000; stroke-width: 0.5"/>
+" clip-path="url(#p02e7112c33)" style="fill: none; stroke-dasharray: 1.85,0.8; stroke-dashoffset: 0; stroke: #000000; stroke-width: 0.5"/>
    </g>
    <g id="patch_3">
     <path d="M 3.439608 123.9624 
@@ -1761,95 +1761,6 @@ z
     </g>
    </g>
    <g id="text_8">
-    <!--  -->
-    <g transform="translate(31.646159 104.596305) scale(0.1 -0.1)">
-     <defs>
-      <path id="HyhwpEQ-aa" d="M 4650 -50 
-L 4650 -31 
-Q 4650 25 4638 44 
-Q 4625 81 4581 81 
-Q 4538 81 4525 50 
-Q 4519 38 4513 -13 
-L 4513 -31 
-Q 4506 -88 4488 -144 
-Q 4469 -200 4444 -263 
-Q 4369 -400 4225 -488 
-Q 4088 -569 3931 -569 
-Q 3688 -569 3525 -363 
-Q 3425 -231 3313 56 
-Q 3594 188 3838 406 
-Q 4075 619 4250 881 
-Q 4425 1175 4519 1506 
-Q 4613 1831 4613 2181 
-Q 4613 2650 4450 3075 
-Q 4288 3513 3981 3850 
-Q 3681 4175 3306 4350 
-Q 2913 4525 2481 4525 
-Q 2056 4525 1663 4350 
-Q 1281 4175 988 3850 
-Q 675 3519 513 3081 
-Q 356 2656 356 2181 
-Q 356 1719 513 1300 
-Q 675 869 994 538 
-Q 1281 225 1669 50 
-Q 2056 -125 2494 -125 
-Q 2638 -125 2794 -100 
-Q 2956 -75 3100 -31 
-L 3113 -125 
-Q 3150 -375 3181 -500 
-Q 3225 -706 3300 -856 
-Q 3388 -1038 3525 -1131 
-Q 3669 -1231 3875 -1231 
-Q 4100 -1231 4263 -1100 
-Q 4406 -981 4513 -763 
-Q 4563 -625 4606 -444 
-Q 4650 -231 4650 -50 
-z
-M 3975 2181 
-Q 3975 1931 3944 1706 
-Q 3913 1456 3850 1231 
-Q 3763 938 3613 706 
-Q 3450 456 3219 281 
-Q 3156 431 3100 538 
-Q 3031 663 2944 756 
-Q 2844 863 2738 913 
-Q 2625 963 2494 963 
-Q 2269 963 2119 806 
-Q 1969 650 1969 425 
-Q 1969 331 1981 269 
-Q 2000 225 2044 131 
-L 2056 113 
-Q 1863 188 1688 338 
-Q 1525 475 1400 650 
-Q 1175 963 1075 1388 
-Q 994 1744 994 2181 
-Q 994 2688 1106 3094 
-Q 1238 3575 1519 3894 
-Q 1700 4119 1950 4238 
-Q 2200 4363 2481 4363 
-Q 2750 4363 3019 4231 
-Q 3269 4106 3463 3888 
-Q 3738 3569 3863 3088 
-Q 3975 2681 3975 2181 
-z
-M 3050 181 
-Q 2925 113 2781 75 
-Q 2644 38 2494 38 
-Q 2325 38 2219 150 
-Q 2113 256 2113 425 
-Q 2113 594 2219 706 
-Q 2325 819 2494 819 
-Q 2619 819 2719 775 
-Q 2813 731 2881 631 
-Q 2938 544 2981 438 
-Q 3025 325 3050 181 
-z
-" transform="scale(0.015625)"/>
-     </defs>
-     <use xlink:href="#HyhwpEQ-aa"/>
-    </g>
-   </g>
-   <g id="text_9">
     <!--  -->
     <g transform="translate(52.853125 26.079569) scale(0.1 -0.1)">
      <defs>
@@ -1994,7 +1905,7 @@ z
   </g>
  </g>
  <defs>
-  <clipPath id="pb2df82c82e">
+  <clipPath id="p02e7112c33">
    <rect x="1.44" y="1.44" width="97.65" height="144.144"/>
   </clipPath>
  </defs>
