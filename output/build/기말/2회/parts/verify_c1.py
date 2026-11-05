@@ -72,33 +72,48 @@ fo = a*x**3+b*x+a
 so = s.solve([s.diff(fo, x).subs(x, 1), fo.subs(x, 1)+2], [a, b])
 original('D17', fo.subs(so).subs(x, -1))
 
-# 3: pair x and -x. This algebra holds for arbitrary f, not just sampled
-# polynomial degrees. The remaining integral is 2*given + int(2-2x).
-y = s.symbols('y')
-pair = s.expand((x+1)*y+(1-x)*(2-y))
-assert pair == 2*x*y-2*x+2
-answer = 2+s.integrate(2-2*x, (x, 0, 1))
-# A witness checks that the conditions are consistent.
-fw = 1+s.Rational(3, 2)*x
-assert s.expand(fw+fw.subs(x, -x)) == 2
-assert s.integrate(x*fw, (x, 0, 1)) == 1
-check(3, answer, 1, {'4': 2*1+2})
-assert s.expand((x+2)**2*y+(-x+2)**2*(-y)) == 8*x*y
-original('I29', 8*s.Integer(3))
+# 3: f(-x)=-f(x)+2 means h=f-1 is odd. Take a general odd polynomial h of
+# degree up to 11 with symbolic coefficients: the value never depends on h.
+cs = s.symbols('c0:6')
+h = sum(cv*x**(2*i+1) for i, cv in enumerate(cs))
+f3 = 1+h
+assert s.expand(f3.subs(x, -x)-(-f3+2)) == 0
+val3 = s.expand(s.integrate((3*x**2+1)*f3, (x, -1, 1)))
+assert val3 == 4 and not val3.free_symbols   # unique for every such f
+# Conversely f(-x)=-f(x)+2 forces the even part of f-1 to vanish, so h covers all f.
+check(3, val3, 1, {'8': s.integrate(2*(3*x**2+1), (x, -1, 1))})   # mistake: f-2 taken as odd
+# ablation 3
+for fa, why in ((x**2, '우함수 x²'), (x, '기함수 x(상수 2 → 0)')):
+    va = s.integrate((3*x**2+1)*fa, (x, -1, 1))
+    assert va != val3
+    print(f'ABLATION 3 f(-x)=-f(x)+2: 필요({why}이면 값 {va})')
+fo = sum(cv*x**(2*i+1) for i, cv in enumerate(cs))
+oc = s.solve(s.integrate(x*fo, (x, 0, 1))-3, cs[0])[0]
+original('I29', s.expand(s.integrate((x+2)**2*fo, (x, -1, 1)).subs(cs[0], oc)))
 
-# 5: k>2 fixes the order of all zeros, hence the two integrals have
-# opposite signs. The integral equation has precisely one admissible root.
-f = (x+1)*(x-2)*(x-k)**2
-area_difference = s.factor(s.integrate(f, (x, -1, k)))
-assert area_difference == (k+1)**4*(2*k-13)/60
-roots = s.solve(area_difference, k)
-admissible = [v for v in roots if v > 2]
-assert admissible == [s.Rational(13, 2)]
-fv = f.subs(k, admissible[0])
-A = -s.integrate(fv, (x, -1, 2))
-B = s.integrate(fv, (x, 2, admissible[0]))
+# 5: k>2 gives 0<k-2<k with the double root 0 at the left end; the curve is
+# positive on (0,k-2) and negative on (k-2,k), so equal areas <=> int_0^k = 0.
+f = x**2*(x-k)*(x-k+2)
+area_difference = s.factor(s.integrate(f, (x, 0, k)))
+assert area_difference == k**4*(k-5)/30
+admissible = [v for v in s.solve(area_difference, k) if v > 2]
+assert admissible == [5]
+fv = f.subs(k, 5)
+assert fv.subs(x, 1) > 0 > fv.subs(x, 4)
+A = s.integrate(fv, (x, 0, 3))
+B = -s.integrate(fv, (x, 3, 5))
 assert A == B and A > 0
-check(5, admissible[0], 5, {'5': s.solve(s.Eq((-1+k)/2, 2), k)[0]})
+check(5, admissible[0], 5, {'4': s.solve(s.Eq(k-2, k/2), k)[0]})   # cubic midpoint rule
+
+
+# ablation 5: without k>2 other k work, so the 단서 is needed.
+# 0<k<2: zeros k-2<0<k, double root 0 in the middle, both parts below the axis.
+P1 = -s.integrate(f, (x, k-2, 0)); P2 = -s.integrate(f, (x, 0, k))
+mid = [v for v in s.solve(s.expand(P1-P2), k) if v.is_real and 0 < v < 2]
+# k<0: zeros k-2<k<0, double root 0 at the right end.
+right = [v for v in s.solve(s.factor(s.integrate(f, (x, k-2, 0))), k) if v.is_real and v < 0]
+assert mid == [1] and right == [-3]
+print(f'ABLATION 5 (단, k>2): 필요(없으면 k=1, -3도 두 넓이가 같음)')
 fo = x**2*(x-2)*(x-k)
 original_roots = [v for v in s.solve(s.integrate(fo, (x, 0, k)), k) if v > 2]
 assert len(original_roots) == 1
