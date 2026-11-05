@@ -175,7 +175,7 @@ k14 = ks[0]
 cr14 = sorted(r for r in sp.Poly(f14 - k14, x).real_roots() if 0 < r < 2)
 A14 = sp.Integral(sp.Max(k14 - f14, 0), (x, 0, 2)).evalf(30); B14 = sp.Integral(sp.Max(f14 - k14, 0), (x, 0, 2)).evalf(30)
 check(14, len(cr14) == 2 and f14.subs(x, 0) < k14 and f14.subs(x, 2) < k14 and abs(A14 - B14) < 1e-20 and B14 > 0,
-      f'k=3: 0<x<2에서 교점 {[round(float(r), 3) for r in cr14]} → 어두운 부분 두 조각(y축 쪽, x=2 쪽)·빗금 한 조각(그림 모양), A={float(A14):.4f}=B')
+      f'k=3: 0<x<2에서 교점 {[round(float(r), 3) for r in cr14]} → A(y축 쪽)+C(x=2 쪽)=B(가운데), A+C={float(A14):.4f}=B')
 check(14, sp.diff(f14, x, 2).subs(x, 2) == 0 and f14.subs(x, 2) == 2 and f14.subs(x, 1) == 4 and sp.diff(f14, x).subs(x, 1) == 0, '변곡점 (2, 2), 극대 (1, 4)')
 ans_ok(14, k14)
 wrong_in(14, [f14.subs(x, 2), f14.subs(x, 1), (f14.subs(x, 0) + f14.subs(x, 2))/2], '변곡점 성질 오용 f(2)=2, 가운데 함숫값 f(1)=4, 양 끝 평균 1')
