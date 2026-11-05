@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """미적분Ⅰ 서답형 답안지: 학교 실제 서답형 답안지(통합사회2, 2026 2학기 중간) 양식을 그대로 옮김. 좌표(pt)는 원본 스캔 실측.
-사용: python3 answer_sheet.py <출력 PDF> <나눔고딕 폴더> [제목 과목] [고사] [학년]"""
+사용: python3 answer_sheet.py <출력 PDF> <Noto Sans KR 폴더(NotoSansKR-400.ttf, -600.ttf; 원본 맑은 고딕과 폭·굵기 실측 비교로 선택)> [제목 과목] [고사] [학년]"""
 import sys, os, subprocess
 OUT, FD = sys.argv[1], sys.argv[2]
 SUBJ = sys.argv[3] if len(sys.argv) > 3 else '미적분Ⅰ'
@@ -12,8 +12,8 @@ ROWS = [('1', [('(1)', 178, '4'), ('(2)', 196, '6')], '10'),
 X = dict(L=54.5, N=91.5, B1=407.3, B2=433.9, C1=460.7, C2=500.4, R=540.5)
 TOP, HDR = 214.8, 45.5
 f = lambda n: 'file://' + os.path.join(FD, n)
-css = f"""@font-face{{font-family:'NG';src:url('{f('NanumGothic-Regular.ttf')}')}}
-@font-face{{font-family:'NG';src:url('{f('NanumGothic-Bold.ttf')}');font-weight:700}}
+css = f"""@font-face{{font-family:'NG';src:url('{f('NotoSansKR-400.ttf')}')}}
+@font-face{{font-family:'NG';src:url('{f('NotoSansKR-600.ttf')}');font-weight:700}}
 @page{{size:595pt 841pt;margin:0}}body{{margin:0}}
 .pg{{position:relative;width:595pt;height:841pt;font-family:'NG';color:#111}}
 .a{{position:absolute}}.c{{display:flex;align-items:center;justify-content:center}}
@@ -32,7 +32,7 @@ for x in (106, 141, 272, 307, 440, 476): h.append(f'<div class="hole" style="lef
 for x in (119, 152, 438, 471): h.append(f'<div class="hole" style="left:{x}pt;top:175pt"></div>')
 h.append('<div class="a" style="left:55pt;top:190pt;width:486pt;border-top:.7pt dotted #444"></div>')
 # 제목·인적 사항
-box(0, 82, 595, 112, f'{SUBJ}과&nbsp;&nbsp;서답형&nbsp;&nbsp;답안지', size=17)
+box(0, 82, 595, 112, f'{SUBJ.replace("Ⅰ", "<span style=\"margin:0 -2.5pt 0 -1.5pt\">Ⅰ</span>")}과&nbsp;&nbsp;서답형&nbsp;&nbsp;답안지', size=17)
 h.append('<div class="a" style="left:55.5pt;top:140pt;width:470pt;height:29pt;border:1.3pt solid #222;box-sizing:border-box"></div>')
 box(55.5, 140, 525, 169, f'2026년도&nbsp;&nbsp;&nbsp;2학기&nbsp;&nbsp;&nbsp;{EXAM}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{GRADE}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;반&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;번&nbsp;&nbsp;&nbsp;이름:', size=10.5, align='left', pad=11)
 # 표 머리
