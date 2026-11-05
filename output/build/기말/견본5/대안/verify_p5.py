@@ -88,22 +88,24 @@ assert area_abs(PJ, -2, 0) + area_abs(PJ, 0, 3) == Rational(38, 3)
 print('원문 풀이 OK (I3=2, D17=6, J16=10, J33=38/3)')
 
 # ===== 1번 =====
-P1 = x**3 - 4*x**2 + 3*x
-f1 = solve_identity(P1)                      # 차수 5 이하 전수에서 f가 유일 (존재 확인)
-assert f1 == 3*x**2 - 2*x + 1
-F1 = expand(f1 + P1)
-assert expand(diff(F1, x) - f1) == 0 and expand(F1 - f1 - P1) == 0
-# 답은 f를 구하지 않아도 정해짐: F'=f 로 미분하면 f - f' = P' (어떤 해 f에 대해서도)
-assert expand(f1 - diff(f1, x) - diff(P1, x)) == 0
-ans1 = (f1 - diff(f1, x)).subs(x, 1)
-assert ans1 == diff(P1, x).subs(x, 1) == -2
-w1_nodiff = P1.subs(x, 1)                                    # 미분하지 않고 F(1)-f(1) → 0
-w1_dropf = (diff(P1, x) - diff(P1, x, 2)).subs(x, 1)         # f의 도함수를 빠뜨려 f=P' → 0
-w1_sign = -ans1                                              # f'-f 로 부호 반대 → 2
-w1_fonly = f1.subs(x, 1)                                     # f(1)만 → 2
-w1_fponly = diff(f1, x).subs(x, 1)                           # f'(1)만 → 4
-assert (w1_nodiff, w1_dropf, w1_sign, w1_fonly, w1_fponly) == (0, 0, 2, 2, 4)
-chk(1, ans1, wrongs=(w1_nodiff, w1_sign, w1_fponly))
+assert 'fig_b5_1.svg' in IT[1]['body'] and os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'parts', 'fig_b5_1.svg'))
+assert '(0,\\ 5)' in IT[1]['body'] and '(5,\\ 0)' in IT[1]['body']        # 그림의 좌표를 본문에도 씀
+m1, b1, C = symbols('m1 b1 C')
+L1 = m1*x + b1
+S1 = solve([L1.subs(x, 0) - 5, L1.subs(x, 5)], [m1, b1], dict=True)
+assert len(S1) == 1
+f1 = L1.subs(S1[0]); assert f1 == 5 - x
+F1 = integrate(f1, x) + C                      # 한 부정적분 (적분상수 C는 무엇이든)
+assert expand(diff(F1, x) - f1) == 0
+g1 = F1 - f1
+ans1 = diff(g1, x).subs(x, 2)
+assert ans1 == 4 and not ans1.has(C)          # 적분상수와 무관
+w1_drop = f1.subs(x, 2)                                       # -f의 도함수 누락 → 3
+w1_sign = (f1 + diff(f1, x)).subs(x, 2)                       # g'=f+f' → 2
+w1_slope = f1.subs(x, 2) - 1                                  # 기울기를 1로 읽음 → 2
+w1_rev = (diff(f1, x, 2) - diff(f1, x)).subs(x, 2)            # F=f' 로 거꾸로 → 1
+assert (w1_drop, w1_sign, w1_slope, w1_rev) == (3, 2, 2, 1)
+chk(1, ans1, wrongs=(w1_drop, w1_sign, w1_rev))
 
 # ===== 3번 =====
 f3 = a*x**3 + b*x - 1
@@ -170,15 +172,21 @@ chk(7, ans7, wrongs=(w7_a0, w7_signed, w7_noshift))
 
 # ===== 조건 빼 보기 =====
 print('--- 조건 빼 보기 ---')
-# 1번: 우변 다항식에서 항 하나씩 빼면 답이 바뀜 / 'F는 f의 부정적분'을 빼면 정해지지 않음
-for drop in [x**3, -4*x**2, 3*x]:
-    Pd = P1 - drop
-    vd = diff(Pd, x).subs(x, 1)
-    assert vd != ans1
-    print(f'ABLATION 1 우변 항 {drop}: 필요(답 바뀜 {ans1} → {vd})')
-vals1 = sorted({(g - diff(g, x)).subs(x, 1) for g in [x, x**2, x**3]})   # F=f+P 는 어떤 f로도 성립
-assert len(vals1) == 3
-print(f"ABLATION 1 F는 f의 부정적분: 필요(정해지지 않음: F'=f가 없으면 F=f+P는 어떤 f로도 성립, f=x, x^2, x^3에서 {vals1})")
+# 1번: 두 점 중 하나를 빼면 기울기 미정 / '일차함수'를 빼면 미정 / 'F는 f의 부정적분'을 빼면 미정
+mm = symbols('mm')
+va = sorted({(lambda q: (q - diff(q, x)).subs(x, 2))(mm*(x - 5)).subs(mm, v) for v in [-1, -2, 1]})
+vb = sorted({(lambda q: (q - diff(q, x)).subs(x, 2))(mm*x + 5).subs(mm, v) for v in [-1, -2, 1]})
+assert len(va) == 3 and len(vb) == 3
+print(f'ABLATION 1 점 (0, 5): 필요(정해지지 않음: f=m(x-5), m=-1,-2,1에서 {va})')
+print(f'ABLATION 1 점 (5, 0): 필요(정해지지 않음: f=mx+5, m=-1,-2,1에서 {vb})')
+cc = symbols('cc')
+fq = 5 - x + cc*x*(x - 5)                          # 두 점을 지나는 이차 이상 다항식
+vq = sorted({(fq - diff(fq, x)).subs(x, 2).subs(cc, v) for v in [0, 1, -1]})
+assert len(vq) == 3
+print(f'ABLATION 1 일차함수: 필요(정해지지 않음: f=5-x+cx(x-5), c=0,1,-1에서 {vq})')
+vG = sorted({(diff(G, x) - diff(f1, x)).subs(x, 2) for G in [x**2, x**3, x]})
+assert len(vG) == 3
+print(f"ABLATION 1 F는 f의 부정적분: 필요(정해지지 않음: F'=f가 없으면 F=x^2, x^3, x에서 {vG})")
 # 3번: '극값 3' 을 빼면 a 미정, x=1 을 빼면 미정 / 상수항 -1을 0으로 하면 답 바뀜
 fa = a*x**3 - 3*a*x - 1
 print(f'ABLATION 3 극값 3: 필요(정해지지 않음: f=ax^3-3ax-1, 극솟값 {fa.subs(x, -1)} (a<0) 등 a에 따라 달라짐)')
