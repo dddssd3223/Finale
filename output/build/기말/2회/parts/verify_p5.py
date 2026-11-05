@@ -135,7 +135,7 @@ assert answers(-6) == (SOL1, -8, -6)
 # 1) '원점에서의 접선' 제거(→ 원점을 지나는 직선 y=ax, a 미정): a 마다 답이 다름
 alt = {av: answers(av) for av in [R(-15), R(-10), R(-4)]}
 assert all(v != answers(-6) for v in alt.values())
-out.append(ablation("'곡선 위의 원점에서의 접선'(→ 원점을 지나는 직선)", ('정해지지 않음: a 마다 다름 ' + str({str(k_): str(v[0]) for k_, v in alt.items()}), '없음', '없음'), why='a=-15 이면 x<0 에서 갈리고 세 실근 없음'))
+out.append(ablation("'곡선 위의 점 (0, 0)에서의 접선'(→ 원점을 지나는 직선)", ('정해지지 않음: a 마다 다름 ' + str({str(k_): str(v[0]) for k_, v in alt.items()}), '없음', '없음'), why='a=-15 이면 x<0 에서 갈리고 세 실근 없음'))
 # 2) 우변의 -24x 를 원문처럼 수평선만(k)으로
 P6k = {kv: cnt(f, -6 * x, kv) for kv in [R(i, 2) for i in range(-40, 300)]}
 assert max(P6k.values()) == 4 and sorted(kv for kv, c in P6k.items() if c == 2) != [-8, 0]
