@@ -139,40 +139,32 @@ vals = [(A_ * (x - 1)**3 + B_).subs(x, 2).subs({A_: av, B_: 6 * av}) for av in [
 ablation(10, 'f(0)=5', vals, 7)
 
 # ================= 12번 =================
-f12 = x**3 - 4 * x**2 - k * x
-eq1 = sp.expand((f12.subs(x, p + 2) - f12.subs(x, p)) / 2)
-ks = sp.solve(eq1, k)
-fp_ = sp.expand(f12.subs(x, p).subs(k, ks[0]))
-ps = [r for r in sp.solve(fp_ + 16, p) if r.is_real]
-check(12, ps == [2] and ks[0].subs(p, 2) == 4, f'f(p)=f(p+2) → k={ks[0]}, f(p)=-16 → 실근 p={ps}, k=4')
-fk = f12.subs(k, 4)
-grid = [sp.Rational(i, 40) for i in range(0, 121)]
-g12 = [gfun(fk, tv, 2) for tv in grid]
-mn, mx = min(g12), max(g12)
-check(12, mn == -16 and mx == 5 and gfun(fk, 2, 2) == -16 and gfun(fk, 0, 2) == 0 and gfun(fk, 3, 2) == 5, f'k=4: g 최솟값 {mn} (t=2), 최댓값 {mx} (t=3), g(0)=0')
-# 유일성: k 격자 전수 (f는 x>0에서 k가 커질수록 작아지므로 g의 최솟값은 k에 대해 감소)
+f12 = x**3 - 5 * x**2 - x
+check(12, sp.factor(f12 + 5) == (x - 5) * (x - 1) * (x + 1), f'f(x)+5 = {sp.factor(f12 + 5)}')
+crit = [r for r in sp.solve(sp.diff(f12, x), x)]
+check(12, sorted(float(r) for r in crit)[0] < 0, f"f'=0의 근 {crit}: 작은 근 음수 → x≥0에서 감소 후 증가")
+L = sp.symbols('L', positive=True)
+check(12, sp.expand(f12.subs(x, t + 4) - f12.subs(x, t) - 4 * (t - 1) * (3 * t + 5)) == 0, "a=4: f(t+4)-f(t)=4(t-1)(3t+5) → t=1에서 교차")
+g12 = [gfun(f12, sp.Rational(i, 40), 4) for i in range(0, 81)]
+check(12, min(g12) == -5 and gfun(f12, 1, 4) == -5, f'a=4: g 최솟값 {min(g12)} (t=1)')
+# 유일성: a 격자 전수 (교차점 t 포함)
 hit = []
-for kv in [sp.Rational(i, 4) for i in range(-80, 161)]:
-    fv = f12.subs(k, kv)
-    ts = [sp.Rational(i, 10) for i in range(0, 31)] + [r for r in sp.solve(fv.subs(x, t + 2) - fv.subs(x, t), t) if r.is_real and 0 <= r <= 3]
-    gm = min((gfun(fv, tv, 2) for tv in ts), key=lambda z: float(z))
-    if abs(float(gm) + 16) < 1e-9:
-        hit.append(kv)
-check(12, hit == [4], f'k∈[-20,40] (0.25 간격) 전수: g 최솟값이 -16 근처인 k = {hit}')
-ans12 = mx - mn
+for av in [sp.Rational(i, 8) for i in range(1, 81)]:
+    ts = [sp.Rational(i, 10) for i in range(0, 21)] + [r for r in sp.solve(f12.subs(x, t + av) - f12.subs(x, t), t) if r.is_real and 0 <= r <= 2]
+    gm = min((gfun(f12, tv, av) for tv in ts), key=lambda z: float(z))
+    if abs(float(gm) + 5) < 1e-9:
+        hit.append(av)
+check(12, hit == [4], f'a∈(0,10] (1/8 간격) 전수: g 최솟값이 -5인 a = {hit}')
+ans12 = sp.Integer(5 - 1)
 ans_ok(12, ans12)
-wrong_in(12, [gfun(fk, 0, 2) - mn], '최댓값을 g(0)으로 봄')
+wrong_in(12, [1 - (-1)], 'f(x)=-5의 근 -1, 1을 끝점으로 잡음')
 print('--- 12번 조건 빼 보기 ---')
 vals = []
-for kv in [0, 2, 4, 6]:
-    fv = f12.subs(k, kv); gg = [gfun(fv, sp.Rational(i, 10), 2) for i in range(0, 31)]
-    vals.append(sp.nsimplify(max(gg) - min(gg)))
-ablation(12, "'g(t)의 최솟값이 -16'", vals, 21)
-vals = []
-for T in [2, 3, 4]:   # t 범위 0<=t<=T
-    gg = [gfun(fk, sp.Rational(i, 10), 2) for i in range(0, 10 * T + 1)]
-    vals.append(max(gg) - min(gg))
-ablation(12, "'0<=t<=3' (범위를 바꾸면)", vals, 21)
+for m in [-14, -10, -5]:   # 최솟값을 바꾸면 a가 바뀜
+    rs = sorted([r for r in sp.solve(f12 - m, x) if r.is_real and r >= 0], key=float)
+    vals.append(sp.nsimplify(rs[-1] - rs[0]) if len(rs) >= 2 else None)
+ablation(12, "'g(t)의 최솟값이 -5'", [v_ for v_ in vals if v_ is not None], 4)
+ablation(12, "'0<=t<=2'", [], 4, undef='t의 범위가 없으면 g(t)는 아래로 무한히 작아져 최솟값이 없음')
 
 # ================= 14번 =================
 pp = sp.symbols('pp', positive=True); kk = sp.symbols('kk', positive=True)
