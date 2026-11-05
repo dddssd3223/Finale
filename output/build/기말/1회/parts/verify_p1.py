@@ -102,15 +102,9 @@ assert fp3.is_polynomial(x) and expand(fp3 - (12*x**2 - 6*x)) == 0
 f3 = integrate(fp3, x) + C
 F3 = expand(x * f3 + P3)
 assert expand(diff(F3, x) - f3) == 0                       # F'=f 확인 (어떤 C에서도)
-Cs = solve(F3.subs(x, 1) - 1, C)
-assert len(Cs) == 1 and Cs[0] == 1                         # 적분상수 유일
-v3 = f3.subs(C, Cs[0]).subs(x, 2)
-assert v3 == 21
-fw = integrate(12*x**2 - 6, x) + C                         # x로 잘못 나눔: f'=12x^2-6
-Cw = solve((x*fw + P3).subs(x, 1) - 1, C)[0]
-w3 = fw.subs(C, Cw).subs(x, 2)
-assert w3 == 24
-chk(3, v3, wrongs=(w3,))
+v3 = sp.expand(f3.subs(x, 2) - f3.subs(x, 0))
+assert v3 == 20 and not v3.has(C)
+chk(3, v3, wrongs=(f3.subs(C, 1).subs(x, 2),))
 
 # ===== 5번 =====
 # 답이 f에 무관함: ∫f=1/2인 서로 다른 연속함수 여러 개로 확인
@@ -151,13 +145,12 @@ print(f'ABLATION 1 둘째 정적분의 위끝·아래끝 교환(∫_2^1): 필요
 v1_noC = p1[0] + p1[1]
 print(f'ABLATION 1 셋째 정적분: 필요(빼면 답 바뀜 {v1} → {v1_noC})')
 f3free = f3.subs(x, 1) + P3.subs(x, 1)
-print(f'ABLATION 3 F(1)=1: 필요(정해지지 않음: f(2)=20+C, C는 임의)')
+print('ABLATION 3 주어진 관계식: 필요(없으면 f는 임의의 다항함수)')
 assert f3free.has(C)
 # 3번: 우변 2x^3 항을 빼면(원문형 -3x^4만) 답 바뀜
-P3b = -3*x**4; f3b = integrate(sp.cancel(-diff(P3b, x) / x), x) + C; F3b = expand(x * f3b + P3b)
-Cb = solve(F3b.subs(x, 2) - 10, C)[0]
-print(f'ABLATION 3 2x^3 항: 필요(답 바뀜 {v3} → {F3b.subs(C, Cb).subs(x, 1)})')
-assert F3b.subs(C, Cb).subs(x, 1) != v3
+P3b = -3*x**4; _g = integrate(sp.cancel(-diff(P3b, x) / x), x); v3b = _g.subs(x, 2) - _g.subs(x, 0)
+print(f'ABLATION 3 2x^3 항: 필요(답 바뀜 {v3} → {v3b})')
+assert v3b != v3
 # 5번: ∫f=1/2 조건을 빼면 답이 f에 따라 달라짐
 vals5b = {g5_int(f, -1, 4) for f in (x, 2*x, x**2)}
 print(f'ABLATION 5 ∫f=1/2: 필요(정해지지 않음: f에 따라 {sorted(vals5b)})')
