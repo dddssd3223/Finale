@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """부품 파일 하나 검사: 중복(dupcheck items) · 말투(stylecheck) · 형식(선지 등차, 상자 위치)
 17·18·서답형2는 지침 0-4 관문도 본다: 흔한 패턴(patterns.py) · 독립 검토 기록(<회차>/review/<번호>.json의 핵심 한 줄·d_step).
+학교 선례(0-8: 변형 기록·회차 유형·원문 거리·선지)도 본다.
 관문 순서: 1 중복·정답·빼 보기 → 2 흔한 패턴 → 3 독립 검토(핵심 한 줄 불통·d_step 0.75 이상) → 4 블라인드 측정 → 5 형식·말투.
 3을 통과하기 전에는 측정하지 않는다.
 사용: python3 checkpart.py parts/p3.py   (후보 폴더 파일도 됨)"""
@@ -10,7 +11,10 @@ HERE = os.path.dirname(os.path.abspath(__file__)); G = os.path.join(HERE, '..', 
 sys.path.insert(0, '/home/user/Finale/template/db/parts')
 from items_common import COND, BOGI
 p = os.path.abspath(sys.argv[1])
-print('== 중복'); r1 = subprocess.run([sys.executable, os.path.join(G, 'dupcheck.py'), 'items', p]).returncode
+_rj = os.path.join(os.path.dirname(os.path.dirname(p)), 'round.json')
+RT = __import__('json').load(open(_rj)).get('type', '학교형') if os.path.exists(_rj) else '학교형'
+os.environ['DUP_ROUND_TYPE'] = RT
+print(f'== 중복 ({RT})'); r1 = subprocess.run([sys.executable, os.path.join(G, 'dupcheck.py'), 'items', p]).returncode
 ns = {}; exec(open(p).read(), ns)
 IT, SI = ns.get('ITEMS', {}), ns.get('SITEMS', {})
 def body(it):
@@ -58,4 +62,5 @@ if big:
         if R.get('verdict') != '통과': ok.append(f"검토 판정 {R.get('verdict')}")
         print(f"{n}: 관문 3 {'통과' if not ok else '미통과: ' + ' / '.join(ok)} (검토 {R.get('reviewer', '?')}, 축 {ax}, d_step {R.get('d_step')})")
         gate |= bool(ok)
-sys.exit(1 if r1 or bad or gate else 0)
+r_s = subprocess.run([sys.executable, os.path.join(G, 'schoolcheck.py'), 'item', p]).returncode   # 학교 선례(0-8)
+sys.exit(1 if r1 or bad or gate or r_s else 0)

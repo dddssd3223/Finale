@@ -86,12 +86,32 @@ def score(text, D, top=3):
 
 HIGH = {17, 18, 'S2', '17', '18'}   # 구조 변경 필수 자리: 익스텐션·분석집 모두 골격 0.60 미만이어야 함
 
-def verdict(ck, cr, same, no=None):
-    if cr >= 0.95 or (ck >= 0.85 and same): return '금지(동일 문항)'
+def verdict(ck, cr, same, no=None, src='EXT'):
+    """회차 유형(DUP_ROUND_TYPE=학교형|복습형, checkpart가 <회차>/round.json에서 넣음)
+    - 익스텐션(라이브 = 전국 학교 기출 포함): 학교 스타일이면 그대로 써도 됨 → 1–16·서답형1은 허용(출처만 기록)
+    - 분석집: 같은 문항은 금지. 학교형 회차는 분석집 문항과 구조가 닮은 것(골격 0.60 이상)도 금지(분석집 저격 없음)
+    - 17·18·서답형2: 어느 자료든 골격 0.60 미만(구조 변경)"""
+    rt = os.environ.get('DUP_ROUND_TYPE', '학교형')
     if no in HIGH and ck >= 0.60: return '금지(구조 변경 미달)'
+    same_item = cr >= 0.95 or (ck >= 0.85 and same)
+    if src == 'STUDY':
+        if same_item: return '금지(분석집 동일 문항)'
+        if rt == '학교형' and ck >= 0.60: return '금지(학교형: 분석집과 유사)'
+        if ck >= 0.85: return '허용(분석집 숫자만 다름, 복습형)'
+        if ck >= 0.60: return '주의(분석집 구조 유사, 복습형)'
+        return '통과'
+    if same_item: return '허용(익스텐션 그대로)'
     if ck >= 0.85: return '허용(숫자만 다름)'
     if ck >= 0.60: return '주의(구조 유사)'
     return '통과'
+
+def best(text, D):
+    """가장 가까운 익스텐션 1개와 분석집 1개를 따로 판정해 더 나쁜 쪽을 돌려준다"""
+    res = score(text, D, 400)
+    pick = {}
+    for r in res:
+        pick.setdefault(r[2].get('src'), r)
+    return list(pick.values())
 
 def check(paths):
     D = load(); bad = 0
@@ -106,8 +126,8 @@ def check(paths):
             body = v[0] if isinstance(v, (tuple, list)) else str(v)
             ch = v[1] if isinstance(v, (tuple, list)) and isinstance(v[1], list) and v[1] and isinstance(v[1][0], str) else []
             text = body + ''.join('|' + c for c in ch)
-            ck, cr, d, same = score(text, D, 1)[0]
-            vd = verdict(ck, cr, same, no)
+            rk = sorted(((verdict(ck, cr, same, no, d.get('src')), ck, cr, d) for ck, cr, d, same in best(text, D)), key=lambda z: (not z[0].startswith('금지'), -z[1]))
+            vd, ck, cr, d = rk[0]
             if vd.startswith('금지'): bad += 1
             tag = '분석집' if d.get('src') == 'STUDY' else '익스텐션'
             print(f'{os.path.basename(os.path.dirname(os.path.abspath(p)))} {no:>3}: {vd:12s} 골격 {ck:.2f} 원문 {cr:.2f}  ← [{tag}] {d["id"]} {d["hdr"]}')
@@ -120,7 +140,8 @@ def check_items(path):
     for no, it in list(ns.get('ITEMS', {}).items()) + list(ns.get('SITEMS', {}).items()):
         extra = ''.join(v for _, v in (it.get('cond') or [])) + ''.join(v for _, v in (it.get('bogi') or [])) + (it.get('after') or '')
         text = it['body'] + extra + ''.join(q[0] if isinstance(q, (list, tuple)) else str(q) for q in it.get('subs', [])) + ''.join('|' + str(c) for c in (it.get('choices') or []))
-        ck, cr, d, same = score(text, D, 1)[0]; vd = verdict(ck, cr, same, no)
+        rk = sorted(((verdict(ck, cr, same, no, d.get('src')), ck, cr, d) for ck, cr, d, same in best(text, D)), key=lambda z: (not z[0].startswith('금지'), -z[1]))
+        vd, ck, cr, d = rk[0]
         bad += vd.startswith('금지')
         tag = '분석집' if d.get('src') == 'STUDY' else '익스텐션'
         print(f'{no}: {vd} 골격 {ck:.2f} 원문 {cr:.2f} ← [{tag}] {d["id"]} {d["hdr"]}')
