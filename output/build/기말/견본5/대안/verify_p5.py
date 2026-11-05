@@ -10,7 +10,7 @@ ns = {}; exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'p5.
 IT = ns['ITEMS']
 WANT = {1: 4, 3: 5, 5: 3, 7: 1}
 assert sorted(IT) == [1, 3, 5, 7] and all(IT[n]['author'] == 'claude' for n in IT)
-assert [IT[n]['key'] for n in (1, 3, 5, 7)] == ['I3', 'D17', 'J16', 'J33']
+assert [IT[n]['key'] for n in (1, 3, 5, 7)] == ['I24', 'D17', 'J16', 'J33']
 
 def arith(no):
     v = [nsimplify(c) for c in IT[no]['choices']]
@@ -57,11 +57,14 @@ def periodic_pieces(base, shift, nmin=-4, nmax=4, add=True):
     return [(2*n - 1, 2*n + 1, expand(base.subs(x, x - 2*n) + (n * shift if add else 0))) for n in range(nmin, nmax + 1)]
 
 # ===== 원문 풀이 =====
-# I3: F = f + 2x^3 - 7x^2, f(x)=5x^2 의 실근의 합 2 (①)
-fI3 = solve_identity(2*x**3 - 7*x**2)
-assert fI3 == 6*x**2 - 2*x - 2
-rI3 = solve(fI3 - 5*x**2, x)
-assert len(rI3) == 2 and all(r.is_real for r in rI3) and sp.simplify(sum(rI3)) == 2
+# I24: 최고차항의 계수가 양수인 삼차함수, f'(1)=f'(2)=0, ∫0^3|f'| = f(3)-f(0)+4 → f(2)-f(1) = -2 (①)
+cI, dI = symbols('cI dI', real=True)
+fpI = cI*(x - 1)*(x - 2)                      # cI > 0
+fI = integrate(fpI, x) + dI
+VI = integrate(fpI, (x, 0, 1)) - integrate(fpI, (x, 1, 2)) + integrate(fpI, (x, 2, 3))
+cIs = solve(VI - (fI.subs(x, 3) - fI.subs(x, 0) + 4), cI)
+assert len(cIs) == 1 and cIs[0] > 0
+assert sp.simplify((fI.subs(x, 2) - fI.subs(x, 1)).subs(cI, cIs[0])) == -2
 # D17: f = ax^3+bx+a, x=1 극소, 극솟값 -2 → 극댓값 6
 fD = a*x**3 + b*x + a
 sD = solve([diff(fD, x).subs(x, 1), fD.subs(x, 1) + 2], [a, b], dict=True)[0]
@@ -85,27 +88,46 @@ aJ = solve((-1 + a) - ((-1 - a) + 4), a)[0]
 assert aJ == 2
 PJ = periodic_pieces(-x**2 + aJ*x, 4)
 assert area_abs(PJ, -2, 0) + area_abs(PJ, 0, 3) == Rational(38, 3)
-print('원문 풀이 OK (I3=2, D17=6, J16=10, J33=38/3)')
+print('원문 풀이 OK (I24=-2, D17=6, J16=10, J33=38/3)')
 
 # ===== 1번 =====
-assert 'fig_b5_1.svg' in IT[1]['body'] and os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'parts', 'fig_b5_1.svg'))
-assert '(0,\\ 5)' in IT[1]['body'] and '(5,\\ 0)' in IT[1]['body']        # 그림의 좌표를 본문에도 씀
-m1, b1, C = symbols('m1 b1 C')
-L1 = m1*x + b1
-S1 = solve([L1.subs(x, 0) - 5, L1.subs(x, 5)], [m1, b1], dict=True)
-assert len(S1) == 1
-f1 = L1.subs(S1[0]); assert f1 == 5 - x
-F1 = integrate(f1, x) + C                      # 한 부정적분 (적분상수 C는 무엇이든)
-assert expand(diff(F1, x) - f1) == 0
-g1 = F1 - f1
-ans1 = diff(g1, x).subs(x, 2)
-assert ans1 == 4 and not ans1.has(C)          # 적분상수와 무관
-w1_drop = f1.subs(x, 2)                                       # -f의 도함수 누락 → 3
-w1_sign = (f1 + diff(f1, x)).subs(x, 2)                       # g'=f+f' → 2
-w1_slope = f1.subs(x, 2) - 1                                  # 기울기를 1로 읽음 → 2
-w1_rev = (diff(f1, x, 2) - diff(f1, x)).subs(x, 2)            # F=f' 로 거꾸로 → 1
-assert (w1_drop, w1_sign, w1_slope, w1_rev) == (3, 2, 2, 1)
-chk(1, ans1, wrongs=(w1_drop, w1_sign, w1_rev))
+HERE = os.path.dirname(os.path.abspath(__file__))
+assert 'fig_b5_1.svg' in IT[1]['body'] and os.path.isfile(os.path.join(HERE, '..', 'parts', 'fig_b5_1.svg'))
+assert open(os.path.join(HERE, '..', 'parts', 'fig_b5_1.svg')).read() == open('/home/user/Finale/output/build/부교재_기말/parts/fig_I24.svg').read()   # 원문 그림 그대로
+assert "f'(1)=f'(2)=0" in IT[1]['body'] and '극댓값이 \\(5\\)' in IT[1]['body'] and '극솟값이 \\(3\\)' in IT[1]['body']   # 풀이에 쓰는 값은 본문에
+# 일반 정리: f'의 부호가 (0,1)에서 +, (1,2)에서 -, (2,3)에서 + 이면 ∫0^3|f'| = f(3)-f(0) + 2{f(1)-f(2)} (f'의 꼴과 무관)
+# 그림과 같은 부호(x<1 양, 1<x<2 음, x>2 양)를 갖는 다항식 f' = c(x-1)(x-2)(x^2+m) (c>0, m>=0) 여러 꼴로 확인
+cc1, C1 = symbols('cc1 C1', real=True)
+def parts1(fp):
+    F = integrate(fp, x) + C1
+    V = integrate(fp, (x, 0, 1)) - integrate(fp, (x, 1, 2)) + integrate(fp, (x, 2, 3))
+    return F.subs(x, 1), F.subs(x, 2), V, F.subs(x, 3) - F.subs(x, 0)
+ans1s = set()
+for mv in [None, 0, Rational(1, 2), 1, 2, 5]:
+    fp_ = cc1*(x - 1)*(x - 2) * (1 if mv is None else (x**2 + mv))
+    fmx, fmn, V1, T1 = parts1(fp_)
+    assert sp.simplify(V1 - T1 - 2*(fmx - fmn)) == 0          # 정리 (기호)
+    # 극댓값 5, 극솟값 3 → c, C 결정 → ∫|f'| 이 22가 되는 경우만 문항 조건. 이 꼴에서는 c 하나로 감소량과 ∫|f'| 이 함께 정해짐
+    sc = solve([fmx - fmn - 2], [cc1], dict=True)[0]
+    Vv = V1.subs(sc)
+    xs = np.linspace(0, 3, 30001); fv = sp.lambdify(x, fp_.subs(sc))(xs)
+    assert abs(np.trapezoid(np.abs(fv), xs) - float(Vv)) < 1e-4 * float(Vv)     # 수치 교차
+    if Vv == 22:
+        ans1s.add(T1.subs(sc))
+    # 문항 조건(감소량 2, ∫|f'|=22)에서는 정리로 늘 22-4
+assert ans1s == {18}                      # 삼차함수 꼴(mv=None)이 문항 조건을 모두 만족 → 조건 서로 모순 없음
+# 실제 예: f = 4x^3-18x^2+24x-5 (극댓값 f(1)=5, 극솟값 f(2)=3, ∫|f'|=22, f'(0)=24>0)
+fex = 4*x**3 - 18*x**2 + 24*x - 5
+assert sorted(solve(diff(fex, x), x)) == [1, 2] and diff(fex, x, 2).subs(x, 1) < 0 < diff(fex, x, 2).subs(x, 2)
+assert (fex.subs(x, 1), fex.subs(x, 2)) == (5, 3)
+assert integrate(diff(fex, x), (x, 0, 1)) - integrate(diff(fex, x), (x, 1, 2)) + integrate(diff(fex, x), (x, 2, 3)) == 22
+assert fex.subs(x, 3) - fex.subs(x, 0) == 18
+ans1 = 18
+w1_abs = 22                      # 절댓값 무시: ∫|f'| = ∫f'
+w1_once = 22 - 2                 # 감소량을 한 번만 뺌
+w1_sign = 22 + 2                 # 감소량 부호 반대
+w1_min = 22 - 2*3                # 감소량 대신 극솟값 3
+chk(1, ans1, wrongs=(w1_abs, w1_once, w1_sign, w1_min))
 
 # ===== 3번 =====
 f3 = a*x**3 + b*x - 1
@@ -172,21 +194,17 @@ chk(7, ans7, wrongs=(w7_a0, w7_signed, w7_noshift))
 
 # ===== 조건 빼 보기 =====
 print('--- 조건 빼 보기 ---')
-# 1번: 두 점 중 하나를 빼면 기울기 미정 / '일차함수'를 빼면 미정 / 'F는 f의 부정적분'을 빼면 미정
-mm = symbols('mm')
-va = sorted({(lambda q: (q - diff(q, x)).subs(x, 2))(mm*(x - 5)).subs(mm, v) for v in [-1, -2, 1]})
-vb = sorted({(lambda q: (q - diff(q, x)).subs(x, 2))(mm*x + 5).subs(mm, v) for v in [-1, -2, 1]})
-assert len(va) == 3 and len(vb) == 3
-print(f'ABLATION 1 점 (0, 5): 필요(정해지지 않음: f=m(x-5), m=-1,-2,1에서 {va})')
-print(f'ABLATION 1 점 (5, 0): 필요(정해지지 않음: f=mx+5, m=-1,-2,1에서 {vb})')
-cc = symbols('cc')
-fq = 5 - x + cc*x*(x - 5)                          # 두 점을 지나는 이차 이상 다항식
-vq = sorted({(fq - diff(fq, x)).subs(x, 2).subs(cc, v) for v in [0, 1, -1]})
-assert len(vq) == 3
-print(f'ABLATION 1 일차함수: 필요(정해지지 않음: f=5-x+cx(x-5), c=0,1,-1에서 {vq})')
-vG = sorted({(diff(G, x) - diff(f1, x)).subs(x, 2) for G in [x**2, x**3, x]})
-assert len(vG) == 3
-print(f"ABLATION 1 F는 f의 부정적분: 필요(정해지지 않음: F'=f가 없으면 F=x^2, x^3, x에서 {vG})")
+# 1번: ∫|f'|=22 를 빼면 f(3)-f(0) 미정 (다항식 f' 꼴에 따라 달라짐), 극값 조건을 빼면 감소량 미정
+Tvals = set()
+for mv in [0, 1, 3]:
+    fp_ = cc1*(x - 1)*(x - 2)*(x**2 + mv)
+    D_ = sp.simplify(integrate(-fp_, (x, 1, 2)))
+    c_ = solve(D_ - 2, cc1)[0]                      # 극댓값-극솟값 = 2
+    Tvals.add(integrate(fp_, (x, 0, 3)).subs(cc1, c_))
+assert len(Tvals) == 3
+print(f"ABLATION 1 ∫|f'|=22: 필요(정해지지 않음: f'=c(x-1)(x-2)(x^2+m), m=0,1,3 에서 f(3)-f(0)={sorted(Tvals)})")
+print(f"ABLATION 1 극댓값 5·극솟값 3: 필요(정해지지 않음: f(3)-f(0)=22-2{{f(1)-f(2)}}, 감소량 미정)")
+print(f"ABLATION 1 f'(1)=f'(2)=0(그래프): 필요(감소 구간 [1, 2]가 정해져야 ∫|f'| 를 나눔)")
 # 3번: '극값 3' 을 빼면 a 미정, x=1 을 빼면 미정 / 상수항 -1을 0으로 하면 답 바뀜
 fa = a*x**3 - 3*a*x - 1
 print(f'ABLATION 3 극값 3: 필요(정해지지 않음: f=ax^3-3ax-1, 극솟값 {fa.subs(x, -1)} (a<0) 등 a에 따라 달라짐)')
