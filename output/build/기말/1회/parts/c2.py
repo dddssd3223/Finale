@@ -42,7 +42,7 @@ ITEMS = {
     ),
     14: dict(
         body=r"""함수 \(y=f'(x)\)의 그래프가 그림과 같고,
-\[f'(x)=\begin{cases}-4(x+1)&amp;(x\le-1)\\4(1-x^2)&amp;(-1&lt;x&lt;2)\\12(x-3)&amp;(x\ge2)\end{cases}\]
+\[f'(x)=\begin{cases}-4(x+1)&(x\le-1)\\4(1-x^2)&(-1&lt;x&lt;2)\\12(x-3)&(x\ge2)\end{cases}\]
 이다.
 <div class="fig"><img src="fig_c_14.svg" style="width:165pt"></div>
 함수 \(g(x)=f(x)-kx\)가 극값을 갖는 \(x\)의 개수가 \(4\)가 되도록 하는 모든 정수 \(k\)의 합은?""",
