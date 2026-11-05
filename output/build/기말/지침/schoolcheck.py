@@ -69,6 +69,11 @@ def check_item(n, it, rt):
     if o:   # 원문에 없던 줄 바꾼 식(조각함수 제외) — 억지 들여쓰기 (1회 지적)
         dv = [x for x in re.findall(r'\\\[(.*?)\\\]', body(it), re.S) if 'cases' not in x]
         do = [x for x in re.findall(r'\\\[(.*?)\\\]', o[0], re.S) if 'cases' not in x]
+        nz = lambda t: re.sub(r'\\[()]|\s|<[^>]+>|&nbsp;', '', t)
+        DAN = r'\(단,([^()]*(?:\([^()]*\)[^()]*)*)\)'
+        dan_o = {nz(x) for x in re.findall(DAN, o[0])}
+        for x in re.findall(DAN, body(it)):
+            if nz(x) not in dan_o: warn.append(f'원문과 다른 단서 (단,{x.strip()[:40]}) — 원문 단서 그대로, 범위를 좁히거나 새로 붙이지 않음 (1회 16번)')
         if len(dv) > len(do): warn.append(f'줄 바꾼 식 {len(dv)}개 (원문 {len(do)}개) — 원문에 없던 짧은 식은 문장 안에')
     ch = it.get('choices') or []
     if ch and not str(ch[0]).startswith('T:'):
