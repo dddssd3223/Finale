@@ -9,7 +9,7 @@ SUBJ, EXAM, GRADE = '미적분I', '기말고사', '2학년'
 # ---- 원본 실측 (pt) ----
 VX = dict(L=54.9, N=91.5, B1=407.2, B2=433.9, C1=460.8, C2=500.4, R=540.5)
 VW = dict(L=1.8, R=1.8)                          # 바깥 세로선 굵기 (나머지 0.55, 원본 단면 실측)
-TOP, TOPW, HSPLIT, HBOT, HBOTW, BOT, BOTW = 215.0, 2.0, 238.3, 260.0, 0.6, 755.8, 1.75
+TOP, HSPLIT, HBOT, HBOTW, BOT, OUTW = 215.0, 238.3, 260.0, 0.6, 755.8, 1.8   # 바깥 테두리 네 면 1.8pt
 ROWW = 0.55                                       # 번호 사이 가로선 굵기
 INFO = (57.0, 139.6, 540.0, 169.7, 1.5)           # 인적 사항 상자 x0,y0,x1,y1,굵기
 DOT = (57.15, 539.5, 197.4)                       # 절취 점선
@@ -62,7 +62,8 @@ def ink(t, fs, w, x0=None, y0=None, cx=None, cy=None):   # 잉크 상자를 원�
 T, L = [], []
 def hl(x0, x1, y, w=0.55): L.append(f'<div class="r" style="left:{x0}pt;top:{y - w / 2:.3f}pt;width:{x1 - x0}pt;height:{w}pt"></div>')
 def vl(x, y0, y1, w=0.55): L.append(f'<div class="r" style="left:{x - w / 2:.3f}pt;top:{y0}pt;width:{w}pt;height:{y1 - y0}pt"></div>')
-def rect(x0, y0, x1, y1, w): hl(x0 - w / 2, x1 + w / 2, y0, w); hl(x0 - w / 2, x1 + w / 2, y1, w); vl(x0, y0, y1, w); vl(x1, y0, y1, w)
+def rect(x0, y0, x1, y1, w):   # 테두리 하나로: 네 면 같은 굵기, 모서리 이음 없음 (선 중심이 좌표에 오게)
+    L.append(f'<div style="position:absolute;left:{x0 - w / 2:.3f}pt;top:{y0 - w / 2:.3f}pt;width:{x1 - x0 + w:.3f}pt;height:{y1 - y0 + w:.3f}pt;border:{w}pt solid #1a1a1a;box-sizing:border-box"></div>')
 # 구멍 표시·점선
 for cx, cy in HOLES: L.append(f'<div class="h" style="left:{cx - 3.2:.2f}pt;top:{cy - 3.2:.2f}pt;width:6.4pt;height:6.4pt"></div>')
 x = DOT[0]
@@ -75,7 +76,7 @@ for i, t in enumerate(TITLE):
 rect(*INFO)
 for t, x0, y0 in INFO_T: T.append(ink(t, FS['info'], 'B', x0=x0, y0=y0))
 # 표
-hl(VX['L'] - VW['L'] / 2, VX['R'] + VW['R'] / 2, TOP, TOPW); hl(VX['C1'], VX['R'], HSPLIT); hl(VX['L'], VX['R'], HBOT, HBOTW)
+hl(VX['C1'], VX['R'], HSPLIT); hl(VX['L'], VX['R'], HBOT, HBOTW)
 for key in FIX:
     t, fs, x0, y0 = FIX[key]; T.append(span(t, fs, x0, y0))
 y = HBOT
@@ -89,10 +90,12 @@ for no, subs, tot in ROWS:
         y += ht
     T.append(ink(no, FS['no'], 'B', cx=(VX['L'] + VX['N']) / 2, cy=(y0 + y) / 2))
     T.append(ink(tot, FS['tot'], 'B', cx=(VX['B2'] + VX['C1']) / 2, cy=(y0 + y) / 2))
-    hl(VX['L'], VX['R'], y, BOTW if abs(y - BOT) < 1 else ROWW)
+    if abs(y - BOT) > 1: hl(VX['L'], VX['R'], y, ROWW)
+rect(VX['L'], TOP, VX['R'], BOT, OUTW)            # 표 바깥 테두리
 for kx, xx in VX.items():
-    ys = TOP if kx in ('L', 'N', 'B1', 'C1', 'R') else (HBOT if kx == 'B2' else HSPLIT)
-    vl(xx, ys, y, VW.get(kx, 0.5))
+    if kx in ('L', 'R'): continue
+    ys = TOP if kx in ('N', 'B1', 'C1') else (HBOT if kx == 'B2' else HSPLIT)
+    vl(xx, ys, y)
 # 점수 칸
 S = SCORE; rect(S['L'], S['y0'], S['R'], S['y1'], S['w'])
 for kx in 'abcd': vl(S[kx], S['y0'], S['y1'])
