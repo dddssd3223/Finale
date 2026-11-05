@@ -69,7 +69,8 @@ def check_item(n, it, rt):
     if o:   # 원문에 없던 줄 바꾼 식(조각함수 제외) — 억지 들여쓰기 (1회 지적)
         dv = [x for x in re.findall(r'\\\[(.*?)\\\]', body(it), re.S) if 'cases' not in x]
         do = [x for x in re.findall(r'\\\[(.*?)\\\]', o[0], re.S) if 'cases' not in x]
-        nz = lambda t: re.sub(r'\\[()]|\s|<[^>]+>|&nbsp;', '', t)
+        import html as _h
+        nz = lambda t: re.sub(r'\\[()]|\s|<[a-zA-Z/][^>]*>', '', _h.unescape(t.replace('&nbsp;', ' ')))
         DAN = r'\(단,([^()]*(?:\([^()]*\)[^()]*)*)\)'
         dan_o = {nz(x) for x in re.findall(DAN, o[0])}
         for x in re.findall(DAN, body(it)):
