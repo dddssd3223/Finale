@@ -130,7 +130,7 @@ vals = []
 for bv in [12, 15, 21, 25, 26]:                         # a(3)=0만: a=-9, b 자유 (t>0에서 두 번 방향을 바꾸는 b)
     Vb = V.subs({a: -9, b: bv}); scb = sign_changes(Vb, t, lo=0)
     if len(scb) == 2:
-        vals.append(sp.nsimplify(sp.integrate(sp.Abs(Vb), (t, 0, 5))))
+        vals.append(sp.radsimp(sp.expand(sp.integrate(sp.Abs(Vb), (t, 0, 5)))))
 ablation(9, "'방향을 바꾸는 두 시각 사이에 움직인 거리가 4'", vals, 28)
 vals = []
 for r in [sp.Rational(1, 2), 1, sp.Rational(3, 2), 2, 3]:  # 거리 조건만: v=3(t-r)(t-r-2) (두 근 사이 거리 d^3/2=4 → d=2)
