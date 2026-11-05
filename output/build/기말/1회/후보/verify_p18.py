@@ -40,7 +40,7 @@ ksol = sp.solve(sp.Eq((-3*u**2 + a*u + b).subs(u, 2), b + kk), kk)
 assert ksol == [2*a - 12]
 K = lambda av: 2*av - 12
 # 설정 줄 불통: 연속 조건은 a, b를 정하지 못한다 (서로 다른 (a,b,k)가 모두 연속)
-for av, bv in ((8, 0), (10, 0), (R(36, 5), R(-12, 5))):
+for av, bv in ((12, 0), (8, 0), (10, -1)):
     assert sp.expand(f(av, bv).subs(u, 2) - (bv + K(av))) == 0
 print('설정 줄 불통: 연속은 k=2a-12만 준다 (a, b 미정)')
 
@@ -90,7 +90,7 @@ def phi(av, bv):
 def ok(av, bv, need=('가', '나', '다')):
     res = True
     if '가' in need: res &= (min_ge0(av, bv) == 0)
-    if '나' in need: res &= (count(av, bv) == 2)
+    if '나' in need: res &= (count(av, bv) == 1)
     if '다' in need: res &= (phi(av, bv) == 1)
     return bool(res)
 
@@ -112,53 +112,45 @@ for av in (6, 8, 12, 15):
 assert g_at(5, 0, 20) < -5                          # k<0 예
 print('(가) ⇔ b=0, a>=6 (k>=0) : 격자', len(grid_a) * len(grid_b), '쌍 일치')
 
-# ---------- b=0에서 (나): 교점 2개 ⇔ 24-12√2 < a < 12 ----------
-lo_a = 24 - 12*sp.sqrt(2)
-# [-4,-2)의 곡선의 최댓값 = f(a/6) - 2k = a^2/12 - 4a + 24 < 0 ⇔ a > 24-12√2 (6<a<12에서)
-assert sp.expand(f(a, 0).subs(u, a/6) - 2*K(a) - (a**2/12 - 4*a + 24)) == 0
-assert set(sp.solve(a**2/12 - 4*a + 24, a)) == {24 - 12*sp.sqrt(2), 24 + 12*sp.sqrt(2)}
+# ---------- b=0, a>=6에서 (나): 교점 1개 ⇔ a >= 12 ----------
+# a=6: k=0, g(2n)=0 무수히 많음 / 6<a<12: 원점(꺾여 닿음) + (a-12)/3 ∈ (-2,0) → 2개 이상 / a>=12: 증가 → 원점 하나
 for av in [R(n, 4) for n in range(24, 81)]:
     c = count(av, 0)
-    exp_ = 2 if lo_a < av < 12 else (sp.oo if av == 6 else (1 if av >= 12 else None))
-    if exp_ is None:
-        assert c >= 3, (av, c)
+    if av == 6:
+        assert c == sp.oo
+    elif av < 12:
+        assert c >= 2 and {0, (av - 12) / 3} <= zeros(av, 0), (av, c)
     else:
-        assert c == exp_, (av, c)
-assert sp.simplify((a**2/12 - 4*a + 24).subs(a, lo_a)) == 0   # 경계: [-4,-2)의 꼭짓점이 x축에 닿아 교점 3개
-# a=8: 교점 -4/3, 0 (원점은 꺾인 점에서 x축에 닿기만 함)
+        assert c == 1 and zeros(av, 0) == {0}, (av, c)
+assert all(sp.diff(f(av, 0), u).subs(u, 2) >= 0 for av in (12, 13, 20))    # a>=12: f'(x)=-6x+a>=0 on [0,2]
+# 원점은 꺾인 점: 좌미분계수 a-12, 우미분계수 a (6<a<12이면 좌우 모두 g>0 → x축에 닿기만 함)
+for av in (8, 10):
+    fl = sp.diff(f(av, 0).subs(u, x + 2) - K(av), x).subs(x, 0); fr = sp.diff(f(av, 0), u).subs(u, 0)
+    assert (fl, fr) == (av - 12, av) and g_at(av, 0, R(-1, 100)) > 0 and g_at(av, 0, R(1, 100)) > 0
 assert zeros(8, 0) == {R(-4, 3), 0}
-assert g_at(8, 0, R(-1, 100)) > 0 and g_at(8, 0, R(1, 100)) > 0
-fl = sp.diff(f(8, 0).subs(u, x + 2) - 4, x).subs(x, 0); fr = sp.diff(f(8, 0), u).subs(u, 0)
-assert (fl, fr) == (-4, 8)                         # 좌미분계수 a-12, 우미분계수 a
-print('(나) b=0: 교점 2개 ⇔ 24-12√2 < a < 12, a=8 교점 {-4/3, 0}, 원점 좌·우 미분계수 -4, 8 (꺾여 닿음)')
+print('(나) b=0, a>=6: 교점 1개 ⇔ a>=12 (a=6 무수히 많음, 6<a<12 원점에서 꺾여 닿고 (a-12)/3에서 또 만남)')
 
-# ---------- b=0, a>=6에서 (다): 세 경우 ----------
-e = sp.symbols('e', positive=True)
+# ---------- (다): b=0, a>=12 → [-1,0]에서 g<=0 → (a-10)/2=1 → a=12 ----------
 gl = sp.expand(f(a, 0).subs(u, x + 2) - K(a))
 assert sp.expand(gl + x*(3*x + 12 - a)) == 0
-c1 = sp.solve(sp.Eq(sp.integrate(gl, (x, -1, 0)), 1), a)                 # 6<=a<=9 : g>=0
-assert sp.simplify(sp.integrate(gl, (x, -1, 0)) - (10 - a)/2) == 0 and c1 == [8]
-gle = -x*(3*x + e)                                                       # 9<a<12, e=12-a ∈ (0,3)
-P2 = sp.expand(sp.integrate(-gle, (x, -1, -e/3)) + sp.integrate(gle, (x, -e/3, 0)))
-assert sp.expand(P2 - (1 - e/2 + e**3/27)) == 0
-c2 = [s for s in sp.solve(sp.Eq(P2, 1), e) if 0 < s < 3]
-assert c2 == [] and sp.solve(sp.Eq(P2, 1), e) == [3*sp.sqrt(6)/2]
-c3 = sp.solve(sp.Eq(-sp.integrate(gl, (x, -1, 0)), 1), a)               # a>=12 : g<=0
-assert c3 == [12]
+assert sp.simplify(-sp.integrate(gl, (x, -1, 0)) - (a - 10)/2) == 0
+assert sp.solve(sp.Eq(-sp.integrate(gl, (x, -1, 0)), 1), a) == [12]
+# 참고: a>=6 전체에서 (다)의 해는 a=8(6<=a<=9, g>=0), a=12(a>=12, g<=0); 9<a<12는 e=3√6/2>3 모순
+e = sp.symbols('e', positive=True)
+P2 = sp.expand(sp.integrate(x*(3*x + e), (x, -1, -e/3)) + sp.integrate(-x*(3*x + e), (x, -e/3, 0)))
+assert sp.expand(P2 - (1 - e/2 + e**3/27)) == 0 and sp.solve(sp.Eq(P2, 1), e) == [3*sp.sqrt(6)/2]
+assert sp.solve(sp.Eq(sp.integrate(gl, (x, -1, 0)), 1), a) == [8]
 for av in grid_a:
     if av >= 6:
         assert (phi(av, 0) == 1) == (av in (8, 12)), av
-assert phi(8, 0) == 1 and phi(12, 0) == 1
-print('(다) b=0: 6<=a<=9 → a=8, 9<a<12 → e=3√6/2>3 모순, a>=12 → a=12')
-assert count(12, 0) == 1 and ok(8, 0) and not ok(12, 0)
-print('(나)로 a=12 제외(증가함수, 교점 1개) → a=8, b=0, k=4')
+print('(다) b=0: a>=12에서 (a-10)/2=1 → a=12 (a>=6 전체로는 a=8, 12; a=8은 (나)에서 교점 2개라 제외)')
 
-# ---------- 전수 격자 확인: 세 조건을 모두 만족하는 (a,b)는 (8,0)뿐 ----------
+# ---------- 전수 격자 확인: 세 조건을 모두 만족하는 (a,b)는 (12,0)뿐 ----------
 sols = [(av, bv) for av in [R(n, 4) for n in range(-8, 81)] for bv in [R(n, 4) for n in range(-12, 13)] if ok(av, bv)]
-assert sols == [(8, 0)], sols
-fA = f(8, 0); ans = ASK(8, 0)
-assert ans == 48 and CH[it['ans'] - 1] == ans
-print(f'유일한 f(x) = {sp.expand(fA.subs(u, x))}, k = 4, ∫_0^6 g = {ans} = ④')
+assert sols == [(12, 0)], sols
+fA = f(12, 0); ans = ASK(12, 0)
+assert ans == 120 and CH[it['ans'] - 1] == ans
+print(f'유일한 f(x) = {sp.expand(fA.subs(u, x))}, k = 12, ∫_0^6 g = {ans} = ④')
 
 # ---------- 선지: 서로 다름, 등차, 오름차순 ----------
 dif = {CH[i + 1] - CH[i] for i in range(4)}
@@ -166,28 +158,28 @@ assert len(set(CH)) == 5 and dif == {1}
 print('선지', [str(v) for v in CH], '공차 1 (오름차순)')
 
 # ---------- 오답 근거 값 (모두 선지 밖으로 적었는지) ----------
-w12 = ASK(12, 0)
-w_touch2 = ASK(R(36, 5), R(-12, 5))
-w_k = sp.nsimplify(sum(sp.integrate(fA, (u, 0, 2)) + j*4 for j in range(3)))   # 길이 2를 안 곱함
-assert (w12, w_touch2, w_k) == (120, R(96, 5), 36)
-assert all(v not in CH for v in (w12, w_touch2, w_k))
-for s_ in ('120', r'\frac{96}5', '36', '선지 밖'):
-    assert s_ in it['wrong']
-print('오답 근거 값: 120((나) 미사용), 96/5((가) 미사용·x=2에서 닿음), 36(이동량 2k → k) — 모두 선지 밖으로 적음')
+w8 = ASK(8, 0)                                     # 절댓값 무시·(나) 미확인
+w_alt = ASK(10, -1)                                # (가) 미사용
+w_k = sp.nsimplify(sum(sp.integrate(fA, (u, 0, 2)) + j*12 for j in range(3)))  # 길이 2를 안 곱함
+assert (w8, w_alt, w_k) == (48, 78, 84)
+assert sp.solve(sp.Eq(sp.integrate(gl, (x, -1, 0)), 1), a) == [8]
+assert all(v not in CH for v in (w8, w_alt, w_k))
+for s_ in ('48', '78', '84', '-3x^2+10x-1', '선지 밖'):
+    assert s_ in it['wrong'], s_
+print('오답 근거 값: 48(절댓값 무시·(나) 미확인), 78((가) 미사용), 84(이동량 2k → k) — 모두 선지 밖으로 적음')
 
 # ---------- 조건 빼 보기 ----------
 print('--- 조건 빼 보기 ---')
-# (가) 제거: (나)(다)만 → 꺾인 점 x=2에서 닿는 a=36/5, b=-12/5 도 만족
-assert ok(R(36, 5), R(-12, 5), ('나', '다')) and not ok(R(36, 5), R(-12, 5))
-assert zeros(R(36, 5), R(-12, 5)) == {R(2, 5), 2} and min_ge0(R(36, 5), R(-12, 5)) == R(-12, 5)
-print(f'ABLATION 18 (가): 필요(정해지지 않음: (나)(다)만이면 x=2에서 닿는 f=-3x^2+36x/5-12/5도 만족, {ans} 또는 {w_touch2})')
-# (나) 제거: (가)(다)만 → a=12 도 만족
-assert ok(12, 0, ('가', '다'))
-print(f'ABLATION 18 (나): 필요(정해지지 않음: (가)(다)만이면 a=8, 12 → {ans} 또는 {w12})')
-# (다) 제거: (가)(나)만 → 24-12√2<a<12 전부
-alt = {av: ASK(av, 0) for av in (R(15, 2), 9, 10, 11)}
-assert all(ok(av, 0, ('가', '나')) for av in alt) and len(set(alt.values()) | {ans}) == 5
-print(f'ABLATION 18 (다): 필요(정해지지 않음: (가)(나)만이면 24-12√2<a<12, 예 a=15/2→{alt[R(15,2)]}, a=10→{alt[10]})')
+# (가) 제거: (나)(다)만 → f=-3x^2+10x-1 (k=8)도 만족 (x>=0에서 최솟값 -1)
+assert ok(10, -1, ('나', '다')) and not ok(10, -1) and min_ge0(10, -1) == -1 and count(10, -1) == 1
+print(f'ABLATION 18 (가): 필요(정해지지 않음: (나)(다)만이면 f=-3x^2+10x-1도 만족, {ans} 또는 {w_alt})')
+# (나) 제거: (가)(다)만 → a=8 도 만족
+assert ok(8, 0, ('가', '다')) and count(8, 0) == 2
+print(f'ABLATION 18 (나): 필요(정해지지 않음: (가)(다)만이면 a=8, 12 → {w8} 또는 {ans})')
+# (다) 제거: (가)(나)만 → a>=12 전부
+alt = {av: ASK(av, 0) for av in (13, 14, 16)}
+assert all(ok(av, 0, ('가', '나')) for av in alt) and len(set(alt.values()) | {ans}) == 4
+print(f'ABLATION 18 (다): 필요(정해지지 않음: (가)(나)만이면 a>=12, 예 a=13→{alt[13]}, a=14→{alt[14]})')
 
 # ---------- 문장 길이 (태그·공백 제거, 조건 포함) ----------
 L = lambda html: len(re.sub(r'\s', '', re.sub(r'<[^>]+>', '', html)))
