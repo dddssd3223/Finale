@@ -43,15 +43,31 @@ def original(key, result):
     print(f'ORIGINAL {key}: {result} OK')
 
 
-# 1: the two independent equations uniquely fix a and b; derivative signs
-# distinguish the maximum from the minimum.
+# 1: f'(-1)=0 and f(-1)=6 are two independent linear equations, so a and b
+# are unique; a>0 makes x=-1 a maximum and x=1 the minimum.
 f = a*x**3+b*x+a
-sol = s.solve([s.diff(f, x).subs(x, 1), f.subs(x, 1)+1], [a, b], dict=True)
-assert sol == [{a: 1, b: -3}]
+sol = s.solve([s.diff(f, x).subs(x, -1), f.subs(x, -1)-6], [a, b], dict=True)
+assert sol == [{a: 2, b: -6}]
 f = f.subs(sol[0])
 assert s.solve(s.diff(f, x), x) == [-1, 1]
 assert s.diff(f, x, 2).subs(x, -1) < 0 < s.diff(f, x, 2).subs(x, 1)
-check(1, f.subs(x, -1), 2, {'2': (f-1).subs(x, -1)})
+fd = a*x**3+b*x   # mistake: constant term a dropped in f(-1)
+sd = s.solve([s.diff(fd, x).subs(x, -1), fd.subs(x, -1)-6], [a, b], dict=True)[0]
+check(1, f.subs(x, 1), 2, {'-3': (a*x**3+b*x+a).subs(sd).subs(x, 1)})
+# ablation 1
+fa = a*x**3+b*x+a
+w = (fa.subs({a: 1, b: -3})).subs(x, 1)   # drop max value 6: a=1 also has max at -1
+assert w != f.subs(x, 1)
+print(f'ABLATION 1 극댓값 6: 필요(a=1이면 극솟값 {w})')
+mins = []
+for av in (1, 2):   # drop 'x=-1에서 극대': only the max value 6 remains
+    bv = s.symbols('bv', negative=True)
+    x0 = -s.sqrt(-bv/(3*av))
+    bs = [v for v in s.solve(s.Eq((av*x**3+bv*x+av).subs(x, x0), 6), bv) if v.is_real and v < 0]
+    assert len(bs) == 1
+    mins.append(s.simplify(2*av-6))   # f-a odd: min = 2a - max
+assert len(set(mins)) == 2
+print(f'ABLATION 1 x=-1에서 극대: 필요(극솟값 {mins} 로 정해지지 않음)')
 fo = a*x**3+b*x+a
 so = s.solve([s.diff(fo, x).subs(x, 1), fo.subs(x, 1)+2], [a, b])
 original('D17', fo.subs(so).subs(x, -1))
@@ -89,23 +105,62 @@ assert len(original_roots) == 1
 original('J20', original_roots[0])
 
 # 7: oddness cancels the symmetric interval. Between consecutive zeros
-# continuity makes the sign constant, so these two integrals determine area.
+# continuity makes the sign constant, and |f| is even.
 inner, outer = s.symbols('inner outer')
 solution = s.solve([outer-1, -inner-outer-3], [inner, outer], dict=True)
 assert solution == [{inner: -4, outer: 1}]
-answer = 2*(abs(solution[0][inner])+abs(solution[0][outer]))
-check(7, answer, 4, {'6': 2*abs(solution[0][inner]+solution[0][outer])})
-# A globally positive even factor guarantees no unwanted real zeros.
-positive = (x*x-11)**2+s.Rational(823, 485)
-base = -x*(x*x-4)*(x*x-16)*positive
-scale = -4/s.integrate(base, (x, 0, 2))
-witness = s.expand(scale*base)
-assert scale > 0 and s.Rational(823, 485) > 0
-assert s.expand(witness+witness.subs(x, -x)) == 0
-assert s.integrate(witness, (x, -2, 4)) == 1
-assert s.integrate(witness, (x, -4, 0)) == 3
-# Thus its only positive roots are 2 and 4, and the required signs hold.
+I0, I1 = solution[0][inner], solution[0][outer]
+answer = 2*abs(I0)+abs(I1)
+check(7, answer, 4, {'7': abs(I0)+abs(I0+I1), '10': 2*(abs(I0)+abs(I1))})
+
+
+def absint(g, lo=-2, hi=4):
+    rs = sorted({r for r in s.real_roots(s.Poly(g, x)) if lo < r < hi})
+    pts = [lo]+rs+[hi]
+    return sum(abs(s.integrate(g, (x, pts[i], pts[i+1]))) for i in range(len(pts)-1))
+
+
+def odd_witness(i0, i1):
+    """odd f = -x(x^2-4)(x^2-16)((x^2-11)^2+e) scaled, int_0^2=i0, int_2^4=i1."""
+    e = s.symbols('e')
+    base = -x*(x*x-4)*(x*x-16)*((x*x-11)**2+e)
+    A, B = s.integrate(base, (x, 0, 2)), s.integrate(base, (x, 2, 4))
+    ev = [v for v in s.solve(A*i1-B*i0, e) if v.is_real and v > 0]
+    assert len(ev) == 1
+    g = s.expand(base.subs(e, ev[0]))
+    g = s.expand(g*i1/s.integrate(g, (x, 2, 4)))
+    assert s.expand(g+g.subs(x, -x)) == 0
+    assert sorted(r for r in s.real_roots(s.Poly(g, x)) if r > 0) == [2, 4]
+    return g
+
+
+def conds(g):
+    return dict(odd=s.expand(g+g.subs(x, -x)) == 0,
+                n1=s.integrate(g, (x, -2, 4)) == 1, n2=s.integrate(g, (x, -4, 0)) == 3,
+                zeros=sorted(set(r for r in s.real_roots(s.Poly(g, x)) if r > 0)) == [2, 4])
+
+
+witness = odd_witness(I0, I1)   # all conditions consistent, value 9
+assert all(conds(witness).values()) and absint(witness) == answer
 assert witness.subs(x, 1) < 0 < witness.subs(x, 3)
+# ablation 7: drop one condition at a time, a polynomial meeting the rest
+p, q = s.symbols('p q')
+g = (x-2)*(x-4)*(p+q*x*x)
+g = s.expand(g.subs(s.solve([s.integrate(g, (x, -2, 4))-1, s.integrate(g, (x, -4, 0))-3], [p, q])))
+c = conds(g); assert not c['odd'] and c['n1'] and c['n2'] and c['zeros']
+assert absint(g) != answer
+print(f'ABLATION 7 (가): 필요(기함수 아닌 예 값 {float(absint(g)):.4f})')
+g = odd_witness(-5, 2)
+c = conds(g); assert not c['n1'] and c['n2'] and c['zeros'] and absint(g) != answer
+print(f'ABLATION 7 (나) 첫째 적분: 필요(값 {absint(g)})')
+g = odd_witness(-3, 1)
+c = conds(g); assert c['n1'] and not c['n2'] and c['zeros'] and absint(g) != answer
+print(f'ABLATION 7 (나) 둘째 적분: 필요(값 {absint(g)})')
+g = x*(x*x-4)*(x*x-9)*(x*x-16)*(p+q*x*x)
+g = s.expand(g.subs(s.solve([s.integrate(g, (x, 2, 4))-1, s.integrate(g, (x, -4, 0))-3], [p, q])))
+c = conds(g); assert c['odd'] and c['n1'] and c['n2'] and not c['zeros']
+assert abs(float(absint(g))-9) > 1e-6
+print(f'ABLATION 7 (다): 필요(양의 근이 더 있으면 값 {float(absint(g)):.4f})')
 old = s.solve([outer-3, -inner-outer-5], [inner, outer])
 original('J45', 2*(abs(old[inner])+abs(old[outer])))
 print('ALL OK')
