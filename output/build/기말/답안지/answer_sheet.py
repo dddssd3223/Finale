@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """미적분I 서답형 답안지: 학교 실제 서답형 답안지(통합사회2, 2026 2학기 중간) 양식을 1:1로 옮김.
 선 위치·굵기, 글자 크기·위치는 원본 600dpi 스캔 실측(글자는 같은 글꼴로 그려 잉크 상자를 원본과 맞춘 값, 오차 1pt 이내).
-사용: python3 answer_sheet.py <출력 PDF> <글꼴 폴더: malgunbd.ttf(맑은 고딕 Bold, 저장소에 넣지 않음), NotoSansKR-400.ttf>"""
+사용: python3 answer_sheet.py <출력 PDF> <글꼴 폴더: malgunbd.ttf·malgun.ttf(맑은 고딕 Bold·Regular, 원본 양식 글꼴, 저장소에 넣지 않음)>"""
 import sys, os, subprocess, json
 import numpy as np, fitz
 OUT, FD = sys.argv[1], os.path.abspath(sys.argv[2])
@@ -21,7 +21,7 @@ FIX = {'hn': ('번호', 14.319, 60.08, 227.741), 'hd': ('답', 14.543, 207.876, 
        'hb': ('배점', 15.6, 417.9, 228.4), 'hc': ('채점', 14.299, 487.694, 218.229), 'h1': ('초검', 13.38, 468.472, 241.384),
        'h2': ('재검', 13.174, 508.561, 241.144), 's1': ('점', 15.876, 268.71, 795.57), 's2': ('수', 15.482, 291.783, 795.692),
        'c1': ('초', 12.502, 343.992, 787.784), 'c2': ('검', 12.769, 343.992, 806.648), 'e1': ('재', 12.502, 447.4, 787.9), 'e2': ('검', 12.769, 447.5, 806.7)}
-FS = dict(title=19.28, info=13.2, no=15.8, sub=14.5, pt=13.05, tot=15.8)
+FS = dict(title=19.28, info=13.2, no=15.8, sub=14.5, pt=13.4, tot=15.8)
 # 원본 인적 사항 낱말의 잉크 왼쪽·위 (그대로 둠) — 내용만 이 회차로
 INFO_T = [('2026년도', 69.84, 147.08), ('2학기', 138.09, 147.32), (EXAM, 184.76, 147.68), (GRADE, 263.93, 147.92),
           ('반', 323.67, 148.28), ('번', 363.14, 148.16), ('이름:', 389.17, 148.28)]
@@ -31,7 +31,7 @@ ROWS = [('1', [('(1)', 176.0, '4'), ('(2)', 199.8, '6')], '10'),
         ('2', [('(1) :', 40.0, '4'), ('(2) :', 40.0, '4'), ('(3) :', 40.0, '2')], '10')]
 
 def html(texts, lines):
-    css = f"""@font-face{{font-family:'MB';src:url('file://{FD}/malgunbd.ttf')}}@font-face{{font-family:'NR';src:url('file://{FD}/NotoSansKR-400.ttf')}}
+    css = f"""@font-face{{font-family:'MB';src:url('file://{FD}/malgunbd.ttf')}}@font-face{{font-family:'NR';src:url('file://{FD}/malgun.ttf')}}
 @page{{size:210mm 297mm;margin:0}}body{{margin:0}}.pg{{position:relative;width:595.28pt;height:841.89pt;page-break-after:always;overflow:hidden}}
 .t{{position:absolute;white-space:nowrap;line-height:1;color:#2e2e2e}}.r{{position:absolute;background:#1a1a1a}}
 .h{{position:absolute;border:.6pt solid #222;border-radius:50%;box-sizing:border-box}}"""
