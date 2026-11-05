@@ -88,21 +88,22 @@ assert area_abs(PJ, -2, 0) + area_abs(PJ, 0, 3) == Rational(38, 3)
 print('원문 풀이 OK (I3=2, D17=6, J16=10, J33=38/3)')
 
 # ===== 1번 =====
-P1 = x**3 + 3*x**2 + 4*x
-f1 = solve_identity(P1)                      # 차수 5 이하 전수에서 유일
-assert f1 == 3*x**2 + 12*x + 16
+P1 = x**3 - 4*x**2 + 3*x
+f1 = solve_identity(P1)                      # 차수 5 이하 전수에서 f가 유일 (존재 확인)
+assert f1 == 3*x**2 - 2*x + 1
 F1 = expand(f1 + P1)
 assert expand(diff(F1, x) - f1) == 0 and expand(F1 - f1 - P1) == 0
-assert factor(F1) == (x + 2)*(x**2 + 4*x + 8)
-rr1 = real_roots(F1)
-assert rr1 == [-2]                           # 이차 인수 x^2+4x+8 은 판별식 16-32<0
-ans1 = sum(rr1)
-w1_vieta = -Poly(F1, x).all_coeffs()[1]      # 세 근의 합(허근 포함) = -6
-w1_fvieta = -Rational(12, 3)                 # f(x)=0 에 근과 계수의 관계 (f는 실근 없음)
-assert real_roots(f1) == []
-w1_C0 = sum(real_roots(F1 - F1.subs(x, 0)))  # F의 상수항(적분상수)을 0으로 → 실근 0
-assert real_roots(F1 - F1.subs(x, 0)) == [0]
-chk(1, ans1, wrongs=(w1_vieta, w1_fvieta, w1_C0))
+# 답은 f를 구하지 않아도 정해짐: F'=f 로 미분하면 f - f' = P' (어떤 해 f에 대해서도)
+assert expand(f1 - diff(f1, x) - diff(P1, x)) == 0
+ans1 = (f1 - diff(f1, x)).subs(x, 1)
+assert ans1 == diff(P1, x).subs(x, 1) == -2
+w1_nodiff = P1.subs(x, 1)                                    # 미분하지 않고 F(1)-f(1) → 0
+w1_dropf = (diff(P1, x) - diff(P1, x, 2)).subs(x, 1)         # f의 도함수를 빠뜨려 f=P' → 0
+w1_sign = -ans1                                              # f'-f 로 부호 반대 → 2
+w1_fonly = f1.subs(x, 1)                                     # f(1)만 → 2
+w1_fponly = diff(f1, x).subs(x, 1)                           # f'(1)만 → 4
+assert (w1_nodiff, w1_dropf, w1_sign, w1_fonly, w1_fponly) == (0, 0, 2, 2, 4)
+chk(1, ans1, wrongs=(w1_nodiff, w1_sign, w1_fponly))
 
 # ===== 3번 =====
 f3 = a*x**3 + b*x - 1
@@ -169,14 +170,15 @@ chk(7, ans7, wrongs=(w7_a0, w7_signed, w7_noshift))
 
 # ===== 조건 빼 보기 =====
 print('--- 조건 빼 보기 ---')
-# 1번: 우변 다항식에서 항 하나씩 빼면 답이 바뀜 / 방정식을 원문처럼 f(x)=0으로 바꾸면 실근 없음
-for drop in [x**3, 3*x**2, 4*x]:
+# 1번: 우변 다항식에서 항 하나씩 빼면 답이 바뀜 / 'F는 f의 부정적분'을 빼면 정해지지 않음
+for drop in [x**3, -4*x**2, 3*x]:
     Pd = P1 - drop
-    fd = solve_identity(Pd); Fd = expand(fd + Pd)
-    rd = real_roots(Fd)
-    desc = f'실근 {rd}' if all(r.is_rational for r in rd) else f'실근 {[sp.N(r, 4) for r in rd]}'
-    print(f'ABLATION 1 우변 항 {drop}: 필요(답 바뀜: {desc})')
-print('ABLATION 1 방정식 F(x)=0 (→ f(x)=0): 필요(정해지지 않음: f(x)=3x^2+12x+16=0 은 실근 없음)')
+    vd = diff(Pd, x).subs(x, 1)
+    assert vd != ans1
+    print(f'ABLATION 1 우변 항 {drop}: 필요(답 바뀜 {ans1} → {vd})')
+vals1 = sorted({(g - diff(g, x)).subs(x, 1) for g in [x, x**2, x**3]})   # F=f+P 는 어떤 f로도 성립
+assert len(vals1) == 3
+print(f"ABLATION 1 F는 f의 부정적분: 필요(정해지지 않음: F'=f가 없으면 F=f+P는 어떤 f로도 성립, f=x, x^2, x^3에서 {vals1})")
 # 3번: '극값 3' 을 빼면 a 미정, x=1 을 빼면 미정 / 상수항 -1을 0으로 하면 답 바뀜
 fa = a*x**3 - 3*a*x - 1
 print(f'ABLATION 3 극값 3: 필요(정해지지 않음: f=ax^3-3ax-1, 극솟값 {fa.subs(x, -1)} (a<0) 등 a에 따라 달라짐)')

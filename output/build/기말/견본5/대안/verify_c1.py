@@ -89,23 +89,36 @@ fo = fo.subs(so[0])
 assert s.diff(fo,x,2).subs(x,1)>0
 original('D17', fo.subs(x,-1))
 
-# 5: 64<k<100 ⇔ 0<d<3, 교점은 3±d. 넓이비의 동치와 유일성.
+# 5: 15<k<27 ⇔ 0<d<2, 교점은 2±d, k=15+3d². 넓이비의 동치와 유일성 (측정 후 경량화안).
 d = s.symbols('d', positive=True)
-h = 4*(x-3)**2+64-k
-left = s.integrate(h.subs(k,64+4*d**2), (x,0,3-d))
-middle = -s.integrate(h.subs(k,64+4*d**2), (x,3-d,3+d))
-assert s.simplify(left-middle/2-s.integrate(h.subs(k,64+4*d**2),(x,0,3))) == 0
-ks = s.solve(s.integrate(h,(x,0,3)),k)
-assert ks == [76] and 64<ks[0]<100
-assert s.simplify((middle-2*left).subs(d,s.sqrt(3))) == 0
-# 잘못된 S1=S2 조건은 오른쪽 교점까지 부호 있는 적분이 0.
-ds = s.solve(left-middle,d)
-valid_ds = [r for r in ds if r.is_real and 0<r<3]
-assert valid_ds == [s.Rational(3,2)]
-wrong_equal = 64+4*valid_ds[0]**2
-wrong_half = s.solve(s.Rational(2,3)*3**3-12*3**2+3*(100-k),k)[0]
-wrong_power = s.solve(2*3**3-12*3**2+3*(100-k),k)[0]
-check(5, ks[0], [wrong_half, wrong_equal, wrong_power])
+f5 = 3*(x-3)**2; g5 = -6*x+k
+h = s.expand(f5-g5)
+assert s.expand(h-(3*(x-2)**2+15-k)) == 0
+hd = h.subs(k, 15+3*d**2)
+assert s.simplify(hd.subs(x, 2-d)) == 0 and s.simplify(hd.subs(x, 2+d)) == 0
+assert h.subs(x, 0) == 27-k  # k<27 이면 y축에서 곡선이 직선 위, 왼쪽 교점 2-d>0
+left = s.integrate(hd, (x, 0, 2-d))           # S1
+middle = -s.integrate(hd, (x, 2-d, 2+d))      # S2
+assert s.simplify(middle-4*d**3) == 0
+assert s.simplify(left-middle/2-s.integrate(hd, (x, 0, 2))) == 0
+# S2-2S1 = 12d²-16 : 0<d<2 에서 근은 d²=4/3 하나 → 유일
+eq = s.expand(middle-2*left)
+assert s.expand(eq-(12*d**2-16)) == 0
+dd = [r for r in s.solve(eq, d) if r.is_real and 0 < r < 2]
+assert dd == [2/s.sqrt(3)]
+ks = s.solve(s.integrate(h, (x, 0, 2)), k)
+assert ks == [19] and 15 < ks[0] < 27 and 15+3*dd[0]**2 == 19
+assert all(15 < v < 27 for v in map(value, IT[5]['choices']))   # 범위로 지워지는 선지 없음
+# 오답: 꼭짓점 x=3을 대칭축으로 / S2=S1 (오른쪽 교점까지 정적분 0) / (-1)^3 부호 실수 / 3x² → (3/2)x³
+wrong_vertex = s.solve(s.integrate(h, (x, 0, 3)), k)[0]
+d1 = [r for r in s.solve(left-middle, d) if r.is_real and 0 < r < 2]
+assert d1 == [1]
+wrong_equal = 15+3*d1[0]**2
+assert wrong_vertex == wrong_equal == 18
+assert s.integrate(f5, (x, 0, 2)) == 26 and s.integrate(g5, (x, 0, 2)) == 2*k-12
+wrong_sign = s.solve((1-(-3)**3)-(2*k-12), k)[0]
+wrong_half = s.solve(s.Rational(3, 2)*2**3-6*2**2+(27-k)*2, k)[0]
+check(5, ks[0], [wrong_vertex, wrong_sign, wrong_half])
 ho = (x-4)**2-(-2*x+k)
 ko = s.solve(s.integrate(ho,(x,0,3)),k)
 assert ko == [10] and 7<ko[0]<16

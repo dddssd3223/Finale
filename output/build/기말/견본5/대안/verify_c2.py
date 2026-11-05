@@ -126,15 +126,19 @@ original('I45',(m*s.diff(go,x).subs(x,1)).subs(so[0]))
 # 15: 차수를 미리 가정하지 않고 곱의 차수로 모든 후보를 좁힌다.
 P=5*x**4+4*x**3+3*x**2+12*x
 # (가) ⇒ f의 짝수차 부분=3x², F의 홀수차 부분=x³, deg F>=3.
-# (나) ⇒ deg(FG)=5. F(0)≠0과 f(0)=0에서 g(0)=0.
-# g=0이면 P=0으로 모순이므로 deg G>=2. 가능한 차수 쌍은 (3,2)뿐이다.
+# g=0이면 G=k(상수), (나)에서 f=P/k: 짝수차 부분 (5x^4+3x^2)/k ≠ 3x^2 → 모순.
+k=s.symbols('k',nonzero=True)
+assert s.solve(s.Poly(s.expand((5*x**4+3*x**2)/k-3*x**2),x).all_coeffs(),k)==[]
+# (다) g(0)=0, g≠0 ⇒ deg g>=1, deg G>=2. (나) ⇒ deg(FG)=5. 가능한 차수 쌍은 (3,2)뿐이다.
 degree_pairs=[(df,dg) for df in range(3,6) for dg in range(2,6) if df+dg==5]
 assert degree_pairs==[(3,2)]
+# F=x^3+ax^2+C (홀수차 x^3, 삼차), G=bx^2+wx+c 에서 (다) G'(0)=w=0 까지 미지수로 두고 푼다.
+w=s.symbols('w',real=True)
 F=x**3+a*x**2+C
-G=b*x**2+c
-equations=s.Poly(s.diff(F*G,x)-P,x).all_coeffs()
-sol=s.solve(equations,(a,b,c,C),dict=True)
-assert sol==[{C:5,a:1,b:1,c:1}]
+G=b*x**2+w*x+c
+equations=s.Poly(s.diff(F*G,x)-P,x).all_coeffs()+[s.diff(G,x).subs(x,0)]
+sol=s.solve(equations,(a,b,c,w,C),dict=True)
+assert sol==[{C:5,a:1,b:1,c:1,w:0}]
 F0,G0=s.expand(F.subs(sol[0])),s.expand(G.subs(sol[0]))
 
 
@@ -142,7 +146,7 @@ def conditions(ff,gg):
     # ff,gg는 부정적분 F,G. 미분과 정적분을 실제로 계산한다.
     return [s.expand(s.integrate(s.diff(ff,x),(x,-x,x))-2*x**3)==0,
             s.expand(s.diff(ff*gg,x)-P)==0,
-            ff.subs(x,0)!=0]
+            s.diff(gg,x).subs(x,0)==0]
 
 
 def target15(ff,gg):
@@ -151,25 +155,17 @@ def target15(ff,gg):
 
 assert conditions(F0,G0)==[True,True,True]
 target=target15(F0,G0)
-# (다)를 지운 이차·삼차 후보의 모든 실수해도 인수분해로 확인한다.
+# (다)를 지우고 적분상수 C=0으로 두면 차수 (3,2)에서 계수비교가 그대로 풀린다(오답 6의 근거).
 h=s.symbols('h',real=True)
-candidate_b=1-h
-candidate_c=h**2-h+1
-candidate_C=6-h*candidate_c
-last=s.factor(candidate_C*candidate_b)
-assert s.expand(last-(h-1)*(h-2)*(h**2+h+3))==0
-assert s.discriminant(h**2+h+3,h)<0
-alternatives=[]
-for hv in [1,2]:
-    ff=(x**3+h*x**2+candidate_C).subs(h,hv)
-    gg=(x**2+candidate_b*x+candidate_c).subs(h,hv)
-    assert conditions(ff,gg)[:2]==[True,True]
-    alternatives.append((ff,gg))
-assert [target15(ff,gg) for ff,gg in alternatives]==[9,6]
-check(15,target,[target15(*alternatives[1]),F0.subs(x,1),F0.subs(x,1)+1])
+alt_sol=s.solve(s.Poly(s.diff((x**3+h*x**2)*(b*x**2+w*x+c),x)-P,x).all_coeffs(),(h,b,w,c),dict=True)
+real_alt=[S for S in alt_sol if all(S[q].is_real for q in S)]
+assert real_alt==[{h:2,b:1,w:-1,c:3}]
+alternatives=[(x**3+2*x**2, x**2-x+3)]
+assert conditions(*alternatives[0])==[True,True,False]
+check(15,target,[target15(*alternatives[0]),F0.subs(x,1),F0.subs(x,1)+1])
 
 # 조건을 하나씩 지우고 나머지를 만족시키는 구체적 반례로 답이 달라짐을 보인다.
-counterexamples=[(2*F0,G0/2), (x**3+5,s.Integer(1)), alternatives[1]]
+counterexamples=[(2*F0,G0/2), (x**3+5,s.Integer(1)), alternatives[0]]
 for removed,(ff,gg) in enumerate(counterexamples):
     checks=conditions(ff,gg)
     assert not checks[removed]
@@ -177,6 +173,7 @@ for removed,(ff,gg) in enumerate(counterexamples):
     changed=target15(ff,gg)
     assert changed!=target
     print(f'ABLATION 15 {"가나다"[removed]}: 필요(F={ff}, G={gg}, 답 {changed} ≠ {target})')
+assert '측정 후 위원회 경량화' in IT[15]['note']
 
 # I59 원문: 하한 대입+미분으로 f, 다항식 계수 비교로 F,G를 유일 결정.
 fo=4*x-1

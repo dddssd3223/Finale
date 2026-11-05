@@ -131,54 +131,52 @@ ablation(10, "'(가)'", [sp.integrate(2*x - 6, (x, 4, 8)), sp.integrate(x - 3, (
 ablation(10, "'(나)'", [sp.integrate(sp.Rational(3, 2)*x + kk, (x, 4, 8)) for kk in [-3, 0]], 18, why='f=(3/2)x+k에서 k 미정')
 
 # ================= 12번 =================
-fc = x**4 - 6*x**2 + 6*x
+fc = x**3 + 3*x**2 - 4
 fp = sp.diff(fc, x)
-h = sp.expand(fp.subs(x, t)*(1 - t) + fc.subs(x, t))
-check(12, h == -3*t**4 + 4*t**3 + 6*t**2 - 12*t + 6 and sp.factor(sp.diff(h, t)) == -12*(t - 1)**2*(t + 1), f"h(t)={h}, h'={sp.factor(sp.diff(h, t))}")
-# 두 점에서 접하는 직선: f-(mx+n)=(x-p)^2(x-q)^2 계수 비교
-p_, q_, m_, n_ = sp.symbols('p q m n')
-eqs = sp.Poly(sp.expand(fc - (m_*x + n_) - (x - p_)**2*(x - q_)**2), x).all_coeffs()
-sols = [S for S in sp.solve(eqs, [p_, q_, m_, n_], dict=True) if S[p_] != S[q_] and S[p_].is_real]
-lines = {(S[m_], S[n_]) for S in sols}
-check(12, lines == {(6, -9)}, f'두 점에서 접하는 직선 {lines} (y=6x-9 하나뿐)')
+xi = sp.solve(sp.diff(fc, x, 2), x)[0]
+check(12, (xi, fc.subs(x, xi), fp.subs(x, xi)) == (-1, -2, -3) and sp.factor(fc) == (x - 1)*(x + 2)**2, '변곡점 (-1,-2), 변곡점에서의 접선의 기울기 -3, 곡선 (x-1)(x+2)^2')
+check(12, sp.expand(fc - (x - 1)) == sp.expand((x + 3)*(x + 1)*(x - 1)), '직선 y=x-1은 변곡점을 지나고 곡선과 x=-3,-1,1에서 만남')
+K = sp.expand(-(fp.subs(x, s)*(t - s) + fc.subs(x, s) - (t - 1)))      # 접선이 (t, t-1)을 지날 조건 K(s)=0
+check(12, K == sp.expand(2*s**3 - 3*(t - 1)*s**2 - 6*t*s + t + 3) and sp.expand(sp.diff(K, s) - 6*(s + 1)*(s - t)) == 0,
+      f"K(s)={K}, K'(s)={sp.factor(sp.diff(K, s))}")
+check(12, sp.expand(K.subs(s, -1) - 4*(t + 1)) == 0 and sp.expand(K.subs(s, t) + (t + 3)*(t + 1)*(t - 1)) == 0, 'K(-1)=4(t+1), K(t)=-(t+3)(t+1)(t-1)')
 
 
-def ntan(av):
-    """점 (1,av)에서 그은 서로 다른 접선의 개수 = h(t)=av 의 실근에서 (기울기, 절편) 서로 다른 것의 개수"""
-    roots = sp.Poly(h - av, t).real_roots()
-    L = set()
-    for rt in set(roots):
-        L.add((sp.nsimplify(sp.simplify(fp.subs(x, rt))), sp.simplify(fc.subs(x, rt) - rt*fp.subs(x, rt))))
-    return len({(sp.simplify(m), sp.simplify(n)) for m, n in L})
+def ntan(tv, curve=fc, line=lambda u: u - 1):
+    """점 (tv, line(tv))에서 그은 서로 다른 접선의 개수 (접점 s의 실근마다 (기울기, 절편)을 모아 센다)"""
+    cp = sp.diff(curve, x)
+    eq = sp.expand(cp.subs(x, s)*(tv - s) + curve.subs(x, s) - line(tv))
+    L = {(sp.simplify(cp.subs(x, rt)), sp.simplify(curve.subs(x, rt) - rt*cp.subs(x, rt))) for rt in set(sp.Poly(eq, s).real_roots())}
+    return len(L)
 
 
-# f(a)가 바뀔 수 있는 점: h의 극값(17), h의 정류점 값(t=1: h=1), 복접선 높이(-3)
-special = sorted({h.subs(t, c) for c in sp.solve(sp.diff(h, t), t)} | {6*1 - 9})
-check(12, special == [-3, 1, 17], f'후보 a {special}')
-eps = sp.Rational(1, 1000)
-disc = []
-for av in special:
-    l, m0, rgt = ntan(av - eps), ntan(av), ntan(av + eps)
-    print(f'    a={av}: f(a-ε)={l}, f(a)={m0}, f(a+ε)={rgt}')
-    if not (l == m0 == rgt):
-        disc.append(av)
-grid = [sp.Rational(k2, 2) for k2 in range(-20, 41)]
-cnt = {av: ntan(av) for av in grid}
-check(12, all(cnt[av] == (2 if av < 17 and av != -3 else (1 if av in (-3, 17) else 0)) for av in grid), 'a=-10..20 (0.5 간격) 접선 개수: a<17·a≠-3 이면 2, a=-3·17 이면 1, a>17 이면 0')
-check(12, disc == [-3, 17], f'불연속 a {disc}')
+def disc_points(curve=fc, line=lambda u: u - 1):
+    """개수가 바뀔 수 있는 t: 접점 방정식(s에 대한 삼차)의 판별식의 실근 → 그 점과 양옆을 비교"""
+    cp = sp.diff(curve, x)
+    eq = sp.expand(cp.subs(x, s)*(t - s) + curve.subs(x, s) - line(t))
+    dsc = sp.discriminant(eq, s)
+    cand = sorted(set(sp.Poly(dsc, t).real_roots()))
+    e = sp.Rational(1, 1000)
+    return cand, [c for c in cand if not (ntan(c - e, curve, line) == ntan(c, curve, line) == ntan(c + e, curve, line))]
+
+
+cand12, disc = disc_points()
+check(12, cand12 == [-3, -1, 1], f'판별식이 0인 t {cand12} (이 밖에서는 실근 개수 일정)')
+for tv in cand12:
+    print(f'    t={tv}: f(t-ε)={ntan(tv - sp.Rational(1, 1000))}, f(t)={ntan(tv)}, f(t+ε)={ntan(tv + sp.Rational(1, 1000))}')
+grid = [sp.Rational(k2, 4) for k2 in range(-32, 33)]
+check(12, all(ntan(tv) == (3 if (tv < -3 or tv > 1) else (2 if tv in (-3, 1) else 1)) for tv in grid),
+      't=-8..8 (0.25 간격) 접선 개수: t<-3·t>1 이면 3, t=-3·1 이면 2, -3<t<1 이면 1 (t=-1 포함)')
+check(12, disc == [-3, 1], f'불연속 t {disc} (변곡점 t=-1은 연속)')
 ans_ok(12, sum(disc))
-wrong_in(12, [17, 15, 18], '복접선 누락 17, 변곡점 높이 1 추가 15, 둘 다 18')
+ys = [t0 - 1 for t0 in disc]
+wrong_in(12, [sum(cand12), sum(ys), sum(ys) + (-2)], '변곡점 t=-1 포함 -3, 경계점의 y좌표 합 -4, 변곡점 y좌표까지 -6')
 print('--- 12번 조건 빼 보기 ---')
-
-
-def npts(av):
-    return len(set(sp.Poly(h - av, t).real_roots()))
-
-
-disc2 = [av for av in special if not (npts(av - eps) == npts(av) == npts(av + eps))]
-ablation(12, "'서로 다른 (접선)'(→ 접점의 개수)", [sum(disc2)], 14, why=f'접점 개수는 a={disc2}에서만 불연속')
-hb = sp.expand(h - 6)                       # 일차항 6x 를 빼면 h 가 6만큼 내려감 (복접선은 y=-9)
-ablation(12, "'곡선의 6x'(→ y=x^4-6x^2)", [sp.Integer(-9 + 11)], 14, why='불연속 a=-9, 11 (점 x=1 에서 높이가 6씩 내려감)')
+c2_, d2 = disc_points(line=lambda u: 4*u - 4)
+ablation(12, "'점이 변곡점을 지나는 직선 위'(→ 점 (t, 4t-4), 변곡점을 지나지 않음)", [sum(d2)], -2, why=f'불연속 t={d2}: 곡선과 만나는 세 점과 변곡점에서의 접선과 만나는 점 모두')
+c3_, d3 = disc_points(line=lambda u: -4*u - 6)
+ablation(12, "'직선의 기울기 1'(→ -4, 변곡점을 지나고 접선 기울기 -3보다 작음)", [], -2,
+         undef=f'곡선과 변곡점에서만 만나고 접선은 늘 1개, 불연속 t {d3}' if not d3 else None)
 
 # ================= 14번 =================
 v1 = 3*t**2 - 12*t + 9
