@@ -154,8 +154,9 @@ check(12, mn == -16 and mx == 5 and gfun(fk, 2, 2) == -16 and gfun(fk, 0, 2) == 
 hit = []
 for kv in [sp.Rational(i, 4) for i in range(-80, 161)]:
     fv = f12.subs(k, kv)
-    gm = min(gfun(fv, sp.Rational(i, 10), 2) for i in range(0, 31))
-    if abs(float(gm) + 16) < 0.6:
+    ts = [sp.Rational(i, 10) for i in range(0, 31)] + [r for r in sp.solve(fv.subs(x, t + 2) - fv.subs(x, t), t) if r.is_real and 0 <= r <= 3]
+    gm = min((gfun(fv, tv, 2) for tv in ts), key=lambda z: float(z))
+    if abs(float(gm) + 16) < 1e-9:
         hit.append(kv)
 check(12, hit == [4], f'k∈[-20,40] (0.25 간격) 전수: g 최솟값이 -16 근처인 k = {hit}')
 ans12 = mx - mn
