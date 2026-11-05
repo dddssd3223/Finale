@@ -98,7 +98,7 @@ def build(out):
     RV = os.environ.get('REVIEW_DIR', os.path.join(HERE, 'review'))
     MS = os.environ.get('MEASURE_DIR', '/home/user/Finale/output/build/기말/공동출제/풀이')
     meas = {}
-    for f in glob.glob(os.path.join(MS, os.environ.get('MEASURE_GLOB', '측정_1회*'), 'result.json')):
+    for f in sorted(glob.glob(os.path.join(MS, os.environ.get('MEASURE_GLOB', '측정_1회*'), 'result.json'))):   # 나중 측정이 앞 측정을 덮음
         for n, tag, t, d, bt, bd in _js.load(open(f))['rows']: meas[n] = (d, bd, t, bt)
     chosen = {str(n): it.get('cand') for n, it in list(C.ITEMS.items()) + list(C.SITEMS.items()) if it.get('cand')}
     GR = []
@@ -107,7 +107,7 @@ def build(out):
         if not re.fullmatch(r'(claudeB|claude|codex|draft)(\d+|S2)', c): continue
         R = _js.load(open(f)); n = c[-2:] if c.endswith('S2') else int(re.sub(r'\D', '', c))
         who = {'claude': 'Claude A팀', 'claudeB': 'Claude B팀', 'codex': 'Codex', 'draft': '이전 초안(대조군)'}[re.sub(r'(\d+|S2)$', '', c)]
-        ct = R.get('core_test', {}); sp = lambda v: ('불통' if str(v).lstrip().startswith('불통') else ('통' if str(v).lstrip().startswith('통') else '—'))
+        ct = R.get('core_test', {}); sp = lambda v: ('불통' if str(v).lstrip().startswith('불통') else '변형 통' if str(v).lstrip().startswith('변형') else ('통' if str(v).lstrip().startswith('통') else '—'))
         pick = chosen.get(str(n)) == c
         m = meas.get(20 if n == 'S2' else n) if pick else None
         mtxt = f'체감 {m[0]:.1f} (학교 {m[1]:.1f}, {m[0]-m[1]:+.1f}) · {m[2]:.1f}분' if m else '—'
