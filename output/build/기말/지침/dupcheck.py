@@ -88,8 +88,8 @@ HIGH = {17, 18, 'S2', '17', '18'}   # 구조 변경 필수 자리: 익스텐션�
 
 def verdict(ck, cr, same, no=None, src='EXT', d_id=''):
     """회차 유형(DUP_ROUND_TYPE=학교형|복습형, checkpart가 <회차>/round.json에서 넣음)
-    - 일반 익스텐션(GEN): 학교 스타일이면 그대로 써도 됨 → 1–16·서답형1은 허용(출처만 기록)
-    - 라이브(LIVE, 다른 학교 실제 기출): 그대로 가져오지 않음 → 같은 문항 금지, 숫자만 다른 것은 1–16 허용(변형 방식의 본보기)
+    - 익스텐션(일반 GEN·라이브 LIVE 모두): 그대로 가져오지 않음 → 같은 문항 금지. 숫자만 다른 것은 1–16 허용.
+      원문 숫자 변경이 아닌 독특한 변형(조건·대상·구조)은 아이디어로 참고해 다시 바꿔 쓴다.
     - 분석집: 같은 문항은 금지. 학교형 회차는 분석집 문항과 구조가 닮은 것(골격 0.60 이상)도 금지(분석집 저격 없음)
     - 17·18·서답형2: 어느 자료든 골격 0.60 미만(구조 변경)"""
     rt = os.environ.get('DUP_ROUND_TYPE', '학교형')
@@ -101,7 +101,7 @@ def verdict(ck, cr, same, no=None, src='EXT', d_id=''):
         if ck >= 0.85: return '허용(분석집 숫자만 다름, 복습형)'
         if ck >= 0.60: return '주의(분석집 구조 유사, 복습형)'
         return '통과'
-    if same_item: return '금지(라이브 동일 문항)' if str(d_id).startswith('LIVE') else '허용(익스텐션 그대로)'
+    if same_item: return '금지(라이브 동일 문항)' if str(d_id).startswith('LIVE') else '금지(익스텐션 동일 문항)'
     if ck >= 0.85: return '허용(숫자만 다름)'
     if ck >= 0.60: return '주의(구조 유사)'
     return '통과'
