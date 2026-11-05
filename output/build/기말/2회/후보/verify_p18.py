@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-# p18.py (2회 18번 Claude 후보, 원본 D45) 검증
-# 원문 풀이(102) · 설정 줄 불통 · (가)(나) 해석의 기호·격자 전수 조사(유일성) · 정답 = ② · 선지 등차 · 오답 값 · 조건 빼 보기 · 문장 길이 · 골격
+# p18.py (2회 18번 Claude 후보, 원본 D45) 검증 — 2차(검토 반영)
+# 원문 풀이(102) · 원리(극한 존재 ⇔ f'(a)=0) · 설정 줄 불통 · 경우 분기 기호·격자 전수 조사(유일성) · 정답 = ②
+# · 선지 등차 · 오답 값(선지 안) · 조건 빼 보기(빼면 선지만으로 답이 하나로 남지 않음) · 문장 길이 · 원문 골격
 import os, re, sys, itertools
 import sympy as sp
 from sympy import Rational as R
@@ -21,107 +22,90 @@ CH = [sp.nsimplify(v) for v in it['choices']]
 # ---------- 원문 D45 ----------
 b2, b1, b0 = sp.symbols('b2 b1 b0')
 fo = x**3 + b2*x**2 + b1*x + b0
-# (가) 극한 존재 ⇔ f(-2)=2, f'(-2)=0 ; (나) (3,5)에서 f>=f(4) ⇒ f'(4)=0
 so = sp.solve([fo.subs(x, -2) - 2, sp.diff(fo, x).subs(x, -2), sp.diff(fo, x).subs(x, 4)], [b2, b1, b0], dict=True)
 assert len(so) == 1
 fo = fo.subs(so[0])
 assert sp.expand(fo - (x**3 - 3*x**2 - 24*x - 26)) == 0
 assert sp.limit((fo - 2) / (x + 2)**2, x, -2).is_finite
-assert all(fo.subs(x, R(v, 10)) >= fo.subs(x, 4) for v in range(31, 50))      # x=4 극소
+assert all(fo.subs(x, R(v, 10)) >= fo.subs(x, 4) for v in range(31, 50))
 assert fo.subs(x, 8) == 102 and F.I['D45'][2] == '102'
 print('원문 D45: f=x^3-3x^2-24x-26, f(8)=102 OK')
 
-# ---------- 원리: lim (f(x)-f(a))/(x-a)^2 존재 ⇔ f'(a)=0 (다항함수) ----------
+# ---------- 원리: lim (f(x)-f(a))/(x-a)^2 존재 ⇔ f'(a)=0 ----------
 c = sp.symbols('c0:5')
 g = sum(c[k] * x**k for k in range(5))
-ratio = sp.cancel((g - g.subs(x, a)) / (x - a))           # = f'(a) + (x-a)·(...)
+ratio = sp.cancel((g - g.subs(x, a)) / (x - a))
 assert sp.expand(ratio.subs(x, a) - sp.diff(g, x).subs(x, a)) == 0
-# f'(a)≠0 이면 (f(x)-f(a))/(x-a)^2 = ratio/(x-a) → 좌우 ±∞ ; f'(a)=0 이면 다항식
-print("원리: 극한 존재 ⇔ f'(a)=0 (분자 (f(x)-f(a))/(x-a) → f'(a))")
+print("원리: (f(x)-f(a))/(x-a) → f'(a) 이므로 극한 존재 ⇔ f'(a)=0")
 
-# ---------- 설정 줄 불통 ----------
-# 원문 설정 줄: '두 극점이 정해지면 f'가 정해진다'. 사차에서는 f'(1)=f'(4)=0, f(0)=0, 최고차항 1이어도 f'=4(x-1)(x-4)(x-s)로 s가 남는다.
-s = sp.symbols('s')
-fam = sp.integrate(4*(t - 1)*(t - 4)*(t - s), (t, 0, x))
-vals = {sv: sp.expand(fam.subs(s, sv)).subs(x, 5) for sv in (1, 4, 0, 2)}
-assert len(set(vals.values())) == 4
-# 두 근 1, 4가 모두 극한 존재 점이어도 어느 쪽이 중근인지 두 가지가 남는다
-print('설정 줄 불통: 두 근 1, 4와 f(0)=0으로는 f가 정해지지 않음, f(5) =', vals)
+# ---------- 도구 ----------
+def fP(fp):
+    """f'(최고차항 4)로부터 f(0)=0인 f"""
+    return sp.expand(sp.integrate(fp.subs(x, t), (t, 0, x)))
 
-# ---------- 모형: f(0)=0, 최고차항 1인 사차함수 ↔ f'(x)=4x^3+3B x^2+2C x+D ----------
-def fP(roots_poly):
-    """f' (최고차항 4)로부터 f(0)=0인 f"""
-    return sp.expand(sp.integrate(roots_poly.subs(x, t), (t, 0, x)))
-
-def crit_set(f):
+def crit(f):
     return sorted(set(sp.real_roots(sp.Poly(sp.diff(f, x), x))))
 
-def ok_ga(f, need=('개수', '합')):
-    S = crit_set(f)
-    r = True
+def ok_ga(f, need=('개수', '정수', '합')):
+    S = crit(f); r = True
     if '개수' in need: r &= (len(S) == 2)
+    if '정수' in need: r &= all(s.is_integer for s in S)
     if '합' in need: r &= (sum(S) == 5)
     return bool(r)
 
 def ok_na(f):
-    """열린구간 (2,6)에서 최솟값이 f(4): f-f(4) >= 0 on (2,6) (실근·부호로 정확히 판정)"""
-    h = sp.Poly(sp.expand(f - f.subs(x, 4)), x)
-    rr = sorted(set(r for r in sp.real_roots(h) if 2 < r < 6))
-    pts = [2] + rr + [6]
-    for p_, q_ in zip(pts, pts[1:]):
-        m = (p_ + q_) / 2
-        if sp.N(h.eval(m), 30) < 0: return False
-    return True
+    """열린구간 (3,5)에서 최솟값 존재 ⇔ 구간 안 임계점 중 최소 f(c)가 f(3), f(5) 이하"""
+    cs = [s for s in crit(f) if 3 < s < 5]
+    if not cs: return False
+    m = min(f.subs(x, s) for s in cs)
+    return bool(m <= f.subs(x, 3) and m <= f.subs(x, 5))
 
-def ok(f, need=('개수', '합', '나')):
-    r = True
-    if '개수' in need or '합' in need: r &= ok_ga(f, tuple(k for k in need if k in ('개수', '합')))
+def ok(f, need=('개수', '정수', '합', '나')):
+    r = ok_ga(f, tuple(k for k in need if k != '나'))
     if '나' in need: r &= ok_na(f)
     return bool(r)
 
-# ---------- 기호: (가)의 개수 2 ⇔ f'=4(x-p)^2(x-q), p≠q ----------
-# 삼차 f'의 실근 구조: 서로 다른 세 실근(3개) / 이중근+단순근(2개) / 삼중근(1개) / 실근 하나+허근 둘(1개)
+# ---------- 설정 줄 불통 ----------
+# 원문 설정 줄: '두 극점이 정해지면 f'가 정해진다'. 사차에서는 두 근 1, 4를 알아도 어느 쪽이 중근인지(또는 셋째 근) 남는다.
+fam = {sv: fP(4*(x - 1)*(x - 4)*(x - sv)).subs(x, 5) for sv in (1, 4, 0)}
+assert len(set(fam.values())) == 3
+print("설정 줄 불통: f'(1)=f'(4)=0, f(0)=0, 최고차항 1이어도 f'=4(x-1)(x-4)(x-s)로 s가 남음, f(5) =", fam)
+
+# ---------- 기호: 근 구조와 (나) ----------
 for fp, n in ((4*(x+1)*(x-1)*(x-3), 3), (4*(x-1)**2*(x-4), 2), (4*(x-2)**3, 1), (4*(x-1)*(x**2+1), 1)):
-    assert len(crit_set(fP(fp))) == n
-# (나): x=4가 열린구간 안의 최솟값 → f'(4)=0, x=4에서 극소. f'=4(x-p)^2(x-q)에서
-p, q = sp.symbols('p q', real=True)
-# p=4(중근)이면 f'=4(x-4)^2(x-q): x=4 좌우에서 f' 부호 같음 → 극소 아님
-fpp = 4*(x - 4)**2*(x - q)
-e = sp.symbols('e', positive=True)
-assert sp.factor(fpp.subs(x, 4 - e) * fpp.subs(x, 4 + e)) == sp.factor(16*e**4*(4 - e - q)*(4 + e - q))   # q≠4이면 작은 e에서 양수: 부호 안 바뀜
-for qv in (1, -3, 7, R(5, 2)):
-    f_ = fP(4*(x - 4)**2*(x - qv))
-    assert not ok_na(f_)
-# q=4(단순근)이면 f'=4(x-p)^2(x-4): x<4 감소, x>4 증가 → (나) 성립 (p 무관)
-for pv in (-3, 0, 1, 3, 5, 9):
-    assert ok_na(fP(4*(x - pv)**2*(x - 4)))
-# 합 5 → p=1
-assert sp.solve(sp.Eq(p + 4, 5), p) == [1]
+    assert len(crit(fP(fp))) == n
+p, q, e = sp.symbols('p q e', real=True)
+fpq = 4*(x - p)**2*(x - q)
+assert sp.factor(fpq.subs(x, p - e) * fpq.subs(x, p + e)) == sp.factor(16*e**4*(p - e - q)*(p + e - q))      # 중근: 부호 그대로
+assert sp.factor(fpq.subs(x, q - e) * fpq.subs(x, q + e)) == sp.factor(-16*e**2*(q - e - p)**2*(q + e - p)**2)  # 단순근: 부호 바뀜
+# (나): 극소점이 q 하나뿐 → (3,5)에서 최솟값 존재 ⇔ 3<q<5  (q<=3: 증가, q>=5: 감소)
+for pv, qv, exp in ((1, 4, True), (7, R(7, 2), True), (4, 1, False), (0, 3, False), (0, 5, False), (4, R(9, 2), True)):
+    assert ok_na(fP(4*(x - pv)**2*(x - qv))) == exp, (pv, qv)
+sols_int = [(pv, 5 - pv) for pv in range(-30, 31) if pv != 5 - pv and 3 < 5 - pv < 5]
+assert sols_int == [(1, 4)]
 fA = fP(4*(x - 1)**2*(x - 4))
 assert sp.expand(fA - (x**4 - 8*x**3 + 18*x**2 - 16*x)) == 0
 assert sp.expand(fA - ((x - 1)**3*(x - 5) - 5)) == 0
-assert ok(fA) and crit_set(fA) == [1, 4]
-# 극한값 직접 확인: a=1(0), a=4(존재), 다른 점(없음)
-assert sp.limit((fA - fA.subs(x, 1)) / (x - 1)**2, x, 1) == 0
-assert sp.limit((fA - fA.subs(x, 4)) / (x - 4)**2, x, 4) == 18
-assert sp.limit((fA - fA.subs(x, 2)) / (x - 2)**2, x, 2, '+') == -sp.oo and sp.limit((fA - fA.subs(x, 2)) / (x - 2)**2, x, 2, '-') == sp.oo   # f'(2)=-8≠0
+r_ = sp.symbols('r')
+assert sp.solve(sp.Poly(sp.expand(sp.diff((x - 1)**3*(x - r_), x) - 4*(x - 1)**2*(x - 4)), x).coeffs(), r_, dict=True) == [{r_: 5}]
+assert ok(fA) and crit(fA) == [1, 4]
 ans = fA.subs(x, 5)
-assert ans == -5 and CH[it['ans'] - 1] == ans
-print(f'유일한 f(x) = {fA} = (x-1)^3(x-5)-5, f(5) = {ans} = ②')
+assert ans == -5 == fA.subs(x, 1) and CH[it['ans'] - 1] == ans
+print(f'유일한 f(x) = {fA} = (x-1)^3(x-5)-5, f(5) = f(1) = {ans} = ②')
 
 # ---------- 격자 전수 조사: f'의 근 구조 전부 ----------
-G = [R(k, 2) for k in range(-6, 17)]          # -3 ~ 8, 0.5 간격
+Gr = [R(k, 2) for k in range(-6, 17)]           # -3 ~ 8, 0.5 간격
 sols = set(); cnt = 0
-for r1, r2, r3 in itertools.combinations_with_replacement(G, 3):
+for r1, r2, r3 in itertools.combinations_with_replacement(Gr, 3):
     f_ = fP(4*(x - r1)*(x - r2)*(x - r3)); cnt += 1
     if ok(f_): sols.add((r1, r2, r3))
-for r1 in G:                                   # 실근 하나 + 허근 둘 (개수 1이라 (가) 불만족 확인)
+for r1 in Gr:                                    # 실근 하나 + 허근 둘
     for al in (0, 2, 4):
         for be in (1, 2):
             f_ = fP(4*(x - r1)*((x - al)**2 + be**2)); cnt += 1
-            assert not ok_ga(f_)
+            assert not ok_ga(f_, ('개수',))
 assert sols == {(1, 1, 4)}, sols
-print(f'격자 {cnt}개 f\' 중 (가)(나)를 모두 만족시키는 것은 f\'=4(x-1)^2(x-4) 하나')
+print(f"격자 {cnt}개 f' 중 (가)(나)를 모두 만족시키는 것은 f'=4(x-1)^2(x-4) 하나")
 
 # ---------- 선지 ----------
 dif = {CH[i + 1] - CH[i] for i in range(4)}
@@ -129,50 +113,73 @@ assert len(set(CH)) == 5 and dif == {5}
 print('선지', [str(v) for v in CH], '공차 5 (오름차순), 정답 ②')
 
 # ---------- 오답 (선지 안) ----------
-W1 = fP(4*(x - 1)*(x - 4)**2)                 # x=4를 f'의 중근으로 (나의 부호 판단 생략)
-W2 = sp.expand((x - 1)**2*(x - 4)**2 - 16)    # 원문식: 두 점마다 제곱 인수, 높이 같다고 둠
-assert W2.subs(x, 0) == 0
-assert ok(W1, ('개수', '합')) and not ok_na(W1) and sp.diff(W1, x).subs(x, 4) == 0       # (가) 만족, (나)만 위반
-assert ok_na(W2) and crit_set(W2) == [1, R(5, 2), 4] and not ok_ga(W2, ('개수',))          # (나) 만족, (가) 개수 3
+W1 = fP(4*(x - 1)*(x - 4)**2)                    # 구간 안 정수 4를 f'의 중근으로 (최솟값 판별 생략)
+assert ok_ga(W1) and not ok_na(W1)               # (가) 만족, (나)만 위반
+assert sp.diff(W1, x).subs(x, R(7, 2)) > 0 and sp.diff(W1, x).subs(x, R(9, 2)) > 0   # (3,5)에서 증가
+assert sp.expand(W1 - (x**4 - 12*x**3 + 48*x**2 - 64*x)) == 0
+W2 = sp.expand((x - 1)**3*(x - 5))               # f(0)=0을 빠뜨림 (f(1)=0으로 둠)
+assert ok(W2) and W2.subs(x, 0) != 0
 w1, w2 = W1.subs(x, 5), W2.subs(x, 5)
 assert (w1, w2) == (5, 0)
-assert [str(w) for w in (w2, w1)] == it['wrongs'] and all(sp.nsimplify(w) in CH for w in it['wrongs'])
-for s_ in ('5', '0', 'x^4-12x^3+48x^2-64x', '(x-1)^2(x-4)^2-16'):
+assert sorted(it['wrongs'], key=int) == ['0', '5'] and all(sp.nsimplify(w) in CH for w in it['wrongs'])
+for s_ in ('5', '0', '4(x-1)(x-4)^2', 'x^4-12x^3+48x^2-64x', 'f(x)=(x-1)^3(x-5)'):
     assert s_ in it['wrong'], s_
-print('오답 (선지 안): 5 (x=4를 중근으로 — (나) 위반), 0 (제곱 인수 두 개 — (가) 개수 3)')
+print("오답 (선지 안): 5 (4를 f'의 중근으로 — (나) 위반), 0 (f(0)=0을 빠뜨려 f=(x-1)^3(x-5))")
 
 # ---------- 조건 빼 보기 ----------
 print('--- 조건 빼 보기 ---')
-# (가) 개수 빼기: 합 5, (나)만 → 서로 다른 세 근 (예: -1, 2, 4) 등도 가능
-alt = fP(4*(x + 1)*(x - 2)*(x - 4))
-assert ok(alt, ('합', '나')) and not ok(alt)
-print(f"ABLATION 18 (가) 개수 2: 필요(정해지지 않음: 합·(나)만이면 f'=4(x+1)(x-2)(x-4)도 만족, f(5)={alt.subs(x, 5)})")
-# (가) 합 빼기: 개수 2, (나)만 → f'=4(x-p)^2(x-4) (p≠4 모두)
-altv = {pv: fP(4*(x - pv)**2*(x - 4)).subs(x, 5) for pv in (0, 2, 3)}
-assert all(ok(fP(4*(x - pv)**2*(x - 4)), ('개수', '나')) for pv in altv) and len(set(altv.values()) | {ans}) == 4
-print(f'ABLATION 18 (가) 합 5: 필요(정해지지 않음: p=0→{altv[0]}, p=2→{altv[2]}, p=3→{altv[3]})')
-# (나) 빼기: (가)만 → f'=4(x-p)^2(x-q), p+q=5 (예: 중근 4·단순근 1, 중근 2·단순근 3)
-alt2 = fP(4*(x - 2)**2*(x - 3))
-assert ok(W1, ('개수', '합')) and ok(alt2, ('개수', '합')) and not ok_na(alt2)
-print(f'ABLATION 18 (나): 필요(정해지지 않음: (가)만이면 {w1}(x=4 중근), {alt2.subs(x, 5)}(p=2, q=3) 등)')
-# f(0)=0 빼기: 상수항 자유 → f(5) 정해지지 않음
-assert ok(fA + 3) and (fA + 3).subs(x, 5) != ans
-print(f'ABLATION 18 f(0)=0: 필요(정해지지 않음: f+3도 (가)(나) 만족, f(5)={(fA + 3).subs(x, 5)})')
-# 어느 조건을 빼도 그 조건만 어긴 자연스러운 오답이 선지 안에 있다: (나)의 부호 판단 → 5, (가)의 개수 → 0
-print('조건 하나만 어긴 값: (나) 부호 판단 생략 → 5(④), (가) 개수 확인 생략 → 0(③) — 선지만으로 조건을 건너뛸 수 없음')
+# 경우 분기 전수: 정수 근·합 5에서 (나)를 만족시키는 근 구조
+three, dbl_ok = [], []
+for u, v in itertools.combinations(range(-20, 26), 2):
+    w = 5 - u - v
+    if w > v:
+        f_ = fP(4*(x - u)*(x - v)*(x - w))
+        if ok_na(f_): three.append(((u, v, w), f_.subs(x, 5)))
+    for d_, s_ in ((u, v), (v, u)):
+        if d_ + s_ == 5 and ok_na(fP(4*(x - d_)**2*(x - s_))): dbl_ok.append((d_, s_))
+assert dbl_ok == [(1, 4)] and not ok_na(fP(4*(x - 5)**3)) and not ok_na(fP(4*(x - 5)*(x**2 + 1)))
+assert len(three) >= 2 and all(v_ != ans for _, v_ in three)
+print(f"경우 분기: 실근 하나(5)·삼중근은 (나) 불만족, 중근+단순근은 (중근 1, 단순근 4)만, 세 정수 근은 개수 조건으로 제외")
+print(f"ABLATION 18 (가) 개수: 필요(정해지지 않음: 세 정수 근(합 5)도 (나) 만족 {len(three)}개, 예 {three[0][0]}→f(5)={three[0][1]}, {three[1][0]}→{three[1][1]})")
+altv = {}
+for pv in (R(1, 2), R(3, 2), R(3, 4)):
+    f_ = fP(4*(x - pv)**2*(x - (5 - pv)))
+    assert ok(f_, ('개수', '합', '나')) and not ok(f_)
+    altv[pv] = f_.subs(x, 5)
+assert len(set(altv.values()) | {ans}) == 4
+print(f'ABLATION 18 (가) 정수: 필요(정해지지 않음: p=1/2→{altv[R(1,2)]}, p=3/2→{altv[R(3,2)]}, p=3/4→{altv[R(3,4)]})')
+altw = {}
+for pv in (0, 2, -1, 3):
+    f_ = fP(4*(x - pv)**2*(x - 4))
+    assert ok(f_, ('개수', '정수', '나')) and not ok(f_)
+    altw[pv] = f_.subs(x, 5)
+assert len(set(altw.values()) | {ans}) == 5 and ans not in altw.values()
+print(f"ABLATION 18 (가) 합 5: 필요(정해지지 않음: f'=4(x-p)^2(x-4), p=0→{altw[0]}, p=2→{altw[2]}, p=-1→{altw[-1]}, p=3→{altw[3]})")
+altn = {}
+for pv in range(-6, 12):
+    qv = 5 - pv
+    if pv == qv: continue
+    f_ = fP(4*(x - pv)**2*(x - qv))
+    assert ok(f_, ('개수', '정수', '합'))
+    altn[(pv, qv)] = f_.subs(x, 5)
+listed = {k: v for k, v in altn.items() if v in CH}
+assert listed == {(1, 4): -5, (4, 1): 5}, listed
+print(f'ABLATION 18 (나): 필요(정해지지 않음: (가)만이면 (중근,단순근)=(1,4)→-5, (4,1)→5 둘 다 선지에 있음, 그 밖 (2,3)→{altn[(2, 3)]}, (0,5)→{altn[(0, 5)]} 등)')
+assert (fA + 7).subs(x, 5) != ans and ok(fA + 7)
+print('ABLATION 18 f(0)=0: 필요(정해지지 않음: 상수항 자유, f(1)=0으로 두면 0이 선지에 있음)')
+print('조건 하나만 어긴 값: (나) 최솟값 판별 생략 → 5(④), f(0)=0 빠뜨림 → 0(③) — 선지만 보고 조건을 건너뛸 수 없음')
 
-# ---------- 문장 길이 (태그·공백 제거, 조건 포함) ----------
+# ---------- 문장 길이 ----------
 L = lambda html: len(re.sub(r'\s', '', re.sub(r'<[^>]+>', '', html)))
 Lo = L(F.I['D45'][0]); Lm = L(it['body'] + COND(it['cond']))
 assert Lo == 184 and Lm >= Lo, (Lo, Lm)
 print(f'문장 길이: 원문 {Lo}자, 변형 {Lm}자 (조건 {len(it["cond"])}개, 원문 2개)')
 
-# ---------- 원문과의 골격 (dupcheck 방식 6글자 조각 Jaccard) ----------
+# ---------- 원문 골격 ----------
 import dupcheck as DC
-A = set(DC.shingles(DC.skel(DC.norm(it['body'] + COND(it['cond']))))); B = set(DC.shingles(DC.skel(DC.norm(F.I['D45'][0]))))
-jd = len(A & B) / len(A | B)
+A_ = set(DC.shingles(DC.skel(DC.norm(it['body'] + COND(it['cond']))))); B_ = set(DC.shingles(DC.skel(DC.norm(F.I['D45'][0]))))
+jd = len(A_ & B_) / len(A_ | B_)
 assert jd <= 0.25, jd
 print(f'원문 골격 유사도 {jd:.2f} (17·18 목표 0.25 이하)')
-# 줄 바꾼 식 없음 (원문도 없음)
 assert '\\[' not in it['body'] + COND(it['cond'])
 print('ALL OK')
