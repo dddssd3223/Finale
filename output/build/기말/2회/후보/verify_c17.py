@@ -11,7 +11,7 @@ R = s.Rational
 it = runpy.run_path(str(Path(__file__).with_name('c17.py')))['ITEMS'][17]
 assert it['key'] == 'M31' and it['author'] == 'codex' and it['cand'] == 'codex17'
 assert '(검토 반영: Claude 수정)' in it['var']
-assert '않는다 .' not in it['cond'][0][1] and it['cond'][0][1].endswith('<u>않는</u>다.')
+assert ' .' not in it['cond'][0][1] and '<u>존재하지 않는</u> 실수' in it['cond'][0][1]
 
 
 def distinct_real(poly):
