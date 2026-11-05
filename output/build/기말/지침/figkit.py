@@ -41,7 +41,7 @@ def pua(t, it=True):
         elif ch.isupper(): o += chr(0xE000 + ord(ch) - 65)
         elif ch.isdigit(): o += chr(0xE03D if ch == '0' else 0xE034 + int(ch) - 1)
         elif ch == ' ': o += '\u2009'   # 수식 글꼴에 공백 글리프가 없음 → 좁은 공백(대체 글꼴)
-        else: o += {'-': chr(0xE046), '=': chr(0xE047), '(': chr(0xE044), ')': chr(0xE045), ',': chr(0xE052), '+': chr(0xE048), '|': chr(0xE04D), ':': chr(0xE04F), ';': chr(0xE04E)}.get(ch, ch)
+        else: o += {'-': chr(0xE046), '=': chr(0xE047), '(': chr(0xE044), ')': chr(0xE045), ',': chr(0xE052), '+': chr(0xE048), '|': chr(0xE04D), ':': chr(0xE04F), ';': chr(0xE04E), "'": chr(0xE050), '.': chr(0xE053), '/': chr(0xE054), '<': chr(0xE055), '>': chr(0xE056)}.get(ch, ch)
     return o
 
 def new(xl, yl, size=(2.6, 2.0), aspect='auto', xlabel='x', ylabel='y', origin=True, dx=0.12, dy=0.12):

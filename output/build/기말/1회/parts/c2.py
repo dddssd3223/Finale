@@ -5,11 +5,9 @@ ITEMS = {
     10: dict(
         body=r"""함수 \(y=f(x)\)의 그래프가 그림과 같다. 양수 \(k\)에 대하여 함수 \(f(x)\)는
 \[f(x)=kx(x-3)(x-4)\]
-이다. 곡선 \(y=f(x)\)와 \(x\)축이 원점 \(O\)와 두 점 \(P\), \(Q\)에서 만난다. 두 점 \(P\), \(Q\)의 \(x\)좌표는 각각 \(3\), \(4\)이다.
-<div class="fig"><img src="fig_c_10.svg" style="width:150pt"></div>
-곡선 \(y=f(x)\)와 선분 \(OP\), 곡선 \(y=f(x)\)와 선분 \(PQ\)로 둘러싸인 영역을 각각 \(A\), \(B\)라 하자.
-\[(A\text{의 넓이})-(B\text{의 넓이})=32\]
-일 때, \(f(1)\)의 값은?""",
+이다. 곡선 \(y=f(x)\)와 \(x\)축이 원점 \(\mathrm{O}\)와 두 점 \(\mathrm{P}\), \(\mathrm{Q}\)에서 만난다. 두 점 \(\mathrm{P}\), \(\mathrm{Q}\)의 \(x\)좌표는 각각 \(3\), \(4\)이다.
+<div class="fig"><img src="fig_10.svg" style="width:150pt"></div>
+곡선 \(y=f(x)\)와 선분 \(\mathrm{OP}\), 곡선 \(y=f(x)\)와 선분 \(\mathrm{PQ}\)로 둘러싸인 영역을 각각 \(A\), \(B\)라 하자. \(A\)의 넓이와 \(B\)의 넓이의 차가 \(32\)일 때, \(f(1)\)의 값은?""",
         choices=['17', '18', '19', '20', '21'], ans=2, key='J61',
         src='2024학년도 수능 6월 모의평가 10번', author='codex',
         vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
@@ -44,7 +42,7 @@ ITEMS = {
         body=r"""함수 \(y=f'(x)\)의 그래프가 그림과 같고,
 \[f'(x)=\begin{cases}-4(x+1)&(x\le-1)\\4(1-x^2)&(-1&lt;x&lt;2)\\12(x-3)&(x\ge2)\end{cases}\]
 이다.
-<div class="fig"><img src="fig_c_14.svg" style="width:165pt"></div>
+<div class="fig"><img src="fig_14.svg" style="width:165pt"></div>
 함수 \(g(x)=f(x)-kx\)가 극값을 갖는 \(x\)의 개수가 \(4\)가 되도록 하는 모든 정수 \(k\)의 합은?""",
         choices=['6', '7', '8', '9', '10'], ans=1, key='D28',
         src='학교 자체 출제', author='codex',

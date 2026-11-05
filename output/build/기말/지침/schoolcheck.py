@@ -62,6 +62,14 @@ def check_item(n, it, rt):
     if d is not None:
         lo, hi = DIST['top'] if b == '17–18' else DIST['front'] if b != '서답' else (0, 1)
         if not (lo <= d <= hi): warn.append(f'원문 골격 유사도 {d:.2f} (학교 {b} 범위 {lo:.2f}–{hi:.2f})')
+    try:
+        import items_final as F
+        o = F.I.get(it.get('key'))
+    except Exception: o = None
+    if o:   # 원문에 없던 줄 바꾼 식(조각함수 제외) — 억지 들여쓰기 (1회 지적)
+        dv = [x for x in re.findall(r'\\\[(.*?)\\\]', body(it), re.S) if 'cases' not in x]
+        do = [x for x in re.findall(r'\\\[(.*?)\\\]', o[0], re.S) if 'cases' not in x]
+        if len(dv) > len(do): warn.append(f'줄 바꾼 식 {len(dv)}개 (원문 {len(do)}개) — 원문에 없던 짧은 식은 문장 안에')
     ch = it.get('choices') or []
     if ch and not str(ch[0]).startswith('T:'):
         v = [val(c) for c in ch]

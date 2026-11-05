@@ -214,43 +214,9 @@ first_half_tail = S.integrate(6*x*(1-x), (x, S.Rational(1, 2), 1))
 original('I70', first_half_tail+sum(old_signs[0][1:]))
 
 
-def figures():
-    os.environ.setdefault('MPLCONFIGDIR', '/tmp/finale-codex-mpl')
-    sys.path.insert(0, str(HERE.parents[1] / '지침'))
-    import figkit as K
-    # J61: 원점부터 큰 양의 영역, 다음 근부터 작은 음의 영역, 오른쪽 위로 뻗는 삼차곡선.
-    fig, ax = K.new((-0.45, 4.9), (-7, 23), size=(2.9, 2.0), dx=.08, dy=.07)
-    f = lambda z: 3*z*(z-3)*(z-4)
-    K.shade(ax, f, 0, 3)
-    K.shade(ax, f, 3, 4)
-    K.curve(ax, f, -.13, 4.6)
-    for r in (0, 3, 4):
-        K.dot(ax, r, 0, ms=2.4)
-    K.label(ax, 1.25, 5, 'A', size=11)
-    K.label(ax, 3.52, -1.2, 'B', size=9, bg=True)
-    K.label(ax, 3, 1.4, 'P', size=9)
-    K.label(ax, 4, -1.7, 'Q', size=9)
-    K.label(ax, 4.0, 12, 'y=f(x)', size=9)
-    K.save(fig, HERE / 'fig_c_10.svg')
-    # D28: 왼쪽 감소 직선, x=-1부터 이어지는 봉우리, x=2의 골, 오른쪽 증가 직선.
-    fig, ax = K.new((-3.1, 4.15), (-16, 8), size=(3.1, 2.0), dx=.07, dy=.07)
-    K.curve(ax, lambda z: -4*(z+1), -2.8, -1)
-    K.curve(ax, lambda z: 4*(1-z*z), -1, 2)
-    K.curve(ax, lambda z: 12*(z-3), 2, 3.55)
-    K.dash(ax, [0, 2, 2], [-12, -12, 0])
-    for r in (-1, 1, 3):
-        K.label(ax, r, -1.3, str(r), va='top', size=9)
-    K.label(ax, 2, 1.0, '2', va='bottom', size=9)
-    K.label(ax, -.18, 4.4, '4', ha='right', size=9)
-    K.label(ax, -.18, -12, '-12', ha='right', size=9)
-    K.label(ax, 2.1, 6, "y=f'(x)", size=9)
-    K.save(fig, HERE / 'fig_c_14.svg')
-
-
-if '--figures' in sys.argv:
-    figures()
+# 그림은 Claude가 figkit(시험지 수식 글꼴)으로 다시 그림: ../figs/fig10.py, ../figs/fig14.py
 for no in (10, 14):
-    path = HERE / f'fig_c_{no}.svg'
+    path = HERE / f'fig_{no}.svg'
     assert path.exists()
     assert ET.parse(path).getroot().tag.endswith('svg')
     assert path.name in IT[no]['body']
