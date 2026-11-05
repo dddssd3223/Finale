@@ -22,6 +22,19 @@ def src(k):
 
 def has_fig(k): return 'fig' in F.I[k][0]
 
+# 소재 (1회 지적: 수직선 운동 4문항 겹침). 원문 본문 키워드로 분류, 한 회 상한
+import re as _re
+TOPIC_LIMIT = {'수직선 운동': 2, '넓이': 3, '적분함수': 3, '평행이동·주기': 2, '접선': 2, '실근·교점 개수': 3}
+def topics(k):
+    t = F.I[k][0]; out = set()
+    if '수직선 위를 움직이는' in t or '속도' in t: out.add('수직선 운동')
+    if '넓이' in t: out.add('넓이')
+    if _re.search(r'\\int_\{?[^}]{0,6}\}?\^\{?x|\\int_x', t): out.add('적분함수')
+    if _re.search(r'[fg]\(x[+-]\d\)', t): out.add('평행이동·주기')
+    if '접선' in t: out.add('접선')
+    if '실근' in t or '만나는 점의 개수' in t or '교점' in t: out.add('실근·교점 개수')
+    return out
+
 def score(k, slot=None):
     l = L.get(k, {}); n = l.get('n', 0); yr = l.get('years', {})
     s = math.log1p(n) + 0.4 * math.log1p(yr.get('2024', 0) + yr.get('2025', 0)) + (0.2 if k in STUDY else 0)
@@ -37,6 +50,9 @@ def rank():
 
 def plan(rtype, used=()):
     used = set(used); quota = dict(QUOTA); pick = {}
+    def topic_ok(k):
+        cnt = collections.Counter(tp for v in pick.values() for tp in topics(v))
+        return all(cnt[tp] + 1 <= TOPIC_LIMIT[tp] for tp in topics(k))
     order = [s for s in SLOTS if s[0] in (17, 18, 'S2', 15, 16)] + [s for s in SLOTS if s[0] not in (17, 18, 'S2', 15, 16)]
     def cands(no, sv, rng, need_fig=None):
         out = []
@@ -50,6 +66,7 @@ def plan(rtype, used=()):
             if not (rng[0] <= F.D[k][0] <= rng[1]): continue
             if isinstance(no, int) and no <= 8 and has_fig(k): continue          # 1–8번 그림 없음
             if need_fig is not None and has_fig(k) != need_fig: continue
+            if not topic_ok(k): continue                                           # 소재 겹침 상한
             sc = score(k, no if isinstance(no, int) else 20)
             if no == 'S1': sc += math.log1p(L.get(k, {}).get('seo', 0))       # 서술형 출제 이력
             if rtype == '복습형' and k in STUDY and isinstance(no, int) and no <= 16: sc += 1.0
@@ -68,7 +85,7 @@ def plan(rtype, used=()):
         c = cands(no, sv, (rng[0] - 1, rng[1] + 1), need_fig=True)
         if c: pick[no] = c[0][1]; quota[c[0][1][0]] -= 1; figs.append(no)
         else: pick[no] = old; quota[old[0]] -= 1
-    return {str(n): dict(key=k, src=src(k), level=F.D[k][0], live=L.get(k, {}).get('n', 0), score=round(score(k), 2), fig=has_fig(k), study=k in STUDY)
+    return {str(n): dict(key=k, src=src(k), level=F.D[k][0], live=L.get(k, {}).get('n', 0), score=round(score(k), 2), fig=has_fig(k), study=k in STUDY, topics=sorted(topics(k)))
             for n, k in sorted(pick.items(), key=lambda z: 19 if z[0] == 'S1' else 20 if z[0] == 'S2' else z[0])}
 
 if __name__ == '__main__':
@@ -77,3 +94,4 @@ if __name__ == '__main__':
         P = plan(sys.argv[3], sys.argv[4].split(',') if len(sys.argv) > 4 and sys.argv[4] else ())
         print(json.dumps(P, ensure_ascii=False, indent=1))
         print('단원', collections.Counter(v['key'][0] for v in P.values()), '출처', collections.Counter(v['src'] for v in P.values()), '그림', [n for n, v in P.items() if v['fig']])
+        print('소재', dict(collections.Counter(tp for v in P.values() for tp in v['topics'])), '상한', TOPIC_LIMIT)

@@ -76,6 +76,12 @@ def check_item(n, it, rt):
             if nz(x) not in dan_o: warn.append(f'원문과 다른 단서 (단,{x.strip()[:40]}) — 원문 단서 그대로, 범위를 좁히거나 새로 붙이지 않음 (1회 16번)')
         if len(dv) > len(do): warn.append(f'줄 바꾼 식 {len(dv)}개 (원문 {len(do)}개) — 원문에 없던 짧은 식은 문장 안에')
     ch = it.get('choices') or []
+    if ch:   # 그럴듯한 오답이 선지 안에 (1회 지적)
+        ws = [str(w) for w in (it.get('wrongs') or [])]
+        bad = [w for w in ws if w not in [str(c) for c in ch]]
+        need = 2 if b in ('13–16', '17–18') else 1
+        if bad: warn.append(f'wrongs {bad}가 선지에 없음')
+        if len(ws) - len(bad) < need: warn.append(f'선지 안 그럴듯한 오답 {len(ws) - len(bad)}개 (기준 {need}개 이상, wrongs 필드)')
     if ch and not str(ch[0]).startswith('T:'):
         v = [val(c) for c in ch]
         if None not in v and len(v) == 5:
@@ -110,6 +116,16 @@ def round_(d):
     else: out.append(('분석집 문항 = 1–16의 절반(8) (복습형)', len(bun) == 8, bun))
     if rt == '학교형': out.append(('분석집 저격 0 (학교형)', not bun, bun))
     out.append(('내림차순 선지 ≤2 (학교 17개 중 2)', len(desc) <= 2, desc))
+    num = [(lambda v: (v[1] - v[0]) if None not in v and len(v) == 5 else None)([val(c) for c in it.get('choices') or []]) for it in its.values()]
+    d1 = sum(1 for x in num if x is not None and abs(x) == 1); nn = sum(1 for x in num if x is not None)
+    out.append((f'공차 1 선지 10–13개 (학교 17개 중 10, 숫자 선지 {nn}개)', 10 <= d1 <= 13, d1))
+    tc = collections.Counter()
+    try:
+        sys.path.insert(0, HERE); import predict as _P
+        for n, it in list(its.items()) + list(S.items()):
+            if it.get('key') in _P.F.I: tc.update(_P.topics(it['key']))
+        out.append(('소재 상한 (1회 지적: 수직선 운동 ≤2 등)', all(tc[t] <= _P.TOPIC_LIMIT[t] for t in tc), dict(tc)))
+    except Exception as e: out.append(('소재 상한', False, f'검사 실패 {e}'))
     out.append(('그림 2–3개, 모두 9번 이후', 2 <= len(figs) <= 3 and all(int(n) >= 9 for n in figs), figs))
     out.append(('정답 ①–⑤ 각 3–4', all(3 <= ans.get(k, 0) <= 4 for k in range(1, 6)), dict(sorted(ans.items()))))
     print(f'== 회차 분포 ({rt})')

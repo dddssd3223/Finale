@@ -61,7 +61,12 @@ jobs:
             BR="codex/${TNAME}"
             git checkout -B "$BR" "$BASE"
             mkdir -p "output/build/기말/${ROUND}/parts"
-            PROMPT="AGENTS.md를 먼저 읽고 그대로 따른다. 작업 지시서 ${TASK}에 적힌 번호만 출제한다. 결과물은 작업 지시서에 적힌 파일이다(적혀 있지 않으면 output/build/기말/${ROUND}/parts/c*.py 와 verify_c*.py, 그림은 같은 폴더 fig_c_*.svg. 17·18 후보는 output/build/기말/${ROUND}/후보/). 각 verify 스크립트가 ALL OK, checkpart.py가 통과할 때까지 고친다. 마지막에 작업 지시서에 적힌 보고서 파일(없으면 output/build/기말/${ROUND}/parts/CODEX_REPORT.md)에 문항별 전문 요약·정답·변형 요약·검사 결과를 쓴다. git commit/push는 하지 않는다(워크플로가 한다)."
+            # 토큰 절약 1: 지침 전문(AGENTS·front·BRIEF)을 항상 같은 순서로 프롬프트 맨 앞에 고정 → 프롬프트 캐시. 작업 지시는 맨 뒤.
+            BRIEF="output/build/기말/${ROUND}/BRIEF.md"; [ -f "$BRIEF" ] || BRIEF="output/build/기말/견본3/BRIEF.md"
+            GUIDE="$(printf '# 지침 전문 (AGENTS.md · 지침/front.md · %s). 이 세 파일은 아래에 이미 다 있으니 다시 열지 않는다.\n\n' "$BRIEF"; cat AGENTS.md; printf '\n\n---\n# output/build/기말/지침/front.md\n\n'; cat output/build/기말/지침/front.md; printf '\n\n---\n# %s\n\n' "$BRIEF"; cat "$BRIEF")"
+            TASKTXT="작업 지시서 ${TASK}에 적힌 번호만 출제한다. 결과물은 작업 지시서에 적힌 파일이다(적혀 있지 않으면 output/build/기말/${ROUND}/parts/c*.py 와 verify_c*.py. 17·18 후보는 output/build/기말/${ROUND}/후보/). 그림 파일은 만들지 않는다(Claude가 그린다). 각 verify 스크립트가 ALL OK, checkpart.py가 통과할 때까지 고친다. 보고서 파일은 쓰지 않는다(토큰 절약 5: 내용은 문항 파일에 있다). 마지막 답은 한 줄(맡은 번호·정답·ALL OK 여부)로 끝낸다. git commit/push는 하지 않는다(워크플로가 한다)."
+            PROMPT="$(printf '%s\n\n---\n# 이번 작업\n%s' "$GUIDE" "$TASKTXT")"
+            if [ "$(printf '%s' "$PROMPT" | wc -c)" -gt 120000 ]; then echo "::warning::지침이 120KB를 넘어 파일 읽기 방식으로 대체"; PROMPT="AGENTS.md, output/build/기말/지침/front.md, ${BRIEF}를 먼저 읽고 그대로 따른다. ${TASKTXT}"; fi
             MODEL="$(grep -m1 '^MODEL:' "$TASK" | sed 's/^MODEL:[ ]*//')"; EFFORT="$(grep -m1 '^EFFORT:' "$TASK" | sed 's/^EFFORT:[ ]*//')"
             OPTS=""; [ -n "$MODEL" ] && OPTS="$OPTS -m $MODEL"; [ -n "$EFFORT" ] && OPTS="$OPTS -c model_reasoning_effort=\"$EFFORT\""
             echo "MODEL=$MODEL EFFORT=$EFFORT" | tee "output/build/기말/${ROUND}/parts/CODEX_RUN_INFO_${TNAME}.txt"
