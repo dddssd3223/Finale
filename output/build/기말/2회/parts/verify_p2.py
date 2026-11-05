@@ -183,9 +183,9 @@ B14 = sp.integrate(fp14, (x, 2, kk))
 C14 = sp.integrate(fp14, (x, -1, 0))
 absI = C14 + A14 + B14           # kk>2
 signed = F14.subs(x, kk) - F14.subs(x, -1)
-sol14 = sp.solve([sp.Eq(A14, B14), sp.Eq(absI, signed + 8)], [pp, kk], dict=True)
+sol14 = sp.solve([sp.Eq(A14, B14), sp.Eq(A14, 4)], [pp, kk], dict=True)
 sol14 = [d for d in sol14 if d[kk] > 2]
-check(14, len(sol14) == 1 and sol14[0] == {pp: 3, kk: 3}, f'A=B, ∫|f\'|=f(k)-f(-1)+8 → {sol14} (유일)')
+check(14, len(sol14) == 1 and sol14[0] == {pp: 3, kk: 3}, f'A=B=4 → {sol14} (유일)')
 fpn = fp14.subs(sol14[0])
 ans14 = sp.integrate(sp.Abs(fpn), (x, -1, 3))
 check(14, ans14 == 12 and sp.integrate(fpn, (x, -1, 3)) + 8 == 12, f'∫_{{-1}}^3 |3x(x-2)| dx = {ans14}')
@@ -199,7 +199,7 @@ for kv in [sp.Rational(5, 2), 3, 4]:
     vals.append(sp.integrate(sp.Abs(fp14.subs(pp, pv)), (x, -1, kv)))
 ablation(14, 'A=B', vals, 12)
 vals = [sp.integrate(sp.Abs(fp14.subs(pp, pv)), (x, -1, 3)) for pv in [1, 2, 3]]
-ablation(14, '∫|f\'|=f(k)-f(-1)+8', vals, 12)
+ablation(14, 'A=4', vals, 12)
 
 # ================= 16번 =================
 F16 = sp.integrate((t + a) * (t - a) * (t - 6), (t, 0, x))
