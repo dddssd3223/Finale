@@ -104,22 +104,24 @@ sc9 = sign_changes(V9, t, lo=0)
 check(9, sp.expand(V9 - 3*(t - 2)*(t - 4)) == 0 and sc9 == [2, 4], f'v={sp.factor(V9)}, 부호가 바뀌는 시각 {sc9} (t=2에서 실제로 방향 전환)')
 other = [r for r in sc9 if r != 2]
 check(9, other == [4], f'다시 방향을 바꾸는 시각 {other} (하나뿐)')
-ans_ok(9, X9.subs(t, 4))
-wrong_in(9, [sol9[0][a] + sol9[0][b]], '원본처럼 a+b')
+D9 = sp.integrate(sp.Abs(V9), (t, 0, 5))
+check(9, D9 == 28 and sum(abs(X9.subs(t, q) - X9.subs(t, p_)) for p_, q in [(0, 2), (2, 4), (4, 5)]) == 28, f'움직인 거리 {D9}')
+ans_ok(9, D9)
+wrong_in(9, [X9.subs(t, 4), X9.subs(t, 5) - X9.subs(t, 0), sp.integrate(sp.Abs(V9), (t, 0, 4))], 't=4 위치 · 위치의 변화량 · t=4까지 거리')
 print('--- 9번 조건 빼 보기 ---')
 vals = []
 for bv in [12, 15, 21, 27, 30]:                         # a(3)=0만: a=-9, b 자유 (판별식 양수인 b)
     Vb = V.subs({a: -9, b: bv}); scb = sign_changes(Vb, t, lo=0)
     if len(scb) == 2:
-        vals.append(sp.nsimplify(sp.simplify(X.subs({a: -9, b: bv}).subs(t, scb[1]))))
-ablation(9, "'t=2에서 운동 방향을 바꾼다'", vals, 16)
+        vals.append(sp.nsimplify(sp.integrate(sp.Abs(Vb), (t, 0, 5))))
+ablation(9, "'t=2에서 운동 방향을 바꾼다'", vals, 28)
 vals = []
 for av in [-6, -7, -8, -10, -12]:                        # v(2)=0만: b=-12-4a
     sub = {a: av, b: -12 - 4*av}; scb = sign_changes(V.subs(sub), t, lo=0)
     oth = [r for r in scb if r != 2]
     if 2 in scb and len(oth) == 1:
-        vals.append(X.subs(sub).subs(t, oth[0]))
-ablation(9, "'t=3에서 가속도가 0'", vals, 16)
+        vals.append(sp.nsimplify(sp.integrate(sp.Abs(V.subs(sub)), (t, 0, 5))))
+ablation(9, "'t=3에서 가속도가 0'", vals, 28)
 
 # ================= 11번 =================
 def f11(av, bv, xv):

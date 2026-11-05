@@ -102,10 +102,14 @@ assert fp3.is_polynomial(x) and expand(fp3 - (12*x**2 - 6*x)) == 0
 f3 = integrate(fp3, x) + C
 F3 = expand(x * f3 + P3)
 assert expand(diff(F3, x) - f3) == 0                       # F'=f 확인 (어떤 C에서도)
-Cs = solve(F3.subs(x, 2) - 10, C)
+Cs = solve(F3.subs(x, 1) - 1, C)
 assert len(Cs) == 1 and Cs[0] == 1                         # 적분상수 유일
-v3 = F3.subs(C, Cs[0]).subs(x, 1)
-w3 = f3.subs(C, Cs[0]).subs(x, 1)                          # F(1) 대신 f(1)
+v3 = f3.subs(C, Cs[0]).subs(x, 2)
+assert v3 == 21
+fw = integrate(12*x**2 - 6, x) + C                         # x로 잘못 나눔: f'=12x^2-6
+Cw = solve((x*fw + P3).subs(x, 1) - 1, C)[0]
+w3 = fw.subs(C, Cw).subs(x, 2)
+assert w3 == 24
 chk(3, v3, wrongs=(w3,))
 
 # ===== 5번 =====
@@ -147,7 +151,7 @@ print(f'ABLATION 1 둘째 정적분의 위끝·아래끝 교환(∫_2^1): 필요
 v1_noC = p1[0] + p1[1]
 print(f'ABLATION 1 셋째 정적분: 필요(빼면 답 바뀜 {v1} → {v1_noC})')
 f3free = f3.subs(x, 1) + P3.subs(x, 1)
-print(f'ABLATION 3 F(2)=10: 필요(정해지지 않음: F(1)={f3free} (C는 임의))')
+print(f'ABLATION 3 F(1)=1: 필요(정해지지 않음: f(2)=20+C, C는 임의)')
 assert f3free.has(C)
 # 3번: 우변 2x^3 항을 빼면(원문형 -3x^4만) 답 바뀜
 P3b = -3*x**4; f3b = integrate(sp.cancel(-diff(P3b, x) / x), x) + C; F3b = expand(x * f3b + P3b)

@@ -179,7 +179,7 @@ print('오답 근거 값: 120((나) 미사용), 96/5((가) 미사용·x=2에서 
 print('--- 조건 빼 보기 ---')
 # (가) 제거: (나)(다)만 → 꺾인 점 x=2에서 닿는 a=36/5, b=-12/5 도 만족
 assert ok(R(36, 5), R(-12, 5), ('나', '다')) and not ok(R(36, 5), R(-12, 5))
-assert zeros(R(36, 5), R(-12, 5)) == {R(4, 5), 2} and min_ge0(R(36, 5), R(-12, 5)) == R(-12, 5)
+assert zeros(R(36, 5), R(-12, 5)) == {R(2, 5), 2} and min_ge0(R(36, 5), R(-12, 5)) == R(-12, 5)
 print(f'ABLATION 18 (가): 필요(정해지지 않음: (나)(다)만이면 x=2에서 닿는 f=-3x^2+36x/5-12/5도 만족, {ans} 또는 {w_touch2})')
 # (나) 제거: (가)(다)만 → a=12 도 만족
 assert ok(12, 0, ('가', '다'))
@@ -188,10 +188,6 @@ print(f'ABLATION 18 (나): 필요(정해지지 않음: (가)(다)만이면 a=8, 
 alt = {av: ASK(av, 0) for av in (R(15, 2), 9, 10, 11)}
 assert all(ok(av, 0, ('가', '나')) for av in alt) and len(set(alt.values()) | {ans}) == 5
 print(f'ABLATION 18 (다): 필요(정해지지 않음: (가)(나)만이면 24-12√2<a<12, 예 a=15/2→{alt[R(15,2)]}, a=10→{alt[10]})')
-# (가)의 '최솟값 0'을 'g(x)>=0'만으로 약화: b>0도 가능해지는지 → (다)(나)와 함께 다른 해
-cands_w = [(av, bv) for av in [R(n, 4) for n in range(24, 49)] for bv in [R(n, 8) for n in range(0, 17)]
-           if K(av) >= 0 and min_ge0(av, bv) is not None and min_ge0(av, bv) >= 0 and ok(av, bv, ('나', '다'))]
-print('참고: (가)를 "x>=0에서 g(x)>=0"으로 약화하면 (나)(다)와 함께', [(str(p), str(q)) for p, q in cands_w])
 
 # ---------- 문장 길이 (태그·공백 제거, 조건 포함) ----------
 L = lambda html: len(re.sub(r'\s', '', re.sub(r'<[^>]+>', '', html)))
