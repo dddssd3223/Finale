@@ -97,31 +97,47 @@ check('I59', len(s3) == 1 and sp.integrate(sp.diff(G0, x).subs(s3[0]), (x, 1, 3)
 # ================= 9번 =================
 X = t**3 + a*t**2 + b*t
 V = sp.diff(X, t); Acc = sp.diff(V, t)
-sol9 = sp.solve([V.subs(t, 2), Acc.subs(t, 3)], [a, b], dict=True)
-check(9, sol9 == [{a: -9, b: 24}], f'v(2)=0, a(3)=0 → {sol9} (일차 연립, 해 하나)')
+sa9 = sp.solve(Acc.subs(t, 3), a)
+check(9, sa9 == [-9], f'a(3)=0 → a = {sa9}')
+Va = V.subs(a, -9)
+check(9, sp.expand(Va - (3*(t - 3)**2 + b - 27)) == 0, f'v = {Va} = 3(t-3)^2+b-27 (축 t=3)')
+check(9, all(sign_changes(Va.subs(b, bv), t, lo=0) == [] for bv in [27, 28, 30, 50, sp.Rational(55, 2)]), 'b≥27이면 v≥0, 운동 방향을 바꾸지 않음')
+cc = sp.symbols('cc', positive=True)
+Vc = Va.subs(b, 27 - 3*cc**2)
+check(9, set(sp.solve(Vc, t)) == {3 - cc, 3 + cc}, 'b<27, 27-b=3c^2 (c>0): 방향을 바꾸는 시각 3-c, 3+c')
+Dc = sp.integrate(-Vc, (t, 3 - cc, 3 + cc))
+check(9, sp.simplify(Dc - 4*cc**3) == 0, f'두 시각 사이 거리 = {sp.factor(Dc)} (그 사이 v≤0)')
+sc9 = sp.solve(sp.Eq(Dc, 4), cc)
+check(9, sc9 == [1], f'4c^3=4 → c = {sc9} (양의 실근 하나), b = {27 - 3*sc9[0]**2}')
+# 전수: a=-9, b를 촘촘히 (b<27이고 t>0에서 두 번 방향을 바꾸는 경우) → 두 시각 사이 거리 4는 b=24 하나뿐
+hit = []
+for bv in [sp.Rational(n, 4) for n in range(-40, 108)]:
+    Vb = Va.subs(b, bv); scb = sign_changes(Vb, t, lo=0)
+    if len(scb) == 2 and sp.nsimplify(sp.integrate(sp.Abs(Vb), (t, scb[0], scb[1]))) == 4:
+        hit.append(bv)
+check(9, hit == [24], f'격자 b∈[-10, 27) 전수: 두 시각 사이 거리 4인 b = {hit}')
+sol9 = [{a: -9, b: 24}]
 V9 = V.subs(sol9[0]); X9 = X.subs(sol9[0])
 sc9 = sign_changes(V9, t, lo=0)
-check(9, sp.expand(V9 - 3*(t - 2)*(t - 4)) == 0 and sc9 == [2, 4], f'v={sp.factor(V9)}, 부호가 바뀌는 시각 {sc9} (t=2에서 실제로 방향 전환)')
-other = [r for r in sc9 if r != 2]
-check(9, other == [4], f'다시 방향을 바꾸는 시각 {other} (하나뿐)')
+check(9, sp.expand(V9 - 3*(t - 2)*(t - 4)) == 0 and sc9 == [2, 4], f'v={sp.factor(V9)}, 부호가 바뀌는 시각 {sc9} (방향을 바꾸는 두 시각)')
+check(9, sp.integrate(sp.Abs(V9), (t, 2, 4)) == 4, '두 시각 t=2, t=4 사이 움직인 거리 4 확인')
 D9 = sp.integrate(sp.Abs(V9), (t, 0, 5))
 check(9, D9 == 28 and sum(abs(X9.subs(t, q) - X9.subs(t, p_)) for p_, q in [(0, 2), (2, 4), (4, 5)]) == 28, f'움직인 거리 {D9}')
 ans_ok(9, D9)
 wrong_in(9, [X9.subs(t, 4), X9.subs(t, 5) - X9.subs(t, 0), sp.integrate(sp.Abs(V9), (t, 0, 4))], 't=4 위치 · 위치의 변화량 · t=4까지 거리')
 print('--- 9번 조건 빼 보기 ---')
 vals = []
-for bv in [12, 15, 21, 27, 30]:                         # a(3)=0만: a=-9, b 자유 (판별식 양수인 b)
+for bv in [12, 15, 21, 25, 26]:                         # a(3)=0만: a=-9, b 자유 (t>0에서 두 번 방향을 바꾸는 b)
     Vb = V.subs({a: -9, b: bv}); scb = sign_changes(Vb, t, lo=0)
     if len(scb) == 2:
         vals.append(sp.nsimplify(sp.integrate(sp.Abs(Vb), (t, 0, 5))))
-ablation(9, "'t=2에서 운동 방향을 바꾼다'", vals, 28)
+ablation(9, "'방향을 바꾸는 두 시각 사이에 움직인 거리가 4'", vals, 28)
 vals = []
-for av in [-6, -7, -8, -10, -12]:                        # v(2)=0만: b=-12-4a
-    sub = {a: av, b: -12 - 4*av}; scb = sign_changes(V.subs(sub), t, lo=0)
-    oth = [r for r in scb if r != 2]
-    if 2 in scb and len(oth) == 1:
-        vals.append(sp.nsimplify(sp.integrate(sp.Abs(V.subs(sub)), (t, 0, 5))))
-ablation(9, "'t=3에서 가속도가 0'", vals, 28)
+for r in [sp.Rational(1, 2), 1, sp.Rational(3, 2), 2, 3]:  # 거리 조건만: v=3(t-r)(t-r-2) (두 근 사이 거리 d^3/2=4 → d=2)
+    sub = {a: -3*(r + 1), b: 3*r*(r + 2)}; Vr = V.subs(sub); scb = sign_changes(Vr, t, lo=0)
+    if len(scb) == 2 and sp.integrate(sp.Abs(Vr), (t, scb[0], scb[1])) == 4:
+        vals.append(sp.nsimplify(sp.integrate(sp.Abs(Vr), (t, 0, 5))))
+ablation(9, "'t=3에서 가속도가 0'", vals, 28, why='방향을 바꾸는 두 시각이 r, r+2로 정해지지 않음')
 
 # ================= 11번 =================
 def f11(av, bv, xv):
