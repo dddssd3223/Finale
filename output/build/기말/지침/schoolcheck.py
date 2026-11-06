@@ -52,6 +52,10 @@ def check_item(n, it, rt):
     if ef not in EFFECTS: msg.append(f'effect 없음/잘못({ef}) — 같음·쉬워짐·어려워짐')
     if bs not in (True, False): msg.append('bunseok(분석집 방향·TIP 사용 여부) 없음')
     if not pc: msg.append("precedent(따른 학교 선례, 예: '2학기 중간 7번' 또는 라이브 문항 id) 없음")
+    if rt == '복습형' and bs:   # 분석집 복습 4요소 (2회 지적)
+        bm = it.get('bunseok_map') or {}
+        miss = [k for k in ('tip', 'direction', 'traps', 'calc') if not bm.get(k)]
+        if miss: warn.append(f"분석집 복습 4요소 빠짐: {'·'.join(miss)} (bunseok_map: tip·direction·traps·calc)")
     if rt == '학교형':
         if vt and '함정 추가' in vt: msg.append('학교형 회차에 함정 추가(학교 3회 60문항 중 0회)')
         if bs: msg.append('학교형 회차에 분석집 방향·TIP 저격')
