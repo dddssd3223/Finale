@@ -16,15 +16,18 @@ jobs:
     permissions:
       contents: write
     env:
-      OPENAI_API_KEY: ${{ secrets.NEWKEY || secrets.API_KEY || secrets.OPENAI_API_KEY }}
-      CODEX_API_KEY: ${{ secrets.NEWKEY || secrets.API_KEY || secrets.OPENAI_API_KEY }}
+      # ChatGPT 계정 로그인(시크릿 CODEX_AUTH_JSON = ~/.codex/auth.json 내용)이 있으면 그걸 쓰고(요금제 사용량), API 키는 비운다
+      CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
+      OPENAI_API_KEY: ${{ secrets.CODEX_AUTH_JSON == '' && (secrets.NEWKEY || secrets.API_KEY || secrets.OPENAI_API_KEY) || '' }}
+      CODEX_API_KEY: ${{ secrets.CODEX_AUTH_JSON == '' && (secrets.NEWKEY || secrets.API_KEY || secrets.OPENAI_API_KEY) || '' }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: 키 확인
         run: |
-          if [ -z "$OPENAI_API_KEY" ]; then echo "::error::저장소 시크릿 API_KEY가 없습니다"; exit 1; fi
+          if [ -z "$CODEX_AUTH_JSON" ] && [ -z "$OPENAI_API_KEY" ]; then echo "::error::시크릿 CODEX_AUTH_JSON(ChatGPT 로그인) 또는 API 키가 없습니다"; exit 1; fi
+          if [ -n "$CODEX_AUTH_JSON" ]; then echo "인증: ChatGPT 계정(요금제 사용량)"; else echo "인증: API 키(API 과금)"; fi
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -36,7 +39,7 @@ jobs:
           pip install sympy numpy matplotlib
           npm install -g @openai/codex
           codex --version
-          printenv OPENAI_API_KEY | codex login --with-api-key
+          if [ -n "$CODEX_AUTH_JSON" ]; then mkdir -p ~/.codex && printf '%s' "$CODEX_AUTH_JSON" > ~/.codex/auth.json && chmod 600 ~/.codex/auth.json; else printenv OPENAI_API_KEY | codex login --with-api-key; fi
           codex login status
           # 지침·검사 스크립트가 /home/user/Finale 절대 경로를 쓰므로 같은 경로로 연결
           sudo mkdir -p /home/user && sudo ln -sfn "$GITHUB_WORKSPACE" /home/user/Finale
@@ -64,7 +67,7 @@ jobs:
             # 토큰 절약 1: 지침 전문(AGENTS·front·BRIEF)을 항상 같은 순서로 프롬프트 맨 앞에 고정 → 프롬프트 캐시. 작업 지시는 맨 뒤.
             BRIEF="output/build/기말/${ROUND}/BRIEF.md"; [ -f "$BRIEF" ] || BRIEF="output/build/기말/견본3/BRIEF.md"
             GUIDE="$(printf '# 지침 전문 (AGENTS.md · 지침/front.md · %s). 이 세 파일은 아래에 이미 다 있으니 다시 열지 않는다.\n\n' "$BRIEF"; cat AGENTS.md; printf '\n\n---\n# output/build/기말/지침/front.md\n\n'; cat output/build/기말/지침/front.md; printf '\n\n---\n# %s\n\n' "$BRIEF"; cat "$BRIEF")"
-            TASKTXT="작업 지시서 ${TASK}에 적힌 번호만 출제한다. 결과물은 작업 지시서에 적힌 파일이다(적혀 있지 않으면 output/build/기말/${ROUND}/parts/c*.py 와 verify_c*.py. 17·18 후보는 output/build/기말/${ROUND}/후보/). 그림 파일은 만들지 않는다(Claude가 그린다). 각 verify 스크립트가 ALL OK, checkpart.py가 통과할 때까지 고친다. 보고서 파일은 쓰지 않는다(토큰 절약 5: 내용은 문항 파일에 있다). 마지막 답은 한 줄(맡은 번호·정답·ALL OK 여부)로 끝낸다. git commit/push는 하지 않는다(워크플로가 한다)."
+            TASKTXT="작업 지시서 ${TASK}에 적힌 번호만 출제한다. 결과물은 작업 지시서에 적힌 파일이다(적혀 있지 않으면 output/build/기말/${ROUND}/parts/c*.py 와 verify_c*.py. 17·18 후보는 output/build/기말/${ROUND}/후보/). 그림 파일은 만들지 않는다(Claude가 그린다). 문항 초안(c*.py, 모든 기록 필드 포함)을 쓰고 정답은 sympy로 한 번 확인한다. verify 스크립트와 checkpart 반복은 작업 지시서가 요구할 때만 한다(기본은 Claude가 검증). 지시서에 적힌 파일 외에는 저장소를 탐색하지 않는다. 보고서 파일은 쓰지 않는다(토큰 절약 5: 내용은 문항 파일에 있다). 마지막 답은 한 줄(맡은 번호·정답·ALL OK 여부)로 끝낸다. git commit/push는 하지 않는다(워크플로가 한다)."
             PROMPT="$(printf '%s\n\n---\n# 이번 작업\n%s' "$GUIDE" "$TASKTXT")"
             if [ "$(printf '%s' "$PROMPT" | wc -c)" -gt 120000 ]; then echo "::warning::지침이 120KB를 넘어 파일 읽기 방식으로 대체"; PROMPT="AGENTS.md, output/build/기말/지침/front.md, ${BRIEF}를 먼저 읽고 그대로 따른다. ${TASKTXT}"; fi
             MODEL="$(grep -m1 '^MODEL:' "$TASK" | sed 's/^MODEL:[ ]*//')"; EFFORT="$(grep -m1 '^EFFORT:' "$TASK" | sed 's/^EFFORT:[ ]*//')"
@@ -86,8 +89,10 @@ jobs:
     permissions:
       contents: write
     env:
-      OPENAI_API_KEY: ${{ secrets.NEWKEY || secrets.API_KEY || secrets.OPENAI_API_KEY }}
-      CODEX_API_KEY: ${{ secrets.NEWKEY || secrets.API_KEY || secrets.OPENAI_API_KEY }}
+      # ChatGPT 계정 로그인(시크릿 CODEX_AUTH_JSON = ~/.codex/auth.json 내용)이 있으면 그걸 쓰고(요금제 사용량), API 키는 비운다
+      CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
+      OPENAI_API_KEY: ${{ secrets.CODEX_AUTH_JSON == '' && (secrets.NEWKEY || secrets.API_KEY || secrets.OPENAI_API_KEY) || '' }}
+      CODEX_API_KEY: ${{ secrets.CODEX_AUTH_JSON == '' && (secrets.NEWKEY || secrets.API_KEY || secrets.OPENAI_API_KEY) || '' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -117,10 +122,10 @@ jobs:
         run: |
           pip install -q sympy numpy matplotlib
           npm install -g @openai/codex
-          printenv OPENAI_API_KEY | codex login --with-api-key
+          if [ -n "$CODEX_AUTH_JSON" ]; then mkdir -p ~/.codex && printf '%s' "$CODEX_AUTH_JSON" > ~/.codex/auth.json && chmod 600 ~/.codex/auth.json; else printenv OPENAI_API_KEY | codex login --with-api-key; fi
           git config user.name "codex-coauthor"
           git config user.email "codex-coauthor@users.noreply.github.com"
-          curl -sS https://api.openai.com/v1/models -H "Authorization: Bearer $OPENAI_API_KEY" | python3 -c "import json,sys;print('\n'.join(sorted(m['id'] for m in json.load(sys.stdin).get('data',[]))))" > /tmp/models.txt || true
+          [ -n "$OPENAI_API_KEY" ] && curl -sS https://api.openai.com/v1/models -H "Authorization: Bearer $OPENAI_API_KEY" | python3 -c "import json,sys;print('\n'.join(sorted(m['id'] for m in json.load(sys.stdin).get('data',[]))))" > /tmp/models.txt || true
           BASE="$GITHUB_SHA"
           while IFS= read -r TASK; do
             DIR="$(dirname "$TASK")"; NAME="$(basename "$DIR")"; BR="codex/풀이-${NAME}"
