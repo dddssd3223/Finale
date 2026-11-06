@@ -135,13 +135,19 @@ jobs:
             cp /tmp/models.txt "$DIR/models_available.txt"
             MODEL="$(grep -m1 '^MODEL:' "$TASK" | sed 's/^MODEL:[ ]*//')"
             EFFORT="$(grep -m1 '^EFFORT:' "$TASK" | sed 's/^EFFORT:[ ]*//')"
-            if [ -n "$MODEL" ] && ! grep -qx "$MODEL" /tmp/models.txt; then
+            if [ -n "$MODEL" ] && [ -s /tmp/models.txt ] && ! grep -qx "$MODEL" /tmp/models.txt; then   # 목록이 있을 때만(ChatGPT 인증은 목록 없음)
               CAND="$(grep -i -m1 "$MODEL" /tmp/models.txt || true)"; echo "모델 '$MODEL' → '$CAND'"; MODEL="$CAND"
             fi
             OPTS=""; [ -n "$MODEL" ] && OPTS="$OPTS -m $MODEL"; [ -n "$EFFORT" ] && OPTS="$OPTS -c model_reasoning_effort=\"$EFFORT\""
             echo "MODEL=$MODEL EFFORT=$EFFORT" | tee "$DIR/codex_run_info.txt"
             IMGS=""; for im in "$DIR"/*.png; do [ -f "$im" ] && IMGS="$IMGS -i $(basename "$im")"; done
             ( cd "$DIR" && codex exec -s workspace-write -c approval_policy="never" --skip-git-repo-check --color never $OPTS "TASK.md를 읽고 그대로 따른다. 이 폴더 밖의 파일은 읽지 않는다. 결과는 TASK.md가 정한 파일에 쓴다." $IMGS < /dev/null 2>&1 | tee codex_solve_log.txt ) || true
+            # 모델 이름이 틀려 바로 실패하면 기본 모델로 한 번 더(추론 강도는 유지)
+            if [ -n "$MODEL" ] && grep -qiE "model.*(not (found|supported|exist)|unknown|invalid|does not exist)|unsupported model" "$DIR/codex_solve_log.txt"; then
+              echo "모델 '$MODEL' 실패 → 기본 모델로 재실행" | tee -a "$DIR/codex_run_info.txt"
+              OPTS2=""; [ -n "$EFFORT" ] && OPTS2="-c model_reasoning_effort=\"$EFFORT\""
+              ( cd "$DIR" && codex exec -s workspace-write -c approval_policy="never" --skip-git-repo-check --color never $OPTS2 "TASK.md를 읽고 그대로 따른다. 이 폴더 밖의 파일은 읽지 않는다. 결과는 TASK.md가 정한 파일에 쓴다." $IMGS < /dev/null 2>&1 | tee -a codex_solve_log.txt ) || true
+            fi
             tail -c 150000 "$DIR/codex_solve_log.txt" > "$DIR/codex_solve_log.tmp" && mv "$DIR/codex_solve_log.tmp" "$DIR/codex_solve_log.txt"
             git add --sparse "$DIR"
             git commit -m "Codex 블라인드 작업: ${NAME}" || echo "변경 없음"
