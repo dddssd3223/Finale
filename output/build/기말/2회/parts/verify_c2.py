@@ -81,21 +81,20 @@ assert A == 2*r/3 and B == -2
 g2 = s.integrate((2-t)*f11, (t, -1, 1))/2        # |2-t| = 2-t on [-1,1]
 gm2 = s.integrate((t+2)*f11, (t, -1, 1))/(-2)    # |-2-t| = t+2 on [-1,1]
 assert s.expand(g2-(B-A/2)) == 0 and s.expand(gm2-(-B-A/2)) == 0
-ans11 = s.expand(g2-gm2)
-assert ans11 == -4 and not ans11.free_symbols    # unique for every r
-# numeric cross-check with the absolute value itself, several r
-for rv in (-5, 0, s.Rational(7, 3)):
-    fv = f11.subs(r, rv)
-    for xv in (2, -2):
-        Hv = s.integrate(s.Abs(xv-t)*fv, (t, -1, 1))
-        assert s.simplify(Hv/xv-(g2 if xv == 2 else gm2).subs(r, rv)) == 0
-# mistakes
-same_side = s.expand(g2-(s.integrate((-2-t)*f11, (t, -1, 1))/(-2)))   # x-t at x=-2 too
-assert s.expand(same_side+A) == 0 and same_side.subs(r, 0) == 0      # -A, then A=0 as in 원문
-wrong_p = s.solve(s.integrate(p*t*t+r*t-3, (t, -1, 1)), p)[0]          # |t| dropped at x=0
-assert wrong_p == 9 and 2*s.integrate((9*t*t+r*t-3), (t, -1, 1)) == 0
-half = 2*s.integrate(f11, (t, 0, 1)).subs(r, 0)                         # B as int_0^1 f
-check(11, ans11, 1, {'0': same_side.subs(r, 0), '-2': half})
+rs = s.solve(gm2-3, r)
+assert len(rs) == 1 and rs[0] == -3                # g(-2)=3 → A=-2, r=-3 (unique)
+ans11 = s.expand(g2.subs(r, rs[0]))
+assert ans11 == -1
+# numeric cross-check with the absolute value itself
+fv = f11.subs(r, rs[0])
+for xv in (2, -2):
+    Hv = s.integrate(s.Abs(xv-t)*fv, (t, -1, 1))
+    assert s.simplify(Hv/xv-(g2 if xv == 2 else gm2).subs(r, rs[0])) == 0
+# mistakes: ∫tf=0 as in 원문 → g(2)=B ; g odd → g(2)=-g(-2)
+w_A0 = g2.subs(r, 0)
+assert w_A0 == -2
+w_odd = -3
+check(11, ans11, 4, {'-2': w_A0, '-3': w_odd})
 # Existence: for every r, H(0)=0 and g(x)=H(x)/x (x≠0), g(0) any real value.
 Hin = s.integrate((x-t)*f11, (t, -1, x))+s.integrate((t-x)*f11, (t, x, 1))
 assert s.expand(Hin.subs(x, 0)) == 0
@@ -106,6 +105,8 @@ qq = s.solve(s.integrate(-t*fq, (t, -1, 0))+s.integrate(t*fq, (t, 0, 1)), qf)
 assert qq == [-pf/2]
 val = s.expand(2*s.integrate(fq.subs(qf, qq[0]), (t, -1, 1)))
 assert val == -2*pf/3
+assert len({g2.subs(r, rv) for rv in (-3, 0, 3)}) == 3
+print('ABLATION 11 g(-2)=3: 필요(없으면 g(2)=-2-r/3, 일차항 r 미정)')
 print('ABLATION 11 f(0)=-3: 필요(f=p(t²-1/2)+rt이면 값 -2p/3, p 미정)')
 u = s.symbols('u')
 fu = u*t**4+p*t*t+r*t-3   # quartic with f(0)=-3
