@@ -104,6 +104,14 @@ cnt = lambda av: len(sign_changes(2 * x * F61.subs(a, av), x))
 check('I61', amax == [sp.sqrt(6)] and cnt(sp.Rational(24, 10)) == 1 and cnt(sp.Rational(25, 10)) == 3 and sp.simplify(F61.subs(a, sp.sqrt(6)).subs(x, sp.sqrt(6))) == 0,
       f'I61 원문: F(a)={Fa}, 경계 a={amax}(F(√6)=f(√6)=0 이중근, 등호 포함), a=2.4 극값 1개, a=2.5 극값 3개')
 
+def bmap(no):
+    it = IT[no]; bm = it.get('bunseok_map') or {}
+    full = all(bm.get(f_) for f_ in ('tip', 'direction', 'traps', 'calc')) and bm['direction'].startswith('방향 ')
+    marks = ['①②③④⑤'[it['choices'].index(w)] for w in it['wrongs']]
+    check(no, it['bunseok'] is True and full and all(any(m in tr for tr in bm['traps']) for m in marks),
+          f'bunseok_map 4요소(tip·direction·traps·calc), 함정이 선지 {marks}로 잡힘')
+
+
 # ================= 10번 =================
 P, cs = gen_poly(6)
 S = ident_solve(sp.integrate(P.subs(x, t), (t, 1, x)) - (x - 1) / 4 * (P + 3 * P.subs(x, 1)), cs)
@@ -113,58 +121,72 @@ A_, B_ = sp.symbols('A_ B_')
 form = sp.solve(sp.Poly(sp.expand(P10 - (A_ * (x - 1)**3 + B_)), x).all_coeffs(), fr + [A_], dict=True)
 check(10, len(S) == 1 and len(fr) == 2 and sp.Poly(P10, x).degree() == 3 and form != [],
       f'(가)를 6차 이하 일반 다항식으로 풀면 f={sp.factor(P10)} 꼴 = a(x-1)^3+b (자유 계수 2개)')
-S10 = sp.solve([sp.integrate(P10, (x, 0, 2)) - 5 * sp.integrate(x * P10, (x, -1, 1)), P10.subs(x, 0) - 5], fr, dict=True)
+# 최고차항 비교(미분 없이): a x^n → 좌변 a/(n+1), 우변 a/4 → n=3
+check(10, [n_ for n_ in range(1, 10) if sp.Rational(1, n_ + 1) == sp.Rational(1, 4)] == [3], '최고차항 비교 a/(n+1)=a/4 → n=3')
+S10 = sp.solve([sp.integrate(P10, (x, 0, 2)) - 5 * sp.integrate(x * P10, (x, -1, 1)), P10.subs(x, -1) + 1], fr, dict=True)
 f10 = sp.expand(P10.subs(S10[0]))
-check(10, len(S10) == 1 and sp.expand(f10 - ((x - 1)**3 + 6)) == 0, f'(나)·f(0)=5 → f={f10} = (x-1)^3+6 (유일)')
+check(10, len(S10) == 1 and sp.expand(f10 - ((x - 1)**3 / 2 + 3)) == 0, f'(나)·f(-1)=-1 → f={f10} = (x-1)^3/2+3 (유일)')
 check(10, sp.simplify(sp.integrate(f10.subs(x, t), (t, 1, x)) - (x - 1) / 4 * (f10 + 3 * f10.subs(x, 1))) == 0, '(가) 항등식 성립 확인')
-ans10 = f10.subs(x, 2)
+# 계산 정리: ∫_0^2 f = 2f(1)=2b (점대칭), ∫_{-1}^1 xf = a∫(x^4+3x^2) (홀수차 소거), f(3)+f(-1)=2b
+fg = A_ * (x - 1)**3 + B_
+check(10, sp.simplify(sp.integrate(fg, (x, 0, 2)) - 2 * B_) == 0 and sp.simplify(sp.integrate(x * fg, (x, -1, 1)) - A_ * sp.integrate(x**4 + 3 * x**2, (x, -1, 1))) == 0
+      and sp.integrate(x**4 + 3 * x**2, (x, -1, 1)) == sp.Rational(12, 5) and sp.simplify(fg.subs(x, 3) + fg.subs(x, -1) - 2 * B_) == 0,
+      '계산 정리: ∫_0^2 f=2b, ∫_{-1}^1 xf=a·12/5, f(3)+f(-1)=2b')
+ans10 = f10.subs(x, 3)
 ans_ok(10, ans10)
-# 오답: 이차로 착각 f=A(x-1)^2+B
+# 오답 ①: 이차로 착각 f=A(x-1)^2+B → 직선 x=1 대칭으로 f(3)=f(-1)
 Aq, Bq = sp.symbols('Aq Bq')
 fq = Aq * (x - 1)**2 + Bq
-sq = sp.solve([sp.integrate(fq, (x, 0, 2)) - 5 * sp.integrate(x * fq, (x, -1, 1)), fq.subs(x, 0) - 5], [Aq, Bq], dict=True)
-w10a = fq.subs(sq[0]).subs(x, 2)
-# 오답: f(0)=a+b로 부호 실수 → b=6a, 7a=5 → f(2)=a+b
-w10b = (lambda av: av + 6 * av)(sp.Rational(5, 7))
-check(10, w10a == 5 and w10b == 5, f'이차로 놓은 값 {w10a}, f(0) 부호 실수 값 {w10b}')
-wrong_in(10, [w10a], '이차 착각 / 부호 실수')
+sq = sp.solve([sp.integrate(fq, (x, 0, 2)) - 5 * sp.integrate(x * fq, (x, -1, 1)), fq.subs(x, -1) + 1], [Aq, Bq], dict=True)
+w10a = fq.subs(sq[0]).subs(x, 3)
+# 오답 ②: 점 (1,b) 대칭을 원점 대칭처럼 써서 ∫_{-1}^1 xf = 0 → 2b=0
+sz = sp.solve([sp.integrate(fg, (x, 0, 2)) - 0, fg.subs(x, -1) + 1], [A_, B_], dict=True)
+w10b = fg.subs(sz[0]).subs(x, 3)
+# 선지 밖 오답(참고): 대칭구간 2배 누락 ∫_0^1 a(x^4+3x^2)
+s2 = sp.solve([sp.integrate(fg, (x, 0, 2)) - 5 * A_ * sp.integrate(x**4 + 3 * x**2, (x, 0, 1)), fg.subs(x, -1) + 1], [A_, B_], dict=True)
+check(10, w10a == -1 and w10b == 1 and fg.subs(s2[0]).subs(x, 3) not in ch(10), f'이차 착각 {w10a}, ∫xf=0 소거 {w10b}, (2배 누락 {fg.subs(s2[0]).subs(x, 3)}는 선지 밖)')
+wrong_in(10, [w10a, w10b], '이차 착각 / 홀수항 소거 범위')
+bmap(10)
 print('--- 10번 조건 빼 보기 ---')
 P, cs = gen_poly(4)
-Sn = sp.solve([sp.integrate(P, (x, 0, 2)) - 5 * sp.integrate(x * P, (x, -1, 1)), P.subs(x, 0) - 5], cs[:2], dict=True)
-vals = [sp.expand(P.subs(Sn[0])).subs(x, 2).subs({cs[2]: c2, cs[3]: c3, cs[4]: 0}) for c2, c3 in [(0, 0), (1, 0), (0, 1)]]
+Sn = sp.solve([sp.integrate(P, (x, 0, 2)) - 5 * sp.integrate(x * P, (x, -1, 1)), P.subs(x, -1) + 1], cs[:2], dict=True)
+vals = [sp.expand(P.subs(Sn[0])).subs(x, 3).subs({cs[2]: c2, cs[3]: c3, cs[4]: 0}) for c2, c3 in [(0, 0), (1, 0), (0, 1)]]
 ablation(10, '(가)', vals, 7)
-vals = [(A_ * (x - 1)**3 + B_).subs(x, 2).subs({A_: av, B_: av + 5}) for av in [0, 1, 2]]
+vals = [fg.subs(x, 3).subs({A_: av, B_: 8 * av - 1}) for av in [0, 1, 2]]
 ablation(10, '(나)', vals, 7)
-vals = [(A_ * (x - 1)**3 + B_).subs(x, 2).subs({A_: av, B_: 6 * av}) for av in [1, 2, 3]]
-ablation(10, 'f(0)=5', vals, 7)
+vals = [fg.subs(x, 3).subs({A_: av, B_: 6 * av}) for av in [1, 2, 3]]
+ablation(10, 'f(-1)=-1', vals, 7)
 
 # ================= 12번 =================
-f12 = x**3 - 5 * x**2 - x
-check(12, sp.factor(f12 + 5) == (x - 5) * (x - 1) * (x + 1), f'f(x)+5 = {sp.factor(f12 + 5)}')
-crit = [r for r in sp.solve(sp.diff(f12, x), x)]
-check(12, sorted(float(r) for r in crit)[0] < 0, f"f'=0의 근 {crit}: 작은 근 음수 → x≥0에서 감소 후 증가")
-L = sp.symbols('L', positive=True)
-check(12, sp.expand(f12.subs(x, t + 4) - f12.subs(x, t) - 4 * (t - 1) * (3 * t + 5)) == 0, "a=4: f(t+4)-f(t)=4(t-1)(3t+5) → t=1에서 교차")
-g12 = [gfun(f12, sp.Rational(i, 40), 4) for i in range(0, 81)]
-check(12, min(g12) == -5 and gfun(f12, 1, 4) == -5, f'a=4: g 최솟값 {min(g12)} (t=1)')
+f12 = x**3 - 5 * x**2 - 8 * x
+check(12, sp.factor(f12 + 12) == sp.factor((x + 2) * (x - 1) * (x - 6)) and f12.subs(x, 1) == -12, f'f(x)+12 = {sp.factor(f12 + 12)} (정수 x=1 대입)')
+check(12, sp.factor(sp.diff(f12, x)) == sp.factor((3 * x + 2) * (x - 4)), "f'=(3x+2)(x-4): 극대 -2/3(음수), 극소 4 → x≥0에서 감소 후 증가")
+check(12, sp.expand(f12.subs(x, t + 5) - f12.subs(x, t) - 5 * (t - 1) * (3 * t + 8)) == 0, "a=5: f(t+5)-f(t)=5(t-1)(3t+8) → t=1에서 교차")
+g12 = [gfun(f12, sp.Rational(i, 40), 5) for i in range(0, 81)]
+check(12, min(g12) == -12 and gfun(f12, 1, 5) == -12, f'a=5: g 최솟값 {min(g12)} (t=1)')
 # 유일성: a 격자 전수 (교차점 t 포함)
 hit = []
 for av in [sp.Rational(i, 8) for i in range(1, 81)]:
     ts = [sp.Rational(i, 10) for i in range(0, 21)] + [r for r in sp.solve(f12.subs(x, t + av) - f12.subs(x, t), t) if r.is_real and 0 <= r <= 2]
     gm = min((gfun(f12, tv, av) for tv in ts), key=lambda z: float(z))
-    if abs(float(gm) + 5) < 1e-9:
+    if abs(float(gm) + 12) < 1e-9:
         hit.append(av)
-check(12, hit == [4], f'a∈(0,10] (1/8 간격) 전수: g 최솟값이 -5인 a = {hit}')
-ans12 = sp.Integer(5 - 1)
+check(12, hit == [5], f'a∈(0,10] (1/8 간격) 전수: g 최솟값이 -12인 a = {hit}')
+ans12 = sp.Integer(6 - 1)
 ans_ok(12, ans12)
-wrong_in(12, [1 - (-1)], 'f(x)=-5의 근 -1, 1을 끝점으로 잡음')
+# 오답 ②: 극대점 -2/3을 사이에 둔 -2, 1을 끝점으로 (실제 a=3이면 g 최솟값은 -12가 아님)
+# 오답 ③: 극소점 4를 구간의 가운데로 보아 2(6-4)
+check(12, min(gfun(f12, sp.Rational(i, 40), 3) for i in range(0, 81)) != -12 and min(gfun(f12, sp.Rational(i, 40), 4) for i in range(0, 81)) != -12,
+      'a=3, a=4이면 g 최솟값이 -12가 아님(오답 확인)')
+wrong_in(12, [1 - (-2), 2 * (6 - 4)], '-2, 1을 끝점 / 극소점을 구간의 가운데로')
+bmap(12)
 print('--- 12번 조건 빼 보기 ---')
 vals = []
-for m in [-14, -10, -5]:   # 최솟값을 바꾸면 a가 바뀜
+for m in [-28, -20, -12]:   # 최솟값을 바꾸면 a가 바뀜
     rs = sorted([r for r in sp.solve(f12 - m, x) if r.is_real and r >= 0], key=float)
     vals.append(sp.nsimplify(rs[-1] - rs[0]) if len(rs) >= 2 else None)
-ablation(12, "'g(t)의 최솟값이 -5'", [v_ for v_ in vals if v_ is not None], 4)
-ablation(12, "'0<=t<=2'", [], 4, undef='t의 범위가 없으면 g(t)는 아래로 무한히 작아져 최솟값이 없음')
+ablation(12, "'g(t)의 최솟값이 -12'", [v_ for v_ in vals if v_ is not None], 5)
+ablation(12, "'0<=t<=2'", [], 5, undef='t의 범위가 없으면 g(t)는 아래로 무한히 작아져 최솟값이 없음')
 
 # ================= 14번 =================
 pp = sp.symbols('pp', positive=True); kk = sp.symbols('kk', positive=True)

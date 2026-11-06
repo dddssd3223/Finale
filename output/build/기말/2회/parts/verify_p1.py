@@ -18,6 +18,10 @@ for n in IT:
     assert len(it['wrongs']) >= 1 and all(w in it['choices'] for w in it['wrongs'])
     for f in ('var', 'sol', 'fast', 'wrong', 'note', 'src'):
         assert it[f]
+    if it['bunseok']:   # 분석집 복습 4요소: TIP·방향·함정(선지로 잡힘)·계산 정리
+        bm = it['bunseok_map']
+        assert all(bm.get(f) for f in ('tip', 'direction', 'traps', 'calc')) and bm['direction'].startswith('방향 ')
+        assert all(any(f'{"①②③④⑤"[it["choices"].index(w)]}' in tr for tr in bm['traps']) for w in it['wrongs'])
 
 def cv(c):
     c = str(c)
@@ -138,7 +142,12 @@ w6_swap = solve(h6.subs(x, 1) + diff(h6, x).subs(x, 1), k)[0]
 assert not ok6(expand((x - 2)*(x - 4)**2))
 c6 = (x - 2)**3 - k*x                                            # TIP1을 그대로 쓴 꼴 (선지 밖)
 assert solve(c6.subs(x, 1) + diff(c6, x).subs(x, 1), k) == [1]
-chk(6, v6, [w6_swap])
+# 계산 정리(TIP2): f+f' = (g+g') - k(x+1) → 전개 없이 g(1)=-3, g'(1)=7
+assert g6.subs(x, 1) == -3 and diff(g6, x).subs(x, 1) == 7
+assert expand(f6 + diff(f6, x) - (g6 + diff(g6, x) - k*(x + 1))) == 0
+w6_forget = solve(f6.subs(x, 1) + diff(g6, x).subs(x, 1), k)[0]   # f'(1)에서 -k를 빠뜨림: (-3-k)+7=0
+assert w6_forget == 4
+chk(6, v6, [w6_swap, w6_forget])
 
 # ===== 8번 =====
 v1, v2_ = (t - 3)**2, 9 - 2*t
@@ -152,7 +161,15 @@ v8 = integrate(Abs(v2_), (t, a8, b8))
 assert v8 == Rational(5, 2)
 w8_disp = Abs(integrate(v2_, (t, a8, b8)))                       # 위치의 변화량의 크기
 assert integrate(v2_, (t, a8, b8)) == -2
-chk(8, v8, [w8_disp])
+# 계산 정리(TIP2): v2는 일차 → t=9/2에서 부호가 바뀌어 삼각형 두 개
+tz = solve(v2_, t)[0]
+assert tz == Rational(9, 2) and a8 < tz < b8
+assert Rational(1, 2)*(tz - a8)*Abs(v2_.subs(t, a8)) + Rational(1, 2)*(b8 - tz)*Abs(v2_.subs(t, b8)) == v8
+# 비율 관계(TIP1): g'의 근 0, 4 → g(0)과 같은 값을 갖는 다른 점 4+(4-0)/2=6 = b
+assert g8.subs(t, 4 + Rational(4, 2)) == g8.subs(t, 0) and 4 + Rational(4, 2) == b8
+w8_trap = (Abs(v2_.subs(t, a8)) + Abs(v2_.subs(t, b8))) / 2 * (b8 - a8)   # 부호변화점을 놓친 사다리꼴
+assert w8_trap == 4
+chk(8, v8, [w8_disp, w8_trap])
 
 # ===== 조건 빼 보기 =====
 print('--- 조건 빼 보기 ---')
