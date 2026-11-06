@@ -15,9 +15,10 @@
 
 ## 할 일 (작업 지시서에 적힌 번호만)
 작업 지시서 `output/build/기말/공동출제/<회차>_codex.md`에 맡을 번호, 원문 키, 목표 난도, 정답 번호가 있다.
-- 결과물은 `output/build/기말/<회차>/parts/` 아래에 두 개다.
-  - 문항 파일 `cN.py`: 이름이 c로 시작해야 Claude 쪽 p 파일과 구분된다.
-  - 검증 스크립트 `verify_cN.py`: sympy로 정답·유일성·선지 등차·(적은) 오답 근거·원문 정답을 확인하고, 마지막 줄에 `ALL OK`를 출력한다.
+- **ChatGPT Codex 붙여넣기 방식(2026-11-06부터):** 지시서 `공동출제/<회차>-N_task.md`를 읽고 그것만 한다. 저장소를 넓게 탐색하지 않는다(비용 = 요청 수 × 맥락). 결과는 `codex/<회차>-N` 브랜치로 푸시한다.
+- 결과물은 `output/build/기말/<회차>/parts/` 아래의 문항 파일 `cN.py`다(이름이 c로 시작해야 Claude 쪽 p 파일과 구분된다).
+  - 문항 dict에 body·choices·ans·sol·fast·wrong·wrongs·vtype·effect·bunseok·precedent(복습형 분석집 문항은 bunseok_map)를 모두 적는다. 정답은 손으로 한 번, sympy로 한 번 확인한다.
+  - 검증 스크립트 `verify_cN.py`와 checkpart 반복은 지시서가 따로 요구할 때만 쓴다(기본은 Claude가 맡음).
 - 각 문항 dict에 `author='codex'`를 넣는다.
 - 검사: `cd output/build/기말/견본3 && python3 checkpart.py ../<회차>/parts/cN.py`를 실행한다.
   - 중복 '금지' 0개
