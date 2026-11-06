@@ -15,6 +15,7 @@ SLOTS = [(1, 'E', (2, 3)), (2, 'E', (2, 3)), (3, 'E', (2, 3)), (4, '평', (1, 3)
          (9, '평', (3, 5)), (10, '평', (4, 5)), (11, 'LU', (4, 5)), (12, 'LU', (5, 6)), (13, 'LU', (4, 5)), (14, '자체', (4, 5)), (15, '평', (6, 6)),
          (16, '평', (6, 7)), (17, 'LU', (5, 7)), (18, 'LU', (5, 7)), ('S1', '자체', (1, 4)), ('S2', '평', (6, 7))]
 QUOTA = dict(D=5, M=5, I=6, J=4)
+HARD = (15, 16, 17, 18, 'S2')   # 고난도 자리: 분담표에 예비 원문 2개를 같이 적는다(독립 검토 2번 탈락 → 교체)
 
 def src(k):
     t = F.D[k][1]
@@ -72,10 +73,12 @@ def plan(rtype, used=()):
             if rtype == '복습형' and k in STUDY and isinstance(no, int) and no <= 16: sc += 1.0
             out.append((sc, k))
         return sorted(out, reverse=True)
+    backup = {}
     for no, sv, rng in order:
         c = cands(no, sv, rng)
         if not c: c = cands(no, sv, (rng[0] - 1, rng[1] + 1))
         k = c[0][1]; pick[no] = k; quota[k[0]] -= 1
+        if no in HARD: backup[no] = [x for _, x in c[1:8]]          # 독립 검토 2번 탈락 시 바꿀 예비 원문(5번 개선)
     # 그림 2–3개를 9번 이후로 (모자라면 같은 출처·단원 쿼터 안에서 그림 원문으로 교체)
     figs = [n for n, k in pick.items() if has_fig(k)]
     for no, sv, rng in sorted(SLOTS, key=lambda s: -score(pick[s[0]]) if s[0] not in (17, 18, 'S2') else 99):
@@ -85,7 +88,11 @@ def plan(rtype, used=()):
         c = cands(no, sv, (rng[0] - 1, rng[1] + 1), need_fig=True)
         if c: pick[no] = c[0][1]; quota[c[0][1][0]] -= 1; figs.append(no)
         else: pick[no] = old; quota[old[0]] -= 1
-    return {str(n): dict(key=k, src=src(k), level=F.D[k][0], live=L.get(k, {}).get('n', 0), score=round(score(k), 2), fig=has_fig(k), study=k in STUDY, topics=sorted(topics(k)))
+    used_now = set(pick.values()); bk = {}
+    for n in HARD:                                                     # 자리끼리 겹치지 않게 2개씩
+        bk[n] = [b for b in backup.get(n, []) if b not in used_now][:2]; used_now |= set(bk[n])
+    return {str(n): dict(key=k, src=src(k), level=F.D[k][0], live=L.get(k, {}).get('n', 0), score=round(score(k), 2), fig=has_fig(k), study=k in STUDY, topics=sorted(topics(k)),
+                         **({'backup': bk[n]} if n in HARD else {}))
             for n, k in sorted(pick.items(), key=lambda z: 19 if z[0] == 'S1' else 20 if z[0] == 'S2' else z[0])}
 
 if __name__ == '__main__':
