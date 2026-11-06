@@ -70,7 +70,7 @@ def plan(rtype, used=()):
             if not topic_ok(k): continue                                           # 소재 겹침 상한
             sc = score(k, no if isinstance(no, int) else 20)
             if no == 'S1': sc += math.log1p(L.get(k, {}).get('seo', 0))       # 서술형 출제 이력
-            if rtype == '복습형' and k in STUDY and isinstance(no, int) and no <= 16: sc += 1.0
+            if rtype == '복습형' and k in STUDY and isinstance(no, int) and 5 <= no <= 16: sc += 1.0   # 1–4번에는 분석집 문항 없음(2회 재측정)
             out.append((sc, k))
         return sorted(out, reverse=True)
     backup = {}

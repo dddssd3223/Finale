@@ -99,6 +99,16 @@ def main(d):
         for lab, f in (('분석집 방향 문항', True), ('일반 문항', False)):
             g = [x for x in study if bool(x['bunseok']) == f]
             if g: print(f"{lab} {len(g)}개: 시간 차 평균 {st.mean(x['dt'] for x in g):+.2f}분, 체감 차 평균 {st.mean(x['dd'] for x in g):+.2f}, [분석집] 표시 {sum(x['mark'] for x in g)}개")
+        # 복습형 측정 판정(front.md 0-8): 분석집 문항은 공부한 풀이자 ±1.5, 공부 효과 −0.5분 이상, 블라인드 +2.5 이하
+        pr = {r[1]: r for r in rows}
+        print('\n복습형 판정 (분석집 문항) | 문항 | 공부자 체감−학교 | 블라인드 평균−학교 | 공부 효과(분) | 판정 |')
+        for x in study:
+            if not x['bunseok'] or x['tag'] not in pr: continue
+            n, tag, t, dd, bt, bd = pr[x['tag']]; sd = per['study'][tag]['d'] - bd
+            ok = abs(sd) <= 1.5 and x['dt'] <= -0.5 and dd - bd <= 2.5
+            print(f"| {tag} | {sd:+.1f} | {dd - bd:+.1f} | {x['dt']:+.1f} | {'통과' if ok else '걸림'} |")
+        mix = sum((per['study'][r[1]]['t50'] if items.get(r[1], {}).get('bunseok') and r[1] in per['study'] else r[2]) for r in rows)
+        print(f'이 폴더 시간 합(분석집 문항은 공부자 시간): {mix:.1f}분 (블라인드만 {tot:.1f}분)')
     json.dump(dict(rows=rows, calib=info, study=study), open(os.path.join(d, 'result.json'), 'w'), ensure_ascii=False, indent=1)
     ledger(d, rows, info, meta)
 

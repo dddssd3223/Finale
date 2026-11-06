@@ -118,7 +118,9 @@ def round_(d):
     out.append(('1–12 어려워짐 ≤1 (학교 회당 0–2)', hard12 <= 1, hard12))
     out.append(('13–16 어려워짐 1–2', 1 <= hard16 <= 2 or hard16 == 3, hard16))
     if rt == '학교형': out.append(('함정 추가 0 (학교형)', not trap, trap))
-    else: out.append(('분석집 문항 = 1–16의 절반(8) (복습형)', len(bun) == 8, bun))
+    else:
+        out.append(('분석집 문항 = 1–16의 절반(8) (복습형)', len(bun) == 8, bun))
+        out.append(('분석집 문항은 5–16번 (1–4번 없음, 2회 재측정)', not [n for n in bun if int(n) <= 4], [n for n in bun if int(n) <= 4]))
     if rt == '학교형': out.append(('분석집 저격 0 (학교형)', not bun, bun))
     out.append(('내림차순 선지 ≤2 (학교 17개 중 2)', len(desc) <= 2, desc))
     num = [(lambda v: (v[1] - v[0]) if None not in v and len(v) == 5 else None)([val(c) for c in it.get('choices') or []]) for it in its.values()]
