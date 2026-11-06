@@ -67,39 +67,56 @@ assert old_c == [3]
 original('J58', diff.subs(c, old_c[0]))
 
 # 11: x=0 in xg(x)=H(x) gives H(0)=int|t|f=0 for any function g.
-# f'(0)=0, f(0)=-3 leave f=pt^2-3; the single equation fixes p.
-ft = p*t*t-3
+# f(0)=-3 leaves f=pt^2+rt-3; |t|·rt is odd, so H(0)=0 fixes p=6 and r is free.
+# Outside [-1,1] |x-t| has one sign: x>=1 → xg=Bx-A, x<=-1 → xg=A-Bx.
+r = s.symbols('r', real=True)
+ft = p*t*t+r*t-3
 H0 = s.integrate(-t*ft, (t, -1, 0))+s.integrate(t*ft, (t, 0, 1))
-assert s.simplify(H0-2*s.integrate(t*ft, (t, 0, 1))) == 0
+assert s.expand(H0-2*s.integrate(t*(p*t*t-3), (t, 0, 1))) == 0   # r drops
 ps = s.solve(H0, p)
 assert ps == [6]
 f11 = ft.subs(p, 6)
-wrong_p = s.solve(s.integrate(ft, (t, -1, 1)), p)[0]   # |t| dropped at x=0
-assert wrong_p == 9
-check(11, f11.subs(t, 1), 1, {'6': ft.subs({p: wrong_p, t: 1})})
-# Existence: with f=6t^2-3, H(0)=0, so g(x)=H(x)/x (x≠0) extends; it is even
-# continuous with g(0)=lim H(x)/x, matching the outside constants ±int f.
+A = s.integrate(t*f11, (t, -1, 1)); B = s.integrate(f11, (t, -1, 1))
+assert A == 2*r/3 and B == -2
+g2 = s.integrate((2-t)*f11, (t, -1, 1))/2        # |2-t| = 2-t on [-1,1]
+gm2 = s.integrate((t+2)*f11, (t, -1, 1))/(-2)    # |-2-t| = t+2 on [-1,1]
+assert s.expand(g2-(B-A/2)) == 0 and s.expand(gm2-(-B-A/2)) == 0
+ans11 = s.expand(g2-gm2)
+assert ans11 == -4 and not ans11.free_symbols    # unique for every r
+# numeric cross-check with the absolute value itself, several r
+for rv in (-5, 0, s.Rational(7, 3)):
+    fv = f11.subs(r, rv)
+    for xv in (2, -2):
+        Hv = s.integrate(s.Abs(xv-t)*fv, (t, -1, 1))
+        assert s.simplify(Hv/xv-(g2 if xv == 2 else gm2).subs(r, rv)) == 0
+# mistakes
+same_side = s.expand(g2-(s.integrate((-2-t)*f11, (t, -1, 1))/(-2)))   # x-t at x=-2 too
+assert s.expand(same_side+A) == 0 and same_side.subs(r, 0) == 0      # -A, then A=0 as in 원문
+wrong_p = s.solve(s.integrate(p*t*t+r*t-3, (t, -1, 1)), p)[0]          # |t| dropped at x=0
+assert wrong_p == 9 and 2*s.integrate((9*t*t+r*t-3), (t, -1, 1)) == 0
+half = 2*s.integrate(f11, (t, 0, 1)).subs(r, 0)                         # B as int_0^1 f
+check(11, ans11, 1, {'0': same_side.subs(r, 0), '-2': half})
+# Existence: for every r, H(0)=0 and g(x)=H(x)/x (x≠0), g(0) any real value.
 Hin = s.integrate((x-t)*f11, (t, -1, x))+s.integrate((t-x)*f11, (t, x, 1))
-gi = s.cancel(Hin/x)
-assert s.expand(gi) == x**3-3*x and Hin.subs(x, 0) == 0
-assert gi.subs(x, 1) == s.integrate(f11, (t, -1, 1)) and gi.subs(x, -1) == -s.integrate(f11, (t, -1, 1))
+assert s.expand(Hin.subs(x, 0)) == 0
 # ablation 11
-pf = s.symbols('pf')
-qf = s.solve(s.integrate(t*(pf*t*t+q), (t, 0, 1)), q)   # f(0) unknown
-assert qf == [-pf/2] and s.expand((pf*t*t+qf[0]).subs(t, 1)) == pf/2
-print("ABLATION 11 f(0)=-3: 필요(f=p(t²-1/2)이면 f(1)=p/2, p 미정)")
-r = s.symbols('r')
-fr = p*t*t+r*t-3
-Hr = s.integrate(-t*fr, (t, -1, 0))+s.integrate(t*fr, (t, 0, 1))
-assert s.solve(Hr, p) == [6] and s.expand(fr.subs({p: 6, t: 1})) == 3+r
-print("ABLATION 11 f'(0)=0: 필요(일차항 r이 남아 f(1)=3+r)")
-a3 = s.symbols('a3')
-fc = a3*t**3+p*t*t-3   # cubic with f'(0)=0, f(0)=-3
-Hc = s.integrate(-t*fc, (t, -1, 0))+s.integrate(t*fc, (t, 0, 1))
-sol_c = s.solve(Hc, p)[0]
-assert s.expand(fc.subs({p: sol_c, t: 1})).free_symbols == {a3}
-print('ABLATION 11 이차함수: 필요(삼차이면 f(1)이 최고차항 계수에 따라 달라짐)')
-print('ABLATION 11 식 xg(x)=…: 필요(없으면 p 미정)')
+pf, qf = s.symbols('pf qf')
+fq = pf*t*t+r*t+qf
+qq = s.solve(s.integrate(-t*fq, (t, -1, 0))+s.integrate(t*fq, (t, 0, 1)), qf)
+assert qq == [-pf/2]
+val = s.expand(2*s.integrate(fq.subs(qf, qq[0]), (t, -1, 1)))
+assert val == -2*pf/3
+print('ABLATION 11 f(0)=-3: 필요(f=p(t²-1/2)+rt이면 값 -2p/3, p 미정)')
+u = s.symbols('u')
+fu = u*t**4+p*t*t+r*t-3   # quartic with f(0)=-3
+pu = s.solve(s.integrate(-t*fu, (t, -1, 0))+s.integrate(t*fu, (t, 0, 1)), p)[0]
+valu = s.expand(2*s.integrate(fu.subs(p, pu), (t, -1, 1)))
+assert valu.free_symbols == {u}
+print(f'ABLATION 11 이차함수: 필요(사차이면 값 {valu}, 최고차항 계수에 따라 달라짐)')
+print('ABLATION 11 식 xg(x)=…: 필요(없으면 g와 f의 관계가 없어 값 미정)')
+# The reviewer's version (f\'(0)=0 kept, g(-2)-g(2)) would make f\'(0)=0 redundant:
+assert s.expand(gm2-g2) == 4
+print("NOTE 11 f'(0)=0을 두어도 g(-2)-g(2)=4는 r과 무관 → 군더더기라 뺐다")
 old_ft = p*t*t+q
 old_pq = s.solve([2*s.integrate(t*old_ft, (t, 0, 1)), s.integrate((t+2)*old_ft, (t, -1, 1))+4], [p, q])
 original('I43', (4*p+q).subs(old_pq))

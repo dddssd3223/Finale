@@ -72,48 +72,82 @@ fo = a*x**3+b*x+a
 so = s.solve([s.diff(fo, x).subs(x, 1), fo.subs(x, 1)+2], [a, b])
 original('D17', fo.subs(so).subs(x, -1))
 
-# 3: f(-x)=-f(x)+2 means h=f-1 is odd. Take a general odd polynomial h of
-# degree up to 11 with symbolic coefficients: the value never depends on h.
+# 3: f(-x)=-f(x)+8 means h=f-4 is odd. Take a general odd polynomial h of
+# degree up to 11 with symbolic coefficients, impose int_0^1 x f = 1, and the
+# value never depends on the remaining coefficients (answer unique).
 cs = s.symbols('c0:6')
 h = sum(cv*x**(2*i+1) for i, cv in enumerate(cs))
-f3 = 1+h
-assert s.expand(f3.subs(x, -x)-(-f3+2)) == 0
-val3 = s.expand(s.integrate((3*x**2+1)*f3, (x, -1, 1)))
-assert val3 == 4 and not val3.free_symbols   # unique for every such f
-# Conversely f(-x)=-f(x)+2 forces the even part of f-1 to vanish, so h covers all f.
-check(3, val3, 1, {'8': s.integrate(2*(3*x**2+1), (x, -1, 1))})   # mistake: f-2 taken as odd
+f3 = 4+h
+assert s.expand(f3.subs(x, -x)-(-f3+8)) == 0
+# Conversely f(-x)=-f(x)+8 forces the even part of f-4 to vanish, so f3 covers all f.
+c0 = s.solve(s.integrate(x*f3, (x, 0, 1))-1, cs[0])[0]
+val3 = s.expand(s.integrate((3*x**2+x+1)*f3, (x, -1, 1)).subs(cs[0], c0))
+assert val3 == 14 and not val3.free_symbols
+xh = s.Integer(1)-s.integrate(4*x, (x, 0, 1))          # int_0^1 x h = 1-2 = -1
+E3 = 4*s.integrate(3*x**2+x+1, (x, -1, 1))              # 16
+assert E3+2*xh == val3
+mist3 = {'18': E3+2*1,          # 보정 누락: int_0^1 x(f-4) taken as 1
+         '15': E3+xh,           # 2배 누락: int_{-1}^1 xh = int_0^1 xh
+         '16': E3}              # 홀수 차수 항까지 소거
+check(3, val3, 1, mist3)
+assert E3+1 == 17 and E3+1 not in mist3.values()   # 두 실수 겹침(17)은 정답과 다름
+# 검토안(+2, int_0^1 xf=1, 3x²+2x+1)은 보정 누락+2배 누락을 겹치면 정답과 같아져 피했다.
+rv_ok = 4+2*2*(1-s.Rational(1, 2)); rv_both = 4+2*1
+assert rv_ok == rv_both == 6
 # ablation 3
-for fa, why in ((x**2, '우함수 x²'), (x, '기함수 x(상수 2 → 0)')):
-    va = s.integrate((3*x**2+1)*fa, (x, -1, 1))
+fe = 3*x   # int_0^1 x·3x = 1 but f(-x)=-f(x) (상수 0): 대칭 조건을 바꾸면 값이 달라짐
+va = s.integrate((3*x**2+x+1)*fe, (x, -1, 1))
+assert s.integrate(x*fe, (x, 0, 1)) == 1 and va != val3
+print(f'ABLATION 3 f(-x)=-f(x)+8: 필요(f=3x이면 값 {va})')
+fe = 3*x**2+s.Rational(1, 4)   # 짝함수 예, int_0^1 x f = 3/4+1/8 ≠ 1 → scale
+fe = fe/s.integrate(x*fe, (x, 0, 1))
+assert s.integrate(x*fe, (x, 0, 1)) == 1
+va = s.integrate((3*x**2+x+1)*fe, (x, -1, 1))
+assert va != val3
+print(f'ABLATION 3 f(-x)=-f(x)+8: 필요(짝함수 예에서 값 {va})')
+for cv in (0, 2):
+    fv = 4+s.Rational(3*(cv-2), 1)*x   # int_0^1 x f = 2+(cv-2) = cv
+    assert s.integrate(x*fv, (x, 0, 1)) == cv
+    va = s.integrate((3*x**2+x+1)*fv, (x, -1, 1))
     assert va != val3
-    print(f'ABLATION 3 f(-x)=-f(x)+2: 필요({why}이면 값 {va})')
+    print(f'ABLATION 3 ∫₀¹xf=1: 필요(∫₀¹xf={cv}이면 값 {va})')
 fo = sum(cv*x**(2*i+1) for i, cv in enumerate(cs))
 oc = s.solve(s.integrate(x*fo, (x, 0, 1))-3, cs[0])[0]
 original('I29', s.expand(s.integrate((x+2)**2*fo, (x, -1, 1)).subs(cs[0], oc)))
 
-# 5: k>2 gives 0<k-2<k with the double root 0 at the left end; the curve is
-# positive on (0,k-2) and negative on (k-2,k), so equal areas <=> int_0^k = 0.
-f = x**2*(x-k)*(x-k+2)
-area_difference = s.factor(s.integrate(f, (x, 0, k)))
-assert area_difference == k**4*(k-5)/30
-admissible = [v for v in s.solve(area_difference, k) if v > 2]
-assert admissible == [5]
-fv = f.subs(k, 5)
-assert fv.subs(x, 1) > 0 > fv.subs(x, 4)
-A = s.integrate(fv, (x, 0, 3))
-B = -s.integrate(fv, (x, 3, 5))
+# 5: 0<k<5 gives -5<-k<0 with the double root 0 at the RIGHT end; the curve is
+# negative on (-5,-k) and positive on (-k,0), so equal areas <=> int_{-5}^0 = 0.
+f = x**2*(x+k)*(x+5)
+area_difference = s.factor(s.integrate(f, (x, -5, 0)))
+assert s.expand(area_difference-625*(k-3)/12) == 0
+split = s.Rational(5**5, 30)+(k-5)*s.Rational(5**4, 12)   # 계산 정리: x+k=(x+5)+(k-5)
+assert s.expand(split-area_difference) == 0
+assert s.integrate(x**2*(x+5)**2, (x, -5, 0)) == s.Rational(5**5, 30)
+assert s.integrate(x**2*(x+5), (x, -5, 0)) == s.Rational(5**4, 12)
+admissible = [v for v in s.solve(area_difference, k) if 0 < v < 5]
+assert admissible == [3]
+fv = f.subs(k, 3)
+assert fv.subs(x, -4) < 0 < fv.subs(x, -1)
+A = -s.integrate(fv, (x, -5, -3))
+B = s.integrate(fv, (x, -3, 0))
 assert A == B and A > 0
-check(5, admissible[0], 5, {'4': s.solve(s.Eq(k-2, k/2), k)[0]})   # cubic midpoint rule
+# 위치 비: 중근 0에서 잰 거리 0, k, 5 → k:5 = 3:5
+assert s.solve(s.Eq(k/5, s.Rational(3, 5)), k) == [3]
+check(5, admissible[0], 5, {
+    '2': s.solve(s.Eq((5-k)/5, s.Rational(3, 5)), k)[0],      # 왼쪽 근 -5에서 0:3:5
+    r'\dfrac52': s.solve(s.Eq(-k, s.Rational(-5, 2)), k)[0]})  # 삼차 중점 규칙
 
-
-# ablation 5: without k>2 other k work, so the 단서 is needed.
-# 0<k<2: zeros k-2<0<k, double root 0 in the middle, both parts below the axis.
-P1 = -s.integrate(f, (x, k-2, 0)); P2 = -s.integrate(f, (x, 0, k))
-mid = [v for v in s.solve(s.expand(P1-P2), k) if v.is_real and 0 < v < 2]
-# k<0: zeros k-2<k<0, double root 0 at the right end.
-right = [v for v in s.solve(s.factor(s.integrate(f, (x, k-2, 0))), k) if v.is_real and v < 0]
-assert mid == [1] and right == [-3]
-print(f'ABLATION 5 (단, k>2): 필요(없으면 k=1, -3도 두 넓이가 같음)')
+# ablation 5: without 0<k<5 another k works, so the 단서 is needed.
+# k>5: zeros -k<-5<0, double root 0 at the right end.
+big = [v for v in s.solve(s.integrate(f, (x, -k, 0)), k) if v.is_real and v > 5]
+assert big == [s.Rational(25, 3)]
+fb = f.subs(k, big[0])
+assert -s.integrate(fb, (x, -big[0], -5)) == s.integrate(fb, (x, -5, 0)) > 0
+# k<0: zeros -5<0<-k, double root in the middle, both parts below the axis.
+P1 = -s.integrate(f, (x, -5, 0)); P2 = -s.integrate(f, (x, 0, -k))
+neg = [v for v in s.solve(s.expand(P1-P2), k) if v.is_real and v < 0 and v != -5]
+assert neg == []
+print('ABLATION 5 (단, 0<k<5): 필요(없으면 k=25/3도 두 넓이가 같음)')
 fo = x**2*(x-2)*(x-k)
 original_roots = [v for v in s.solve(s.integrate(fo, (x, 0, k)), k) if v > 2]
 assert len(original_roots) == 1
