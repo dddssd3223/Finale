@@ -1,4 +1,4 @@
-MODEL: gpt-6.1-astra
+MODEL: gpt-6-astra
 EFFORT: medium
 
 # 변형 출제 실험: 학교 중간고사 한 회 (미적분Ⅰ 중간 범위)
