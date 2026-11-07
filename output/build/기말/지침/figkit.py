@@ -36,6 +36,7 @@ from matplotlib.path import Path as _Path
 _AV = [(0, 0), (-1, 0.42), (-0.8, 0), (-1, -0.42), (0, 0)]
 ARROW_R = _Path(_AV, [_Path.MOVETO, _Path.LINETO, _Path.LINETO, _Path.LINETO, _Path.CLOSEPOLY])
 ARROW_U = _Path([(-y, x) for x, y in _AV][:0] or [(y, -x) for x, y in _AV], ARROW_R.codes) if False else _Path([(-v, u) for u, v in [(x, y) for x, y in _AV]], ARROW_R.codes)
+ARROW_L = 4.2   # 화살촉 길이(pt), 인쇄 실측 학교 그림과 같게
 ARROW_MS = 11   # 화살촉 길이 ≈ ARROW_MS/2 pt (원점이 끝점이라 마커 상자의 절반)
 
 def pua(t, it=True):
@@ -50,6 +51,13 @@ def pua(t, it=True):
         else: o += {'-': chr(0xE046), '=': chr(0xE047), '(': chr(0xE044), ')': chr(0xE045), ',': chr(0xE052), '+': chr(0xE048), '|': chr(0xE04D), ':': chr(0xE04F), ';': chr(0xE04E), "'": chr(0xE050), '.': chr(0xE053), '/': chr(0xE054), '<': chr(0xE055), '>': chr(0xE056)}.get(ch, ch)
     return o
 
+def arrow(ax, x, y, deg):
+    """끝점이 정확히 (x, y)인 화살촉(길이 ARROW_L pt). deg=0 오른쪽, 90 위"""
+    from matplotlib.patches import PathPatch
+    from matplotlib.transforms import Affine2D, ScaledTranslation
+    tr = Affine2D().scale(ARROW_L / 72).rotate_deg(deg) + ax.figure.dpi_scale_trans + ScaledTranslation(x, y, ax.transData)
+    return ax.add_patch(PathPatch(ARROW_R, transform=tr, fc='k', ec='none', zorder=6, clip_on=False))
+
 def new(xl, yl, size=(2.6, 2.0), aspect='auto', xlabel='x', ylabel='y', origin=True, dx=0.12, dy=0.12):
     """화살표 축이 있는 빈 그림. dx, dy: 축 이름·O 라벨 간격(데이터 단위 비율)"""
     fig, ax = plt.subplots(figsize=size)
@@ -59,10 +67,13 @@ def new(xl, yl, size=(2.6, 2.0), aspect='auto', xlabel='x', ylabel='y', origin=T
     # 학교 시험지 대조 2026-11-07(2025 중간 15번 인쇄 스캔·2학기 중간 17번): 뾰족하고 좁은 화살촉, 뒤가 안으로 파임(stealth꼴), 축 굵기 = 곡선 굵기
     # 촉은 그림 틀보다 조금 더 밖으로(2026-11-07 사용자 "촉 자체도 살짝 더 끝쪽으로"): 축 길이의 4%
     tx, ty = xl[1] + (xl[1] - xl[0]) * 0.04, yl[1] + (yl[1] - yl[0]) * 0.04
-    ax.plot([xl[0], tx], [0, 0], 'k', lw=LW, solid_capstyle='butt', clip_on=False)
-    ax.plot([0, 0], [yl[0], ty], 'k', lw=LW, solid_capstyle='butt', clip_on=False)
-    ax.plot([tx], [0], marker=ARROW_R, ms=ARROW_MS, color='k', mew=0, zorder=6, clip_on=False)
-    ax.plot([0], [ty], marker=ARROW_U, ms=ARROW_MS, color='k', mew=0, zorder=6, clip_on=False)
+    # 축은 촉 끝이 마지막 점: 선은 촉 안쪽(끝에서 ARROW_L*0.6)에서 멈추고, 촉은 끝점이 정확히 (tx,0)·(0,ty)인 도형으로 그린다
+    # (2026-11-07 사용자 "줄로 끝나잖아": 마커 촉보다 선이 더 나와 끝이 뭉툭했음)
+    fig.canvas.draw(); bb = ax.get_window_extent(); ppt = fig.dpi / 72
+    cx = ARROW_L * 0.6 * ppt * (xl[1] - xl[0]) / bb.width; cy = ARROW_L * 0.6 * ppt * (yl[1] - yl[0]) / bb.height
+    ax.plot([xl[0], tx - cx], [0, 0], 'k', lw=LW, solid_capstyle='butt', clip_on=False)
+    ax.plot([0, 0], [yl[0], ty - cy], 'k', lw=LW, solid_capstyle='butt', clip_on=False)
+    arrow(ax, tx, 0, 0); arrow(ax, 0, ty, 90)
     sx, sy = (xl[1] - xl[0]) * dx / 3, (yl[1] - yl[0]) * dy / 3
     # 축 이름은 화살 끝 쪽에(학교 그림: x는 화살 끝 바로 아래, y는 화살 끝 높이의 오른쪽) — 2026-11-07 사용자 지적
     if xlabel: label(ax, tx, -sy * 0.6, xlabel, 'right', 'top').set_clip_on(False)
