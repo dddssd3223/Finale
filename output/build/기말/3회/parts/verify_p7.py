@@ -161,6 +161,19 @@ assert all(hR.subs(x, R(i, 2)) + 4 > 0 for i in range(5, 40)) and all(hL.subs(x,
 assert sp.integrate(sp.expand((x - 2)**2 * (x + 1)), (x, -1, 2)) == R(27, 4)   # |x| 무시
 assert count(hL, hR, R(4, 27))[0] == 2                                           # k<0 무시 시 다른 답
 assert count(hL, hR, 0)[1] == {-1, 0, 3}                                         # k=0 은 3개
+# 지름길 f'=g' 로 접점 후보를 양쪽에서 잡는 실수: x<0 에서 3x^2-2x=-4x → x=-2/3, k=h(-2/3)=4/27
+cL = [r for r in sp.solve(sp.diff(f2, x) - sp.diff(gL, x), x) if r < 0]
+assert cL == [-R(2, 3)] and hL.subs(x, cL[0]) == R(4, 27)
+cR = [r for r in sp.solve(sp.diff(f2, x) - sp.diff(gR, x), x) if r > 0]
+assert cR == [2] and hR.subs(x, 2) == -4
+# x<0 교점을 확인하지 않고 x>=0 식 (x-2)^2(x+1) 의 남은 근 -1 을 왼쪽 끝으로: 49/12 + 4 = 97/12
+assert sp.integrate(hL + 4, (x, -1, 0)) == R(49, 12) and R(49, 12) + A_R == R(97, 12)
+# 채점 배점 합: (1) 3점, (2) 2+2+(1+1)+1 = 7점
+import re as _re
+pts2 = [int(v) for line in S2['rubric'][1:5] for v in _re.findall(r'\[(\d)점\]', line)]
+assert pts2 == [2, 2, 1, 1, 1] and sum(pts2) == 7 and '[3점]' in S2['rubric'][0]
+pts1 = [int(v) for line in S1['rubric'][:6] for v in _re.findall(r'\[(\d)점\]', line)]
+assert len(pts1) == 6 and sum(pts1) == 10
 print('S2 (2) OK: 교점 -2, 2(접점), 넓이 20/3 + 4 = 32/3')
 
 # ----- 조건 빼 보기 S2
