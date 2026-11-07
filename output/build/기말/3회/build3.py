@@ -23,7 +23,7 @@ PAGES = [
     ([('Q13', TOP)], [('Q14', TOP)]),
     ([('Q15', TOP)], [('Q16', TOP)]),
     ([('Q17', TOP)], [('Q18', TOP)]),
-    ([('SEC1', TOP), ('S1', None)], [('S2', TOP), ('END', 691)]),
+    ([('SEC1', TOP), ('S1', None)], [('S2', TOP), ('END', 684.5)]),
 ]
 
 CIRC = '①②③④⑤'
@@ -93,8 +93,8 @@ body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.78;color:#000;
 .secr{border:0;border-top:1.4pt solid #000;margin:8pt 0 5.7pt}
 .sh{font-family:'HCRB';font-size:13pt;line-height:16pt;-webkit-text-stroke:.35pt #000;margin:0 0 3pt}
 .endx{position:absolute;left:0;width:100%;text-align:center}
-.endx .a{font-family:'HB','FS';font-size:20.5pt;line-height:26pt;white-space:nowrap}
-.endx .b{font-family:'HB';font-size:14pt;line-height:19.7pt}
+.endx .a{font-family:'GL';font-size:25pt;line-height:30pt;letter-spacing:-2.12pt;white-space:nowrap;-webkit-text-stroke:.35pt #000;transform:translateX(-1.4pt)}
+.endx .b{font-family:'GL';font-size:13.5pt;line-height:19.5pt;letter-spacing:-.6pt;word-spacing:1.3pt;-webkit-text-stroke:.32pt #000;transform:translateX(-1.2pt)}
 .end .a{font-size:24pt;letter-spacing:1pt}
 .end .b{font-size:14pt;line-height:1.75;margin-top:6pt}
 .tot{text-align:right}
@@ -342,8 +342,9 @@ def SEC(kind, total, rng, how):
             f'<div class="d"><u>서답형 답안지의 해당란에 {how}</u>하시오.</div><hr></div>')
 SEC1 = '<div class="sech">&lt;서답형 문제 – 20점&gt;</div><hr class="secr">'
 SEC2 = ''
-END = ('<div class="endx" style="top:0"><div class="a">수고하셨습니다 (ᐢ.꒳.ᐢ)ꕤ</div>'
-       '<div class="b" style="margin-top:7.6pt">선택형 18문제 = 80점<br>서답형&nbsp;&nbsp;2문제 = 20점</div></div>')
+# 끝맺음: 최근 중간고사(2026-1) 스캔과 같게 — 굴림, '♥수고하셨습니다♥' 25pt(자간 좁게), 배점 두 줄 13.5pt (2026-11-07 글자 겹침 대조: 굴림 0.77, 나눔고딕 0.68, 돋움 0.66)
+END = ('<div class="endx" style="top:0"><div class="a">♥수고하셨습니다♥</div>'
+       '<div class="b" style="margin-top:6pt">선택형 18문제 = 80점<br>서답형&nbsp;&nbsp;2문제 = 20점</div></div>')
 
 def block(key):
     if key.startswith('Q'): return q_html(int(key[1:]))
