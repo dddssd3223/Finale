@@ -19,11 +19,12 @@ def load_round(rdir):
 def txt(it):
     b = it['body']
     if it.get('cond'): b += '\n[조건] ' + ' '.join(f'({k}) {v}' if k else v for k, v in it['cond']) + ' '
+    if it.get('bogi'): b += '\n[보기] ' + ' '.join(f'{k}. {v}' for k, v in it['bogi']) + ' '   # 보기형(2026-11-07 3회 측정에서 빠져 있던 것)
     if it.get('after'): b += it['after']
     b = re.sub(r'<div class="fig"><img src="([^"]+?)(\.svg)?"[^>]*></div>', lambda m: f' [그림: {os.path.basename(m[1])}.png] ', b)
     b = re.sub(r'<[^>]+>', ' ', b).replace('&lt;', '<').replace('&gt;', '>').replace('\n', ' ')
     if it.get('subs'): b += ' ' + ' '.join(f'({i}) {q[0]}' for i, q in enumerate(it['subs'], 1)) + ' [서답형: 각 소문항 답을 적는다]'
-    if it.get('choices'): b += '  ' + ' '.join(f'{"①②③④⑤"[i]} {c}' for i, c in enumerate(it['choices']))
+    if it.get('choices'): b += '  ' + ' '.join(f'{"①②③④⑤"[i]} {str(c).removeprefix("T:")}' for i, c in enumerate(it['choices']))
     return re.sub(r'  +', ' ', b).strip()
 
 def item_hash(it):
