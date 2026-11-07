@@ -23,7 +23,7 @@ PAGES = [
     ([('Q13', TOP)], [('Q14', TOP)]),
     ([('Q15', TOP)], [('Q16', TOP)]),
     ([('Q17', TOP)], [('Q18', TOP)]),
-    ([('SEC1', TOP), ('S1', None)], [('S2', TOP), ('END', 684.5)]),
+    ([('SEC1', TOP), ('S1', None)], [('S2', TOP), ('END', 693.7)]),
 ]
 
 CIRC = '①②③④⑤'
@@ -93,8 +93,9 @@ body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.78;color:#000;
 .secr{border:0;border-top:1.4pt solid #000;margin:8pt 0 5.7pt}
 .sh{font-family:'HCRB';font-size:13pt;line-height:16pt;-webkit-text-stroke:.35pt #000;margin:0 0 3pt}
 .endx{position:absolute;left:0;width:100%;text-align:center}
-.endx .a{font-family:'GL';font-size:25pt;line-height:30pt;letter-spacing:-2.12pt;white-space:nowrap;-webkit-text-stroke:.35pt #000;transform:translateX(-1.4pt)}
-.endx .b{font-family:'GL';font-size:13.5pt;line-height:19.5pt;letter-spacing:-.6pt;word-spacing:1.3pt;-webkit-text-stroke:.32pt #000;transform:translateX(-1.2pt)}
+.endx .a{font-family:'HB','FS';font-size:23pt;line-height:28pt;letter-spacing:-1.1pt;white-space:nowrap;-webkit-text-stroke:.32pt #000;transform:translateX(-3.4pt)}
+.endx .em{font-size:19.8pt;margin-left:10.4pt}
+.endx .b{font-family:'HB';font-size:14pt;line-height:19.4pt;letter-spacing:-.9pt;word-spacing:.9pt;-webkit-text-stroke:.14pt #000}
 .end .a{font-size:24pt;letter-spacing:1pt}
 .end .b{font-size:14pt;line-height:1.75;margin-top:6pt}
 .tot{text-align:right}
@@ -342,9 +343,8 @@ def SEC(kind, total, rng, how):
             f'<div class="d"><u>서답형 답안지의 해당란에 {how}</u>하시오.</div><hr></div>')
 SEC1 = '<div class="sech">&lt;서답형 문제 – 20점&gt;</div><hr class="secr">'
 SEC2 = ''
-# 끝맺음: 최근 중간고사(2026-1) 스캔과 같게 — 굴림, '♥수고하셨습니다♥' 25pt(자간 좁게), 배점 두 줄 13.5pt (2026-11-07 글자 겹침 대조: 굴림 0.77, 나눔고딕 0.68, 돋움 0.66)
-END = ('<div class="endx" style="top:0"><div class="a">♥수고하셨습니다♥</div>'
-       '<div class="b" style="margin-top:6pt">선택형 18문제 = 80점<br>서답형&nbsp;&nbsp;2문제 = 20점</div></div>')
+END = ('<div class="endx" style="top:0"><div class="a">수고하셨습니다<span class="em">(ᐢ.꒳.ᐢ)ꕤ</span></div>'
+       '<div class="b" style="margin-top:5.6pt"><span style="position:relative;left:-.8pt">선택형 18문제 = 80점</span><br><span style="word-spacing:.3pt">서답형&nbsp;&nbsp;2문제 = 20점</span></div></div>')
 
 def block(key):
     if key.startswith('Q'): return q_html(int(key[1:]))
@@ -490,13 +490,10 @@ def make_background():
 
 TITLE = [(92.3, '2', 20.04), (106.46, '학년', 15.0), (143.8, '미적분Ⅰ', 23.0), (246.96, '과', 15.0),
          (269.3, '기말고사', 19.0), (347.45, ' 문제', 15.0)]
-# 2026-11-07 학교 스캔(2026-1 중간 4·6쪽, 2022 개정 같은 머리글)과 픽셀 대조: 글자 높이 9.9pt·장평 90.5%(굴림 장평 줄임),
+# 2026-11-07 학교 스캔과 픽셀 대조(기준: 가장 최근 2026-2 미적분Ⅰ 중간 2·4·6쪽 평균, 2026-1 중간과도 1px 안): 글자 높이 9.9pt·장평 90.5%(굴림 장평 줄임),
 # 낱말마다 스캔의 시작 위치(본문 틀 기준)에 놓음, 획 굵기는 스캔 잉크 밀도(≈0.20)에 맞춤
 INFO_Y, INFO_FS, INFO_BW, INFO_SX = 142.5, 9.9, 0.045, 0.905
-INFO = [(65.99, '과'), (79.46, '정'), (92.89, ':'), (100.1, '('), (107.88, '2022'), (133.31, '개정'), (156.08, '교육과정'), (196.57, ')'),
-        (222.12, '과목코드'), (262.67, ':'), (270.32, '('), (278.19, '09'), (292.8, ')'),
-        (318.43, '이수단위'), (358.26, ':'), (366.0, '('), (373.59, '4'), (383.44, ')'),
-        (408.8, '문항수'), (440.51, '('), (448.17, '선택형:'), (482.91, '18,'), (500.98, '서답형'), (531.97, '2)')]
+INFO = [(65.99, '과'), (79.65, '정'), (93.08, ':'), (100.52, '('), (108.41, '2022'), (133.82, '개정'), (156.24, '교육과정'), (196.8, ')'), (222.52, '과목코드'), (262.92, ':'), (270.43, '('), (278.24, '09'), (293.12, ')'), (318.62, '이수단위'), (358.98, ':'), (366.4, '('), (373.96, '4'), (383.79, ')'), (409.47, '문항수'), (440.99, '('), (448.91, '선택형:'), (483.47, '18,'), (501.03, '서답형'), (532.89, '2)')]
 
 BOX_LW = 0.36  # 양식 박스 선 두께(pt); Chromium은 1px(0.75pt) 미만 테두리를 1px로 올리므로 PDF에서 직접 조정
 
