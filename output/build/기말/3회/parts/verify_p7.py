@@ -178,18 +178,18 @@ assert cR == [2] and hR.subs(x, 2) == -4
 assert sp.integrate(hL + 4, (x, -1, 0)) == R(49, 12) and R(49, 12) + A_R == R(97, 12)
 # 채점 배점 합: (1) 3점, (2) 2+2+(1+1)+1 = 7점
 import re as _re
-# 소문항 3개, 배점 합 10: S1 3+3+4 (과정), S2 3+3+4 ((1)(2) 답만, (3) 과정)
+# 소문항 3개, 배점 (1) 4 (2) 4 (3) 2, 합 10 (2학기 중간 20번 배점). S1 모두 과정, S2 모두 답만
 for it in (S1, S2):
     assert len(it['subs']) == 3 and len(it['ans']) == 3 and len(it['sol']) == 3
     sp_ = [int(_re.match(r'(\d+)점', q[1]).group(1)) for q in it['subs']]
-    assert sp_ == [3, 3, 4] and sum(sp_) == 10
-assert [q[1] for q in S1['subs']] == ['3점, 풀이과정을 상세히 쓰시오.'] * 2 + ['4점, 풀이과정을 상세히 쓰시오.']
-assert [q[1] for q in S2['subs']] == ['3점, 답만 적으시오.'] * 2 + ['4점, 풀이과정을 상세히 쓰시오.']
+    assert sp_ == [4, 4, 2] and sum(sp_) == 10
+assert [q[1] for q in S1['subs']] == ['4점, 풀이과정을 상세히 쓰시오.'] * 2 + ['2점, 풀이과정을 상세히 쓰시오.']
+assert [q[1] for q in S2['subs']] == ['4점, 답만 적으시오.'] * 2 + ['2점, 답만 적으시오.']
 pts1 = [[int(v) for v in _re.findall(r'\[(\d)점\]', line)] for line in S1['rubric'][:3]]
-assert [sum(a) for a in pts1] == [3, 3, 4], pts1
-assert '[3점]' in S2['rubric'][0] and '[3점]' in S2['rubric'][1]
-pts2 = [int(v) for line in S2['rubric'][2:5] for v in _re.findall(r'\[(\d)점\]', line)]
-assert pts2 == [2, 1, 1] and sum(pts2) == 4
+assert [sum(a) for a in pts1] == [4, 4, 2] and sum(map(sum, pts1)) == 10, pts1
+pts2 = [[int(v) for v in _re.findall(r'\[(\d)점\]', line)] for line in S2['rubric'][:3]]
+assert pts2 == [[4], [4], [2]] and sum(map(sum, pts2)) == 10, pts2
+assert S2['rubric'][0].startswith(r'(1) \(k=-4\)') and S2['rubric'][1].startswith(r'(2) \(-2\), \(2\)') and S2['rubric'][2].startswith(r'(3) \(\dfrac{32}{3}\)')
 assert sp.solve(sp.expand((x - 2)**2 * (x + 1)), x) == [-1, 2]                     # (2) 오답 -1, 2
 print('S2 (2) OK: 교점 -2, 2(접점), 넓이 20/3 + 4 = 32/3')
 
