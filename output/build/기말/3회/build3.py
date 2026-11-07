@@ -476,7 +476,8 @@ def make_background():
         for x, t, sz in TITLE:
             page.insert_text((x, 123.48), t, fontname='GL', fontsize=sz, render_mode=2, border_width=0.02)
         for x, t in INFO:
-            page.insert_text((x, INFO_Y), t, fontname='GL', fontsize=INFO_FS, render_mode=2, border_width=0.02)
+            page.insert_text((x, INFO_Y), t, fontname='GL', fontsize=INFO_FS, render_mode=2, border_width=INFO_BW,
+                             morph=(pymupdf.Point(x, INFO_Y), pymupdf.Matrix(INFO_SX, 1)))
         for o, t, sz in repl:
             page.insert_text(o, t, fontname='GL', fontsize=sz, render_mode=2, border_width=0.02)
         if pn == 0:
@@ -488,9 +489,13 @@ def make_background():
 
 TITLE = [(92.3, '2', 20.04), (106.46, '학년', 15.0), (143.8, '미적분Ⅰ', 23.0), (246.96, '과', 15.0),
          (269.3, '기말고사', 19.0), (347.45, ' 문제', 15.0)]
-INFO_Y, INFO_FS = 142.3, 9.4
-INFO = [(70.2, '과 정 : ( 2022 개정 교육과정 )'), (223.4, '과목코드 : ( 09 )'), (319.4, '이수단위 : ( 4 )'),
-        (409.8, '문항수 ( 선택형: 18, 서답형 2)')]
+# 2026-11-07 학교 스캔(2026-1 중간 4·6쪽, 2022 개정 같은 머리글)과 픽셀 대조: 글자 높이 9.9pt·장평 90.5%(굴림 장평 줄임),
+# 낱말마다 스캔의 시작 위치(본문 틀 기준)에 놓음, 획 굵기는 스캔 잉크 밀도(≈0.20)에 맞춤
+INFO_Y, INFO_FS, INFO_BW, INFO_SX = 142.5, 9.9, 0.045, 0.905
+INFO = [(65.99, '과'), (79.46, '정'), (92.89, ':'), (100.1, '('), (107.88, '2022'), (133.31, '개정'), (156.08, '교육과정'), (196.57, ')'),
+        (222.12, '과목코드'), (262.67, ':'), (270.32, '('), (278.19, '09'), (292.8, ')'),
+        (318.43, '이수단위'), (358.26, ':'), (366.0, '('), (373.59, '4'), (383.44, ')'),
+        (408.8, '문항수'), (440.51, '('), (448.17, '선택형:'), (482.91, '18,'), (500.98, '서답형'), (531.97, '2)')]
 
 BOX_LW = 0.36  # 양식 박스 선 두께(pt); Chromium은 1px(0.75pt) 미만 테두리를 1px로 올리므로 PDF에서 직접 조정
 
