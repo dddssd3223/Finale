@@ -203,7 +203,18 @@ def schedule(r0, r1, used=()):
         for n, v in j.items():
             if n in ('4', 'S1'): ref = f"자체 (가장 가까운 {v['key']})"   # 자체 자리: 4번 기본형·서답형1 — 원문은 가장 가까운 유형 표시
             else: ref = next_ref(v['key'], v['mode'], taken, r, 'front' if (n in ('1', '2', '3', 'S2')) else 'mid'); taken |= {ref, canon(ref)}
-            row[n] = dict(key=v['key'], src=v['src'], level=v['level'], mode=v['mode'], db_ref=ref, **({'재출제': True} if v.get('재출제') else {}), **({'횟수': used.count(v['key']) + 1}))
+            ov = []   # 겹쳐 쓰기(front 2절): 5–16번은 같은 원문의 조작_보강에서 번호대 맞는 장치 1–2개를 얹을 후보로
+            if n.isdigit() and 5 <= int(n) <= 16:
+                cand = [(i, x) for i, x in enumerate(DB.get(v['key'], {}).get('조작_보강', []))]
+                cand.sort(key=lambda z: band(int(n)) not in str(z[1].get('번호대', '')))
+                ov = [f"{v['key']} 조작_보강 {i + 1}" for i, _ in cand if f"{v['key']} 조작_보강 {i + 1}" not in taken][:2]
+                if len(ov) < 2:   # 조작_보강이 모자라면 같은 원문 변형_목록에서 조건을 바꾸는 GEN·LIVE 장치(학교_적합 상·중)
+                    used_ids = set(re.findall(r'(?:GEN|LIVE)\d-\d\d-\d+', canon(ref)))
+                    for x in DB.get(v['key'], {}).get('변형_목록', []):
+                        ids = [i for i in x.get('ids', []) if i not in used_ids]
+                        if ids and str(x.get('학교_적합', ''))[:1] in '상중' and len(ov) < 2: ov.append(f"{v['key']} 변형 {ids[0]} ({x.get('조작', '')})")
+                taken |= set(ov[:1])
+            row[n] = dict(key=v['key'], src=v['src'], level=v['level'], mode=v['mode'], db_ref=ref, **({'겹칠': ov} if ov else {}), **({'재출제': True} if v.get('재출제') else {}), **({'횟수': used.count(v['key']) + 1}))
         used += [v['key'] for v in j.values()]; hist.append([v['key'] for v in j.values()]); out[str(r)] = row
     return out
 
