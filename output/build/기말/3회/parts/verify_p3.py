@@ -101,41 +101,48 @@ print('ABLATION 9 교점 y좌표 k+4: 필요(x축 위 (k, 0)이면 답 21)')
 def three_distinct(poly):
     P = Poly(poly, x)
     return sp.discriminant(P) > 0          # 삼차: 판별식 > 0 ⇔ 서로 다른 세 실근
+def n_distinct(poly):
+    return len(set(real_roots(Poly(poly, x))))
 
-h = x**3 + 3 * x**2 - 24 * x - 20
-ok(expand((x**3 + 4 * x**2 - 24 * x - 20) - x**2) == h, '10번 방정식 ⇔ h(x)=a')
+f10 = x**3 + 4 * x**2 - 24 * x - 20
+h = expand(f10 - x**2)
+ok(h == x**3 + 3 * x**2 - 24 * x - 20, '10번 방정식 ⇔ h(x)=a')
 ok(h.subs(x, -4) == 60 and h.subs(x, 2) == -48 and h.subs(x, 0) == -20, '10번 극댓값 60, 극솟값 -48, h(0)=-20')
-A = [a for a in range(-300, 301) if three_distinct(h - a)]
-ok(len(A) == 107 and min(A) == -47 and max(A) == 59, f'10번 ㄱ: 세 실근 정수 a {len(A)}개 (-47~59) → 참')
-# ㄴ: 곱이 양수(20+a>0) + 세 실근이면 양수인 실근 1개 (정수·유리수 표본 전수 + 경계 근처)
-samples = [Rational(k, 7) for k in range(-48 * 7, 60 * 7 + 1)] + [Rational(-20) + Rational(1, 10**6), Rational(60) - Rational(1, 10**6)]
+# ㄱ: 서로 다른 실근의 개수가 2인 a 전부(판별식 0 ⇔ 중근: a에 대한 방정식으로 전수)
+a = symbols('a')
+disc = sp.discriminant(Poly(h - a, x))
+A2 = [r for r in solve(disc, a) if n_distinct(h - r) == 2]
+ok(sorted(A2) == [-48, 60] and sum(A2) == 12, f'10번 ㄱ: 실근 2개인 a={sorted(A2)}, 합 12 → 참')
+ok(all(n_distinct(h - c) in (1, 3) for c in range(-200, 201) if c not in (-48, 60)), '10번 ㄱ: 다른 정수 a에서는 실근 1개 또는 3개(표본 전수)')
+# ㄴ: 세 실근 + 곱(20+a) 음수 → 양수인 실근 2개
+samples = [Rational(k, 7) for k in range(-48 * 7, 60 * 7 + 1)] + [Rational(-48) + Rational(1, 10**6), Rational(-20) - Rational(1, 10**6)]
 bad = []
-for a in samples:
-    if not three_distinct(h - a): continue
-    if 20 + a > 0:                                  # 세 실근의 곱 = 20+a (근과 계수)
-        if Poly(h - a, x).count_roots(0, None) - (1 if (h - a).subs(x, 0) == 0 else 0) != 1: bad.append(a)
-ok(not bad, '10번 ㄴ: 곱이 양수인 모든 표본 a에서 양수인 실근 1개 → 참')
-# ㄴ을 근과 계수 관계로: 합 -3, 곱 20+a (기호 확인)
-r1, r2, r3 = symbols('r1 r2 r3')
-ok(sp.Poly(expand((x - r1) * (x - r2) * (x - r3)), x).all_coeffs()[1] == -(r1 + r2 + r3), '10번 근과 계수: 합 = -(x^2 계수) = -3')
+for c in samples:
+    if not three_distinct(h - c): continue
+    if 20 + c < 0:                                   # 세 실근의 곱 = 20+a (근과 계수)
+        if Poly(h - c, x).count_roots(0, None) != 2: bad.append(c)
+ok(not bad, '10번 ㄴ: 곱이 음수인 모든 표본 a에서 양수인 실근 2개 → 참')
+ok(Poly(h - a, x).all_coeffs() == [1, 3, -24, -20 - a], '10번 근과 계수: 합 -3, 두 근씩 곱의 합 -24, 곱 20+a')
+ok(all(abs(sp.N(sp.prod(real_roots(Poly(h - c, x))), 30) - (20 + c)) < 1e-20 for c in (-47, -30, -21, 59)), '10번 세 실근의 곱 = 20+a (수치 확인)')
 # ㄷ
-B = [a for a in A if 20 + a > 0]
-ok(all(abs(sp.N(sp.prod(real_roots(Poly(h - a, x))), 30) - (20 + a)) < 1e-20 for a in (-47, -19, 0, 59)) and Poly(h - symbols('a'), x).all_coeffs()[-1] == -20 - symbols('a'), '10번 세 실근의 곱 = 20+a (상수항 -(20+a))')
-ok(max(B) + min(B) == 40, f'10번 ㄷ: 곱이 양수인 정수 a 최댓값 {max(B)} + 최솟값 {min(B)} = 40 → 참')
-truth = {'ㄱ': True, 'ㄴ': not bad, 'ㄷ': max(B) + min(B) == 40}
+A = [c for c in range(-300, 301) if three_distinct(h - c)]
+B = [c for c in A if 20 + c < 0]
+ok(min(A) == -47 and max(A) == 59 and max(B) == -21 and min(B) == -47 and max(B) + min(B) == -68, f'10번 ㄷ: 곱이 음수인 정수 a {min(B)}~{max(B)}, 합 -68 → 참')
+truth = {'ㄱ': sum(A2) == 12, 'ㄴ': not bad, 'ㄷ': max(B) + min(B) == -68}
 right = 'T:' + ', '.join(k for k in 'ㄱㄴㄷ' if truth[k])
 ok(IT[10]['choices'] == CH5 and IT[10]['choices'][IT[10]['ans'] - 1] == right, f'10번 정답 {right} = 선지 ⑤')
-# 오답: ㄴ을 곱 조건 없이 보면 거짓(−48<a<−20에서 양수 근 2개), ㄷ에서 a=-20 포함하면 39
-a_ex = -30
-ok(three_distinct(h - a_ex) and Poly(h - a_ex, x).count_roots(0, None) == 2, '10번 오답 ③ 근거: a=-30(곱 음수)에서 양수인 실근 2개')
-ok(59 + (-20) == 39, '10번 오답 ② 근거: 곱 0인 a=-20 포함 시 39')
+# 오답 근거
+ok(60 != 12, '10번 오답 ④ 근거: ㄱ에서 a=60만 보면 합 60(거짓으로 판단)')
+r1, r2, r3 = symbols('r1 r2 r3', negative=True)
+ok(sp.ask(sp.Q.positive(r1 * r2 + r2 * r3 + r3 * r1), sp.Q.negative(r1) & sp.Q.negative(r2) & sp.Q.negative(r3)) is True, '10번 ㄴ 근거: 세 근이 모두 음수면 두 근씩 곱의 합 > 0 ≠ -24 (오답 ③은 이것을 놓침)')
 # 원문 M12: -1 (선지 ②)
 h0 = x**3 + 3 * x**2 - 9 * x - 14
-A0 = [a for a in range(-100, 101) if three_distinct(h0 - a) and 14 + a > 0]
+A0 = [c for c in range(-100, 101) if three_distinct(h0 - c) and 14 + c > 0]
 ok(max(A0) + min(A0) == -1, f'10번 원문 M12 정답 -1 (계산 {max(A0) + min(A0)})')
-# 빼 보기: ㄷ에서 '서로 다른 세 실근' 조건을 빼면 a>-20 전체 → 최댓값 없음 / ㄴ에서 '곱이 양수'를 빼면 거짓
-print('ABLATION 10 ㄷ 서로 다른 세 실근: 필요(빼면 a>-20인 정수 a의 최댓값이 없음)')
-print('ABLATION 10 ㄴ 곱이 양수: 필요(빼면 a=-30에서 양수인 실근 2개, 참·거짓이 바뀜)')
+print('ABLATION 10 ㄷ 서로 다른 세 실근: 필요(빼면 a<-20인 정수 a의 최솟값이 없음)')
+a_ex = 0
+ok(three_distinct(h - a_ex) and Poly(h - a_ex, x).count_roots(0, None) == 1, '10번 ㄴ 빼 보기: 곱이 양수인 a=0이면 양수인 실근 1개')
+print('ABLATION 10 ㄴ 곱이 음수: 필요(빼면 a=0에서 양수인 실근 1개, 참·거짓이 바뀜)')
 
 # ---------- 11번 (D48) ----------
 from fractions import Fraction as Fr
@@ -227,23 +234,31 @@ def d51(f, line_c, lo, hi, lo_closed=True, hi_closed=True):
 f0 = x**3 / 3 + Rational(11, 3)
 m0, P0 = d51(f0, 10, 0, None, lo_closed=False)
 ok(P0 == [1] and P0[0] + f0.subs(x, 1) == 5, f'12번 원문 D51 정답 5 (P({P0[0]}, {f0.subs(x, P0[0])}))')
-f12 = x**3 - 2 * x**2 - 3 * x + 5
-m, P = d51(f12, 10, -1, 1)
-ok(len(P) == 1 and P[0] == 1 and m == 10, f'12번 최소점 유일 x={P}, 세로 차 {m}')
-val12 = P[0] + f12.subs(x, P[0])
-chk(12, val12)
-ok(sp.solve(sp.Eq(diff(f12, x), 1), x) == [Rational(-2, 3), 2], "12번 기울기 1인 접점 x=-2/3, 2 (둘 다 거리의 최소 아님)")
-ok(2 + f12.subs(x, 2) == 1 and -1 + f12.subs(x, -1) == 4, '12번 오답 1(x=2 접점), 4(x=-1 끝점)')
-# 빼 보기
-mA, PA = d51(f12, 10, 0, None, lo_closed=False)            # 원문 정의역 x>0
-print('ABLATION 12 위 끝(x≤1): ' + (f'필요(빼면 x={PA}, a+b={PA[0] + f12.subs(x, PA[0])})' if PA != [1] else '군더더기(답 그대로)'))
-assert PA != [1]
-mB, PB = d51(f12, 10, None, 1)                               # x≤1
-print('ABLATION 12 아래 끝(-1≤x): ' + (f'필요(빼면 곡선이 직선과 만나 거리 최솟값 {mB}, 교점 x={[sp.N(r, 4) for r in PB]})' if mB == 0 else '군더더기(답 그대로)'))
-assert mB == 0
-mC, PC = d51(f12, 10, -1, 1, hi_closed=False)
-print('ABLATION 12 닫힌 끝(≤1): ' + ('필요(열면 최솟값이 없음)' if mC is None else '군더더기(답 그대로)'))
-assert mC is None
+def d51_extrema(f, line_c, lo, hi):
+    """닫힌구간 [lo, hi]에서 곡선 위 점과 직선 x-y-line_c=0 사이 거리의 최대·최소점(곡선이 직선과 만나지 않을 때)"""
+    g = expand(f - x + line_c)
+    assert not [r for r in real_roots(Poly(g, x)) if lo <= r <= hi], '곡선이 직선과 만남'
+    cand = [r for r in real_roots(Poly(diff(g, x), x)) if lo < r < hi] + [lo, hi]
+    vals = {c: abs(g.subs(x, c)) for c in cand}
+    M = max(vals.values()); m = min(vals.values())
+    return [c for c in cand if vals[c] == M], [c for c in cand if vals[c] == m], vals
+
+PM, Pm, vals = d51_extrema(f0, 10, -3, 1)
+ok(PM == [-1] and Pm == [-3], f'12번 최대점 x={PM}, 최소점 x={Pm} 유일 (세로 차 {vals})')
+ok(sp.solve(sp.Eq(diff(f0, x), 1), x) == [-1, 1], '12번 기울기 1인 접점 x=-1(최대로 일함), x=1(극소지만 끝점 -3에 밀림)')
+chk(12, PM[0] + Pm[0])
+ok('0' in IT[12]['wrongs'] and -1 + 1 == 0, '12번 오답 0: 최소를 접점 x=1로')
+g12 = f0 - x + 10
+ok('-2' in IT[12]['wrongs'] and abs(g12.subs(x, 1)) > abs(g12.subs(x, -3)) and 1 + (-3) == -2, '12번 오답 -2: 끝점만 비교(최대 x=1, 최소 x=-3)')
+# 빼 보기: 아래 끝 -3을 -2보다 크게(예 -3/2) → 최소가 x=1, 위 끝 1을 2보다 크게(예 3) → 최대가 끝점
+for name, lo_, hi_ in (('아래 끝 -3', Rational(-3, 2), 1), ('위 끝 1', -3, 3)):
+    PM2, Pm2, _ = d51_extrema(f0, 10, lo_, hi_)
+    s2 = PM2[0] + Pm2[0] if len(PM2) == 1 and len(Pm2) == 1 else None
+    print(f'ABLATION 12 {name}: ' + (f'필요([{lo_}, {hi_}]이면 최대 x={PM2}, 최소 x={Pm2}, 합 {s2})' if s2 != -4 else '군더더기(답 그대로)'))
+    assert s2 != -4
+g_all = expand(f0 - x + 10)
+print('ABLATION 12 정의역 전체: 필요(제한이 없으면 곡선이 직선과 만나 최솟값 0, 최댓값 없음: 교점 x=' + str([sp.N(r, 4) for r in real_roots(Poly(g_all, x))]) + ')')
+assert real_roots(Poly(g_all, x))
 
 print(f'검사 {len(OK)}개')
 print('ALL OK')
