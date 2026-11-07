@@ -40,7 +40,8 @@ def db_hint(k, no, mode):
     b = band(no)
     if mode == '학교식':
         top = [c for c in e.get('후보_순위', []) if b in str(c.get('번호대', '')) or b == '서답형'][:2] or e.get('후보_순위', [])[:2]
-        return {'추천': [f"{c.get('순위')}. {c.get('출처')}" for c in top]}
+        fx = [x for x in e.get('최종검토_정정', []) if str(x.get('칸', '')).startswith('후보_순위') and not isinstance(x.get('고친_값'), list)]
+        return {'추천': [f"{c.get('순위')}. {c.get('출처')}" for c in top], **({'순위_정정': [str(x['고친_값'])[:160] for x in fx]} if fx else {})}
     pts = [f"예상밖 {i+1}" for i, x in enumerate(e.get('예상밖_포인트', []))] + [f"v3_추가 {i+1}" for i, x in enumerate(e.get('v3_추가_예상', []))] + [f"결합 {i+1}" for i, x in enumerate(e.get('결합_후보', []))]
     return {'추천': pts[:4]}
 HARD = (15, 16, 17, 18, 'S2')   # 고난도 자리: 분담표에 예비 원문 2개를 같이 적는다(독립 검토 2번 탈락 → 교체)
