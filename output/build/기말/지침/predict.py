@@ -8,7 +8,7 @@
 제약 (기말 자리 규칙, front.md 1절): 평가원 5 · EBS 8 · Level Up 5 · 자체 2(4번 기본형·서답형1), 단원 D5 M5 I5 J5 ↔ D4 M5 I6 J5 회차마다 번갈아,
       1–4번 J 허용(2026-11-07 사용자 확정, 같은 단원 2개까지), 원본 난도 자리별 범위(16번 6–8), 그림 원문은 9번 이후 1–3개(1–8번 제외).
       예상밖 자리: 5–16번 중 4–6개(시험 직전 12회부터 4개), 나머지는 학교식(DB 후보_순위 1–2)."""
-import sys, os, json, math, collections
+import sys, os, json, math, collections, itertools
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', '부교재_기말')); import items_final as F
 L = json.load(open(os.path.join(HERE, 'livestats.json')))
@@ -78,8 +78,13 @@ def rank():
         l = L.get(k, {})
         print(f"{k:4} 점수 {score(k):.2f} 라이브 {l.get('n', 0):2} (최근 {l.get('years', {}).get('2024', 0) + l.get('years', {}).get('2025', 0)}) 자리중앙 {l.get('median', '-')} 서술 {l.get('seo', 0)} {src(k)} 난도 {F.D[k][0]} {'그림' if has_fig(k) else ''} {'작년기말' if k in Y25 else ''}")
 
-def plan(rno, used=()):
-    used = set(used); quota = dict(QUOTA_ALT if rno % 2 == 0 else QUOTA); pick = {}; reuse = set()
+def cap(rno):
+    """원문 한 개를 몇 번까지 쓸 수 있나(3–40회 회차표, 2026-11-07): 1–14회 1번, 15–27회 2번, 28–40회 3번."""
+    return 1 + (rno > 14) + (rno > 27)
+
+def plan(rno, used=(), recent=()):
+    UC = collections.Counter(used); recent = set(recent)
+    used = {k for k, c in UC.items() if c >= cap(rno)} | recent; quota = dict(QUOTA_ALT if rno % 2 == 0 else QUOTA); pick = {}; reuse = set()
     def topic_ok(k):
         cnt = collections.Counter(tp for v in pick.values() for tp in topics(v))
         return all(cnt[tp] + 1 <= TOPIC_LIMIT[tp] for tp in topics(k))
@@ -98,7 +103,7 @@ def plan(rno, used=()):
             if isinstance(no, int) and no <= 8 and has_fig(k): continue          # 1–8번 그림 없음
             if need_fig is not None and has_fig(k) != need_fig: continue
             if not loose and not topic_ok(k): continue                              # 소재 겹침 상한(마지막 대체에서만 풂)
-            sc = score(k, no if isinstance(no, int) else 20)
+            sc = score(k, no if isinstance(no, int) else 20) - 1.5 * UC.get(k, 0) + (3 if rno > 8 and not UC.get(k) else 0)   # 덜 쓴 원문 먼저, 9회부터 미노출 원문 크게 우대
             if no == 'S1': sc += math.log1p(L.get(k, {}).get('seo', 0))       # 서술형 출제 이력
             out.append((sc, k))
         return sorted(out, reverse=True)
@@ -109,7 +114,7 @@ def plan(rno, used=()):
         if not c: c = cands(no, sv, (rng[0] - 2, rng[1] + 2))
         if not c and sv in ('평', 'LU'): c = cands(no, 'LU' if sv == '평' else '평', rng)    # 고난도 출처끼리 바꿈
         if not c:                                                                             # 미사용 원문이 바닥나면 재출제(다른 후보로, front 3절)
-            saved = set(used); used.clear(); c = cands(no, sv, (rng[0] - 1, rng[1] + 1)); used |= saved
+            saved = set(used); used.clear(); used |= recent | {x for x, n in UC.items() if n > cap(rno)}; c = cands(no, sv, (rng[0] - 1, rng[1] + 1)); used.clear(); used |= saved
             if c: reuse.add(no)
         if not c: c = cands(no, sv, (rng[0] - 2, rng[1] + 2), loose=True)                  # 단원 쿼터가 남은 쪽만 남았을 때
         if not c: raise SystemExit(f'{no}번 자리 후보 없음 — 출처 {sv}, 난도 {rng}, 단원 쿼터 {quota}')
@@ -136,6 +141,41 @@ def plan(rno, used=()):
                          mode=mode(n), **({'재출제': True} if n in reuse else {}), **({} if n in (17, 18) else db_hint(k, n, mode(n))), **({'killer': kinfo(k)} if n in (17, 18) else {}),
                          **({'backup': bk[n]} if n in HARD else {}))
             for n, k in sorted(pick.items(), key=lambda z: 19 if z[0] == 'S1' else 20 if z[0] == 'S2' else z[0])}
+
+ORDER_SCHOOL = ['후보_순위']
+def next_ref(k, mode, taken, rno=0):
+    """원문 k에서 아직 안 쓴 DB 후보 하나. 학교식: 후보_순위 차례, 예상밖: 예상밖 → v3_추가 → 결합, 킬러: 설계A → 설계B."""
+    e = DB.get(k, {})
+    if mode.startswith('킬러'): opts = [f'{k} 킬러 설계A', f'{k} 킬러 설계B'] if e.get('킬러') else []
+    elif mode == '학교식': opts = [f"{k} 후보_순위 {c.get('순위', i + 1)}" for i, c in enumerate(e.get('후보_순위', []))] + [f'{k} 학교식_예상 {i + 1}' for i in range(len(e.get('학교식_예상', [])))]
+    else:   # 예상밖 자리: 예상밖·점검표(v3)·결합을 번갈아(점검표 조작이 두 회차마다 나오게, front 3절)
+        A = [[f'{k} 예상밖 {i + 1}' for i in range(len(e.get('예상밖_포인트', [])))], [f'{k} v3_추가 {i + 1}' for i in range(len(e.get('v3_추가_예상', [])))], [f'{k} 결합 {i + 1}' for i in range(len(e.get('결합_후보', [])))]]
+        A = A[rno % 3:] + A[:rno % 3]                                   # 회차마다 시작 종류를 돌림
+        opts = [x for t in itertools.zip_longest(*A) for x in t if x]
+    for o in opts:
+        if o not in taken: return o
+    return opts[0] + ' (다시)' if opts else f'{k} 자체'
+
+def schedule(r0, r1, used=()):
+    """r0–r1회 회차표: 회차마다 자리·원문·mode·db_ref. 같은 원문은 3회 안에 다시 안 씀. 원문 재사용은 cap()까지, 매번 다른 후보."""
+    used = list(used); taken = set(); hist = []; out = {}
+    for r in range(r0, r1 + 1):
+        recent = {k for h in hist[-3:] for k in h}
+        j = plan(r, used, recent); row = {}
+        for n, v in j.items():
+            ref = next_ref(v['key'], v['mode'], taken, r); taken.add(ref)
+            row[n] = dict(key=v['key'], src=v['src'], level=v['level'], mode=v['mode'], db_ref=ref, **({'재출제': True} if v.get('재출제') else {}), **({'횟수': used.count(v['key']) + 1}))
+        used += [v['key'] for v in j.values()]; hist.append([v['key'] for v in j.values()]); out[str(r)] = row
+    return out
+
+if __name__ == '__main__' and sys.argv[1] == 'schedule':
+    a = sys.argv[2:]; used = a[2].split(',') if len(a) > 2 else []
+    S = schedule(int(a[0]), int(a[1]), used)
+    json.dump(S, open(os.path.join(HERE, 'schedule.json'), 'w'), ensure_ascii=False, indent=1)
+    C = collections.Counter(used + [v['key'] for row in S.values() for v in row.values()])
+    print('회차', len(S), '자리', sum(len(r) for r in S.values()), '원문 노출 횟수 분포', dict(sorted(collections.Counter(C[k] for k in F.I).items())), '미노출', sorted(set(F.I) - set(C)))
+    print('db_ref 종류', dict(collections.Counter(v['db_ref'].split()[1] for row in S.values() for v in row.values())), '(다시)', sum('(다시)' in v['db_ref'] for row in S.values() for v in row.values()))
+    sys.exit(0)
 
 if __name__ == '__main__':
     if sys.argv[1] == 'rank': rank()
