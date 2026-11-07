@@ -101,6 +101,7 @@ def check_item(n, it, rt, db=False):
     d = None if '자체' in str(it.get('src', '')) else odist(it)   # 자체 출제는 원문 거리 제외
     if d is not None:
         lo, hi = DIST['top'] if b == '17–18' else DIST['front'] if b != '서답' else (0, 1)
+        if db and b != '17–18': hi = 1.0   # DB 회차: 학교식은 '발문 유지 + 숫자 교체'(2025 기말 연계 6·10·11·13·14·20이 발문 그대로) — 상한 없음
         if not (lo <= d <= hi): warn.append(f'원문 골격 유사도 {d:.2f} (학교 {b} 범위 {lo:.2f}–{hi:.2f})')
     try:
         import items_final as F

@@ -195,7 +195,8 @@ def schedule(r0, r1, used=()):
         recent = {k for h in hist[-3:] for k in h}
         j = plan(r, used, recent); row = {}
         for n, v in j.items():
-            ref = next_ref(v['key'], v['mode'], taken, r); taken |= {ref, canon(ref)}
+            if n in ('4', 'S1'): ref = f"자체 (가장 가까운 {v['key']})"   # 자체 자리: 4번 기본형·서답형1 — 원문은 가장 가까운 유형 표시
+            else: ref = next_ref(v['key'], v['mode'], taken, r); taken |= {ref, canon(ref)}
             row[n] = dict(key=v['key'], src=v['src'], level=v['level'], mode=v['mode'], db_ref=ref, **({'재출제': True} if v.get('재출제') else {}), **({'횟수': used.count(v['key']) + 1}))
         used += [v['key'] for v in j.values()]; hist.append([v['key'] for v in j.values()]); out[str(r)] = row
     return out
