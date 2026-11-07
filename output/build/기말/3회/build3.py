@@ -312,6 +312,8 @@ def s_html2(head, body, subs):
     # 실제 시험지: '서답형 n' 제목 줄 → 발문 → (1)(2)… 소문항(들여쓰기 없음), 배점은 소문항 끝 [n점, …]
     if len(subs) == 1 and subs[0][1] is None:   # 소문항 없이 발문 끝에 배점
         body = body.rstrip() + f' <span class="pt">[{subs[0][0]}]</span>'; sh = ''
+    elif len(subs) == 1:   # 단일 질문(2025 기말 서답 1형): (1) 없이 발문 뒤에 질문과 배점
+        body = body.rstrip() + f' {subs[0][0]} <span class="pt">[{subs[0][1]}]</span>'; sh = ''
     else:
         sh = ''.join(f'<div class="sub">{jl(f"({i+1}) {t} [{p}]", f"{head}-{i+1}")}</div>' for i, (t, p) in enumerate(subs))
     c = 's1' if head.endswith('1') else 's2'

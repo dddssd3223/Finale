@@ -97,7 +97,7 @@ def verdict(ck, cr, same, no=None, src='EXT', d_id=''):
     same_item = cr >= 0.95 or (ck >= 0.85 and same)
     if src == 'STUDY':
         if same_item: return '금지(분석집 동일 문항)'
-        if rt == '학교형' and ck >= 0.60: return '금지(학교형: 분석집과 유사)'
+        if rt == '학교형' and ck >= 0.60 and not os.environ.get('DUP_DB'): return '금지(학교형: 분석집과 유사)'   # DB 회차(분석집 중지, 2026-11-07)는 같은 문항만 금지
         if ck >= 0.85: return '허용(분석집 숫자만 다름, 복습형)'
         if ck >= 0.60: return '주의(분석집 구조 유사, 복습형)'
         return '통과'

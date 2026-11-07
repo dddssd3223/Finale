@@ -14,6 +14,7 @@ p = os.path.abspath(sys.argv[1])
 _rj = os.path.join(os.path.dirname(os.path.dirname(p)), 'round.json')
 RT = __import__('json').load(open(_rj)).get('type', '학교형') if os.path.exists(_rj) else '학교형'
 os.environ['DUP_ROUND_TYPE'] = RT
+if os.path.exists(_rj) and __import__('json').load(open(_rj)).get('db'): os.environ['DUP_DB'] = '1'   # 분석집 중지: 분석집과 같은 문항만 금지
 print(f'== 중복 ({RT})'); r1 = subprocess.run([sys.executable, os.path.join(G, 'dupcheck.py'), 'items', p]).returncode
 ns = {}; exec(open(p).read(), ns)
 IT, SI = ns.get('ITEMS', {}), ns.get('SITEMS', {})
