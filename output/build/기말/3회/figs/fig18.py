@@ -1,4 +1,5 @@
-# 3회 18번 그림 (후보 A18, 원문 J46): y=f'(x)=3(x+p)(x-k), k=-p/3 (모양 확인용, p=3으로 그림)
+# 3회 18번 그림 (후보 A18 재설계, 원문 J46): y=f'(x)=3(x+p)(x-k), k=-p/3 (S1=S2일 때 PQ:QO=2:1, 모양 확인용, p=3으로 그림)
+# 수치(A(-2, f(-2)), 넓이 64/3)는 본문에만 둔다. 그림은 P·Q·O와 S1·S2의 자리만 보여 준다.
 # 점 P(-p, 0), Q(k, 0), 원점 O · S1(P~Q, x축 아래), S2(Q~O, x축 위) 회색 칠
 import os, sys
 sys.path.insert(0, '/home/user/Finale/output/build/기말/지침'); import figkit as K
