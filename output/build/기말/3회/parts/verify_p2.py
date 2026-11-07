@@ -7,12 +7,12 @@ x, t, a, C = symbols('x t a C', real=True)
 ns = {}; exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'p2.py')).read(), ns)
 IT = ns['ITEMS']
 WANT = {5: 5, 6: 3, 7: 2, 8: 4}
-REF = {5: 'M9 후보_순위 1', 6: 'I14 후보_순위 1', 7: 'D34 예상밖 1', 8: 'I32 후보_순위 1'}
+REF = {5: 'M9 후보_순위 1', 6: 'I14 후보_순위 1', 7: 'D34 예상밖 1', 8: 'I32 학교식_예상 3'}
 assert sorted(IT) == [5, 6, 7, 8]
 assert [IT[n]['key'] for n in (5, 6, 7, 8)] == ['M9', 'I14', 'D34', 'I32']
 OPS = {f'OP{i:02d}' for i in range(1, 56)}
 for n, it in IT.items():
-    assert it['db_ref'] == REF[n] and it['bunseok'] is False and it['effect'] in ('같음', '쉬워짐')
+    assert it['db_ref'] == REF[n] and it['bunseok'] is False and it['effect'] == ('어려워짐' if n == 8 else '같음')   # 8번 = 시험지 14번(13–16 자리)
     assert it['ops'] and all(o in OPS for o in it['ops']) and it['precedent']
     assert '함정 추가' not in it['vtype'] and it['level'] in ('하', '중', '중상', '상', '최상')
     assert len(it['wrongs']) >= 1 and all(w in it['choices'] for w in it['wrongs'])
@@ -87,20 +87,25 @@ f32o, g32o = solve_I32(3)
 assert g32o.subs(x, 2) == Rational(27, 2)
 print('원문 풀이 OK (M9=5, I14=84, D34=20, I32=27/2)')
 
-# ===== 5번 (M9) =====
-f5, g5 = x**3 + x + 7, x**2 + 2*x
-h5 = f5 - g5                                                         # f-g = h5 - a
-assert expand(diff(h5, x) - (3*x + 1)*(x - 1)) == 0                  # 숨은 설계 h'=(3x+1)(x-1) 보존
-assert expand(diff(hm9, x) - diff(h5, x)) == 0
-m5 = min_on_ray(h5, 0)
-assert m5 == 6 and h5.subs(x, 1) == 6 and h5.subs(x, 0) == 7
-# 전수: a를 1/4 격자로 -20..20 조사, x≥0에서 h5-a≥0 ⇔ a≤6
-ok5 = [Rational(j, 4) for j in range(-80, 81) if min_on_ray(h5 - Rational(j, 4), 0) >= 0]
-v5 = max(ok5)
-assert v5 == 6 and all(q <= 6 for q in ok5)
-w5_orig = min_on_ray(hm9, 0)                                         # 원문 답(상수항 6으로 계산)
-assert w5_orig == 5
-chk(5, v5, [w5_orig])
+# ===== 5번 (M9): x≤0, f≤g, a의 최솟값 =====
+f5, g5 = x**3 + x**2 + 4, x**2 + 3*x
+h5 = expand(f5 - g5)                                                 # f≤g ⇔ a ≥ h5(x)
+assert expand(h5 - (x**3 - 3*x + 4)) == 0 and expand(diff(h5, x) - 3*(x + 1)*(x - 1)) == 0
+def max_on_left(f, hi):
+    """(-∞, hi]에서 다항식 f(최고차항 양수, 홀수 차)의 최댓값: 끝점과 구간 안 정류점 비교"""
+    assert Poly(f, x).LC() > 0 and limit(f, x, -oo) == -oo
+    cand = [hi] + [r for r in real_roots(Poly(diff(f, x), x)) if r < hi]
+    return max(f.subs(x, c) for c in cand)
+M5 = max_on_left(h5, 0)
+assert M5 == 6 and h5.subs(x, -1) == 6 and h5.subs(x, 0) == 4 and h5.subs(x, 1) == 2
+# 전수: a를 1/4 격자로 -40..40 조사, x≤0에서 h5-a≤0 ⇔ a≥6 (최솟값 6이 존재)
+ok5 = [Rational(j, 4) for j in range(-160, 161) if max_on_left(h5 - Rational(j, 4), 0) <= 0]
+v5 = min(ok5)
+assert v5 == 6 and all(q >= 6 for q in ok5)
+w5_out = h5.subs(x, 1)                                               # 구간 밖 양수 정류점(원문의 극소점 자리)
+w5_end = h5.subs(x, 0)                                               # 끝값만 봄
+assert (w5_out, w5_end) == (2, 4)
+chk(5, v5, [w5_out, w5_end])
 
 # ===== 6번 (I14) =====
 P6 = 3*x**4 + 2*x**3 - 5*x**2
@@ -153,29 +158,45 @@ assert (w7_half, w7_vert) == (4, 16)
 assert [r for r in solve(diff(h7, x), x) if -2 < r < 1] == [-1]
 chk(7, v7, [w7_half, w7_vert])
 
-# ===== 8번 (I32) =====
-f8, g8 = solve_I32(6)                                                # (가) ∫12x dx = 6x^2 + 상수
-assert expand(g8 - 3*(x + 1)**2) == 0 and expand(f8 - (6*x**2 + 6*x)) == 0
-assert f8.subs(x, 1) == g8.subs(x, 1) == 12
-# 부정적분 등식 확인: (가) ∫f' - g' - ∫12x 가 상수, (나) ∫f - xg + ∫g 가 상수
-assert diff(expand(f8 - diff(g8, x) - 6*x**2), x) == 0
+# ===== 8번 (I32 학교식_예상 3 + H(0)=H(3) 위장, 시험지 14번) =====
+def solve8(c2, k2, use=('가', '나', 'H'), deg=4, Hab=(0, 3)):
+    """(가) f - c2·g' - k2·x^2 = 상수 (부정적분 등식 ⇔ 도함수가 같음), (나) f = xg', (다) ∫_a^b (f-g) dx = 0. 차수 deg 이하 전수"""
+    fc = symbols(f'f0:{deg + 1}'); gc = symbols(f'g0:{deg + 1}'); K = symbols('K')
+    f = sum(fc[i]*x**i for i in range(deg + 1)); g = sum(gc[i]*x**i for i in range(deg + 1))
+    eqs = []
+    if '가' in use: eqs += Poly(expand(f - c2*diff(g, x) - k2*x**2 - K), x).all_coeffs()
+    if '나' in use: eqs += Poly(expand(f - x*diff(g, x)), x).all_coeffs()
+    if 'H' in use: eqs += [integrate(f - g, (x, Hab[0], Hab[1]))]
+    if 'fg' in use: eqs += [f.subs(x, 1) - g.subs(x, 1)]
+    sol = solve(eqs, list(fc) + list(gc) + [K], dict=True)
+    return [(expand(f.subs(sl)), expand(g.subs(sl))) for sl in sol]
+(f8, g8), = solve8(2, 6)                                             # (가) ∫12x dx = 6x^2 + 상수
+assert expand(f8 - (6*x**2 + 12*x)) == 0 and expand(g8 - (3*x**2 + 12*x + 9)) == 0
+assert solve8(2, 6, deg=6) == [(f8, g8)]                             # 차수 6까지 넓혀도 유일
+# 원래 꼴로 확인: (가) ∫f' - 2g' - ∫12x 가 상수, (나) ∫f - xg + ∫g 가 상수, H(0)=H(3)
+assert diff(expand(f8 - 2*diff(g8, x) - 6*x**2), x) == 0
 assert diff(expand(integrate(f8, x) - x*g8 + integrate(g8, x)), x) == 0
-v8 = g8.subs(x, 2)
-assert v8 == 27
-assert solve_I32(6, deg=6)[1].subs(x, 2) == 27                       # 차수 6까지 넓혀도 유일
-w8_noD = (g8 - 3).subs(x, 2)                                         # g의 상수항 누락
-assert w8_noD == 24
-w8_f = f8.subs(x, 2)                                                 # g(2) 대신 f(2)
-assert w8_f == 36
-chk(8, v8, [w8_noD, w8_f])
+H8 = integrate(f8 - g8, x) + symbols('E')                            # 한 부정적분(상수 E는 아무것이나)
+assert expand(H8.subs(x, 0) - H8.subs(x, 3)) == 0
+v8 = g8.subs(x, 1)
+assert v8 == 24
+w8_noD = (g8 - 9).subs(x, 1)                                         # H(0)=H(3)을 쓰지 않아 상수항 0
+(f8b, g8b), = solve8(1, 6)                                           # (가)의 2g'을 g'으로 본 경우
+assert expand(g8b - (3*x**2 + 6*x + 9)) == 0
+w8_c1 = g8b.subs(x, 1)
+(f8c, g8c), = solve8(2, 6, use=('가', '나', 'fg'))                   # 원문 조건 f(1)=g(1)을 그대로 쓴 경우
+assert (w8_noD, w8_c1, g8c.subs(x, 1)) == (15, 18, 18)
+chk(8, v8, [w8_noD, w8_c1])
 
 # ===== 조건 빼 보기 =====
 print('--- 조건 빼 보기 ---')
 # 5번
-assert limit(h5, x, -oo) == -oo
-print('ABLATION 5 x≥0: 필요(빼면 실수 전체에서 f-g가 아래로 끝없이 작아져 a의 최댓값이 없음)')
-assert min_on_ray(h5 - 6, 0) == 0                                    # a=6이면 x=1에서 등호
-print('ABLATION 5 부등식의 등호(≥): 필요(>이면 a<6이라 최댓값이 존재하지 않음)')
+assert limit(h5, x, oo) == oo
+print('ABLATION 5 x≤0: 필요(빼면 실수 전체에서 h(x)=x^3-3x+4가 위로 끝없이 커져 a의 최솟값이 없음)')
+assert max_on_left(h5 - 6, 0) == 0                                   # a=6이면 x=-1에서 등호
+print('ABLATION 5 부등식의 등호(≤): 필요(<이면 a>6이라 최솟값이 존재하지 않음)')
+M5b = max_on_left(h5, -2)
+print(f'ABLATION 5 구간 끝 0: 필요(x≤-2이면 끝값이 최대라 답 바뀜 {v5} → {M5b})'); assert M5b != v5
 # 6번
 fC = 4*x**3 + 3*x**2 - 10*x + C                                      # 정적분 대신 부정적분이면 미분한 식만 남음
 vals6 = {fC.subs({C: c, x: -1}) for c in (0, -2, 5)}
@@ -196,19 +217,13 @@ l7b = diff(f7b, x).subs(x, 0)*x + f7b.subs(x, 0)                     # 접점을
 h7b = expand(f7b - l7b)
 crit_b = sorted({abs(h7b.subs(x, r)) for r in solve(diff(h7b, x), x)} - {0})
 print(f'ABLATION 7 접점 P(1,3): 필요(접점이 (0,4)이면 차가 x^3이라 개수 3인 d가 없음, 갈림 높이 {crit_b})'); assert crit_b == []
-# 8번
-def g2_set(use, k2=6):
-    fc = symbols('f0:5'); gc = symbols('g0:5'); K = symbols('K')
-    f = sum(fc[i]*x**i for i in range(5)); g = sum(gc[i]*x**i for i in range(5))
-    eqs = []
-    if '가' in use: eqs += Poly(expand(f - diff(g, x) - k2*x**2 - K), x).all_coeffs()
-    if '나' in use: eqs += Poly(expand(f - x*diff(g, x)), x).all_coeffs()
-    if 'fg' in use: eqs += [f.subs(x, 1) - g.subs(x, 1)]
-    sol = solve(eqs, list(fc) + list(gc) + [K], dict=True)
-    return [expand(g.subs(sl).subs(x, 2)) for sl in sol]
-for drop, name in (('fg', 'f(1)=g(1)'), ('가', '(가)'), ('나', '(나)')):
-    r = g2_set([u for u in ('가', '나', 'fg') if u != drop])
-    free = any(e.free_symbols for e in r)
-    print(f'ABLATION 8 {name}: 필요(빼면 g(2)가 정해지지 않음: {r})'); assert free
+# 8번 (시험지 14번)
+for drop, name in (('H', 'H(0)=H(3)'), ('가', '(가)'), ('나', '(나)')):
+    r = solve8(2, 6, use=tuple(u for u in ('가', '나', 'H') if u != drop))
+    vals = [expand(g.subs(x, 1)) for _, g in r]
+    free = len(r) != 1 or any(v.free_symbols for v in vals)
+    print(f'ABLATION 8 {name}: 필요(빼면 g(1)이 정해지지 않음: {vals})'); assert free
+alt = solve8(1, 6)[0][1].subs(x, 1)
+print(f"ABLATION 8 (가)의 계수 2(2g'): 필요(g'이면 답 바뀜 {v8} → {alt})"); assert alt != v8
 
 print('ALL OK')
