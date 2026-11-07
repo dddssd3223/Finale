@@ -9,7 +9,7 @@ ns = {}
 exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'p4.py'), encoding='utf-8').read(), ns)
 IT = ns['ITEMS']
 WANT = {13: 4, 14: 1, 15: 5, 16: 3}
-DBREF = {13: 'D43 예상밖 2', 14: 'J8 후보_순위 1', 15: 'J60 예상밖 1', 16: 'I66 후보_순위 1'}
+DBREF = {13: 'D43 예상밖 2', 14: 'J8 후보_순위 1', 15: 'J60 예상밖 1', 16: 'I66 v3_추가 2'}
 x, t = sp.symbols('x t', real=True)
 R = sp.Rational
 ok = True
@@ -133,54 +133,63 @@ ablation(13, "(가) 'x=0에서 미분가능'", [], -10, undef='a, b가 정해지
 # (나) 없음: c>0 아무 값 → -5-5c는 최댓값 없음(상한 -5에 닿지 않음)
 ablation(13, '(나)', [], -10, undef=f'c>0이면 모두 가능, f(-1)=-5-5c의 최댓값이 없음(c=1/100에서 {fm1.subs(c, R(1, 100))})')
 
-# ================= 14번 (J8 후보_순위 1, 숫자만) =================
+# ================= 14번 (J8 후보_순위 1 + OP15: 주기 → 점 (5,0) 대칭, 시험지 8번) =================
 a2, b2 = sp.symbols('a2 b2')
-p14 = 5
-lin = x + p14
+lin = x + 5
 quad = x**2 + a2 * x + b2
-s14 = sp.solve([sp.Eq(lin.subs(x, 0), quad.subs(x, 0)), sp.Eq(quad.subs(x, p14), lin.subs(x, -p14))], [a2, b2], dict=True)
-check(14, len(s14) == 1 and s14[0] == {a2: -6, b2: 5}, f'x=0 연속, f(5)=f(-5)=0 → {s14}(유일)')
+# x=0 연속: b=5, (나)에 x=0: f(5)=-f(5) → f(5)=0
+s14 = sp.solve([sp.Eq(lin.subs(x, 0), quad.subs(x, 0)), sp.Eq(quad.subs(x, 5), -quad.subs(x, 5))], [a2, b2], dict=True)
+check(14, len(s14) == 1 and s14[0] == {a2: -6, b2: 5}, f'x=0 연속, f(5)=-f(5)=0 → {s14}(유일)')
 q14 = quad.subs(s14[0])
-check(14, sp.factor(q14) == sp.factor((x - 1) * (x - 5)), f'이차 조각 {sp.factor(q14)} (숨은 관계: 근 1, 5)')
 
 
-def f14(xv):
+def f14(xv, mode='point'):
+    """(가)로 x<=5, (나)로 x>5: point f(x)=-f(10-x) / line f(10-x) / shift -f(x-5)(원문 주기 습관)"""
     xv = sp.nsimplify(xv)
-    r = xv - 10 * sp.floor((xv + 5) / 10)   # (-5, 5]
-    if r == -5: r = sp.Integer(5)
-    return lin.subs(x, r) if r < 0 else q14.subs(x, r)
+    if xv <= 5:
+        return lin.subs(x, xv) if xv < 0 else q14.subs(x, xv)
+    if mode == 'point': return -f14(10 - xv)
+    if mode == 'line': return f14(10 - xv)
+    return -f14(xv - 5)
 
 
-def I14(s_, e_):
-    """주기 10 함수의 [s_, e_] 정적분: 길이 5 조각 경계에서 나누어 적분"""
-    s_, e_ = sp.Integer(s_), sp.Integer(e_)
-    tot = 0; cur = s_
-    while cur < e_:
-        nxt = min(e_, 5 * sp.floor(cur / 5) + 5)
-        k = sp.floor((cur + 5) / 10)
-        lo, hi = cur - 10 * k, nxt - 10 * k
-        piece = lin if (lo + hi) / 2 < 0 else q14
-        tot += sp.integrate(piece, (x, lo, hi)); cur = nxt
+def I14(s_, e_, mode='point'):
+    """구간을 경계(0, 5, 10)에서 나누어 각 조각의 다항식을 적분"""
+    cuts = sorted({sp.Integer(s_), sp.Integer(e_)} | {c for c in (0, 5, 10) if s_ < c < e_})
+    tot = 0
+    for lo, hi in zip(cuts, cuts[1:]):
+        mid = (lo + hi) / 2
+        if mid < 5: piece = lin if mid < 0 else q14
+        elif mode == 'point': piece = -(lin if 10 - mid < 0 else q14).subs(x, 10 - x)
+        elif mode == 'line': piece = (lin if 10 - mid < 0 else q14).subs(x, 10 - x)
+        else: piece = -(lin if mid - 5 < 0 else q14).subs(x, x - 5)
+        tot += sp.integrate(piece, (x, lo, hi))
     return tot
 
 
-check(14, all(f14(R(i, 4) - 5) == f14(R(i, 4) + 5) for i in range(-80, 80)) and all(sp.limit(lin, x, -5, '+') == f14(-5) for _ in [0]) and f14(0) == lin.subs(x, 0),
-      '(나) f(x-5)=f(x+5) 성립, x=0·x=±5 연속')
-ans14 = I14(-42, -37) - I14(68, 70)
-check(14, I14(-42, -37) == I14(-2, 3) == 5 and I14(68, 70) == I14(-2, 0) == 8 and ans14 == sp.integrate(q14, (x, 0, 3)) == -3,
-      f'∫_-42^-37 = ∫_-2^3 = {I14(-2, 3)}, ∫_68^70 = ∫_-2^0 = {I14(-2, 0)}, 차 = ∫_0^3 (x-1)(x-5) = {ans14}')
+xs = [R(i, 4) for i in range(-40, 81)]
+check(14, all(f14(5 + u) == -f14(5 - u) for u in [R(i, 4) for i in range(0, 60)]) and all(abs(f14(c + R(1, 10**6)) - f14(c - R(1, 10**6))) < R(1, 1000) for c in (0, 5, 10)),
+      '(나) f(5+x)=-f(5-x) 성립, x=0·5·10에서 연속(실수 전체에서 정의)')
+ans14 = I14(5, 8)
+check(14, ans14 == -sp.integrate(q14, (x, 2, 5)) == 9, f'∫_5^8 f = -∫_2^5 (x-1)(x-5) dx = {ans14}')
 ans_ok(14, ans14)
-wrong_in(14, [-ans14, I14(-42, -37)], '차를 거꾸로 / 뒤 정적분 빼기 빠뜨림')
+w_shift = I14(5, 8, 'shift'); w_line = I14(5, 8, 'line')
+check(14, w_shift == 3 and w_line == -9 and str(w_line) not in IT[14]['choices'], f'오답: 주기 습관(오른쪽으로 옮겨 뒤집음) {w_shift}, 선대칭 착각 {w_line}(선지 밖)')
+v = ch(14); wv = [sp.Rational(z) for z in IT[14]['wrongs']]
+check(14, wv == [w_shift] and w_shift in v and w_shift != ans14, f'오답 {wv} 선지에 있음(시험지 8번 자리: 1개 이상)')
 # 원문 J8: x+3, 주기 6, ∫_-33^-29 - ∫_57^60 = 4/3 (④)
 o_s = sp.solve([sp.Eq(3, b2), sp.Eq(9 + 3 * a2 + b2, 0)], [a2, b2])
 oq = x**2 + o_s[a2] * x + o_s[b2]
 o14 = (sp.integrate(x + 3, (x, -3, 0)) + sp.integrate(oq, (x, 0, 1))) - sp.integrate(x + 3, (x, -3, 0))   # -33+36=3→[3,7]=[-3,1], 57-60=-3→[-3,0]
 check('J8', o14 == R(4, 3) == orig_ans('J8'), f'J8 원문: f=(x-1)(x-3), ∫_-3^1 - ∫_-3^0 = {o14} = 원문 정답 {orig_ans("J8")}')
 print('--- 14번 조건 빼 보기 ---')
-# 연속 없음: x=0, x=5에서 이어지지 않아도 되면 a, b 자유
-vals = [sp.integrate(x**2 + av * x + bv, (x, 0, 3)) for av, bv in [(-6, 5), (0, 0), (-4, 3)]]
-ablation(14, "'연속'", vals, -3, 'a, b가 정해지지 않음')
-ablation(14, '(나)', [], -3, undef='f(x)가 -5<x<=5 밖에서 정의되지 않아 두 정적분이 정해지지 않음')
+# 연속 없음: b 자유, (나)의 f(5)=0만 → a=-(25+b)/5
+vals = []
+for bv in (5, 0, 10):
+    qq = x**2 - sp.Rational(25 + bv, 5) * x + bv
+    vals.append(-sp.integrate(qq, (x, 2, 5)))
+ablation(14, "'연속'", vals, 9, 'b가 정해지지 않음(a=-(25+b)/5)')
+ablation(14, '(나)', [], 9, undef='x>5에서 f(x)가 정의되지 않아 ∫_5^8 f가 정해지지 않음')
 
 # ================= 15번 (J60 예상밖 1) =================
 # (가)에서 ∫_3^6 f = ∫_0^3 f + 12, (나) → ∫_0^3 f = -6. 증가: f(0)<f(x)<f(3) (0<x<3) → 3f(0) < -6 < 3f(3), f(3)=f(0)+4
@@ -246,95 +255,107 @@ vals = [(R(4, 3) * x + kk).subs(x, 3) for kk in (-8, -4, 0)]
 ablation(15, '(나)', vals, 3, 'f=4x/3+k에서 f(3)=4+k, 정수가 무수히 많음')
 ablation(15, "'연속'", [], 3, undef='미적분Ⅰ에서 정적분은 연속함수에 대하여 정의하므로 (나)가 정해지지 않음')
 
-# ================= 16번 (I66 후보_순위 1, 숫자만) =================
+# ================= 16번 (I66 v3_추가 2 + v3_추가 1: 계수 미정·극댓값 + 기준선 y=x) =================
 P_, Q_ = sp.symbols('P_ Q_')
+pp = sp.symbols('pp', positive=True)
 
 
-def gprime(f):
-    return lambda xv: sp.Abs(f.subs(x, xv + 1)) - sp.Abs(f.subs(x, xv))
+def gprime(h):
+    return lambda xv: sp.Abs(h.subs(x, xv + 1)) - sp.Abs(h.subs(x, xv))
 
 
-def is_min(f, pt, eps=R(1, 1000)):
-    gp = gprime(f)
-    return sp.simplify(gp(pt)) == 0 and gp(pt - eps) < 0 and gp(pt + eps) > 0
+def is_min(h, pt, eps=R(1, 1000)):
+    gp = gprime(h)
+    return bool(sp.simplify(gp(pt)) == 0) and bool(gp(pt - eps) < 0) and bool(gp(pt + eps) > 0)
 
 
-def solve16(lead, p, q):
-    """|f(p+1)|=|f(p)|, |f(q+1)|=|f(q)|의 부호 경우 4개를 모두 풀고, 실제로 x=p, x=q에서 극소인 f만 남김"""
-    f = lead * x**2 + P_ * x + Q_
+def solve_pos(lead, p, q):
+    """h=lead x^2+P x+Q: |h(p+1)|=|h(p)|, |h(q+1)|=|h(q)| 부호 경우 4개를 풀고 x=p, x=q에서 모두 극소인 h만"""
+    h = lead * x**2 + P_ * x + Q_
     out, cases = [], []
     for sp_ in (1, -1):
         for sq_ in (1, -1):
-            eqs = [f.subs(x, p + 1) - sp_ * f.subs(x, p), f.subs(x, q + 1) - sq_ * f.subs(x, q)]
-            sol = sp.solve(eqs, [P_, Q_], dict=True)
+            sol = sp.solve([h.subs(x, p + 1) - sp_ * h.subs(x, p), h.subs(x, q + 1) - sq_ * h.subs(x, q)], [P_, Q_], dict=True)
             for s in sol:
-                ff = sp.expand(f.subs(s))
-                good = is_min(ff, p) and is_min(ff, q)
-                cases.append((('같은 부호' if sp_ == 1 else '반대 부호'), ('같은 부호' if sq_ == 1 else '반대 부호'), ff, good))
-                if good: out.append(ff)
-            if not sol:
-                cases.append((('같은 부호' if sp_ == 1 else '반대 부호'), ('같은 부호' if sq_ == 1 else '반대 부호'), None, False))
+                hh = sp.expand(h.subs(s)); good = is_min(hh, p) and is_min(hh, q)
+                cases.append((sp_, sq_, hh, good))
+                if good: out.append(hh)
+            if not sol: cases.append((sp_, sq_, None, False))
     return out, cases
 
 
-sols16, cases16 = solve16(2, -3, 2)
-for cs_ in cases16:
-    print(f'    경우 x=-3:{cs_[0]}, x=2:{cs_[1]} → f={cs_[2]}, 두 점 모두 극소: {cs_[3]}')
-check(16, len(sols16) == 1 and sols16[0] == 2 * x**2 - 13, f'부호 경우 4개 전수 → 조건 만족 f = {sols16}(유일)')
-f16 = sols16[0]
-check(16, sp.expand(f16 + f16.subs(x, x + 1) - 4 * (x + 3) * (x - 2)) == 0, 'f(x)+f(x+1)=4(x+3)(x-2)')
-rts = sorted(sp.solve(f16, x), key=float)
-check(16, -3 < rts[0] < -2 and 2 < rts[1] < 3, f'f의 근 {rts}가 (-3,-2), (2,3)에 하나씩')
-# g'(x)=|f(x+1)|-|f(x)|의 부호 변화를 -6..6에서 1/100 간격으로 전수 확인
-gp = gprime(f16)
-zs = []
-for i in range(-600, 600):
-    u, w = R(i, 100), R(i + 1, 100)
-    if gp(u) == 0: zs.append(u)
-    elif gp(u) * gp(w) < 0: zs.append((u + w) / 2)
-mins = [z for z in zs if gp(z - R(1, 1000)) < 0 < gp(z + R(1, 1000))]
-maxs = [z for z in zs if gp(z - R(1, 1000)) > 0 > gp(z + R(1, 1000))]
-check(16, mins == [-3, 2] and len(maxs) == 1 and abs(maxs[0] - R(-1, 2)) < R(1, 50), f"g'의 부호 변화(-6..6): 극소 {mins}, 극대 ≈{[float(m) for m in maxs]}")
-ans16 = f16.subs(x, 0)
+def extrema(h, lo=-8, hi=8, n=100):
+    gp = gprime(h); zs = []
+    for i in range(lo * n, hi * n):
+        u, w = R(i, n), R(i + 1, n)
+        if gp(u) == 0: zs.append(u)
+        elif gp(u) * gp(w) < 0: zs.append(sp.nsimplify((u + w) / 2))
+    e = R(1, 10 * n)
+    return [z for z in zs if gp(z - e) < 0 < gp(z + e)], [z for z in zs if gp(z - e) > 0 > gp(z + e)]
+
+
+def gval(h, xv):
+    rts = sorted([r for r in sp.solve(h, x) if r.is_real], key=float)
+    cuts = [sp.nsimplify(xv)] + [r for r in rts if xv < r < xv + 1] + [sp.nsimplify(xv) + 1]
+    return sum(sp.Abs(sp.integrate(h, (x, a_, b_))) for a_, b_ in zip(cuts, cuts[1:]))
+
+
+# 계수 p를 여러 양수로 두어도 극소 위치 조건의 해는 h=p(x^2-5x+5) 하나(부호 경우 전수)
+okp = True
+for lv in (1, 2, 6, R(1, 3)):
+    s_, cs_ = solve_pos(lv, 1, 3)
+    okp &= len(s_) == 1 and sp.expand(s_[0] - lv * (x**2 - 5 * x + 5)) == 0 and sum(c[3] for c in cs_) == 1
+check(16, okp, '최고차항 p>0이면 부호 경우 4개 중 반대·반대만 남아 h=f-x=p(x^2-5x+5) (p=1, 2, 6, 1/3 확인)')
+s6, cs6 = solve_pos(6, 1, 3)
+for c_ in cs6:
+    print(f"    경우 x=1:{'같은' if c_[0] == 1 else '반대'} 부호, x=3:{'같은' if c_[1] == 1 else '반대'} 부호 → h={c_[2]}, 두 점 모두 극소: {c_[3]}")
+hP = pp * (x**2 - 5 * x + 5)
+mins, maxs = extrema(hP.subs(pp, 1))
+check(16, mins == [1, 3] and maxs == [2], f"g'(x) 부호 변화(-8..8): 극소 {mins}, 극대 {maxs}(극댓값은 하나)")
+gmax = sp.simplify(-sp.integrate(hP, (x, 2, 3)))
+check(16, gmax == R(7, 6) * pp and gval(hP.subs(pp, 6), 2) == 7, f'극댓값 g(2) = {gmax} (p=6이면 {gval(hP.subs(pp, 6), 2)})')
+psol = sp.solve(sp.Eq(gmax, 7), pp)
+f16 = sp.expand(hP.subs(pp, psol[0]) + x)
+check(16, psol == [6] and f16 == 6 * x**2 - 29 * x + 30, f'7p/6=7 → p={psol}, f={f16}')
+ans16 = f16.subs(x, 1)
 ans_ok(16, ans16)
-# 오답: ④ -12 (극소점을 근으로 2(x+3)(x-2)) / ⑤ -11 (g'=|f(x)|-|f(x-1)| → 극소 위치를 -4, 1로 푼 셈 = f(x+1))
-w_root = (2 * (x + 3) * (x - 2)).subs(x, 0)
-fw = sp.solve([(2 * x**2 + P_ * x + Q_).subs(x, -4) + (2 * x**2 + P_ * x + Q_).subs(x, -3), (2 * x**2 + P_ * x + Q_).subs(x, 1) + (2 * x**2 + P_ * x + Q_).subs(x, 2)], [P_, Q_], dict=True)[0]
-w_shift = (2 * x**2 + P_ * x + Q_).subs(fw).subs(x, 0)
-check(16, w_root == -12 and w_shift == -11 and sp.expand((2 * x**2 + P_ * x + Q_).subs(fw) - f16.subs(x, x + 1)) == 0, f'오답: 극소점=근 {w_root}, g\' 잘못(f(x+1)) {w_shift}')
-wrong_in(16, [w_root, w_shift], '극소점을 근으로 / g\'을 |f(x)|-|f(x-1)|로')
-# 같은 부호 경우가 극대로 빠지는 것 확인 (축 -5/2, 5/2)
-same = [c_ for c_ in cases16 if c_[2] is not None and not c_[3]]
-check(16, len(same) == 2 and all(c_[2].subs(x, -3) == -50 or c_[2].subs(x, 2) == -50 for c_ in same), f'같은 부호 경우 2개는 함숫값 -50<0인 창이라 극대로 제외: {[c_[2] for c_ in same]}')
+# 오답: ② 6 (기준선 무시 |f| → f=h) / ① 5 (h=f+x로 부호 잘못: f=h-x)
+h6 = hP.subs(pp, 6)
+w_nob = h6.subs(x, 1); w_sgn = (h6 - x).subs(x, 1)
+check(16, w_nob == 6 and w_sgn == 5, f'오답: 기준선 무시 {w_nob}, 기준선 부호 실수 {w_sgn}')
+wrong_in(16, [w_nob, w_sgn], '기준선 y=x 무시 / f=h-x 부호 실수')
 # 원문 I66: 최고차 2, x=1, 4 → f(0)=13
-so, _ = solve16(2, 1, 4)
+so, _ = solve_pos(2, 1, 4)
 check('I66', len(so) == 1 and so[0].subs(x, 0) == 13 == orig_ans('I66'), f'I66 원문: f={so}, f(0)=13 = 원문 정답 {orig_ans("I66")}')
-# 작년 2025 기말 16(폭 b·오직 하나의 극값·존재 조건)과 다른 축: 폭 1·두 극소 위치 유지
 print('--- 16번 조건 빼 보기 ---')
-vals = []
-for lead in (1, 2, 4):
-    s_, _ = solve16(lead, -3, 2)
-    vals += [s__.subs(x, 0) for s__ in s_]
-ablation(16, "'최고차항의 계수가 2'", vals, -13, 'f=a(x^2-13/2)')
+# '양수' 없음: p<0이어도 반대·반대 극소, 극대는 x=2에서 g(2)=-7p/6=7 → p=-6, f(1)=-6+1=-5
+sn, _ = solve_pos(-6, 1, 3)
+mn, mx = extrema(sn[0])
+gneg = gval(sn[0], 2)
+ablation(16, "'최고차항의 계수가 양수'", [7, (sn[0] + x).subs(x, 1)] if (mn == [1, 3] and mx == [2] and gneg == 7) else [7], 7, 'p=-6에서도 x=1, 3 극소·극댓값 7 → f(1)=-5')
+# '극댓값이 7' 없음: p 자유 → f(1)=p+1
+ablation(16, "'극댓값이 7'", [(hP + x).subs(x, 1).subs(pp, pv) for pv in (2, 6, 12)], 7, 'p가 정해지지 않음, f(1)=p+1')
 
 
-def one_min(lead, pt, fam):
+def one_min(pt, side):
+    """극소 하나(pt)와 극댓값 7, p>0만 남긴 경우: h=p((x-c)^2-w^2), w^2=1/4+s^2이면 극소 c-1/2±s, 극대 c-1/2, 극댓값 p(w^2-1/12)"""
     res = []
-    for pv in fam:
-        f = lead * x**2 + pv * x + Q_
-        for sgn in (1, -1):
-            qs = sp.solve(f.subs(x, pt + 1) - sgn * f.subs(x, pt), Q_)
-            for qv in qs:
-                ff = f.subs(Q_, qv)
-                if is_min(ff, pt): res.append(ff.subs(x, 0))
+    for sv in (1, 2, R(1, 2)):
+        w2 = R(1, 4) + sv**2
+        pv = 7 / (w2 - R(1, 12))
+        c = pt + R(1, 2) - side * sv
+        h = pv * ((x - c)**2 - w2)
+        mn_, mx_ = extrema(h, -8, 8, 20)
+        if pt in mn_ and len(mx_) == 1 and gval(h, mx_[0]) == 7:
+            res.append((h + x).subs(x, 1))
     return res
 
 
-ablation(16, "'x=-3에서 극소'", one_min(2, 2, [0, -2, -4]), -13, '남은 조건이 x=2 하나')
-ablation(16, "'x=2에서 극소'", one_min(2, -3, [0, 2, 4]), -13, '남은 조건이 x=-3 하나')
-# 절댓값 없음: g'=f(x+1)-f(x)=4x+2+p (일차) → 극값이 하나뿐이라 두 점에서 극소 불가
-gl = sp.expand((2 * x**2 + P_ * x + Q_).subs(x, x + 1) - (2 * x**2 + P_ * x + Q_))
-nos = sp.solve([gl.subs(x, -3), gl.subs(x, 2)], [P_, Q_], dict=True)
-ablation(16, "'|f(t)|의 절댓값'", [] if not nos else [sp.Integer(0)], -13, f"g'={gl}는 일차식이라 x=-3, x=2에서 동시에 0일 수 없음")
+ablation(16, "'x=1에서 극소'", one_min(3, 1), 7, '남은 극소 조건이 x=3 하나라 h가 정해지지 않음')
+ablation(16, "'x=3에서 극소'", one_min(1, -1), 7, '남은 극소 조건이 x=1 하나라 h가 정해지지 않음')
+ablation(16, "기준선 '-t'", [w_nob], 7, '|f(t)|이면 f=h, f(1)=6')
+gl = sp.expand((pp * x**2 + P_ * x + Q_).subs(x, x + 1) - (pp * x**2 + P_ * x + Q_))
+nos = sp.solve([gl.subs(x, 1), gl.subs(x, 3)], [P_, Q_], dict=True)
+ablation(16, "'|f(t)-t|의 절댓값'", [] if not nos else [sp.Integer(0)], 7, f"g'={gl}는 일차식이라 x=1, x=3에서 동시에 0일 수 없음")
 
 print('ALL OK' if ok else 'SOME FAIL')
