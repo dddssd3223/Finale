@@ -149,6 +149,10 @@ def check_items(path):
     return bad
 
 if __name__ == '__main__':
+    for _a in sys.argv[2:]:   # 회차 폴더의 round.json이 db면 분석집 유사 금지를 끈다(checkpart 없이 직접 돌려도 같게)
+        for _d in (os.path.dirname(os.path.abspath(_a)), os.path.dirname(os.path.dirname(os.path.abspath(_a)))):
+            _rj = os.path.join(_d, 'round.json')
+            if os.path.exists(_rj) and json.load(open(_rj)).get('db'): os.environ['DUP_DB'] = '1'
     if sys.argv[1] == 'build': build(sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else None)
     elif sys.argv[1] == 'items': sys.exit(1 if check_items(sys.argv[2]) else 0)
     else: sys.exit(1 if check(sys.argv[2:]) else 0)
