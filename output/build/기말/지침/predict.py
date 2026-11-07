@@ -1,20 +1,48 @@
 # -*- coding: utf-8 -*-
 """학교 출제 예측 순위 + 회차 분담 초안 (front.md 0-8, 1절 출처 배치)
-점수 = 라이브 빈도(전국 학교 기출 횟수) + 최근(2024–25) 가중 + 번호 자리 적합(라이브 출제 번호 중앙값과의 거리) + 분석집 포함 가산
-사용: python3 predict.py rank            # 원문 예측 점수표
-      python3 predict.py plan <회차번호> <학교형|복습형> [사용한 키 쉼표목록]   # 분담 초안(JSON)
-제약: 출처 평가원 6·EBS 6·Level Up 6·자체 2, 단원 D5 M5 I6 J4(1–4번 J 없음), 원본 난도 자리별 범위,
-      그림 원문은 9번 이후 2–3개(1–8번 제외), 학교형은 예측 상위부터, 복습형은 분석집 원문 우선."""
+점수 = 라이브 빈도(전국 학교 기출 횟수) + 최근(2024–25) 가중 + 번호 자리 적합(라이브 출제 번호 중앙값과의 거리)
+       + 작년 2025 기말 연계 원문 가산(원문 재사용 습관, 다른 축으로) — 분석집 가산은 2026-11-07부터 끔(분석집 중지)
+사용: python3 predict.py rank                              # 원문 예측 점수표
+      python3 predict.py plan <회차번호> [사용한 키 쉼표목록]  # 분담 초안(JSON): 자리·원문·예비 원문·학교식/예상밖 배정·DB 추천
+      (옛 형식 plan <회차번호> <학교형|복습형> [키]도 받는다. 유형은 무시 — 2026-11-07부터 회차 유형 없음, front.md 4절)
+제약 (기말 자리 규칙, front.md 1절): 평가원 5 · EBS 8 · Level Up 5 · 자체 2(4번 기본형·서답형1), 단원 D5 M5 I6 J4 ↔ D4 M5 I6 J5 회차마다 번갈아,
+      1–4번 J 없음, 원본 난도 자리별 범위(16번 6–8), 그림 원문은 9번 이후 1–3개(1–8번 제외).
+      예상밖 자리: 5–16번 중 4–6개(시험 직전 12회부터 4개), 나머지는 학교식(DB 후보_순위 1–2)."""
 import sys, os, json, math, collections
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', '부교재_기말')); import items_final as F
 L = json.load(open(os.path.join(HERE, 'livestats.json')))
 STUDY = set(json.load(open(os.path.join(HERE, 'study_keys.json'))))
 # 자리: (번호, 출처, 원본 난도 범위) — 2학기 중간 출처 배치(확정·유력·유동) 그대로
-SLOTS = [(1, 'E', (2, 3)), (2, 'E', (2, 3)), (3, 'E', (2, 3)), (4, '평', (1, 3)), (5, 'E', (4, 5)), (6, 'E', (4, 5)), (7, 'LU', (4, 5)), (8, 'E', (4, 5)),
-         (9, '평', (3, 5)), (10, '평', (4, 5)), (11, 'LU', (4, 5)), (12, 'LU', (5, 6)), (13, 'LU', (4, 5)), (14, '자체', (4, 5)), (15, '평', (6, 6)),
-         (16, '평', (6, 7)), (17, 'LU', (5, 7)), (18, 'LU', (5, 7)), ('S1', '자체', (1, 4)), ('S2', '평', (6, 7))]
+# 기말 자리 (2026-11-07): 2025 기말(작년 2학기 기말) 연계 자리 + 2026 2학기 중간을 겹침. 9·16 평가원, 11·13 Level Up, 서답1 자체, 서답2 연계 단계화는
+# 세 시험 공통으로 고정. 6·10·14·15는 2025 기말에서 EBS(10 J20, 14 J23, 15 D16) → 10·14는 EBS, 15는 평가원 유지(중간 대표기출). 4번은 기본형 자체.
+SLOTS = [(1, 'E', (2, 3)), (2, 'E', (2, 3)), (3, 'E', (2, 3)), (4, '자체', (1, 3)), (5, 'E', (3, 5)), (6, 'E', (3, 5)), (7, 'LU', (4, 5)), (8, 'E', (4, 5)),
+         (9, '평', (4, 6)), (10, 'E', (4, 5)), (11, 'LU', (4, 6)), (12, '평', (4, 6)), (13, 'LU', (5, 6)), (14, 'E', (4, 6)), (15, '평', (5, 6)),
+         (16, '평', (6, 8)), (17, 'LU', (5, 7)), (18, 'LU', (5, 7)), ('S1', '자체', (1, 4)), ('S2', '평', (5, 7))]
 QUOTA = dict(D=5, M=5, I=6, J=4)
+QUOTA_ALT = dict(D=4, M=5, I=6, J=5)   # 2025 기말 단원(D4 M5 I6 J5) — 짝수 회차에 씀
+Y25 = {'M23', 'J60', 'J20', 'M26', 'I31', 'D40', 'J23', 'D16', 'I66', 'M32'}   # 작년 2025 기말 연계 원문(원문 재사용: 근거 중간)
+DBP = os.path.join(HERE, 'db', 'variation_db.json')
+DB = json.load(open(DBP)) if os.path.exists(DBP) else {}
+def band(no):
+    if not isinstance(no, int): return '서답형'
+    return '1–4' if no <= 4 else '5–8' if no <= 8 else '9–12' if no <= 12 else '13–16' if no <= 16 else '17–18'
+def unexpected_slots(rno):
+    """예상밖 자리: 5–16번 중 5개(12회부터 4개). 회차 번호로 돌려 자리마다 고르게. 9–16번에 더 많이(2025 기말은 9–16이 가장 짙었다)."""
+    import random
+    pool = [6, 7, 9, 10, 11, 12, 13, 14, 15, 16]
+    n = 4 if rno >= 12 else 5
+    r = random.Random(rno); out = set(r.sample([x for x in pool if x >= 9], n - 1)) | {r.choice([6, 7])}
+    return sorted(out)
+def db_hint(k, no, mode):
+    e = DB.get(k)
+    if not e: return {}
+    b = band(no)
+    if mode == '학교식':
+        top = [c for c in e.get('후보_순위', []) if b in str(c.get('번호대', '')) or b == '서답형'][:2] or e.get('후보_순위', [])[:2]
+        return {'추천': [f"{c.get('순위')}. {c.get('출처')}" for c in top]}
+    pts = [f"예상밖 {i+1}" for i, x in enumerate(e.get('예상밖_포인트', []))] + [f"v3_추가 {i+1}" for i, x in enumerate(e.get('v3_추가_예상', []))] + [f"결합 {i+1}" for i, x in enumerate(e.get('결합_후보', []))]
+    return {'추천': pts[:4]}
 HARD = (15, 16, 17, 18, 'S2')   # 고난도 자리: 분담표에 예비 원문 2개를 같이 적는다(독립 검토 2번 탈락 → 교체)
 
 def src(k):
@@ -38,7 +66,7 @@ def topics(k):
 
 def score(k, slot=None):
     l = L.get(k, {}); n = l.get('n', 0); yr = l.get('years', {})
-    s = math.log1p(n) + 0.4 * math.log1p(yr.get('2024', 0) + yr.get('2025', 0)) + (0.2 if k in STUDY else 0)
+    s = math.log1p(n) + 0.4 * math.log1p(yr.get('2024', 0) + yr.get('2025', 0)) + (0.5 if k in Y25 else 0)
     if slot is not None and isinstance(slot, int) and n:
         s -= abs(l.get('median', slot) - slot) / 8
     return s
@@ -47,10 +75,10 @@ def rank():
     rows = sorted(F.I, key=lambda k: -score(k))
     for k in rows[:60]:
         l = L.get(k, {})
-        print(f"{k:4} 점수 {score(k):.2f} 라이브 {l.get('n', 0):2} (최근 {l.get('years', {}).get('2024', 0) + l.get('years', {}).get('2025', 0)}) 자리중앙 {l.get('median', '-')} 서술 {l.get('seo', 0)} {src(k)} 난도 {F.D[k][0]} {'그림' if has_fig(k) else ''} {'분석집' if k in STUDY else ''}")
+        print(f"{k:4} 점수 {score(k):.2f} 라이브 {l.get('n', 0):2} (최근 {l.get('years', {}).get('2024', 0) + l.get('years', {}).get('2025', 0)}) 자리중앙 {l.get('median', '-')} 서술 {l.get('seo', 0)} {src(k)} 난도 {F.D[k][0]} {'그림' if has_fig(k) else ''} {'작년기말' if k in Y25 else ''}")
 
-def plan(rtype, used=()):
-    used = set(used); quota = dict(QUOTA); pick = {}
+def plan(rno, used=()):
+    used = set(used); quota = dict(QUOTA_ALT if rno % 2 == 0 else QUOTA); pick = {}
     def topic_ok(k):
         cnt = collections.Counter(tp for v in pick.values() for tp in topics(v))
         return all(cnt[tp] + 1 <= TOPIC_LIMIT[tp] for tp in topics(k))
@@ -70,7 +98,6 @@ def plan(rtype, used=()):
             if not topic_ok(k): continue                                           # 소재 겹침 상한
             sc = score(k, no if isinstance(no, int) else 20)
             if no == 'S1': sc += math.log1p(L.get(k, {}).get('seo', 0))       # 서술형 출제 이력
-            if rtype == '복습형' and k in STUDY and isinstance(no, int) and 5 <= no <= 16: sc += 1.0   # 1–4번에는 분석집 문항 없음(2회 재측정)
             out.append((sc, k))
         return sorted(out, reverse=True)
     backup = {}
@@ -82,7 +109,7 @@ def plan(rtype, used=()):
     # 그림 2–3개를 9번 이후로 (모자라면 같은 출처·단원 쿼터 안에서 그림 원문으로 교체)
     figs = [n for n, k in pick.items() if has_fig(k)]
     for no, sv, rng in sorted(SLOTS, key=lambda s: -score(pick[s[0]]) if s[0] not in (17, 18, 'S2') else 99):
-        if len(figs) >= 2: break
+        if len(figs) >= 1: break
         if not isinstance(no, int) or no < 9 or no in (17, 18) or has_fig(pick[no]): continue
         old = pick[no]; quota[old[0]] += 1; pick.pop(no)
         c = cands(no, sv, (rng[0] - 1, rng[1] + 1), need_fig=True)
@@ -91,14 +118,23 @@ def plan(rtype, used=()):
     used_now = set(pick.values()); bk = {}
     for n in HARD:                                                     # 자리끼리 겹치지 않게 2개씩
         bk[n] = [b for b in backup.get(n, []) if b not in used_now][:2]; used_now |= set(bk[n])
-    return {str(n): dict(key=k, src=src(k), level=F.D[k][0], live=L.get(k, {}).get('n', 0), score=round(score(k), 2), fig=has_fig(k), study=k in STUDY, topics=sorted(topics(k)),
+    ux = unexpected_slots(rno)
+    def mode(n): return '킬러(설계A·B)' if n in (17, 18) else '예상밖' if n in ux else '학교식'
+    def kinfo(k):
+        kv = (DB.get(k, {}).get('킬러') or {}).get('검산', {})
+        return {t: (kv.get('설계' + t, {}).get('판정'), (kv.get('설계' + t, {}).get('수정_적용') or {}).get('확정답')) for t in 'AB'} if kv else None
+    return {str(n): dict(key=k, src=src(k), level=F.D[k][0], live=L.get(k, {}).get('n', 0), score=round(score(k), 2), fig=has_fig(k), y25=k in Y25, topics=sorted(topics(k)),
+                         mode=mode(n), **({} if n in (17, 18) else db_hint(k, n, mode(n))), **({'killer': kinfo(k)} if n in (17, 18) else {}),
                          **({'backup': bk[n]} if n in HARD else {}))
             for n, k in sorted(pick.items(), key=lambda z: 19 if z[0] == 'S1' else 20 if z[0] == 'S2' else z[0])}
 
 if __name__ == '__main__':
     if sys.argv[1] == 'rank': rank()
     else:
-        P = plan(sys.argv[3], sys.argv[4].split(',') if len(sys.argv) > 4 and sys.argv[4] else ())
+        a = sys.argv[2:]
+        rno = int(a[0]); a = a[1:]
+        if a and a[0] in ('학교형', '복습형'): a = a[1:]          # 옛 형식(유형 무시)
+        P = plan(rno, a[0].split(',') if a and a[0] else ())
         print(json.dumps(P, ensure_ascii=False, indent=1))
         print('단원', collections.Counter(v['key'][0] for v in P.values()), '출처', collections.Counter(v['src'] for v in P.values()), '그림', [n for n, v in P.items() if v['fig']])
         print('소재', dict(collections.Counter(tp for v in P.values() for tp in v['topics'])), '상한', TOPIC_LIMIT)
