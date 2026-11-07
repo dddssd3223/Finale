@@ -79,8 +79,8 @@ def rank():
         print(f"{k:4} 점수 {score(k):.2f} 라이브 {l.get('n', 0):2} (최근 {l.get('years', {}).get('2024', 0) + l.get('years', {}).get('2025', 0)}) 자리중앙 {l.get('median', '-')} 서술 {l.get('seo', 0)} {src(k)} 난도 {F.D[k][0]} {'그림' if has_fig(k) else ''} {'작년기말' if k in Y25 else ''}")
 
 def cap(rno):
-    """원문 한 개를 몇 번까지 쓸 수 있나(3–40회 회차표, 2026-11-07): 1–14회 1번, 15–27회 2번, 28–40회 3번."""
-    return 1 + (rno > 14) + (rno > 27)
+    """원문 한 개를 몇 번까지 쓸 수 있나(회차표 3–60회, 2026-11-07): 1–14회 1번, 15–27회 2번, 28–40회 3번, 41–50회 4번, 51–60회 5번."""
+    return 1 + (rno > 14) + (rno > 27) + (rno > 40) + (rno > 50)
 
 def plan(rno, used=(), recent=()):
     UC = collections.Counter(used); recent = set(recent)
