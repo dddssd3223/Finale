@@ -93,8 +93,8 @@ body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.78;color:#000;
 .secr{border:0;border-top:1.4pt solid #000;margin:8pt 0 5.7pt}
 .sh{font-family:'HCRB';font-size:13pt;line-height:16pt;-webkit-text-stroke:.35pt #000;margin:0 0 3pt}
 .endx{position:absolute;left:0;width:100%;text-align:center}
-.endx .a{font-family:'HB','FS';font-size:23pt;line-height:28pt;letter-spacing:-1.1pt;white-space:nowrap;-webkit-text-stroke:.32pt #000;transform:translateX(-3.4pt)}
-.endx .em{font-size:19.8pt;margin-left:10.4pt}
+.endx .a{font-family:'HB','FS';font-size:23pt;line-height:28pt;letter-spacing:-1.1pt;white-space:nowrap;-webkit-text-stroke:.32pt #000;transform:translateX(-3.05pt)}
+.endx .em{font-size:19.8pt;margin-left:10.4pt;letter-spacing:-.6pt}
 .endx .b{font-family:'HB';font-size:14pt;line-height:19.4pt;letter-spacing:-.9pt;word-spacing:.9pt;-webkit-text-stroke:.14pt #000}
 .end .a{font-size:24pt;letter-spacing:1pt}
 .end .b{font-size:14pt;line-height:1.75;margin-top:6pt}
@@ -343,7 +343,7 @@ def SEC(kind, total, rng, how):
             f'<div class="d"><u>서답형 답안지의 해당란에 {how}</u>하시오.</div><hr></div>')
 SEC1 = '<div class="sech">&lt;서답형 문제 – 20점&gt;</div><hr class="secr">'
 SEC2 = ''
-END = ('<div class="endx" style="top:0"><div class="a">수고하셨습니다<span class="em">(ᐢ.꒳.ᐢ)ꕤ</span></div>'
+END = ('<div class="endx" style="top:0"><div class="a">수고하셨습니다<span class="em">(ᐢ.<span style="position:relative;top:.22em;font-size:.72em;line-height:0">꒳</span>.ᐢ)ꕤ</span></div>'
        '<div class="b" style="margin-top:5.6pt"><span style="position:relative;left:-.8pt">선택형 18문제 = 80점</span><br><span style="word-spacing:.3pt">서답형&nbsp;&nbsp;2문제 = 20점</span></div></div>')
 
 def block(key):
