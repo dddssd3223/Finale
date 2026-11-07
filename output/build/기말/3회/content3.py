@@ -16,7 +16,7 @@ for _f in sorted(_os.listdir(_P)):
         _ns = {'_P': _P}; exec(open(_os.path.join(_P, _f)).read(), _ns)
         ITEMS.update(_ns.get('ITEMS', {})); SITEMS.update(_ns.get('SITEMS', {}))
 # 측정 뒤 자리 바꾸기 (2026-11-07 3회 측정: 작년 기말 같은 번호 ±1.5에 맞춤) — parts 파일의 번호(출제 때 번호) → 시험지 번호
-RENUM = {7: 13, 13: 7, 8: 14, 14: 5, 5: 8, 9: 12, 12: 9}   # 2차 측정 뒤 J8(점대칭)↔M9 자리 바꿈
+RENUM = {7: 13, 13: 7, 8: 14, 14: 5, 5: 8, 9: 12, 12: 9, 10: 11, 11: 10}   # 3차 측정 뒤 D48↔M12 자리 바꿈
 ITEMS = {RENUM.get(n, n): it for n, it in ITEMS.items()}
 
 def _body(it):

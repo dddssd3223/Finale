@@ -1,0 +1,56 @@
+{
+ "round": "3회",
+ "base": "기준프로필_기말",
+ "anchors": [
+  3,
+  7,
+  10,
+  12,
+  14,
+  16,
+  17,
+  18
+ ],
+ "items": {
+  "3회-6": {
+   "hash": "c32150a989b4",
+   "bunseok": false,
+   "key": "I14"
+  },
+  "3회-9": {
+   "hash": "386e824637cc",
+   "bunseok": false,
+   "key": "D51"
+  },
+  "3회-10": {
+   "hash": "4029a7d84ece",
+   "bunseok": false,
+   "key": "M12"
+  },
+  "3회-11": {
+   "hash": "2ee0d33151a4",
+   "bunseok": false,
+   "key": "D48"
+  },
+  "3회-13": {
+   "hash": "4660b4a5342d",
+   "bunseok": false,
+   "key": "D34"
+  },
+  "3회-14": {
+   "hash": "8055e60b5361",
+   "bunseok": false,
+   "key": "I32"
+  },
+  "3회-16": {
+   "hash": "c926b161336c",
+   "bunseok": false,
+   "key": "I66"
+  },
+  "3회-18": {
+   "hash": "56d4e0febe2f",
+   "bunseok": false,
+   "key": "J46"
+  }
+ }
+}
