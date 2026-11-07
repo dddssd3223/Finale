@@ -5,7 +5,7 @@
 사용: python3 predict.py rank                              # 원문 예측 점수표
       python3 predict.py plan <회차번호> [사용한 키 쉼표목록]  # 분담 초안(JSON): 자리·원문·예비 원문·학교식/예상밖 배정·DB 추천
       (옛 형식 plan <회차번호> <학교형|복습형> [키]도 받는다. 유형은 무시 — 2026-11-07부터 회차 유형 없음, front.md 4절)
-제약 (기말 자리 규칙, front.md 1절): 평가원 5 · EBS 8 · Level Up 5 · 자체 2(4번 기본형·서답형1), 단원 D5 M5 I6 J4 ↔ D4 M5 I6 J5 회차마다 번갈아,
+제약 (기말 자리 규칙, front.md 1절): 평가원 5 · EBS 8 · Level Up 5 · 자체 2(4번 기본형·서답형1), 단원 D5 M5 I5 J5 ↔ D4 M5 I6 J5 회차마다 번갈아,
       1–4번 J 없음, 원본 난도 자리별 범위(16번 6–8), 그림 원문은 9번 이후 1–3개(1–8번 제외).
       예상밖 자리: 5–16번 중 4–6개(시험 직전 12회부터 4개), 나머지는 학교식(DB 후보_순위 1–2)."""
 import sys, os, json, math, collections
@@ -16,10 +16,10 @@ STUDY = set(json.load(open(os.path.join(HERE, 'study_keys.json'))))
 # 자리: (번호, 출처, 원본 난도 범위) — 2학기 중간 출처 배치(확정·유력·유동) 그대로
 # 기말 자리 (2026-11-07): 2025 기말(작년 2학기 기말) 연계 자리 + 2026 2학기 중간을 겹침. 9·16 평가원, 11·13 Level Up, 서답1 자체, 서답2 연계 단계화는
 # 세 시험 공통으로 고정. 6·10·14·15는 2025 기말에서 EBS(10 J20, 14 J23, 15 D16) → 10·14는 EBS, 15는 평가원 유지(중간 대표기출). 4번은 기본형 자체.
-SLOTS = [(1, 'E', (2, 3)), (2, 'E', (2, 3)), (3, 'E', (2, 3)), (4, '자체', (1, 3)), (5, 'E', (3, 5)), (6, 'E', (3, 5)), (7, 'LU', (4, 5)), (8, 'E', (4, 5)),
+SLOTS = [(1, 'E|평', (1, 3)), (2, 'E|평', (1, 3)), (3, 'E|평', (2, 3)), (4, '자체', (1, 3)), (5, 'E', (3, 5)), (6, 'E', (3, 5)), (7, 'LU', (4, 5)), (8, 'E', (4, 5)),
          (9, '평', (4, 6)), (10, 'E', (4, 5)), (11, 'LU', (4, 6)), (12, '평', (4, 6)), (13, 'LU', (5, 6)), (14, 'E', (4, 6)), (15, '평', (5, 6)),
-         (16, '평', (6, 8)), (17, 'LU', (5, 7)), (18, 'LU', (5, 7)), ('S1', '자체', (1, 4)), ('S2', '평', (5, 7))]
-QUOTA = dict(D=5, M=5, I=6, J=4)
+         (16, '평', (6, 8)), (17, 'LU', (5, 7)), (18, 'LU', (5, 9)), ('S1', '자체', (1, 4)), ('S2', '평', (5, 7))]
+QUOTA = dict(D=5, M=5, I=5, J=5)       # 부교재 비율 D64 M68 I76 J72에 맞춤(J4면 J 원문 14개가 14회까지 남음, 2026-11-07 점검)
 QUOTA_ALT = dict(D=4, M=5, I=6, J=5)   # 2025 기말 단원(D4 M5 I6 J5) — 짝수 회차에 씀
 Y25 = {'M23', 'J60', 'J20', 'M26', 'I31', 'D40', 'J23', 'D16', 'I66', 'M32'}   # 작년 2025 기말 연계 원문(원문 재사용: 근거 중간)
 DBP = os.path.join(HERE, 'db', 'variation_db.json')
@@ -79,24 +79,24 @@ def rank():
         print(f"{k:4} 점수 {score(k):.2f} 라이브 {l.get('n', 0):2} (최근 {l.get('years', {}).get('2024', 0) + l.get('years', {}).get('2025', 0)}) 자리중앙 {l.get('median', '-')} 서술 {l.get('seo', 0)} {src(k)} 난도 {F.D[k][0]} {'그림' if has_fig(k) else ''} {'작년기말' if k in Y25 else ''}")
 
 def plan(rno, used=()):
-    used = set(used); quota = dict(QUOTA_ALT if rno % 2 == 0 else QUOTA); pick = {}
+    used = set(used); quota = dict(QUOTA_ALT if rno % 2 == 0 else QUOTA); pick = {}; reuse = set()
     def topic_ok(k):
         cnt = collections.Counter(tp for v in pick.values() for tp in topics(v))
         return all(cnt[tp] + 1 <= TOPIC_LIMIT[tp] for tp in topics(k))
     order = [s for s in SLOTS if s[0] in (17, 18, 'S2', 15, 16)] + [s for s in SLOTS if s[0] not in (17, 18, 'S2', 15, 16)]
-    def cands(no, sv, rng, need_fig=None):
+    def cands(no, sv, rng, need_fig=None, loose=False):
         out = []
         for k in F.I:
             if k in used or k in pick.values(): continue
             u = k[0]
             if quota[u] <= 0 or (isinstance(no, int) and no <= 4 and u == 'J'): continue
             if sv == '자체':
-                if src(k) != 'E': continue
-            elif src(k) != sv: continue
+                if src(k) not in ('E', '평'): continue          # 자체 기본형: 가장 가까운 EBS·평가원 기본 원문 표시
+            elif src(k) not in sv.split('|'): continue         # 1–3번은 EBS·평가원 기본 계산(LIVE 1–5번 단골 I49–I56 등)
             if not (rng[0] <= F.D[k][0] <= rng[1]): continue
             if isinstance(no, int) and no <= 8 and has_fig(k): continue          # 1–8번 그림 없음
             if need_fig is not None and has_fig(k) != need_fig: continue
-            if not topic_ok(k): continue                                           # 소재 겹침 상한
+            if not loose and not topic_ok(k): continue                              # 소재 겹침 상한(마지막 대체에서만 풂)
             sc = score(k, no if isinstance(no, int) else 20)
             if no == 'S1': sc += math.log1p(L.get(k, {}).get('seo', 0))       # 서술형 출제 이력
             out.append((sc, k))
@@ -105,6 +105,13 @@ def plan(rno, used=()):
     for no, sv, rng in order:
         c = cands(no, sv, rng)
         if not c: c = cands(no, sv, (rng[0] - 1, rng[1] + 1))
+        if not c: c = cands(no, sv, (rng[0] - 2, rng[1] + 2))
+        if not c and sv in ('평', 'LU'): c = cands(no, 'LU' if sv == '평' else '평', rng)    # 고난도 출처끼리 바꿈
+        if not c:                                                                             # 미사용 원문이 바닥나면 재출제(다른 후보로, front 3절)
+            saved = set(used); used.clear(); c = cands(no, sv, (rng[0] - 1, rng[1] + 1)); used |= saved
+            if c: reuse.add(no)
+        if not c: c = cands(no, sv, (rng[0] - 2, rng[1] + 2), loose=True)                  # 단원 쿼터가 남은 쪽만 남았을 때
+        if not c: raise SystemExit(f'{no}번 자리 후보 없음 — 출처 {sv}, 난도 {rng}, 단원 쿼터 {quota}')
         k = c[0][1]; pick[no] = k; quota[k[0]] -= 1
         if no in HARD: backup[no] = [x for _, x in c[1:8]]          # 독립 검토 2번 탈락 시 바꿀 예비 원문(5번 개선)
     # 그림 2–3개를 9번 이후로 (모자라면 같은 출처·단원 쿼터 안에서 그림 원문으로 교체)
@@ -125,7 +132,7 @@ def plan(rno, used=()):
         kv = (DB.get(k, {}).get('킬러') or {}).get('검산', {})
         return {t: (kv.get('설계' + t, {}).get('판정'), (kv.get('설계' + t, {}).get('수정_적용') or {}).get('확정답')) for t in 'AB'} if kv else None
     return {str(n): dict(key=k, src=src(k), level=F.D[k][0], live=L.get(k, {}).get('n', 0), score=round(score(k), 2), fig=has_fig(k), y25=k in Y25, topics=sorted(topics(k)),
-                         mode=mode(n), **({} if n in (17, 18) else db_hint(k, n, mode(n))), **({'killer': kinfo(k)} if n in (17, 18) else {}),
+                         mode=mode(n), **({'재출제': True} if n in reuse else {}), **({} if n in (17, 18) else db_hint(k, n, mode(n))), **({'killer': kinfo(k)} if n in (17, 18) else {}),
                          **({'backup': bk[n]} if n in HARD else {}))
             for n, k in sorted(pick.items(), key=lambda z: 19 if z[0] == 'S1' else 20 if z[0] == 'S2' else z[0])}
 
