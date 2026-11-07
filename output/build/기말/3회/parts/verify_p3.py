@@ -84,10 +84,25 @@ ok(expand(fx - R) == -56 * x + 200, '9번 f = R + (-56x+200)')
 chk(9, 17)
 L3 = (-56 * 3 + 200)
 ok(str(L3) in IT[9]['wrongs'] and R.subs(x, 3) == -15, f'9번 오답 32 = L(3) (R(3)=-15 빠뜨림)')
+# 빼 보기: 조건 하나를 빼면 남은 조건을 만족시키는 사차함수가 여럿이고 f(3k)가 달라짐(예를 두 개 만들어 보임)
+k_ = symbols('k')
+def example(drop, pins):
+    f = x**4 + p3 * x**3 + p2 * x**2 + p1 * x + p0
+    F = lambda a: f.subs(x, a)
+    eqs = [e for e in ([] if drop == '등차' else [F(0) - F(-2) - (F(2) - F(0)), F(2) - F(0) - (F(4) - F(2))])]
+    if drop != '접선':
+        eqs += [diff(f, x).subs(x, -2) * (k_ + 2) + F(-2), diff(f, x).subs(x, 4) * (k_ - 4) + F(4)]
+    if drop != '값':
+        eqs += [F(2 * k_) - 88]
+    eqs += [sym - val for sym, val in pins]
+    sol = solve(eqs, [p0, p1, p2, p3, k_], dict=True)
+    return {sp.simplify(F(3 * k_).subs(so)) for so in sol if not F(3 * k_).subs(so).free_symbols}
+PINS = {'등차': [[(p3, 0), (p2, 0)], [(p3, 1), (p2, 0)]], '접선': [[(p1, 0), (k_, 1)], [(p1, 0), (k_, 2)]], '값': [[(p0, 0)], [(p0, 8)]]}
 for dr in ('등차', '접선', '값'):
-    vv, fr, ss = quartic_conditions((-2, 0, 2, 4), (-2, 4), (2, 88), 3, drop=dr)
-    need = fr or len(vv) != 1 or vv != {17}
-    print(f'ABLATION 9 {dr}: ' + ('필요(답이 정해지지 않음)' if need else '군더더기(답 그대로)'))
+    vals = set()
+    for pin in PINS[dr]: vals |= example(dr, pin)
+    need = len(vals) >= 2
+    print(f'ABLATION 9 {dr}: ' + (f'필요(남은 조건만으로 f(3k)={sorted(vals)[:3]} 등 여럿)' if need else '군더더기(답 그대로)'))
     assert need
 
 # ---------- 10번 (M12) ----------
@@ -113,7 +128,7 @@ r1, r2, r3 = symbols('r1 r2 r3')
 ok(sp.Poly(expand((x - r1) * (x - r2) * (x - r3)), x).all_coeffs()[1] == -(r1 + r2 + r3), '10번 근과 계수: 합 = -(x^2 계수) = -3')
 # ㄷ
 B = [a for a in A if 20 + a > 0]
-ok(all(sp.prod(real_roots(Poly(h - a, x))) == 20 + a for a in (-19, 0, 59)), '10번 세 실근의 곱 = 20+a')
+ok(all(abs(sp.N(sp.prod(real_roots(Poly(h - a, x))), 30) - (20 + a)) < 1e-20 for a in (-47, -19, 0, 59)) and Poly(h - symbols('a'), x).all_coeffs()[-1] == -20 - symbols('a'), '10번 세 실근의 곱 = 20+a (상수항 -(20+a))')
 ok(max(B) + min(B) == 40, f'10번 ㄷ: 곱이 양수인 정수 a 최댓값 {max(B)} + 최솟값 {min(B)} = 40 → 참')
 truth = {'ㄱ': True, 'ㄴ': not bad, 'ㄷ': max(B) + min(B) == 40}
 right = 'T:' + ', '.join(k for k in 'ㄱㄴㄷ' if truth[k])
@@ -138,22 +153,16 @@ def peval(c, q):
     for co in c: v = v * q + co
     return v
 def exact_real_roots(c):
-    """정수 계수 c(높은 차수부터)의 실근을 정확한 유리수로(이 문항의 f'은 유리수 근만 가짐, 곱으로 되돌려 확인)"""
+    """정수 계수 c(높은 차수부터)의 서로 다른 실근(정확값). 인수분해로 일차 인수의 근을 모으고, 나머지 인수에 실근이 없음을 확인"""
+    P = Poly([sp.Integer(int(v)) for v in c], x)
     rr = []
-    for z in np.roots([float(v) for v in c]):
-        if abs(z.imag) < 1e-7:
-            q = Fr(z.real).limit_denominator(64)
-            if peval(c, q) == 0 and q not in rr: rr.append(q)
-    # 중복도까지 맞춰 원래 다항식이 되는지 확인
-    P = Poly(sum(sp.Integer(int(v)) * x**(len(c) - 1 - i) for i, v in enumerate(c)), x)
-    Q = sp.Integer(int(c[0]))
-    for q in rr:
-        m = 0; T = P
-        while T.eval(sp.Rational(q.numerator, q.denominator)) == 0 and T.degree() > 0:
-            T = sp.div(T, Poly(x - sp.Rational(q.numerator, q.denominator), x))[0]; m += 1
-        Q = Q * (x - sp.Rational(q.numerator, q.denominator))**m
-    assert expand(Q - P.as_expr()) == 0, ('근을 다 찾지 못함', c)
-    return sorted(rr)
+    for g, m in P.factor_list()[1]:
+        if g.degree() == 1:
+            r = -g.all_coeffs()[1] / g.all_coeffs()[0]
+            rr.append(Fr(int(sp.fraction(r)[0]), int(sp.fraction(r)[1])))
+        else:
+            assert g.count_roots() == 0, ('일차가 아닌 인수에 실근', c)
+    return sorted(set(rr))
 _a, _b = symbols('_a _b')
 FP = Poly(expand(diff((x - _a)**3 * (x - _b), x)), x)
 FPC = [sp.lambdify((_a, _b), co) for co in FP.all_coeffs()]
