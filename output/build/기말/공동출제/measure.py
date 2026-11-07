@@ -128,6 +128,11 @@ def stale(rdir):
     seen = {}
     for f in sorted(glob.glob(os.path.join(PUL, f'측정_{rname}*', 'meta.json'))):
         for tag, m in json.load(open(f)).get('items', {}).items(): seen.setdefault(tag, {})[m['hash']] = os.path.basename(os.path.dirname(f))
+    # 측정 뒤 문구만 고친 문항(뜻·정답·난도 같음): <회차>/wording_edits.json {tag: [{hash, note}]}에 적으면 통과
+    we = os.path.join(rdir, 'wording_edits.json')
+    if os.path.exists(we):
+        for tag, es in json.load(open(we)).items():
+            for e in es: seen.setdefault(tag, {})[e['hash']] = 'wording_edits'
     bad = []
     for t, it in sorted(P.items(), key=lambda z: (not z[0].isdigit(), int(z[0]) if z[0].isdigit() else 0, z[0])):
         tag = f'{rname}-{t}'; h = G.item_hash(it)

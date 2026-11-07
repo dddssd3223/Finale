@@ -77,7 +77,8 @@ body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.78;color:#000;
 .ci{display:flex;align-items:baseline;margin:0}.ci .ck{flex:none;width:22.4pt}.cit{flex:1;min-width:0;text-align:justify}.cond>div:not(.ci){text-align:justify}
 .bit{flex:1;min-width:0;text-align:justify}
 .bogi{min-inline-size:0;border:.6pt solid #000;margin:4pt 0 4pt 0;padding:1pt 6pt 4pt;clear:both}
-.bogi legend{margin:0 auto;padding:0 5pt;font-family:'GL';font-size:9pt}
+.bogi legend{margin:0 auto;padding:0 3pt;font-family:'HB';font-size:9pt;line-height:1}
+.bogi{line-height:1.62;padding-top:3pt!important}.bit.br{white-space:normal!important;overflow:visible!important;text-align:left}
 .bi{display:flex;gap:3pt;margin:1pt 0;text-align:left;align-items:baseline}.bi .bk{flex:none}
 .fig{text-align:center;margin:4pt 0}
 .sub{margin:0;text-align:justify;line-height:13.4pt}
@@ -281,7 +282,8 @@ def boxes(h, key):
         t = m.group(0)
         if t.endswith('<span>'):          # 보기 항목
             a = m.end(); b = _match_close(h, a - 6, 'span')
-            out.append(h[i:a - 6] + '<div class="bit">' + jl(h[a:b], f'{key}.b{n}') + '</div>'); i = b + 7
+            # 실제 시험지(2025 2학기 중간 9번·기말 12번): 보기 항목은 양끝 맞춤 없이 왼쪽 정렬, 낱말 간격은 본문 그대로(줄이지 않음)
+            out.append(h[i:a - 6] + '<div class="bit br">' + h[a:b] + '</div>'); i = b + 7
         elif t.startswith('<div class="ci">'):
             a = m.end(); b = _match_close(h, m.start(), 'div')
             out.append(h[i:a] + '<div class="cit">' + jl(h[a:b], f'{key}.c{n}') + '</div>')
@@ -302,6 +304,8 @@ def q_html(n):
     g = all(c.startswith('T:') for c in ch)
     w = CHW.get(n)
     chs = ''.join(f'<span{f" style=width:{w}pt" if w else ""}><span class="c">{CIRC[i]}</span> ' + (c[2:] if c.startswith('T:') else f'\\({c}\\)') + '</span>' for i, c in enumerate(ch))
+    # 실제 시험지 보기 제목: 본문 명조로 '< 보   기 >'(꺾쇠 안쪽 한 칸, 보·기 사이 세 칸)
+    body = body.replace('<legend>&lt;보 기&gt;</legend>', '<legend>&lt;<span style="padding:0 .55em">보<span style="display:inline-block;width:1.8em"></span>기</span>&gt;</legend>')
     body = boxes(body, f'Q{n}')
     F = 15.3 if n < 10 else 19.9   # 원본 PDF 실측: 번호 폭
     # 실제 시험지: 둘째 줄·조건 상자·선택지 모두 번호와 같은 왼쪽 선에서 시작 (들여쓰기 없음), 줄바꿈 위치도 원본과 동일
