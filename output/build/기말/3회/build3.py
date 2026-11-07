@@ -346,7 +346,7 @@ def SEC(kind, total, rng, how):
 SEC1 = '<div class="sech">&lt;서답형 문제 – 20점&gt;</div><hr class="secr">'
 SEC2 = ''
 END = ('<div class="endx" style="top:0"><div class="a">수고하셨습니다'
-       + (f'<img class="emo" src="file://{os.path.join(FONTS, "end_emo.svg")}">' if os.path.exists(os.path.join(FONTS, 'end_emo.svg')) else '<span class="em">(ᐢ.꒳.ᐢ)ꕤ</span>') + '</div>'
+       + (f'<img class="emo" src="file://{os.path.join(HERE, "assets", "end_emo.svg")}">' if os.path.exists(os.path.join(HERE, 'assets', 'end_emo.svg')) else '<span class="em">(ᐢ.꒳.ᐢ)ꕤ</span>') + '</div>'
        '<div class="b" style="margin-top:6.4pt"><span style="position:relative;left:-.8pt">선택형 18문제 = 80점</span><br><span style="word-spacing:.3pt">서답형&nbsp;&nbsp;2문제 = 20점</span></div></div>')
 
 def block(key):
