@@ -132,6 +132,8 @@ def stale(rdir):
     for t, it in sorted(P.items(), key=lambda z: (not z[0].isdigit(), int(z[0]) if z[0].isdigit() else 0, z[0])):
         tag = f'{rname}-{t}'; h = G.item_hash(it)
         if h in seen.get(tag, {}): continue
+        moved = [tg for tg, hs in seen.items() if h in hs]   # 자리만 옮긴 문항(측정 뒤 번호 바꾸기)은 내용이 같으면 통과
+        if moved: print(f'{tag}: 측정 뒤 자리 옮김({moved[0]} → {tag}), 내용 같음'); continue
         bad.append(t); print(f"{tag}: {'측정 뒤 고침 (마지막 측정 ' + sorted(seen[tag].values())[-1] + ')' if tag in seen else '해시 기록 없음(이전 방식 측정 또는 미측정)'}")
     print(f'다시 잴 문항: {",".join(bad) if bad else "없음"}')
     return bad

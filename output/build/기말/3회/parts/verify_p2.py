@@ -165,7 +165,9 @@ assert v8 == 27
 assert solve_I32(6, deg=6)[1].subs(x, 2) == 27                       # 차수 6까지 넓혀도 유일
 w8_noD = (g8 - 3).subs(x, 2)                                         # g의 상수항 누락
 assert w8_noD == 24
-chk(8, v8, [w8_noD])
+w8_f = f8.subs(x, 2)                                                 # g(2) 대신 f(2)
+assert w8_f == 36
+chk(8, v8, [w8_noD, w8_f])
 
 # ===== 조건 빼 보기 =====
 print('--- 조건 빼 보기 ---')
