@@ -101,14 +101,12 @@ ok(h.subs(x, -4) == 60 and h.subs(x, 2) == -48 and h.subs(x, 0) == -20, '10번 �
 A = [a for a in range(-300, 301) if three_distinct(h - a)]
 ok(len(A) == 107 and min(A) == -47 and max(A) == 59, f'10번 ㄱ: 세 실근 정수 a {len(A)}개 (-47~59) → 참')
 # ㄴ: 곱이 양수(20+a>0) + 세 실근이면 양수인 실근 1개 (정수·유리수 표본 전수 + 경계 근처)
-samples = [Rational(a) for a in range(-47, 60)] + [Rational(k, 7) for k in range(-47 * 7, 60 * 7)] + [Rational(-20) + Rational(1, 10**6), Rational(60) - Rational(1, 10**6)]
+samples = [Rational(k, 7) for k in range(-48 * 7, 60 * 7 + 1)] + [Rational(-20) + Rational(1, 10**6), Rational(60) - Rational(1, 10**6)]
 bad = []
 for a in samples:
     if not three_distinct(h - a): continue
-    rr = real_roots(Poly(h - a, x))
-    prod = sp.prod(rr)
-    if prod > 0:
-        if sum(1 for r in rr if r > 0) != 1: bad.append(a)
+    if 20 + a > 0:                                  # 세 실근의 곱 = 20+a (근과 계수)
+        if Poly(h - a, x).count_roots(0, None) - (1 if (h - a).subs(x, 0) == 0 else 0) != 1: bad.append(a)
 ok(not bad, '10번 ㄴ: 곱이 양수인 모든 표본 a에서 양수인 실근 1개 → 참')
 # ㄴ을 근과 계수 관계로: 합 -3, 곱 20+a (기호 확인)
 r1, r2, r3 = symbols('r1 r2 r3')
@@ -122,7 +120,7 @@ right = 'T:' + ', '.join(k for k in 'ㄱㄴㄷ' if truth[k])
 ok(IT[10]['choices'] == CH5 and IT[10]['choices'][IT[10]['ans'] - 1] == right, f'10번 정답 {right} = 선지 ⑤')
 # 오답: ㄴ을 곱 조건 없이 보면 거짓(−48<a<−20에서 양수 근 2개), ㄷ에서 a=-20 포함하면 39
 a_ex = -30
-ok(three_distinct(h - a_ex) and sum(1 for r in real_roots(Poly(h - a_ex, x)) if r > 0) == 2, '10번 오답 ③ 근거: a=-30(곱 음수)에서 양수인 실근 2개')
+ok(three_distinct(h - a_ex) and Poly(h - a_ex, x).count_roots(0, None) == 2, '10번 오답 ③ 근거: a=-30(곱 음수)에서 양수인 실근 2개')
 ok(59 + (-20) == 39, '10번 오답 ② 근거: 곱 0인 a=-20 포함 시 39')
 # 원문 M12: -1 (선지 ②)
 h0 = x**3 + 3 * x**2 - 9 * x - 14
@@ -133,13 +131,38 @@ print('ABLATION 10 ㄷ 서로 다른 세 실근: 필요(빼면 a>-20인 정수 a
 print('ABLATION 10 ㄴ 곱이 양수: 필요(빼면 a=-30에서 양수인 실근 2개, 참·거짓이 바뀜)')
 
 # ---------- 11번 (D48) ----------
-def sign_ok(fp, p, need_t_gt_p_none=True):
+from fractions import Fraction as Fr
+import numpy as np
+def peval(c, q):
+    v = Fr(0)
+    for co in c: v = v * q + co
+    return v
+def exact_real_roots(c):
+    """정수 계수 c(높은 차수부터)의 실근을 정확한 유리수로(이 문항의 f'은 유리수 근만 가짐, 곱으로 되돌려 확인)"""
+    rr = []
+    for z in np.roots([float(v) for v in c]):
+        if abs(z.imag) < 1e-7:
+            q = Fr(z.real).limit_denominator(64)
+            if peval(c, q) == 0 and q not in rr: rr.append(q)
+    # 중복도까지 맞춰 원래 다항식이 되는지 확인
+    P = Poly(sum(sp.Integer(int(v)) * x**(len(c) - 1 - i) for i, v in enumerate(c)), x)
+    Q = sp.Integer(int(c[0]))
+    for q in rr:
+        m = 0; T = P
+        while T.eval(sp.Rational(q.numerator, q.denominator)) == 0 and T.degree() > 0:
+            T = sp.div(T, Poly(x - sp.Rational(q.numerator, q.denominator), x))[0]; m += 1
+        Q = Q * (x - sp.Rational(q.numerator, q.denominator))**m
+    assert expand(Q - P.as_expr()) == 0, ('근을 다 찾지 못함', c)
+    return sorted(rr)
+_a, _b = symbols('_a _b')
+FP = Poly(expand(diff((x - _a)**3 * (x - _b), x)), x)
+FPC = [sp.lambdify((_a, _b), co) for co in FP.all_coeffs()]
+def sign_ok(c, p):
     """(가): (-∞,p]에서 f'≤0, [p,∞)에서 f'≥0 / (나): f'=0인 t>p 없음"""
-    P = Poly(fp, x)
-    rr = sorted(set(real_roots(P)))
-    pts = sorted(set(rr + [p]))
+    rr = exact_real_roots(c)
+    pts = sorted(set(rr + [Fr(p)]))
     test = [pts[0] - 1] + [(pts[i] + pts[i + 1]) / 2 for i in range(len(pts) - 1)] + [pts[-1] + 1]
-    ga = all((fp.subs(x, q) <= 0) if q < p else (fp.subs(x, q) >= 0) for q in test)
+    ga = all((peval(c, q) <= 0) if q < p else (peval(c, q) >= 0) for q in test)
     gn = all(r <= p for r in rr)
     return ga, gn, rr
 
@@ -147,13 +170,12 @@ def d48(C, p, ask0, distinct=True, use_na=True, use_ga=True, integer=True, rng=r
     best = None; cands = []
     for a, b in itertools.product(rng, rng):
         if distinct and a == b: continue
-        f = (x - a)**3 * (x - b) + C
-        fp = expand(diff(f, x))
-        ga, gn, rr = sign_ok(fp, p)
+        c = [int(g(a, b)) for g in FPC]
+        ga, gn, rr = sign_ok(c, p)
         if use_ga and not ga: continue
         if use_na and not gn: continue
         S = sum(rr)
-        cands.append((S, a, b, f.subs(x, ask0)))
+        cands.append((S, a, b, (ask0 - a)**3 * (ask0 - b) + C))
     if not cands: return None, []
     M = max(c[0] for c in cands)
     top = [c for c in cands if c[0] == M]
@@ -167,7 +189,6 @@ ok(expand(diff((x + 2)**3 * (x - 2), x) - (x + 2)**2 * (4 * x - 4)) == 0, "11번
 chk(11, top[0][3])
 ok(str(M) in IT[11]['wrongs'], '11번 오답 -1 = 근의 합의 최댓값(묻는 값 혼동)')
 # 넓은 범위에서도 후보가 b≥2, a=4-3b뿐임을 확인
-_, allc = d48(13, 1, 0, rng=range(-40, 41))
 Mw, topw = d48(13, 1, 0, rng=range(-40, 41))
 ok(Mw == -1 and len(topw) == 1, '11번 정수 범위 -40~40 전수: 최댓값·최대점 유일')
 # 빼 보기
