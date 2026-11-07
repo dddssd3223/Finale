@@ -6,7 +6,7 @@
       python3 predict.py plan <회차번호> [사용한 키 쉼표목록]  # 분담 초안(JSON): 자리·원문·예비 원문·학교식/예상밖 배정·DB 추천
       (옛 형식 plan <회차번호> <학교형|복습형> [키]도 받는다. 유형은 무시 — 2026-11-07부터 회차 유형 없음, front.md 4절)
 제약 (기말 자리 규칙, front.md 1절): 평가원 5 · EBS 8 · Level Up 5 · 자체 2(4번 기본형·서답형1), 단원 D5 M5 I5 J5 ↔ D4 M5 I6 J5 회차마다 번갈아,
-      1–4번 J 없음, 원본 난도 자리별 범위(16번 6–8), 그림 원문은 9번 이후 1–3개(1–8번 제외).
+      1–4번 J 허용(2026-11-07 사용자 확정, 같은 단원 2개까지), 원본 난도 자리별 범위(16번 6–8), 그림 원문은 9번 이후 1–3개(1–8번 제외).
       예상밖 자리: 5–16번 중 4–6개(시험 직전 12회부터 4개), 나머지는 학교식(DB 후보_순위 1–2)."""
 import sys, os, json, math, collections
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -89,7 +89,8 @@ def plan(rno, used=()):
         for k in F.I:
             if k in used or k in pick.values(): continue
             u = k[0]
-            if quota[u] <= 0 or (isinstance(no, int) and no <= 4 and u == 'J'): continue
+            if quota[u] <= 0: continue
+            if isinstance(no, int) and no <= 4 and sum(1 for n2, v in pick.items() if isinstance(n2, int) and n2 <= 4 and v[0] == u) >= 2: continue   # 1–4번 같은 단원 2개까지
             if sv == '자체':
                 if src(k) not in ('E', '평'): continue          # 자체 기본형: 가장 가까운 EBS·평가원 기본 원문 표시
             elif src(k) not in sv.split('|'): continue         # 1–3번은 EBS·평가원 기본 계산(LIVE 1–5번 단골 I49–I56 등)
