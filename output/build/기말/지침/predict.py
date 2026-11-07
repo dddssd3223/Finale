@@ -8,7 +8,7 @@
 제약 (기말 자리 규칙, front.md 1절): 평가원 5 · EBS 8 · Level Up 5 · 자체 2(4번 기본형·서답형1), 단원 D5 M5 I5 J5 ↔ D4 M5 I6 J5 회차마다 번갈아,
       1–4번 J 허용(2026-11-07 사용자 확정, 같은 단원 2개까지), 원본 난도 자리별 범위(16번 6–8), 그림 원문은 9번 이후 1–3개(1–8번 제외).
       예상밖 자리: 5–16번 중 4–6개(시험 직전 12회부터 4개), 나머지는 학교식(DB 후보_순위 1–2)."""
-import sys, os, json, math, collections, itertools
+import sys, os, json, math, collections, itertools, re
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', '부교재_기말')); import items_final as F
 L = json.load(open(os.path.join(HERE, 'livestats.json')))
@@ -143,17 +143,49 @@ def plan(rno, used=(), recent=()):
             for n, k in sorted(pick.items(), key=lambda z: 19 if z[0] == 'S1' else 20 if z[0] == 'S2' else z[0])}
 
 ORDER_SCHOOL = ['후보_순위']
+def canon(ref):
+    """'K 후보_순위 n'이 가리키는 실제 변형(학교식_예상·예상밖·v3_추가·결합·킬러·GEN/LIVE id)으로 바꿔 같은 변형을 두 번 쓰지 않게 한다."""
+    m = re.match(r'(\w+) 후보_순위 (\d+)', ref)
+    if not m: return ref
+    k, n = m.group(1), int(m.group(2))
+    for c in DB.get(k, {}).get('후보_순위', []):
+        if c.get('순위') == n:
+            src = str(c.get('출처', ''))
+            mm = re.search(r'(학교식_예상|예상밖|v3_추가|결합)\s*(\d+)', src)
+            if mm: return f'{k} {mm.group(1)} {mm.group(2)}'
+            mm = re.search(r'킬러\s*설계\s*([AB])', src)
+            if mm: return f'{k} 킬러 설계{mm.group(1)}'
+            ids = re.findall(r'(?:GEN|LIVE)\d-\d\d-\d+', src)
+            return f'{k} id ' + ','.join(sorted(ids)) if ids else ref
+    return ref
+
 def next_ref(k, mode, taken, rno=0):
     """원문 k에서 아직 안 쓴 DB 후보 하나. 학교식: 후보_순위 차례, 예상밖: 예상밖 → v3_추가 → 결합, 킬러: 설계A → 설계B."""
     e = DB.get(k, {})
-    if mode.startswith('킬러'): opts = [f'{k} 킬러 설계A', f'{k} 킬러 설계B'] if e.get('킬러') else []
+    if mode.startswith('킬러'):   # 검산 통과·주의 없는 설계 먼저, 같으면 설계A(구조 변경) 먼저
+        kv = (e.get('킬러') or {}).get('검산', {})
+        def bad(t):
+            v = kv.get('설계' + t, {}); fx = v.get('수정_적용') or {}
+            return (v.get('판정') != '통과') + ('주의' in str(fx.get('수정', '')))
+        opts = sorted([f'{k} 킬러 설계A', f'{k} 킬러 설계B'], key=lambda o: (bad(o[-1]), o[-1])) if e.get('킬러') else []
     elif mode == '학교식': opts = [f"{k} 후보_순위 {c.get('순위', i + 1)}" for i, c in enumerate(e.get('후보_순위', []))] + [f'{k} 학교식_예상 {i + 1}' for i in range(len(e.get('학교식_예상', [])))]
     else:   # 예상밖 자리: 예상밖·점검표(v3)·결합을 번갈아(점검표 조작이 두 회차마다 나오게, front 3절)
         A = [[f'{k} 예상밖 {i + 1}' for i in range(len(e.get('예상밖_포인트', [])))], [f'{k} v3_추가 {i + 1}' for i in range(len(e.get('v3_추가_예상', [])))], [f'{k} 결합 {i + 1}' for i in range(len(e.get('결합_후보', [])))]]
         A = A[rno % 3:] + A[:rno % 3]                                   # 회차마다 시작 종류를 돌림
-        opts = [x for t in itertools.zip_longest(*A) for x in t if x]
+        rot = [x for t in itertools.zip_longest(*A) for x in t if x]
+        # 품질 순: ① 후보_순위가 이름을 든 예상밖·v3·결합(학교 습관 근거로 매긴 순서) ② 나머지 ③ 최종 검토가 결합 불성립·범위 문제로 지적한 것은 맨 뒤
+        ranked = []
+        for c in e.get('후보_순위', []):
+            m = re.search(r'(예상밖|v3_추가|결합)\s*(\d+)', str(c.get('출처', '')))
+            if m: ranked.append(f'{k} {m.group(1)} {m.group(2)}')
+        flagged = set()
+        for x in e.get('최종검토_정정', []):
+            if re.search(r'결합|범위', str(x.get('종류', ''))):
+                m = re.search(r'결합_후보\[(\d+)\]', str(x.get('칸', '')))
+                if m: flagged.add(f'{k} 결합 {int(m.group(1)) + 1}')
+        opts = [o for o in ranked if o in rot] + [o for o in rot if o not in ranked and o not in flagged] + [o for o in rot if o in flagged and o not in ranked]
     for o in opts:
-        if o not in taken: return o
+        if o not in taken and canon(o) not in taken: return o
     return opts[0] + ' (다시)' if opts else f'{k} 자체'
 
 def schedule(r0, r1, used=()):
@@ -163,7 +195,7 @@ def schedule(r0, r1, used=()):
         recent = {k for h in hist[-3:] for k in h}
         j = plan(r, used, recent); row = {}
         for n, v in j.items():
-            ref = next_ref(v['key'], v['mode'], taken, r); taken.add(ref)
+            ref = next_ref(v['key'], v['mode'], taken, r); taken |= {ref, canon(ref)}
             row[n] = dict(key=v['key'], src=v['src'], level=v['level'], mode=v['mode'], db_ref=ref, **({'재출제': True} if v.get('재출제') else {}), **({'횟수': used.count(v['key']) + 1}))
         used += [v['key'] for v in j.values()]; hist.append([v['key'] for v in j.values()]); out[str(r)] = row
     return out
