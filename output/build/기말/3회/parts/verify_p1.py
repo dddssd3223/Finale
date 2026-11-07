@@ -7,7 +7,7 @@ x, t, a, C = symbols('x t a C', real=True)
 ns = {}; exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'p1.py')).read(), ns)
 IT = ns['ITEMS']
 WANT = {1: 3, 2: 1, 3: 4, 4: 2}                                   # 분담표 정답 ③ ① ④ ②
-KEY = {1: ('M41', 'M41 후보_순위 1'), 2: ('I53', 'I53 후보_순위 1'), 3: ('M52', 'M52 후보_순위 1'), 4: ('I49', 'I49 후보_순위 1')}
+KEY = {1: ('M41', 'M41 후보_순위 1'), 2: ('I53', 'I53 후보_순위 1'), 3: ('M52', 'M52 후보_순위 1'), 4: ('I49', '자체 (가장 가까운 I49)')}
 assert sorted(IT) == [1, 2, 3, 4]
 for n, it in IT.items():
     assert (it['key'], it['db_ref']) == KEY[n], n
@@ -121,20 +121,23 @@ w3_fac = acc.subs(t, [r for r in solve(wrong_v, t) if r > 0][0])
 assert w3_fac == 9
 chk(3, v3, [w3_fac])
 
-# ===== 4번 =====
-fp4 = 3*x**2 + 1
-f4 = integrate(fp4, x) + C
-Cs = solve(f4.subs(x, 0) + 2, C)
-assert Cs == [-2]                                               # 적분상수 하나로 결정
-f4 = f4.subs(C, Cs[0])
-assert expand(f4 - (x**3 + x - 2)) == 0
-v4 = f4.subs(x, 2)
-assert v4 == 8 == -2 + integrate(fp4, (x, 0, 2))
-assert all(fp4.subs(x, Rational(j, 10)) > 0 for j in range(-30, 31))   # f'>0 유지(원문 장치)
-w4_noinit = integrate(fp4, (x, 0, 2))                           # 초기값 빠뜨림
-w4_deriv = -2 + fp4.subs(x, 2)                                  # 변화량을 f'(2)로
-assert (w4_noinit, w4_deriv) == (10, 11)
-chk(4, v4, [w4_noinit, w4_deriv])
+# ===== 4번 (자체 기본형) =====
+C1, C2 = symbols('C1 C2', real=True)
+L4, R4 = x**2 + C1, 3*x + C2                                    # x<1, x>1에서의 부정적분
+assert expand(diff(L4, x) - 2*x) == 0 and diff(R4, x) == 3
+sol4 = solve([L4.subs(x, 0) - 1, L4.subs(x, 1) - R4.subs(x, 1)], [C1, C2], dict=True)   # f(0)=1, x=1에서 연속
+assert len(sol4) == 1 and sol4[0] == {C1: 1, C2: -1}            # 적분상수 둘이 하나로 정해짐
+fL, fR = L4.subs(sol4[0]), R4.subs(sol4[0])
+v4 = fR.subs(x, 3)
+assert v4 == 8 == 1 + integrate(2*x, (x, 0, 1)) + integrate(3, (x, 1, 3))
+f4pw = sp.Piecewise((fL, x <= 1), (fR, True))
+assert limit(fL, x, 1, '-') == limit(fR, x, 1, '+') == f4pw.subs(x, 1) == 2          # 연속
+dl = limit((fL - 2)/(x - 1), x, 1, '-'); dr = limit((fR - 2)/(x - 1), x, 1, '+')
+assert (dl, dr) == (2, 3)                                       # x=1에서 미분가능하지 않음 → f'(1)을 두지 않은 것이 맞음
+w4_noinit = integrate(2*x, (x, 0, 1)) + integrate(3, (x, 1, 3))  # 초기값 빠뜨림
+w4_sameC = (3*x + 1).subs(x, 3)                                 # 두 구간 적분상수를 모두 f(0)=1로
+assert w4_sameC == (x**2 + 1).subs(x, 3) == 10 and w4_noinit == 7
+chk(4, v4, [w4_noinit, w4_sameC])
 
 # ===== 조건 빼 보기 =====
 print('--- 조건 빼 보기 ---')
@@ -158,8 +161,12 @@ assert len(acc_all) == 2
 p3b = t**3 - Rational(3, 2)*t**2 - 6*t
 print(f'ABLATION 3 -18t: 필요(원문 -6t이면 답 {diff(p3b, t, 2).subs(t, turn_times(p3b)[0])} ≠ {v3})')
 # 4번
-print('ABLATION 4 f(0)=-2: 필요(빼면 f(2)=10+C로 정해지지 않음)')
-print(f"ABLATION 4 f'(x)=3x^2+1: 필요(빼면 f가 정해지지 않음)")
+vals = sorted({(3*x + c).subs(x, 3) for c in (-1, 0, 1, 5)})
+print(f'ABLATION 4 연속: 필요(빼면 x>1에서 f=3x+C2의 C2가 정해지지 않음, 예 f(3)={vals})'); assert len(vals) > 1
+vals0 = sorted({(3*x + c - 2).subs(x, 3) for c in (0, 1, 2)})   # f(0)=c이면 C2=c-2
+print(f'ABLATION 4 f(0)=1: 필요(빼면 C1이 정해지지 않음, 예 f(3)={vals0})'); assert len(vals0) > 1
+v4b = (5*x + (1 + 1 - 5)).subs(x, 3)
+print(f"ABLATION 4 x>1에서 f'(x)=3: 필요(5이면 답 {v4b} ≠ {v4})"); assert v4b != v4
 
 print('정답 위치:', [IT[n]['ans'] for n in sorted(IT)])
 print('ALL OK')
