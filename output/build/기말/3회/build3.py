@@ -23,7 +23,7 @@ PAGES = [
     ([('Q13', TOP)], [('Q14', TOP)]),
     ([('Q15', TOP)], [('Q16', TOP)]),
     ([('Q17', TOP)], [('Q18', TOP)]),
-    ([('SEC1', TOP), ('S1', None)], [('S2', TOP), ('END', 693.7)]),
+    ([('SEC1', TOP), ('S1', None)], [('S2', TOP), ('END', 692.9)]),
 ]
 
 CIRC = '①②③④⑤'
@@ -83,8 +83,9 @@ body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.78;color:#000;
 .fig{text-align:center;margin:4pt 0}
 .sub{margin:0;text-align:justify;line-height:13.4pt}
 .s1 .sub{line-height:14.3pt}
+.s1 .q{line-height:14.3pt}   /* 2026-2 중간 8쪽 실측: 서답형1 발문도 소문항과 같은 줄 간격 */
 .s2 .q{line-height:13.4pt}
-.sec{padding-top:4.5pt}.sec .h{font-family:'GL';font-size:11.5pt;line-height:13pt;margin-bottom:2.1pt;-webkit-text-stroke:.15pt #000}
+.sec{padding-top:3.3pt}.sec .h{font-family:'GL';font-size:11.5pt;line-height:13pt;margin-bottom:2.1pt;-webkit-text-stroke:.15pt #000}
 .sec .d{font-family:'GL';font-size:9pt;line-height:11.25pt;-webkit-text-stroke:.1pt #000}
 .sec hr{border:0;border-top:1.4pt solid #000;margin:7.3pt 0 12.7pt}
 .slab{font-family:'HB';font-weight:700;font-style:italic;font-size:11pt}
@@ -92,7 +93,7 @@ body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.78;color:#000;
 .sech{font-family:'HCRB';font-size:13pt;line-height:16pt;-webkit-text-stroke:.2pt #000;padding-top:2pt}
 .secr{border:0;border-top:1.4pt solid #000;margin:8pt 0 5.7pt}
 .sh{font-family:'HCRB';font-size:13pt;line-height:16pt;-webkit-text-stroke:.35pt #000;margin:0 0 3pt}
-.endx{position:absolute;left:0;width:100%;text-align:center}
+.endx{position:absolute;left:-.8pt;width:100%;text-align:center}
 .endx .a{font-family:'HB','FS';font-size:23pt;line-height:28pt;letter-spacing:-1.1pt;white-space:nowrap;-webkit-text-stroke:.32pt #000;transform:translateX(-2.85pt)}
 /* 끝맺음 이모티콘: 가장 최근 시험(2026-2 중간) 스캔에서 따서 벡터로 그린 것(fonts/end_emo.svg, 저장소 밖). 없으면 글자로 */
 .endx .emo{width:70.5pt;height:19.07pt;margin-left:13.4pt;vertical-align:-2.6pt}
