@@ -62,8 +62,9 @@ def new(xl, yl, size=(2.6, 2.0), aspect='auto', xlabel='x', ylabel='y', origin=T
     ax.plot([xl[1]], [0], marker=ARROW_R, ms=ARROW_MS, color='k', mew=0, zorder=6)
     ax.plot([0], [yl[1]], marker=ARROW_U, ms=ARROW_MS, color='k', mew=0, zorder=6)
     sx, sy = (xl[1] - xl[0]) * dx / 3, (yl[1] - yl[0]) * dy / 3
-    if xlabel: label(ax, xl[1] - sx * 0.2, -sy, xlabel, 'right', 'top')
-    if ylabel: label(ax, sx, yl[1] - sy * 0.2, ylabel, 'left', 'top')
+    # 축 이름은 화살 끝 쪽에(학교 그림: x는 화살 끝 바로 아래, y는 화살 끝 높이의 오른쪽) — 2026-11-07 사용자 지적
+    if xlabel: label(ax, xl[1], -sy * 0.6, xlabel, 'right', 'top')
+    if ylabel: label(ax, sx * 0.7, yl[1], ylabel, 'left', 'top')
     if origin: label(ax, -sx * 0.6, -sy * 0.8, 'O', 'right', 'top')
     return fig, ax
 
@@ -105,6 +106,40 @@ def label(ax, x, y, s, ha='center', va='center', size=11, roman=False, bg=False)
     fp = EQ.copy(); fp.set_size(size)
     kw = dict(bbox=dict(fc='white', ec='none', pad=0.6)) if bg else {}
     return ax.text(x, y, pua(s, it=not roman), ha=ha, va=va, fontproperties=fp, zorder=6, **kw)
+
+def rich(ax, x, y, segs, ha='center', va='center', size=10, slant=True):
+    """위·아래첨자가 섞인 라벨을 시험지 수식 글꼴 하나로 (2026-11-07: tex(STIX)와 글꼴이 섞이던 것).
+    segs: [(글자, 0=보통|1=위첨자|-1=아래첨자), ...] 예: [('y=x', 0), ('2', 1), ('+a', 0)], [('S', 0), ('1', -1)]
+    slant=True: 대문자를 본문 수식(S_1 등)처럼 기울여 그린다(수식 글꼴에 기울인 대문자가 없어 같은 글자를 13° 기울임).
+    점 이름(P, Q, O)은 label()로 똑바로 둔다."""
+    from matplotlib.backends.backend_agg import RendererAgg
+    from matplotlib.textpath import TextPath
+    from matplotlib.patches import PathPatch
+    from matplotlib.transforms import Affine2D, ScaledTranslation
+    fig = ax.figure; r = RendererAgg(fig.bbox.width, fig.bbox.height, fig.dpi); inv = ax.transData.inverted()
+    pt = fig.dpi / 72
+    def fp(k):
+        f = EQ.copy(); f.set_size(size * (0.68 if k else 1)); return f
+    ms = [r.get_text_width_height_descent(pua(t), fp(k), ismath=False) for t, k in segs]   # 픽셀
+    ws = [m[0] for m in ms]; hh, d0 = ms[0][1], ms[0][2]
+    X0, Y0 = ax.transData.transform((x, y)); tot = sum(ws)
+    X = X0 - {'left': 0, 'center': tot / 2, 'right': tot}[ha]
+    Yb = Y0 - {'bottom': 0, 'center': hh / 2, 'top': hh, 'baseline': d0}[va] + d0   # 기준선
+    out = []
+    for (t, k), w in zip(segs, ws):
+        dy = {0: 0, 1: hh * 0.42, -1: -hh * 0.18}[k]
+        px, py = inv.transform((X, Yb + dy))
+        if slant and k == 0 and t.isupper() and t.isalpha():
+            tp = TextPath((0, 0), pua(t), prop=fp(k))   # 단위 pt, 기준선 원점
+            tr = Affine2D().skew_deg(13, 0).translate(-0.4, 0).scale(1 / 72) + fig.dpi_scale_trans + ScaledTranslation(px, py, ax.transData)
+            out.append(ax.add_patch(PathPatch(tp, transform=tr, fc='k', ec='none', zorder=6)))
+        else:
+            out.append(ax.text(px, py, pua(t), ha='left', va='baseline', fontproperties=fp(k), zorder=6))
+        X += w
+    return out
+
+def sub(ax, x, y, base, s, ha='center', va='center', size=10):
+    return rich(ax, x, y, [(base, 0), (s, -1)], ha, va, size)
 
 def tex(ax, x, y, s, ha='center', va='center', size=10):
     """수식 글꼴에 없는 기호(√, 분수)용: matplotlib mathtext (Tinos)"""
