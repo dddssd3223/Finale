@@ -159,7 +159,7 @@ def canon(ref):
             return f'{k} id ' + ','.join(sorted(ids)) if ids else ref
     return ref
 
-def next_ref(k, mode, taken, rno=0):
+def next_ref(k, mode, taken, rno=0, band='mid'):
     """원문 k에서 아직 안 쓴 DB 후보 하나. 학교식: 후보_순위 차례, 예상밖: 예상밖 → v3_추가 → 결합, 킬러: 설계A → 설계B."""
     e = DB.get(k, {})
     if mode.startswith('킬러'):   # 검산 통과·주의 없는 설계 먼저, 같으면 설계A(구조 변경) 먼저
@@ -168,7 +168,13 @@ def next_ref(k, mode, taken, rno=0):
             v = kv.get('설계' + t, {}); fx = v.get('수정_적용') or {}
             return (v.get('판정') != '통과') + ('주의' in str(fx.get('수정', '')))
         opts = sorted([f'{k} 킬러 설계A', f'{k} 킬러 설계B'], key=lambda o: (bad(o[-1]), o[-1])) if e.get('킬러') else []
-    elif mode == '학교식': opts = [f"{k} 후보_순위 {c.get('순위', i + 1)}" for i, c in enumerate(e.get('후보_순위', []))] + [f'{k} 학교식_예상 {i + 1}' for i in range(len(e.get('학교식_예상', [])))]
+    elif mode == '학교식':
+        # 2026-11-07 사용자 지적(3회): 학교식 = 숫자 교체 + 학교 조작 1–2개. 순수 숫자 교체(숫자만·가벼운)는 1–4번·서답형 자리에서만 먼저 쓴다.
+        R = [(f"{k} 후보_순위 {c.get('순위', i + 1)}", c) for i, c in enumerate(e.get('후보_순위', []))]
+        plain = lambda c: bool(re.match(r'\s*(숫자만|가벼운)', str(c.get('출처', ''))))
+        if band == 'front': R = sorted(R, key=lambda z: not plain(z[1]))
+        else: R = sorted(R, key=lambda z: plain(z[1]))
+        opts = [o for o, _ in R] + [f'{k} 학교식_예상 {i + 1}' for i in range(len(e.get('학교식_예상', [])))]
     else:   # 예상밖 자리: 예상밖·점검표(v3)·결합을 번갈아(점검표 조작이 두 회차마다 나오게, front 3절)
         A = [[f'{k} 예상밖 {i + 1}' for i in range(len(e.get('예상밖_포인트', [])))], [f'{k} v3_추가 {i + 1}' for i in range(len(e.get('v3_추가_예상', [])))], [f'{k} 결합 {i + 1}' for i in range(len(e.get('결합_후보', [])))]]
         A = A[rno % 3:] + A[:rno % 3]                                   # 회차마다 시작 종류를 돌림
@@ -196,7 +202,7 @@ def schedule(r0, r1, used=()):
         j = plan(r, used, recent); row = {}
         for n, v in j.items():
             if n in ('4', 'S1'): ref = f"자체 (가장 가까운 {v['key']})"   # 자체 자리: 4번 기본형·서답형1 — 원문은 가장 가까운 유형 표시
-            else: ref = next_ref(v['key'], v['mode'], taken, r); taken |= {ref, canon(ref)}
+            else: ref = next_ref(v['key'], v['mode'], taken, r, 'front' if (n in ('1', '2', '3', 'S2')) else 'mid'); taken |= {ref, canon(ref)}
             row[n] = dict(key=v['key'], src=v['src'], level=v['level'], mode=v['mode'], db_ref=ref, **({'재출제': True} if v.get('재출제') else {}), **({'횟수': used.count(v['key']) + 1}))
         used += [v['key'] for v in j.values()]; hist.append([v['key'] for v in j.values()]); out[str(r)] = row
     return out
