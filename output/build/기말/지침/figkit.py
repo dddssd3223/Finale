@@ -31,6 +31,12 @@ else:
     plt.rcParams.update({'font.family': 'DejaVu Serif', 'mathtext.fontset': 'dejavuserif'})
 plt.rcParams.update({'font.size': 11, 'svg.fonttype': 'path', 'hatch.linewidth': 0.45})
 LW = 0.9
+from matplotlib.path import Path as _Path
+# 화살촉 모양(끝점이 원점): 길이 1, 반폭 0.42, 뒤 파임 0.8(인쇄 길이 약 3.7pt·폭 약 3.1pt) — 학교 시험지 화살촉
+_AV = [(0, 0), (-1, 0.42), (-0.8, 0), (-1, -0.42), (0, 0)]
+ARROW_R = _Path(_AV, [_Path.MOVETO, _Path.LINETO, _Path.LINETO, _Path.LINETO, _Path.CLOSEPOLY])
+ARROW_U = _Path([(-y, x) for x, y in _AV][:0] or [(y, -x) for x, y in _AV], ARROW_R.codes) if False else _Path([(-v, u) for u, v in [(x, y) for x, y in _AV]], ARROW_R.codes)
+ARROW_MS = 11   # 화살촉 길이 ≈ ARROW_MS/2 pt (원점이 끝점이라 마커 상자의 절반)
 
 def pua(t, it=True):
     """HyhwpEQ 글꼴의 사용자 영역 글리프로 바꿈 (소문자=이탤릭, 대문자=로만, 숫자, - = ( ))"""
@@ -50,10 +56,11 @@ def new(xl, yl, size=(2.6, 2.0), aspect='auto', xlabel='x', ylabel='y', origin=T
     ax.set_xlim(*xl); ax.set_ylim(*yl); ax.set_aspect(aspect)
     for s in ax.spines.values(): s.set_visible(False)
     ax.set_xticks([]); ax.set_yticks([])
-    # 학교 시험지 대조 2026-11-07(2학기 중간 17번 그림·2025 중간 15번 스캔): 채운 삼각 화살촉, 인쇄 크기 길이 ≈ 폭 ≈ 3.9pt(선 굵기 0.75pt의 약 5배), 꼭짓점 둥글게, 축 굵기 = 곡선 굵기
-    kw = dict(arrowstyle='-|>,head_length=0.52,head_width=0.26', lw=LW, color='k', mutation_scale=7, shrinkA=0, shrinkB=0, joinstyle='round')
-    ax.annotate('', xy=(xl[1], 0), xytext=(xl[0], 0), arrowprops=kw)
-    ax.annotate('', xy=(0, yl[1]), xytext=(0, yl[0]), arrowprops=kw)
+    # 학교 시험지 대조 2026-11-07(2025 중간 15번 인쇄 스캔·2학기 중간 17번): 뾰족하고 좁은 화살촉, 뒤가 안으로 파임(stealth꼴), 축 굵기 = 곡선 굵기
+    ax.plot([xl[0], xl[1]], [0, 0], 'k', lw=LW, solid_capstyle='butt')
+    ax.plot([0, 0], [yl[0], yl[1]], 'k', lw=LW, solid_capstyle='butt')
+    ax.plot([xl[1]], [0], marker=ARROW_R, ms=ARROW_MS, color='k', mew=0, zorder=6)
+    ax.plot([0], [yl[1]], marker=ARROW_U, ms=ARROW_MS, color='k', mew=0, zorder=6)
     sx, sy = (xl[1] - xl[0]) * dx / 3, (yl[1] - yl[0]) * dy / 3
     if xlabel: label(ax, xl[1] - sx * 0.2, -sy, xlabel, 'right', 'top')
     if ylabel: label(ax, sx, yl[1] - sy * 0.2, ylabel, 'left', 'top')
