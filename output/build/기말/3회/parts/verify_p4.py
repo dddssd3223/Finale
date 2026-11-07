@@ -133,7 +133,7 @@ ablation(13, "(가) 'x=0에서 미분가능'", [], -10, undef='a, b가 정해지
 # (나) 없음: c>0 아무 값 → -5-5c는 최댓값 없음(상한 -5에 닿지 않음)
 ablation(13, '(나)', [], -10, undef=f'c>0이면 모두 가능, f(-1)=-5-5c의 최댓값이 없음(c=1/100에서 {fm1.subs(c, R(1, 100))})')
 
-# ================= 14번 (J8 후보_순위 1 + OP15: 주기 → 점 (5,0) 대칭, 시험지 8번) =================
+# ================= 14번 (J8 후보_순위 1 + OP15: 주기 → 점 (5,0) 대칭, 시험지 5번) =================
 a2, b2 = sp.symbols('a2 b2')
 lin = x + 5
 quad = x**2 + a2 * x + b2
@@ -176,7 +176,7 @@ ans_ok(14, ans14)
 w_shift = I14(5, 8, 'shift'); w_line = I14(5, 8, 'line')
 check(14, w_shift == 3 and w_line == -9 and str(w_line) not in IT[14]['choices'], f'오답: 주기 습관(오른쪽으로 옮겨 뒤집음) {w_shift}, 선대칭 착각 {w_line}(선지 밖)')
 v = ch(14); wv = [sp.Rational(z) for z in IT[14]['wrongs']]
-check(14, wv == [w_shift] and w_shift in v and w_shift != ans14, f'오답 {wv} 선지에 있음(시험지 8번 자리: 1개 이상)')
+check(14, wv == [w_shift] and w_shift in v and w_shift != ans14, f'오답 {wv} 선지에 있음(시험지 5번 자리: 1개 이상)')
 # 원문 J8: x+3, 주기 6, ∫_-33^-29 - ∫_57^60 = 4/3 (④)
 o_s = sp.solve([sp.Eq(3, b2), sp.Eq(9 + 3 * a2 + b2, 0)], [a2, b2])
 oq = x**2 + o_s[a2] * x + o_s[b2]
@@ -333,49 +333,49 @@ hP = pp * (x**2 - 5 * x + 5)
 mins, maxs = extrema(hP.subs(pp, 1))
 check(16, mins == [1, 3] and maxs == [2], f"g'(x) 부호 변화(-8..8): 극소 {mins}, 극대 {maxs}(극댓값은 하나)")
 gmax = sp.simplify(-sp.integrate(hP, (x, 2, 3)))
-check(16, gmax == R(7, 6) * pp and gval(hP.subs(pp, 6), 2) == 7, f'극댓값 g(2) = {gmax} (p=6이면 {gval(hP.subs(pp, 6), 2)})')
-psol = sp.solve(sp.Eq(gmax, 7), pp)
+check(16, gmax == R(7, 6) * pp and gval(hP.subs(pp, 12), 2) == 14, f'극댓값 g(2) = {gmax} (p=12이면 {gval(hP.subs(pp, 12), 2)})')
+psol = sp.solve(sp.Eq(gmax, 14), pp)
 f16 = sp.expand(hP.subs(pp, psol[0]) + x)
-check(16, psol == [6] and f16 == 6 * x**2 - 29 * x + 30, f'7p/6=7 → p={psol}, f={f16}')
+check(16, psol == [12] and f16 == 12 * x**2 - 59 * x + 60, f'7p/6=14 → p={psol}, f={f16}')
 ans16 = f16.subs(x, 1)
 ans_ok(16, ans16)
 # 오답: ② 6 (기준선 무시 |f| → f=h) / ① 5 (h=f+x로 부호 잘못: f=h-x)
-h6 = hP.subs(pp, 6)
+h6 = hP.subs(pp, 12)
 w_nob = h6.subs(x, 1); w_sgn = (h6 - x).subs(x, 1)
-check(16, w_nob == 6 and w_sgn == 5, f'오답: 기준선 무시 {w_nob}, 기준선 부호 실수 {w_sgn}')
+check(16, w_nob == 12 and w_sgn == 11 and ans16 != 14, f'오답: 기준선 무시 {w_nob}, 기준선 부호 실수 {w_sgn}')
 wrong_in(16, [w_nob, w_sgn], '기준선 y=x 무시 / f=h-x 부호 실수')
 # 원문 I66: 최고차 2, x=1, 4 → f(0)=13
 so, _ = solve_pos(2, 1, 4)
 check('I66', len(so) == 1 and so[0].subs(x, 0) == 13 == orig_ans('I66'), f'I66 원문: f={so}, f(0)=13 = 원문 정답 {orig_ans("I66")}')
 print('--- 16번 조건 빼 보기 ---')
-# '양수' 없음: p<0이어도 반대·반대 극소, 극대는 x=2에서 g(2)=-7p/6=7 → p=-6, f(1)=-6+1=-5
-sn, _ = solve_pos(-6, 1, 3)
+# '양수' 없음: p<0이어도 반대·반대 극소, 극대는 x=2에서 g(2)=-7p/6=14 → p=-12, f(1)=-12+1=-11
+sn, _ = solve_pos(-12, 1, 3)
 mn, mx = extrema(sn[0])
 gneg = gval(sn[0], 2)
-ablation(16, "'최고차항의 계수가 양수'", [7, (sn[0] + x).subs(x, 1)] if (mn == [1, 3] and mx == [2] and gneg == 7) else [7], 7, 'p=-6에서도 x=1, 3 극소·극댓값 7 → f(1)=-5')
-# '극댓값이 7' 없음: p 자유 → f(1)=p+1
-ablation(16, "'극댓값이 7'", [(hP + x).subs(x, 1).subs(pp, pv) for pv in (2, 6, 12)], 7, 'p가 정해지지 않음, f(1)=p+1')
+ablation(16, "'최고차항의 계수가 양수'", [13, (sn[0] + x).subs(x, 1)] if (mn == [1, 3] and mx == [2] and gneg == 14) else [13], 13, 'p=-12에서도 x=1, 3 극소·극댓값 14 → f(1)=-11')
+# '극댓값이 14' 없음: p 자유 → f(1)=p+1
+ablation(16, "'극댓값이 14'", [(hP + x).subs(x, 1).subs(pp, pv) for pv in (2, 6, 12)], 13, 'p가 정해지지 않음, f(1)=p+1')
 
 
 def one_min(pt, side):
-    """극소 하나(pt)와 극댓값 7, p>0만 남긴 경우: h=p((x-c)^2-w^2), w^2=1/4+s^2이면 극소 c-1/2±s, 극대 c-1/2, 극댓값 p(w^2-1/12)"""
+    """극소 하나(pt)와 극댓값 14, p>0만 남긴 경우: h=p((x-c)^2-w^2), w^2=1/4+s^2이면 극소 c-1/2±s, 극대 c-1/2, 극댓값 p(w^2-1/12)"""
     res = []
     for sv in (1, 2, R(1, 2)):
         w2 = R(1, 4) + sv**2
-        pv = 7 / (w2 - R(1, 12))
+        pv = 14 / (w2 - R(1, 12))
         c = pt + R(1, 2) - side * sv
         h = pv * ((x - c)**2 - w2)
         mn_, mx_ = extrema(h, -8, 8, 20)
-        if pt in mn_ and len(mx_) == 1 and gval(h, mx_[0]) == 7:
+        if pt in mn_ and len(mx_) == 1 and gval(h, mx_[0]) == 14:
             res.append((h + x).subs(x, 1))
     return res
 
 
-ablation(16, "'x=1에서 극소'", one_min(3, 1), 7, '남은 극소 조건이 x=3 하나라 h가 정해지지 않음')
-ablation(16, "'x=3에서 극소'", one_min(1, -1), 7, '남은 극소 조건이 x=1 하나라 h가 정해지지 않음')
-ablation(16, "기준선 '-t'", [w_nob], 7, '|f(t)|이면 f=h, f(1)=6')
+ablation(16, "'x=1에서 극소'", one_min(3, 1), 13, '남은 극소 조건이 x=3 하나라 h가 정해지지 않음')
+ablation(16, "'x=3에서 극소'", one_min(1, -1), 13, '남은 극소 조건이 x=1 하나라 h가 정해지지 않음')
+ablation(16, "기준선 '-t'", [w_nob], 13, '|f(t)|이면 f=h, f(1)=12')
 gl = sp.expand((pp * x**2 + P_ * x + Q_).subs(x, x + 1) - (pp * x**2 + P_ * x + Q_))
 nos = sp.solve([gl.subs(x, 1), gl.subs(x, 3)], [P_, Q_], dict=True)
-ablation(16, "'|f(t)-t|의 절댓값'", [] if not nos else [sp.Integer(0)], 7, f"g'={gl}는 일차식이라 x=1, x=3에서 동시에 0일 수 없음")
+ablation(16, "'|f(t)-t|의 절댓값'", [] if not nos else [sp.Integer(0)], 13, f"g'={gl}는 일차식이라 x=1, x=3에서 동시에 0일 수 없음")
 
 print('ALL OK' if ok else 'SOME FAIL')
