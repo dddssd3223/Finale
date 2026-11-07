@@ -449,7 +449,7 @@ def make_background():
         page.add_redact_annot(pymupdf.Rect(84, 100, 400, 129), fill=(1, 1, 1))
         # 시행일
         for r, o, sz in find_chars(page, '7월 11일(토) - 1교시'):
-            page.add_redact_annot(pymupdf.Rect(r.x0, r.y0, 562, r.y1), fill=(1, 1, 1)); repl.append((o, '12월 ○○일(○) - 1교시', sz))
+            page.add_redact_annot(pymupdf.Rect(r.x0, r.y0, 562, r.y1), fill=(1, 1, 1)); repl.append((o, '12월 24일(목) - 1교시', sz))
         # 3) 정보 줄(과정·과목코드·이수단위·문항수) 전체 다시 씀
         page.add_redact_annot(pymupdf.Rect(40, 135.0, 558, 143.3), fill=(1, 1, 1))
         if pn == 0:
