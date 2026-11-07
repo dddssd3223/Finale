@@ -9,7 +9,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ns = {}; exec(open(os.path.join(HERE, 'p3.py')).read(), ns)
 IT = ns['ITEMS']
 WANT = {9: 1, 10: 5, 11: 3, 12: 2}
-DBREF = {9: 'D65 후보_순위 1', 10: 'M12 v3_추가 1', 11: 'D48 후보_순위 1', 12: 'D51 예상밖 1'}
+DBREF = {9: 'D65 학교식_예상 1', 10: 'M12 v3_추가 1', 11: 'D48 후보_순위 1', 12: 'D51 예상밖 1'}
 KEYS = {9: 'D65', 10: 'M12', 11: 'D48', 12: 'D51'}
 CH5 = ['T:ㄱ', 'T:ㄱ, ㄴ', 'T:ㄱ, ㄷ', 'T:ㄴ, ㄷ', 'T:ㄱ, ㄴ, ㄷ']
 OK = []
@@ -44,11 +44,11 @@ def chk(n, val):
 
 # ---------- 9번 (D65) ----------
 p0, p1, p2, p3 = symbols('p0 p1 p2 p3')
-def quartic_conditions(nodes, tpts, given, ask, drop=None):
+k_ = symbols('k')
+def quartic_conditions(nodes, tpts, given, ask, base=lambda k: 0, drop=None, pins=()):
     """최고차항 1인 사차 f = x^4 + p3 x^3 + p2 x^2 + p1 x + p0.
-    nodes: 등차 조건의 네 점, tpts: 접선을 긋는 두 점, given=(배수, 값): f(배수*k)=값, ask: f(배수*k).
-    해(계수, k)를 모두 구해 묻는 값의 집합을 돌려준다(drop: 뺄 조건)."""
-    k = symbols('k')
+    nodes: 등차(차의 등식) 조건의 네 점, tpts: 접선을 긋는 두 점, base(k): 교점의 y좌표(원문 0, 변형 k+4),
+    given=(배수, 값): f(배수*k)=값, ask: f(배수*k). 해(계수, k)를 모두 구해 묻는 값의 집합을 돌려준다(drop: 뺄 조건, pins: 빼 보기용 고정값)."""
     f = x**4 + p3 * x**3 + p2 * x**2 + p1 * x + p0
     F = lambda a: f.subs(x, a)
     eqs = []
@@ -56,54 +56,46 @@ def quartic_conditions(nodes, tpts, given, ask, drop=None):
         a, b, c, d = nodes
         eqs += [F(b) - F(a) - (F(c) - F(b)), F(c) - F(b) - (F(d) - F(c))]
     u, w = tpts
-    T1 = diff(f, x).subs(x, u) * (k - u) + F(u)    # 접선 1의 x=k에서의 높이
-    T2 = diff(f, x).subs(x, w) * (k - w) + F(w)
+    T1 = diff(f, x).subs(x, u) * (k_ - u) + F(u)    # 접선 1의 x=k에서의 높이
+    T2 = diff(f, x).subs(x, w) * (k_ - w) + F(w)
     if drop != '접선':
-        eqs += [T1, T2]                             # 두 접선이 모두 (k, 0)을 지남
+        eqs += [T1 - base(k_), T2 - base(k_)]          # 두 접선이 모두 (k, base(k))를 지남
     if drop != '값':
-        eqs += [F(given[0] * k) - given[1]]
-    sols = solve(eqs, [p0, p1, p2, p3, k], dict=True)
-    vals = set()
-    free = False
-    for s in sols:
-        e = sp.simplify(F(ask * k).subs(s))
+        eqs += [F(given[0] * k_) - given[1]]
+    eqs += [sym - val for sym, val in pins]
+    sols = solve(eqs, [p0, p1, p2, p3, k_], dict=True)
+    vals = set(); free = False
+    for so in sols:
+        e = sp.simplify(F(ask * k_).subs(so))
         if e.free_symbols: free = True
         else: vals.add(e)
     return vals, free, sols
 
-# 원문 D65: 네 점 -1,0,1,2, 접선 x=-1, 2, f(2k)=20 → f(4k)=42
+# 원문 D65: 네 점 -1,0,1,2, 접선 x=-1, 2, 교점 (k,0), f(2k)=20 → f(4k)=42
 v, free, _ = quartic_conditions((-1, 0, 1, 2), (-1, 2), (2, 20), 4)
 ok(v == {42} and not free, f'9번 원문 D65 정답 42 (계산 {v})')
-# 변형: 네 점 -2,0,2,4, 접선 x=-2, 4, f(2k)=88 → f(3k)
-v, free, sols = quartic_conditions((-2, 0, 2, 4), (-2, 4), (2, 88), 3)
-ok(len(sols) == 1 and not free and v == {17}, f'9번 해 유일(계수·k 한 쌍), f(3k)={v}')
-s = sols[0]; ok(s[symbols('k')] == 1, '9번 k=1')
-fx = expand((x**4 + p3 * x**3 + p2 * x**2 + p1 * x + p0).subs(s))
+# 변형: f(0)-f(-2)=f(2)-f(0)=f(4)-f(2), 접선 x=-2, 4, 교점 (k, k+4), f(2k)=90 → f(3k)
+B9 = lambda k: k + 4
+v, free, sols = quartic_conditions((-2, 0, 2, 4), (-2, 4), (2, 90), 3, base=B9)
+ok(len(sols) == 1 and not free and v == {16}, f'9번 해 유일(계수·k 한 쌍), f(3k)={v}')
+so = sols[0]; ok(so[k_] == 1, '9번 k=1, 교점 (1, 5)')
+fx = expand((x**4 + p3 * x**3 + p2 * x**2 + p1 * x + p0).subs(so))
 R = expand((x + 2) * x * (x - 2) * (x - 4))
-ok(expand(fx - R) == -56 * x + 200, '9번 f = R + (-56x+200)')
-chk(9, 17)
-L3 = (-56 * 3 + 200)
-ok(str(L3) in IT[9]['wrongs'] and R.subs(x, 3) == -15, f'9번 오답 32 = L(3) (R(3)=-15 빠뜨림)')
+ok(expand(fx - R) == -59 * x + 208, '9번 f = R + (-59x+208)')
+chk(9, 16)
+# 오답: 교점 높이를 원문처럼 0으로(x축) → 21, R(3) 누락 → L(3)=31
+v0, _, _ = quartic_conditions((-2, 0, 2, 4), (-2, 4), (2, 90), 3)
+ok(v0 == {21} and '21' in IT[9]['wrongs'], f'9번 오답 21 = 교점 높이를 0으로 둔 값 {v0}')
+ok(-59 * 3 + 208 == 31 and '31' in IT[9]['wrongs'] and R.subs(x, 3) == -15, '9번 오답 31 = L(3) (R(3)=-15 빠뜨림)')
 # 빼 보기: 조건 하나를 빼면 남은 조건을 만족시키는 사차함수가 여럿이고 f(3k)가 달라짐(예를 두 개 만들어 보임)
-k_ = symbols('k')
-def example(drop, pins):
-    f = x**4 + p3 * x**3 + p2 * x**2 + p1 * x + p0
-    F = lambda a: f.subs(x, a)
-    eqs = [e for e in ([] if drop == '등차' else [F(0) - F(-2) - (F(2) - F(0)), F(2) - F(0) - (F(4) - F(2))])]
-    if drop != '접선':
-        eqs += [diff(f, x).subs(x, -2) * (k_ + 2) + F(-2), diff(f, x).subs(x, 4) * (k_ - 4) + F(4)]
-    if drop != '값':
-        eqs += [F(2 * k_) - 88]
-    eqs += [sym - val for sym, val in pins]
-    sol = solve(eqs, [p0, p1, p2, p3, k_], dict=True)
-    return {sp.simplify(F(3 * k_).subs(so)) for so in sol if not F(3 * k_).subs(so).free_symbols}
 PINS = {'등차': [[(p3, 0), (p2, 0)], [(p3, 1), (p2, 0)]], '접선': [[(p1, 0), (k_, 1)], [(p1, 0), (k_, 2)]], '값': [[(p0, 0)], [(p0, 8)]]}
 for dr in ('등차', '접선', '값'):
     vals = set()
-    for pin in PINS[dr]: vals |= example(dr, pin)
+    for pin in PINS[dr]: vals |= quartic_conditions((-2, 0, 2, 4), (-2, 4), (2, 90), 3, base=B9, drop=dr, pins=pin)[0]
     need = len(vals) >= 2
     print(f'ABLATION 9 {dr}: ' + (f'필요(남은 조건만으로 f(3k)={sorted(vals)[:3]} 등 여럿)' if need else '군더더기(답 그대로)'))
     assert need
+print('ABLATION 9 교점 y좌표 k+4: 필요(x축 위 (k, 0)이면 답 21)')
 
 # ---------- 10번 (M12) ----------
 def three_distinct(poly):
@@ -166,53 +158,55 @@ def exact_real_roots(c):
 _a, _b = symbols('_a _b')
 FP = Poly(expand(diff((x - _a)**3 * (x - _b), x)), x)
 FPC = [sp.lambdify((_a, _b), co) for co in FP.all_coeffs()]
-def sign_ok(c, p):
-    """(가): (-∞,p]에서 f'≤0, [p,∞)에서 f'≥0 / (나): f'=0인 t>p 없음"""
+def sign_ok(c, p, side='>'):
+    """(가): (-∞,p]에서 f'≤0, [p,∞)에서 f'≥0 / (나): f'=0인 t>p(side='>') 또는 t<p(side='<') 없음"""
     rr = exact_real_roots(c)
     pts = sorted(set(rr + [Fr(p)]))
     test = [pts[0] - 1] + [(pts[i] + pts[i + 1]) / 2 for i in range(len(pts) - 1)] + [pts[-1] + 1]
     ga = all((peval(c, q) <= 0) if q < p else (peval(c, q) >= 0) for q in test)
-    gn = all(r <= p for r in rr)
+    gn = all((r <= p) if side == '>' else (r >= p) for r in rr)
     return ga, gn, rr
 
-def d48(C, p, ask0, distinct=True, use_na=True, use_ga=True, integer=True, rng=range(-25, 26)):
-    best = None; cands = []
+def d48(C, p, ask0, distinct=True, use_na=True, use_ga=True, integer=True, rng=range(-25, 26), side='>', best=max):
+    cands = []
     for a, b in itertools.product(rng, rng):
         if distinct and a == b: continue
         c = [int(g(a, b)) for g in FPC]
-        ga, gn, rr = sign_ok(c, p)
+        ga, gn, rr = sign_ok(c, p, side)
         if use_ga and not ga: continue
         if use_na and not gn: continue
         S = sum(rr)
         cands.append((S, a, b, (ask0 - a)**3 * (ask0 - b) + C))
     if not cands: return None, []
-    M = max(c[0] for c in cands)
+    M = best(c[0] for c in cands)
     top = [c for c in cands if c[0] == M]
     return M, top
 
 M0, top0 = d48(7, 2, 0)
 ok(M0 == 1 and len(top0) == 1, f'11번 원문 D48 정답 1 (근의 합 최댓값 {M0}, (a,b)={[(c[1], c[2]) for c in top0]})')
-M, top = d48(13, 1, 0)
-ok(M == -1 and len(top) == 1 and (top[0][1], top[0][2]) == (-2, 2), f'11번 근의 합 최댓값 -1 유일, (a,b)=(-2,2)')
-ok(expand(diff((x + 2)**3 * (x - 2), x) - (x + 2)**2 * (4 * x - 4)) == 0, "11번 f'=(x+2)^2(4x-4)")
+K11 = dict(side='<', best=min)
+M, top = d48(4, -2, 0, **K11)
+ok(M == -1 and len(top) == 1 and (top[0][1], top[0][2]) == (1, -3), f'11번 근의 합 최솟값 -1 유일, (a,b)=(1,-3)')
+ok(expand(diff((x - 1)**3 * (x + 3), x) - (x - 1)**2 * (4 * x + 8)) == 0, "11번 f'=(x-1)^2(4x+8)")
 chk(11, top[0][3])
-ok(str(M) in IT[11]['wrongs'], '11번 오답 -1 = 근의 합의 최댓값(묻는 값 혼동)')
-# 넓은 범위에서도 후보가 b≥2, a=4-3b뿐임을 확인
-Mw, topw = d48(13, 1, 0, rng=range(-40, 41))
-ok(Mw == -1 and len(topw) == 1, '11번 정수 범위 -40~40 전수: 최댓값·최대점 유일')
+ok(str(M) in IT[11]['wrongs'], '11번 오답 -1 = 근의 합의 최솟값(묻는 값 혼동)')
+Mw, topw = d48(4, -2, 0, rng=range(-40, 41), **K11)
+ok(Mw == -1 and len(topw) == 1, '11번 정수 범위 -40~40 전수: 최솟값·최소점 유일')
+# 원문 방향 (나)(t>-2)로 두면 근의 합의 최솟값이 없음(범위 끝까지 작아짐) → 거울상이 일함
+Mo, _ = d48(4, -2, 0, rng=range(-40, 41), side='>', best=min)
+print('ABLATION 11 (나)의 방향 t<-2: ' + ('필요(원문 방향 t>-2면 근의 합이 범위 끝까지 작아짐: ' + str(Mo) + ')' if Mo != -1 else '군더더기(답 그대로)'))
+assert Mo != -1
 # 빼 보기
-Md, topd = d48(13, 1, 0, distinct=False)
-print(f'ABLATION 11 서로 다른: ' + ('필요(a=b=1이면 근의 합 1이 최대, f(0)=' + str(topd[0][3]) + ')' if (Md, topd[0][3]) != (-1, -3) else '군더더기(답 그대로)'))
-assert (Md, topd[0][3]) != (-1, -3)
-Mn, topn = d48(13, 1, 0, use_na=False, rng=range(-40, 41))
-print(f'ABLATION 11 (나): ' + ('필요(근의 합이 범위 끝까지 커짐: 최댓값 ' + str(Mn) + ', 범위를 넓히면 더 커짐)' if Mn != -1 else '군더더기(답 그대로)'))
+Md, topd = d48(4, -2, 0, distinct=False, **K11)
+print(f'ABLATION 11 서로 다른: ' + ('필요(a=b=-2이면 근의 합 -2가 최소, f(0)=' + str(topd[0][3]) + ')' if (Md, topd[0][3]) != (-1, 1) else '군더더기(답 그대로)'))
+assert (Md, topd[0][3]) != (-1, 1)
+Mn, topn = d48(4, -2, 0, use_na=False, rng=range(-40, 41), **K11)
+print(f'ABLATION 11 (나): ' + ('필요(근의 합이 범위 끝까지 작아짐: 최솟값 ' + str(Mn) + ', 범위를 넓히면 더 작아짐)' if Mn != -1 else '군더더기(답 그대로)'))
 assert Mn != -1
-Mg, topg = d48(13, 1, 0, use_ga=False, rng=range(-12, 13))
-print(f'ABLATION 11 (가): ' + ('필요(극소점이 정해지지 않아 근의 합 최댓값 ' + str(Mg) + ')' if Mg != -1 else '군더더기(답 그대로)'))
+Mg, topg = d48(4, -2, 0, use_ga=False, rng=range(-12, 13), **K11)
+print(f'ABLATION 11 (가): ' + ('필요(극소점이 정해지지 않아 근의 합 최솟값 ' + str(Mg) + ')' if Mg != -1 else '군더더기(답 그대로)'))
 assert Mg != -1
-# 정수 조건: 실수 a<1, a+3b=4이면 근의 합 a+1<2는 최댓값이 없음(상한 2 미도달)
-a_ = symbols('a_', real=True)
-print('ABLATION 11 정수: 필요(실수 a<1이면 근의 합 a+1은 2에 한없이 가까워질 뿐 최댓값이 없음)')
+print('ABLATION 11 정수: 필요(실수 a>-2이면 근의 합 a-2는 -4에 한없이 가까워질 뿐 최솟값이 없음)')
 
 # ---------- 12번 (D51) ----------
 def d51(f, line_c, lo, hi, lo_closed=True, hi_closed=True):
