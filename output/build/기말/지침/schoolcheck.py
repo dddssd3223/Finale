@@ -37,19 +37,19 @@ def dbref_ok(it):
     if not r: return 'db_ref 없음 (front.md 0-8: 예 \'J60 후보_순위 2\', \'M26 예상밖 1\', \'I66 킬러 설계A\')'
     if r.startswith('자체'): return None
     if _DB is None: _DB = json.load(open(DBF)) if os.path.exists(DBF) else {}
-    m = re.match(r'(\w+)\s+(후보_순위|예상밖|v3_추가|결합|학교식_예상|킬러)\s*(\S*)', r)
+    m = re.match(r'(\w+)\s+(후보_순위|예상밖|v3_추가|결합|학교식_예상|킬러|조작_보강)\s*(\S*)', r)
     if not m: return f'db_ref 꼴이 다름({r})'
     k, kind, n = m.groups()
     if _DB and k not in _DB: return f'db_ref 원문 키 {k}가 DB에 없음'
     if it.get('key') and k != it.get('key') and kind != '결합': return f"db_ref 키 {k} ≠ 문항 key {it.get('key')}"
     e = _DB.get(k, {})
-    fld = {'후보_순위': '후보_순위', '예상밖': '예상밖_포인트', 'v3_추가': 'v3_추가_예상', '결합': '결합_후보', '학교식_예상': '학교식_예상'}.get(kind)
+    fld = {'후보_순위': '후보_순위', '예상밖': '예상밖_포인트', 'v3_추가': 'v3_추가_예상', '결합': '결합_후보', '학교식_예상': '학교식_예상', '조작_보강': '조작_보강'}.get(kind)
     if fld and n.isdigit() and not (1 <= int(n) <= len(e.get(fld, []))): return f'db_ref {kind} {n}번이 DB에 없음(있는 수 {len(e.get(fld, []))})'
     if kind == '킬러' and '킬러' not in e: return f'{k}는 DB 킬러 원문이 아님'
     return None
 
 def unexpected(it):
-    return bool(re.search(r'예상밖|v3_추가|결합', str(it.get('db_ref') or '')))
+    return bool(re.search(r'예상밖|v3_추가|결합|조작_보강', str(it.get('db_ref') or '')))
 
 def band(n):
     n = 19 if n == 'S1' else 20 if n == 'S2' else int(n)

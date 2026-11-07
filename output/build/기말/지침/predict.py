@@ -176,7 +176,7 @@ def next_ref(k, mode, taken, rno=0, band='mid'):
         else: R = sorted(R, key=lambda z: plain(z[1]))
         opts = [o for o, _ in R] + [f'{k} 학교식_예상 {i + 1}' for i in range(len(e.get('학교식_예상', [])))]
     else:   # 예상밖 자리: 예상밖·점검표(v3)·결합을 번갈아(점검표 조작이 두 회차마다 나오게, front 3절)
-        A = [[f'{k} 예상밖 {i + 1}' for i in range(len(e.get('예상밖_포인트', [])))], [f'{k} v3_추가 {i + 1}' for i in range(len(e.get('v3_추가_예상', [])))], [f'{k} 결합 {i + 1}' for i in range(len(e.get('결합_후보', [])))]]
+        A = [[f'{k} 예상밖 {i + 1}' for i in range(len(e.get('예상밖_포인트', [])))], [f'{k} v3_추가 {i + 1}' for i in range(len(e.get('v3_추가_예상', [])))], [f'{k} 결합 {i + 1}' for i in range(len(e.get('결합_후보', [])))] + [f'{k} 조작_보강 {i + 1}' for i in range(len(e.get('조작_보강', [])))]]
         A = A[rno % 3:] + A[:rno % 3]                                   # 회차마다 시작 종류를 돌림
         rot = [x for t in itertools.zip_longest(*A) for x in t if x]
         # 품질 순: ① 후보_순위가 이름을 든 예상밖·v3·결합(학교 습관 근거로 매긴 순서) ② 나머지 ③ 최종 검토가 결합 불성립·범위 문제로 지적한 것은 맨 뒤
