@@ -57,14 +57,16 @@ def new(xl, yl, size=(2.6, 2.0), aspect='auto', xlabel='x', ylabel='y', origin=T
     for s in ax.spines.values(): s.set_visible(False)
     ax.set_xticks([]); ax.set_yticks([])
     # 학교 시험지 대조 2026-11-07(2025 중간 15번 인쇄 스캔·2학기 중간 17번): 뾰족하고 좁은 화살촉, 뒤가 안으로 파임(stealth꼴), 축 굵기 = 곡선 굵기
-    ax.plot([xl[0], xl[1]], [0, 0], 'k', lw=LW, solid_capstyle='butt')
-    ax.plot([0, 0], [yl[0], yl[1]], 'k', lw=LW, solid_capstyle='butt')
-    ax.plot([xl[1]], [0], marker=ARROW_R, ms=ARROW_MS, color='k', mew=0, zorder=6)
-    ax.plot([0], [yl[1]], marker=ARROW_U, ms=ARROW_MS, color='k', mew=0, zorder=6)
+    # 촉은 그림 틀보다 조금 더 밖으로(2026-11-07 사용자 "촉 자체도 살짝 더 끝쪽으로"): 축 길이의 4%
+    tx, ty = xl[1] + (xl[1] - xl[0]) * 0.04, yl[1] + (yl[1] - yl[0]) * 0.04
+    ax.plot([xl[0], tx], [0, 0], 'k', lw=LW, solid_capstyle='butt', clip_on=False)
+    ax.plot([0, 0], [yl[0], ty], 'k', lw=LW, solid_capstyle='butt', clip_on=False)
+    ax.plot([tx], [0], marker=ARROW_R, ms=ARROW_MS, color='k', mew=0, zorder=6, clip_on=False)
+    ax.plot([0], [ty], marker=ARROW_U, ms=ARROW_MS, color='k', mew=0, zorder=6, clip_on=False)
     sx, sy = (xl[1] - xl[0]) * dx / 3, (yl[1] - yl[0]) * dy / 3
     # 축 이름은 화살 끝 쪽에(학교 그림: x는 화살 끝 바로 아래, y는 화살 끝 높이의 오른쪽) — 2026-11-07 사용자 지적
-    if xlabel: label(ax, xl[1], -sy * 0.6, xlabel, 'right', 'top')
-    if ylabel: label(ax, sx * 0.7, yl[1], ylabel, 'left', 'top')
+    if xlabel: label(ax, tx, -sy * 0.6, xlabel, 'right', 'top').set_clip_on(False)
+    if ylabel: label(ax, sx * 0.7, ty, ylabel, 'left', 'top').set_clip_on(False)
     if origin: label(ax, -sx * 0.6, -sy * 0.8, 'O', 'right', 'top')
     return fig, ax
 
