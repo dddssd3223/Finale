@@ -191,30 +191,30 @@ for bv in (5, 0, 10):
 ablation(14, "'연속'", vals, 9, 'b가 정해지지 않음(a=-(25+b)/5)')
 ablation(14, '(나)', [], 9, undef='x>5에서 f(x)가 정의되지 않아 ∫_5^8 f가 정해지지 않음')
 
-# ================= 15번 (J60 예상밖 1 + OP10·OP01·OP05: f(x+2)=f(x)+6, ∫_-1^3 f=0) =================
-# (가)에서 ∫_1^3 f = ∫_-1^1 f + 12, (나) → ∫_-1^1 f = -6. 증가: f(-1)<f(x)<f(1) → 2f(-1) < -6 < 2f(1), f(1)=f(-1)+6, f(3)=f(1)+6
+# ================= 15번 (J60 예상밖 1 + LIVE2-04-178 장치: f(x)=f(x+2)-6, ∫_-2^2 f=0) =================
+# (가) f(x+2)=f(x)+6 → ∫_0^2 f = ∫_-2^0 f + 12, (나) → ∫_-2^0 f = -6. 증가: f(-2)<f(x)<f(0) → 2f(-2) < -6 < 2f(0), f(0)=f(-2)+6, f(2)=f(0)+6
 I0 = sp.symbols('I0')
 blk = sp.solve(sp.Eq(I0 + (I0 + 6 * 2), 0), I0)[0]
 c1 = sp.symbols('c1', real=True)
 rng1 = sp.solve_univariate_inequality(2 * (c1 - 6) < blk, c1, relational=False).intersect(sp.solve_univariate_inequality(blk < 2 * c1, c1, relational=False))
 rng = sp.Interval.open(rng1.inf + 6, rng1.sup + 6)
-check(15, blk == -6 and rng1 == sp.Interval.open(-3, 3) and rng == sp.Interval.open(3, 9), f'∫_-1^1 f = {blk}, f(-1)<-3<f(1)=f(-1)+6 → f(1)∈{rng1}, f(3)=f(1)+6∈{rng}')
+check(15, blk == -6 and rng1 == sp.Interval.open(-3, 3) and rng == sp.Interval.open(3, 9), f'∫_-2^0 f = {blk}, f(-2)<-3<f(0)=f(-2)+6 → f(0)∈{rng1}, f(2)=f(0)+6∈{rng}')
 ints = [n for n in range(-20, 21) if rng.contains(n)]
-tt = (x + 1) / 2
+tt = (x + 2) / 2
 
 
 def make15(base):
-    """[-1,1]의 식 base로 (가)를 이어 붙인 함수를 확인: 연속(이음매), 증가, (가), (나)"""
-    fl, fr = base.subs(x, -1), base.subs(x, 1)
+    """[-2,0]의 식 base로 (가)를 이어 붙인 함수를 확인: 연속(이음매), 증가, (가) f(x)=f(x+2)-6, (나)"""
+    fl, fr = base.subs(x, -2), base.subs(x, 0)
     seam = sp.simplify(fr - (fl + 6)) == 0
-    dpos = all(sp.diff(base, x).subs(x, -1 + R(i, 50)) >= 0 for i in range(0, 101)) and sp.diff(base, x) != 0
+    dpos = all(sp.diff(base, x).subs(x, -2 + R(i, 50)) >= 0 for i in range(0, 101)) and sp.diff(base, x) != 0
     def ff(xv):
-        n = sp.floor((sp.nsimplify(xv) + 1) / 2)
+        n = sp.floor((sp.nsimplify(xv) + 2) / 2)
         return base.subs(x, xv - 2 * n) + 6 * n
-    ga = all(sp.simplify(ff(R(i, 7) + 2) - ff(R(i, 7)) - 6) == 0 for i in range(-30, 40))
-    gn = sp.simplify(sp.integrate(base, (x, -1, 1)) + sp.integrate(base + 6, (x, -1, 1))) == 0
+    ga = all(sp.simplify(ff(R(i, 7)) - (ff(R(i, 7) + 2) - 6)) == 0 for i in range(-30, 40))
+    gn = sp.simplify(sp.integrate(base, (x, -2, 0)) + sp.integrate(base + 6, (x, -2, 0))) == 0
     inc = all(ff(R(i, 10)) < ff(R(i + 1, 10)) for i in range(-40, 90))
-    return seam and dpos and ga and gn and inc, ff(3)
+    return seam and dpos and ga and gn and inc, ff(2)
 
 
 ex = {6: 6 * tt - 6, 7: 6 * tt**2 - 5, 8: 6 * tt**5 - 4, 5: -1 - 6 * (1 - tt)**2, 4: -2 - 6 * (1 - tt)**5}
@@ -222,41 +222,41 @@ real = {}
 for cv, base in ex.items():
     good, f3 = make15(sp.expand(base))
     real[cv] = good and f3 == cv
-check(15, all(real.values()) and sorted(real) == ints, f'f(3)=4..8인 예시 함수 모두 (가)(나)·연속·증가 만족: {real}, 가능한 정수 {ints}')
+check(15, all(real.values()) and sorted(real) == ints, f'f(2)=4..8인 예시 함수 모두 (가)(나)·연속·증가 만족: {real}, 가능한 정수 {ints}')
 ans15 = sp.Integer(len(ints))
-check(15, ans15 == 5, f'f(3)=k가 될 수 있는 정수 k의 개수 {ans15}')
+check(15, ans15 == 5, f'f(2)=k가 될 수 있는 정수 k의 개수 {ans15}')
 ans_ok(15, ans15)
-# 오답: ③ 7 (등호 포함 [3,9]) / ④ 6 (블록 증가량을 6으로: 2I+6=0, I=-3, 평균 -3/2 → f(3)∈(9/2, 21/2))
+# 오답: ③ 7 (등호 포함 [3,9]) / ④ 6 (블록 증가량을 6으로: 2I+6=0, I=-3, 평균 -3/2 → f(2)∈(9/2, 21/2))
 w_eq = len([n for n in range(-20, 21) if 3 <= n <= 9])
 Iw = sp.solve(sp.Eq(I0 + (I0 + 6), 0), I0)[0]
 w_blk = len([n for n in range(-20, 21) if Iw / 2 + 6 < n < Iw / 2 + 12])
-check(15, w_eq == 7 and Iw == -3 and w_blk == 6, f'오답: 등호 포함 {w_eq}개, 블록 증가량 6으로 보면 ∫_-1^1 f={Iw}, f(3)∈({Iw / 2 + 6}, {Iw / 2 + 12}) → {w_blk}개')
+check(15, w_eq == 7 and Iw == -3 and w_blk == 6, f'오답: 등호 포함 {w_eq}개, 블록 증가량 6으로 보면 ∫_-2^0 f={Iw}, f(2)∈({Iw / 2 + 6}, {Iw / 2 + 12}) → {w_blk}개')
 wrong_in(15, [w_eq, w_blk], '등호 포함 / 블록 증가량 착각')
 # 작년 2025 기말 9번 꼴(f(x+3)=f(x)+3)과 다른지: 이동 폭 2, 증가량 6
-check(15, (2, 6) != (3, 3) and (2, 6) != (3, 4), '(가) 이동 폭·증가량 (2, 6) ≠ 원문 (3, 4) ≠ 작년 (3, 3)')
+check(15, (2, 6) not in [(3, 3), (3, 4)] and '-2}^{2}' in IT[15]['cond'][1][1], '(가) 이동 폭·증가량 (2, 6) ≠ 원문·LIVE2-04-178 (3, 4) ≠ 작년 (3, 3), (나) 대칭 구간 [-2, 2] ≠ LIVE2-04-178 [-3, 3]')
 # 원문 J60: [6,9] 넓이 = ∫_6^9 f = ∫_0^3 f + 24 = 18 (∫_0^3 f = -6), f(6)=f(3)+4>2>0 (④)
 o_blk = sp.solve(sp.Eq(I0 + (I0 + 12), 0), I0)[0]
 o15 = o_blk + 24
 check('J60', o15 == 18 == orig_ans('J60'), f'J60 원문: ∫_0^3 f={o_blk}, 넓이 = ∫_0^3 f + 24 = {o15}, 원문 정답 {orig_ans("J60")}')
 print('--- 15번 조건 빼 보기 ---')
-# '증가' 없음: f = 3x - 3 + h(x), h 주기 2, ∫_-1^1 h = 0, h(±1)=cc → f(3)=6+cc 아무 값
+# '증가' 없음: f = 3x + h(x), h 주기 2, ∫_-2^0 h = 0, h(-2)=h(0)=cc → f(2)=6+cc 아무 값
 vals = []
 for cc in (-5, 0, 5):
-    h = cc - R(3, 2) * cc * (1 - x**2)
-    base = 3 * x - 3 + h
-    chk = sp.simplify(base.subs(x, 1) - base.subs(x, -1) - 6) == 0 and sp.simplify(sp.integrate(base, (x, -1, 1)) + sp.integrate(base + 6, (x, -1, 1))) == 0
-    if chk: vals.append(base.subs(x, 1) + 6)
-ablation(15, "'증가'", vals, 5, 'f(3)이 어떤 실수도 될 수 있어 정수가 무수히 많음')
-# (가) 없음: f=(x-s)^3+β, ∫_-1^3 f=0 → f(3)이 s에 따라 연속으로 변함
+    h = cc - R(3, 2) * cc * (1 - (x + 1)**2)
+    base = 3 * x + h
+    chk = sp.simplify(base.subs(x, 0) - base.subs(x, -2) - 6) == 0 and sp.simplify(sp.integrate(base, (x, -2, 0)) + sp.integrate(base + 6, (x, -2, 0))) == 0
+    if chk: vals.append(base.subs(x, 0) + 6)
+ablation(15, "'증가'", vals, 5, 'f(2)가 어떤 실수도 될 수 있어 정수가 무수히 많음')
+# (가) 없음: f=(x-s)^3+β, ∫_-2^2 f=0 → f(2)가 s에 따라 연속으로 변함
 ss = sp.symbols('ss'); Bs = sp.Symbol('B')
-beta = sp.solve(sp.Eq(sp.integrate((x - ss)**3, (x, -1, 3)) + 4 * Bs, 0), Bs)[0]
-f3s = sp.expand((3 - ss)**3 + beta)
-lo_, hi_ = sorted([f3s.subs(ss, 1), f3s.subs(ss, 3)])
+beta = sp.solve(sp.Eq(sp.integrate((x - ss)**3, (x, -2, 2)) + 4 * Bs, 0), Bs)[0]
+f3s = sp.expand((2 - ss)**3 + beta)
+lo_, hi_ = sorted([f3s.subs(ss, 0), f3s.subs(ss, 2)])
 cnt = len([n for n in range(-100, 100) if lo_ <= n <= hi_])
-ablation(15, '(가)', [], 5, undef=f'정해지지 않음: f=(x-s)^3+β(∫_-1^3 f=0)에서 f(3)={f3s}가 s=1일 때 {f3s.subs(ss, 1)}, s=3일 때 {f3s.subs(ss, 3)} → 될 수 있는 정수 {cnt}개 이상')
-# (나) 없음: f = 3x + k → f(3) = 9 + k 아무 값
-vals = [(3 * x + kk).subs(x, 3) for kk in (-8, -4, 0)]
-ablation(15, '(나)', vals, 5, 'f=3x+k에서 f(3)=9+k, 정수가 무수히 많음')
+ablation(15, '(가)', [], 5, undef=f'정해지지 않음: f=(x-s)^3+β(∫_-2^2 f=0)에서 f(2)={f3s}가 s=0일 때 {f3s.subs(ss, 0)}, s=2일 때 {f3s.subs(ss, 2)} → 될 수 있는 정수 {cnt}개 이상')
+# (나) 없음: f = 3x + k → f(2) = 6 + k 아무 값
+vals = [(3 * x + kk).subs(x, 2) for kk in (-8, -4, 0)]
+ablation(15, '(나)', vals, 5, 'f=3x+k에서 f(2)=6+k, 정수가 무수히 많음')
 ablation(15, "'연속'", [], 5, undef='미적분Ⅰ에서 정적분은 연속함수에 대하여 정의하므로 (나)가 정해지지 않음')
 
 # ================= 16번 (I66 v3_추가 2 + v3_추가 1: 계수 미정·극댓값 + 기준선 y=x) =================
