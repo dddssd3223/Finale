@@ -1,0 +1,156 @@
+# Codex 공동 출제: Claude 세션이 작업 지시서(output/build/기말/공동출제/<회차>_codex.md)를 푸시하면
+# Codex CLI가 AGENTS.md·지시서대로 문항(c*.py)과 검증 스크립트를 만들어 codex/<회차> 브랜치에 푸시한다.
+# 필요: 저장소 Settings → Secrets and variables → Actions → API_KEY (OpenAI 키)
+# 2026-11-07: Codex 공동 출제·풀이 중지(사용자 결정). 푸시로 자동 실행되지 않게 수동 실행만 남긴다.
+#   다시 켤 때 아래 push 트리거를 되살린다:
+#   push: { branches: ['claude/**'], paths: ['output/build/기말/공동출제/*_codex.md', 'output/build/기말/공동출제/풀이/*/TASK.md'] }
+name: codex-coauthor
+on:
+  workflow_dispatch:
+concurrency:
+  group: codex-coauthor
+  cancel-in-progress: false
+jobs:
+  codex:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    permissions:
+      contents: write
+    env:
+      # ChatGPT 계정 로그인(시크릿 CODEX_AUTH_JSON = ~/.codex/auth.json 내용)이 있으면 그걸 쓰고(요금제 사용량), API 키는 비운다
+      CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
+      OPENAI_API_KEY: ${{ secrets.CODEX_AUTH_JSON == '' && (secrets.NEWKEY || secrets.API_KEY || secrets.OPENAI_API_KEY) || '' }}
+      CODEX_API_KEY: ${{ secrets.CODEX_AUTH_JSON == '' && (secrets.NEWKEY || secrets.API_KEY || secrets.OPENAI_API_KEY) || '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: 키 확인
+        run: |
+          if [ -z "$CODEX_AUTH_JSON" ] && [ -z "$OPENAI_API_KEY" ]; then echo "::error::시크릿 CODEX_AUTH_JSON(ChatGPT 로그인) 또는 API 키가 없습니다"; exit 1; fi
+          if [ -n "$CODEX_AUTH_JSON" ]; then echo "인증: ChatGPT 계정(요금제 사용량)"; else echo "인증: API 키(API 과금)"; fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: 도구 설치
+        run: |
+          pip install sympy numpy matplotlib
+          npm install -g @openai/codex
+          codex --version
+          if [ -n "$CODEX_AUTH_JSON" ]; then mkdir -p ~/.codex && printf '%s' "$CODEX_AUTH_JSON" > ~/.codex/auth.json && chmod 600 ~/.codex/auth.json; else printenv OPENAI_API_KEY | codex login --with-api-key; fi
+          codex login status
+          # 지침·검사 스크립트가 /home/user/Finale 절대 경로를 쓰므로 같은 경로로 연결
+          sudo mkdir -p /home/user && sudo ln -sfn "$GITHUB_WORKSPACE" /home/user/Finale
+      - name: 지시서 찾기
+        id: task
+        run: |
+          BEFORE='${{ github.event.before }}'
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then BEFORE="${GITHUB_SHA}~1"; fi
+          git -c core.quotePath=false diff --name-only "$BEFORE" "$GITHUB_SHA" -- 'output/build/기말/공동출제/*_codex.md' > /tmp/tasks.txt || true
+          cat /tmp/tasks.txt
+          if [ -s /tmp/tasks.txt ]; then echo "found=true" >> "$GITHUB_OUTPUT"; else echo "found=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Codex 출제
+        if: steps.task.outputs.found == 'true'
+        run: |
+          git config user.name "codex-coauthor"
+          git config user.email "codex-coauthor@users.noreply.github.com"
+          BASE="$GITHUB_SHA"
+          while IFS= read -r TASK; do
+            [ -f "$TASK" ] || { echo "::error::지시서 파일 없음: $TASK"; exit 1; }
+            TNAME="$(basename "$TASK" _codex.md)"   # 견본5-1 → 폴더 견본5, 브랜치 codex/견본5-1
+            ROUND="${TNAME%%-*}"
+            BR="codex/${TNAME}"
+            git checkout -B "$BR" "$BASE"
+            mkdir -p "output/build/기말/${ROUND}/parts"
+            # 토큰 절약 1: 지침 전문(AGENTS·front·BRIEF)을 항상 같은 순서로 프롬프트 맨 앞에 고정 → 프롬프트 캐시. 작업 지시는 맨 뒤.
+            BRIEF="output/build/기말/${ROUND}/BRIEF.md"; [ -f "$BRIEF" ] || BRIEF="output/build/기말/견본3/BRIEF.md"
+            GUIDE="$(printf '# 지침 전문 (AGENTS.md · 지침/front.md · %s). 이 세 파일은 아래에 이미 다 있으니 다시 열지 않는다.\n\n' "$BRIEF"; cat AGENTS.md; printf '\n\n---\n# output/build/기말/지침/front.md\n\n'; cat output/build/기말/지침/front.md; printf '\n\n---\n# %s\n\n' "$BRIEF"; cat "$BRIEF")"
+            TASKTXT="작업 지시서 ${TASK}에 적힌 번호만 출제한다. 결과물은 작업 지시서에 적힌 파일이다(적혀 있지 않으면 output/build/기말/${ROUND}/parts/c*.py 와 verify_c*.py. 17·18 후보는 output/build/기말/${ROUND}/후보/). 그림 파일은 만들지 않는다(Claude가 그린다). 문항 초안(c*.py, 모든 기록 필드 포함)을 쓰고 정답은 sympy로 한 번 확인한다. verify 스크립트와 checkpart 반복은 작업 지시서가 요구할 때만 한다(기본은 Claude가 검증). 지시서에 적힌 파일 외에는 저장소를 탐색하지 않는다. 보고서 파일은 쓰지 않는다(토큰 절약 5: 내용은 문항 파일에 있다). 마지막 답은 한 줄(맡은 번호·정답·ALL OK 여부)로 끝낸다. git commit/push는 하지 않는다(워크플로가 한다)."
+            PROMPT="$(printf '%s\n\n---\n# 이번 작업\n%s' "$GUIDE" "$TASKTXT")"
+            if [ "$(printf '%s' "$PROMPT" | wc -c)" -gt 120000 ]; then echo "::warning::지침이 120KB를 넘어 파일 읽기 방식으로 대체"; PROMPT="AGENTS.md, output/build/기말/지침/front.md, ${BRIEF}를 먼저 읽고 그대로 따른다. ${TASKTXT}"; fi
+            MODEL="$(grep -m1 '^MODEL:' "$TASK" | sed 's/^MODEL:[ ]*//')"; EFFORT="$(grep -m1 '^EFFORT:' "$TASK" | sed 's/^EFFORT:[ ]*//')"
+            OPTS=""; [ -n "$MODEL" ] && OPTS="$OPTS -m $MODEL"; [ -n "$EFFORT" ] && OPTS="$OPTS -c model_reasoning_effort=\"$EFFORT\""
+            echo "MODEL=$MODEL EFFORT=$EFFORT" | tee "output/build/기말/${ROUND}/parts/CODEX_RUN_INFO_${TNAME}.txt"
+            codex exec -s workspace-write -c approval_policy="never" --skip-git-repo-check --color never $OPTS "$PROMPT" < /dev/null 2>&1 | tee "/tmp/codex_${TNAME}.log" || true
+            mkdir -p "output/build/기말/${ROUND}/parts"
+            tail -c 200000 "/tmp/codex_${TNAME}.log" > "output/build/기말/${ROUND}/parts/CODEX_LOG_${TNAME}.txt"
+            git add "output/build/기말/${ROUND}/parts"
+            if [ -d "output/build/기말/${ROUND}/후보" ]; then git add "output/build/기말/${ROUND}/후보"; fi
+            git commit -m "Codex 공동 출제: ${TNAME} (${TASK})" || echo "변경 없음"
+            git push -f origin "$BR"
+          done < /tmp/tasks.txt
+
+  # 블라인드 풀이: 문제 폴더만 받아(sparse checkout, 다른 파일·해설 없음) Codex가 풀고 codex/풀이-<이름> 브랜치에 답을 푸시
+  solve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    env:
+      # ChatGPT 계정 로그인(시크릿 CODEX_AUTH_JSON = ~/.codex/auth.json 내용)이 있으면 그걸 쓰고(요금제 사용량), API 키는 비운다
+      CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
+      OPENAI_API_KEY: ${{ secrets.CODEX_AUTH_JSON == '' && (secrets.NEWKEY || secrets.API_KEY || secrets.OPENAI_API_KEY) || '' }}
+      CODEX_API_KEY: ${{ secrets.CODEX_AUTH_JSON == '' && (secrets.NEWKEY || secrets.API_KEY || secrets.OPENAI_API_KEY) || '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          filter: blob:none
+          sparse-checkout: |
+            output/build/기말/공동출제/풀이
+          sparse-checkout-cone-mode: true
+      - name: 풀이 지시서 찾기
+        id: solve
+        run: |
+          BEFORE='${{ github.event.before }}'
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then BEFORE="${GITHUB_SHA}~1"; fi
+          git -c core.quotePath=false diff --name-only "$BEFORE" "$GITHUB_SHA" -- 'output/build/기말/공동출제/풀이/*/TASK.md' > /tmp/solve.txt || true
+          cat /tmp/solve.txt
+          if [ -s /tmp/solve.txt ]; then echo "found=true" >> "$GITHUB_OUTPUT"; else echo "found=false" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/setup-node@v4
+        if: steps.solve.outputs.found == 'true'
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        if: steps.solve.outputs.found == 'true'
+        with:
+          python-version: '3.12'
+      - name: Codex 블라인드 작업(풀이·출제)
+        if: steps.solve.outputs.found == 'true'
+        run: |
+          pip install -q sympy numpy matplotlib
+          npm install -g @openai/codex
+          if [ -n "$CODEX_AUTH_JSON" ]; then mkdir -p ~/.codex && printf '%s' "$CODEX_AUTH_JSON" > ~/.codex/auth.json && chmod 600 ~/.codex/auth.json; else printenv OPENAI_API_KEY | codex login --with-api-key; fi
+          git config user.name "codex-coauthor"
+          git config user.email "codex-coauthor@users.noreply.github.com"
+          touch /tmp/models.txt   # ChatGPT 계정 인증이면 모델 목록 조회를 건너뛰므로 빈 파일
+          [ -n "$OPENAI_API_KEY" ] && curl -sS https://api.openai.com/v1/models -H "Authorization: Bearer $OPENAI_API_KEY" | python3 -c "import json,sys;print('\n'.join(sorted(m['id'] for m in json.load(sys.stdin).get('data',[]))))" > /tmp/models.txt || true
+          BASE="$GITHUB_SHA"
+          while IFS= read -r TASK; do
+            DIR="$(dirname "$TASK")"; NAME="$(basename "$DIR")"; BR="codex/풀이-${NAME}"
+            git checkout -B "$BR" "$BASE"
+            git sparse-checkout set "$DIR"          # 이 작업 폴더만 남김(다른 풀이 폴더·해설 차단)
+            cp /tmp/models.txt "$DIR/models_available.txt"
+            MODEL="$(grep -m1 '^MODEL:' "$TASK" | sed 's/^MODEL:[ ]*//')"
+            EFFORT="$(grep -m1 '^EFFORT:' "$TASK" | sed 's/^EFFORT:[ ]*//')"
+            if [ -n "$MODEL" ] && [ -s /tmp/models.txt ] && ! grep -qx "$MODEL" /tmp/models.txt; then   # 목록이 있을 때만(ChatGPT 인증은 목록 없음)
+              CAND="$(grep -i -m1 "$MODEL" /tmp/models.txt || true)"; echo "모델 '$MODEL' → '$CAND'"; MODEL="$CAND"
+            fi
+            OPTS=""; [ -n "$MODEL" ] && OPTS="$OPTS -m $MODEL"; [ -n "$EFFORT" ] && OPTS="$OPTS -c model_reasoning_effort=\"$EFFORT\""
+            echo "MODEL=$MODEL EFFORT=$EFFORT" | tee "$DIR/codex_run_info.txt"
+            IMGS=""; for im in "$DIR"/*.png; do [ -f "$im" ] && IMGS="$IMGS -i $(basename "$im")"; done
+            ( cd "$DIR" && codex exec -s workspace-write -c approval_policy="never" --skip-git-repo-check --color never $OPTS "TASK.md를 읽고 그대로 따른다. 이 폴더 밖의 파일은 읽지 않는다. 결과는 TASK.md가 정한 파일에 쓴다." $IMGS < /dev/null 2>&1 | tee codex_solve_log.txt ) || true
+            # 모델 이름이 틀려 바로 실패하면 기본 모델로 한 번 더(추론 강도는 유지)
+            if [ -n "$MODEL" ] && grep -qiE "model.*(not (found|supported|exist)|unknown|invalid|does not exist)|unsupported model" "$DIR/codex_solve_log.txt"; then
+              echo "모델 '$MODEL' 실패 → 기본 모델로 재실행" | tee -a "$DIR/codex_run_info.txt"
+              OPTS2=""; [ -n "$EFFORT" ] && OPTS2="-c model_reasoning_effort=\"$EFFORT\""
+              ( cd "$DIR" && codex exec -s workspace-write -c approval_policy="never" --skip-git-repo-check --color never $OPTS2 "TASK.md를 읽고 그대로 따른다. 이 폴더 밖의 파일은 읽지 않는다. 결과는 TASK.md가 정한 파일에 쓴다." $IMGS < /dev/null 2>&1 | tee -a codex_solve_log.txt ) || true
+            fi
+            tail -c 150000 "$DIR/codex_solve_log.txt" > "$DIR/codex_solve_log.tmp" && mv "$DIR/codex_solve_log.tmp" "$DIR/codex_solve_log.txt"
+            git add --sparse "$DIR"
+            git commit -m "Codex 블라인드 작업: ${NAME}" || echo "변경 없음"
+            git push -f origin "$BR"
+          done < /tmp/solve.txt

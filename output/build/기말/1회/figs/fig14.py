@@ -1,0 +1,15 @@
+# 1회 14번 그림: y=f'(x), f'=-4(x+1) (x<=-1), 4(1-x^2) (-1<x<2), 12(x-3) (x>=2)
+import sys, numpy as np
+sys.path.insert(0, '/home/user/Finale/output/build/기말/지침'); import figkit as K
+fp = lambda x: np.where(x <= -1, -4*(x+1), np.where(x < 2, 4*(1-x**2), 12*(x-3)))
+fig, ax = K.new((-2.9, 4.6), (-14.5, 9.5), size=(2.3, 2.1), dx=0.12, dy=0.12)
+K.curve(ax, fp, -2.55, 3.72, n=1400)
+K.dash(ax, [2, 2], [0, -12]); K.dash(ax, [0, 2], [-12, -12])
+K.label(ax, -1.12, -0.6, '-1', 'center', 'top', size=10)
+K.label(ax, 0.93, -0.6, '1', 'right', 'top', size=10)
+K.label(ax, 2.0, 0.6, '2', 'center', 'bottom', size=10)
+K.label(ax, 3.1, -0.6, '3', 'left', 'top', size=10)
+K.label(ax, -0.1, 4.0, '4', 'right', 'bottom', size=10)
+K.label(ax, -0.1, -12, '-12', 'right', 'center', size=10)
+K.label(ax, 3.6, 3.2, "y=f'(x)", 'left', 'center', size=10)
+K.save(fig, sys.argv[1])

@@ -1,0 +1,68 @@
+{
+ "round": "3회",
+ "base": "기준프로필_기말",
+ "anchors": [
+  3,
+  7,
+  10,
+  12,
+  14,
+  16,
+  17,
+  18
+ ],
+ "items": {
+  "3회-2": {
+   "hash": "af828e4f760b",
+   "bunseok": false,
+   "key": "I53"
+  },
+  "3회-4": {
+   "hash": "2f16cc4b1d27",
+   "bunseok": false,
+   "key": "I49"
+  },
+  "3회-6": {
+   "hash": "e87c35093be4",
+   "bunseok": false,
+   "key": "I14"
+  },
+  "3회-8": {
+   "hash": "90bd33814870",
+   "bunseok": false,
+   "key": "I32"
+  },
+  "3회-10": {
+   "hash": "9df9078a5eed",
+   "bunseok": false,
+   "key": "M12",
+   "note": "보기 누락으로 세 풀이자가 보기 포함본으로 10번만 다시 풀어 반영(2026-11-07)"
+  },
+  "3회-12": {
+   "hash": "3c92efa2eebf",
+   "bunseok": false,
+   "key": "D51"
+  },
+  "3회-14": {
+   "hash": "67f60a4495ca",
+   "bunseok": false,
+   "key": "J8"
+  },
+  "3회-16": {
+   "hash": "91a73299220b",
+   "bunseok": false,
+   "key": "I66"
+  },
+  "3회-18": {
+   "hash": "9ea45c203ad7",
+   "bunseok": false,
+   "key": "J46"
+  },
+  "3회-S2": {
+   "hash": "e6f5edaf6868",
+   "key": "J59",
+   "bunseok": false,
+   "note": "측정 뒤 소문항 3개(4+4+2)로 나눔(사용자 요청 2026-11-07). 본문·정답 같음, 단계 안내로 조금 쉬워졌을 수 있음"
+  }
+ }
+}
