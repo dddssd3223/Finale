@@ -10,7 +10,7 @@
 import sys, os, re, json, math, glob, datetime, statistics as st
 HERE = os.path.dirname(os.path.abspath(__file__))
 PUL = os.path.join(HERE, '풀이')
-BASE = os.path.join(PUL, '기준프로필')
+BASE = os.path.join(PUL, '기준프로필')          # 기본: 2026 2학기 중간. meta.json의 "base"로 바꿀 수 있다(기말: 기준프로필_기말)
 FILES = {'claude': 'claude_strong.md', 'haiku': 'claude_haiku.md', 'codex': 'codex_strong.md'}
 STUDY = ('study', 'claude_study.md', 'claude_strong.md')      # (이름, 파일, 눈금을 맞출 기준 파일)
 LEDGER = os.path.join(PUL, '측정기록.jsonl')
@@ -49,12 +49,14 @@ def main(d):
     key = {int(k): v for k, v in json.load(open(os.path.join(d, 'key.json'))).items()}
     meta = json.load(open(os.path.join(d, 'meta.json'))) if os.path.exists(os.path.join(d, 'meta.json')) else {}
     anchors = {n: int(tag.split('-')[1]) for n, (tag, _) in key.items() if tag.startswith('앵커')}
+    base = os.path.join(PUL, meta.get('base', '기준프로필'))
+    print(f"기준: {os.path.basename(base)}")
     out, info, per = {}, {}, {}
     solvers = [(s, fn, fn) for s, fn in FILES.items()] + [STUDY]
     for s, fn, bfn in solvers:
         p = os.path.join(d, fn)
-        if not os.path.exists(p): continue
-        R, B = parse(p), parse(os.path.join(BASE, bfn))
+        if not os.path.exists(p) or not os.path.exists(os.path.join(base, bfn)): continue
+        R, B = parse(p), parse(os.path.join(base, bfn))
         btot = sum(x['t'] for x in B.values())
         k, fd, inf = calib(R, B, anchors); info[s] = inf
         wrong = [f'{n}({key[n][0]})' for n in key if n in R and ans_ok(R[n]['ans'], key[n][1]) is False]
@@ -64,7 +66,7 @@ def main(d):
             if s != 'study': out.setdefault(tag, {})[s] = per[s][tag]
         print(f"{s}: 앵커 {inf['n']}개, 시간 배율 {k:.2f} (앵커별 흩어짐 ±{inf['t_sd'] * 100:.0f}%), 체감 {inf['mode']} {inf['a']:+.2f}+{inf['b']:.2f}×이번 (±{inf['d_sd']:.1f})"
               + (f", 오답 {', '.join(wrong)}" if wrong else ', 오답 없음'))
-    prof = json.load(open(os.path.join(BASE, 'profile.json')))['items']
+    prof = json.load(open(os.path.join(base, 'profile.json')))['items']
     rows = []
     for tag, v in out.items():
         no = tag.split('-')[1]; n = int(no) if no.isdigit() else {'S1': 19, 'S2': 20}[no]

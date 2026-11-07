@@ -61,9 +61,12 @@ def main():
     ap.add_argument('--anchors', default='3,6,8,10,12,15,17,18')
     ap.add_argument('--school', default='/tmp/claude-0/-home-user/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/base')
     ap.add_argument('--study'); ap.add_argument('--noise', type=int, default=12); ap.add_argument('--seed', type=int, default=7)
+    ap.add_argument('--base', default='기준프로필', help="기준 프로필 폴더 이름(풀이/ 아래). 기말 범위는 기준프로필_기말 + --school <작년 기말 폴더> --anchors 3,7,10,12,14,16,17,18")
     a = ap.parse_args()
     rdir = os.path.abspath(a.rdir); rname = os.path.basename(rdir.rstrip('/'))
     os.makedirs(a.out, exist_ok=True); P = load_round(rdir); S = school_items(a.school)
+    ap_ = os.path.join(a.school, 'answers.json')                       # 앵커 정답: 학교 폴더에 answers.json이 있으면 그것(작년 기말 등)
+    if os.path.exists(ap_): SCHOOL_ANS.clear(); SCHOOL_ANS.update({int(k): v for k, v in json.load(open(ap_)).items()})
     items = a.items.split(','); anchors = [int(x) for x in a.anchors.split(',') if x]
     rnd = random.Random(a.seed)
     # 앵커를 번호대가 흩어지게 끼운다: 회차 문항 순서는 유지, 앵커는 고르게 섞음
@@ -74,8 +77,8 @@ def main():
     for i, (kind, t) in enumerate(seq, 1):
         if kind == 'anchor':
             out.append(f'## 문항 {i}\n{S[t]}\n'); key[str(i)] = [f'앵커-{t}', SCHOOL_ANS[t]]
-            if t == 17: figs.add(('school', 'fig_17.png', 'fig_A17.png'))
-            if t == 1: figs.add(('school', 'fig_1.png', 'fig_A1.png'))
+            if t == 17 and os.path.exists(os.path.join(a.school, 'fig_17.png')): figs.add(('school', 'fig_17.png', 'fig_A17.png'))
+            if t == 1 and os.path.exists(os.path.join(a.school, 'fig_1.png')): figs.add(('school', 'fig_1.png', 'fig_A1.png'))
         else:
             it = P[t]; out.append(f'## 문항 {i}\n{txt(it)}\n')
             ans = it['ans'] if 'subs' not in it else ' / '.join(map(str, it['ans']))
@@ -90,7 +93,7 @@ def main():
             svg2png(p, os.path.join(a.out, dst)) if p.endswith('.svg') else shutil.copy(p, os.path.join(a.out, dst))
     open(os.path.join(a.out, 'problems.md'), 'w').write('\n'.join(out))
     json.dump(key, open(os.path.join(a.out, 'key.json'), 'w'), ensure_ascii=False)
-    json.dump(dict(round=rname, anchors=anchors, items=meta), open(os.path.join(a.out, 'meta.json'), 'w'), ensure_ascii=False, indent=1)
+    json.dump(dict(round=rname, base=a.base, anchors=anchors, items=meta), open(os.path.join(a.out, 'meta.json'), 'w'), ensure_ascii=False, indent=1)
     fl = ', '.join(sorted(d for *_, d in figs)) or '없음'
     N = len(seq)
     task = (f'당신은 고2 미적분Ⅰ 학생이 시험장에서 푸는 것처럼 문제를 푸는 풀이자다. 이 실험은 문항별 난도와 풀이 시간을 재는 것이다. '
@@ -110,7 +113,7 @@ def main():
         cards = used + noise; rnd.shuffle(cards)
         open(os.path.join(a.out, 'study.md'), 'w').write('# 분석집 공부 노트 (시험 전에 공부한 내용)\n\n' + '\n\n---\n\n'.join(C[k] for k in cards))
         meta['_study'] = dict(cards=len(cards), round_cards=used, noise=len(noise))
-        json.dump(dict(round=rname, anchors=anchors, items={k: v for k, v in meta.items() if k != '_study'}, study=meta['_study']),
+        json.dump(dict(round=rname, base=a.base, anchors=anchors, items={k: v for k, v in meta.items() if k != '_study'}, study=meta['_study']),
                   open(os.path.join(a.out, 'meta.json'), 'w'), ensure_ascii=False, indent=1)
         st = task.replace('당신은 고2 미적분Ⅰ 학생이', '당신은 시험 전에 학교 부교재 분석집을 공부한 고2 미적분Ⅰ 상위권 학생이') \
                  .replace('다른 파일은 찾거나 열지 않는다.', '다른 파일은 찾거나 열지 않는다. 단, 시험 전에 `study.md`(분석집 공부 노트)를 먼저 끝까지 읽고 공부한다. 공부 시간은 시험 시간에 넣지 않는다. 문제를 풀기 시작한 뒤에는 study.md를 다시 열지 않고 기억한 것만 쓴다.')
