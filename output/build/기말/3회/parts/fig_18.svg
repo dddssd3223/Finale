@@ -6,7 +6,7 @@
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-11-07T06:35:21.247286</dc:date>
+    <dc:date>2026-11-07T10:55:33.017530</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -39,7 +39,7 @@ z
    </g>
    <g id="FillBetweenPolyCollection_1">
     <defs>
-     <path id="m95c3ba15b7" d="M 27.704483 -35.238361 
+     <path id="m87f09334da" d="M 27.704483 -35.238361 
 L 27.704483 -35.238361 
 L 27.839623 -35.238361 
 L 27.974763 -35.238361 
@@ -644,13 +644,13 @@ L 27.704483 -35.238361
 z
 "/>
     </defs>
-    <g clip-path="url(#p8f61606c3b)">
-     <use xlink:href="#m95c3ba15b7" x="0" y="130.392" style="fill: #dbdbdb"/>
+    <g clip-path="url(#p8f2c30ff66)">
+     <use xlink:href="#m87f09334da" x="0" y="130.392" style="fill: #dbdbdb"/>
     </g>
    </g>
    <g id="FillBetweenPolyCollection_2">
     <defs>
-     <path id="macf15f21bf" d="M 68.111379 -35.238361 
+     <path id="ma4f50ecb34" d="M 68.111379 -35.238361 
 L 68.111379 -35.238361 
 L 68.178949 -35.238361 
 L 68.246519 -35.238361 
@@ -1255,8 +1255,8 @@ L 68.111379 -35.238361
 z
 "/>
     </defs>
-    <g clip-path="url(#p8f61606c3b)">
-     <use xlink:href="#macf15f21bf" x="0" y="130.392" style="fill: #dbdbdb"/>
+    <g clip-path="url(#p8f2c30ff66)">
+     <use xlink:href="#ma4f50ecb34" x="0" y="130.392" style="fill: #dbdbdb"/>
     </g>
    </g>
    <g id="matplotlib.axis_1"/>
@@ -1303,27 +1303,27 @@ L 88.469305 25.314484
 L 91.487005 10.979601 
 L 91.749414 9.684496 
 L 91.749414 9.684496 
-" clip-path="url(#p8f61606c3b)" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: square"/>
+" clip-path="url(#p8f2c30ff66)" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: square"/>
    </g>
    <g id="patch_3">
-    <path d="M 3.439012 95.153639 
-Q 60.029476 95.153639 115.725512 95.153639 
-" style="fill: none; stroke: #000000; stroke-width: 0.8; stroke-linecap: round"/>
-    <path d="M 112.525512 93.553639 
-L 115.725512 95.153639 
-L 112.525512 96.753639 
+    <path d="M 1.44 95.153639 
+Q 60.03 95.153639 116.663695 95.153639 
+" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: round"/>
+    <path d="M 108.963695 93.333639 
+L 116.663695 95.153639 
+L 108.963695 96.973639 
 z
-" style="stroke: #000000; stroke-width: 0.8; stroke-linecap: round"/>
+" style="stroke: #000000; stroke-width: 0.9; stroke-linecap: round"/>
    </g>
    <g id="patch_4">
-    <path d="M 88.314828 126.955734 
-Q 88.314828 65.199526 88.314828 4.337745 
-" style="fill: none; stroke: #000000; stroke-width: 0.8; stroke-linecap: round"/>
-    <path d="M 86.714828 7.537745 
-L 88.314828 4.337745 
-L 89.914828 7.537745 
+    <path d="M 88.314828 128.952 
+Q 88.314828 65.196 88.314828 3.396305 
+" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: round"/>
+    <path d="M 86.494828 11.096305 
+L 88.314828 3.396305 
+L 90.134828 11.096305 
 z
-" style="stroke: #000000; stroke-width: 0.8; stroke-linecap: round"/>
+" style="stroke: #000000; stroke-width: 0.9; stroke-linecap: round"/>
    </g>
    <g id="text_1">
     <!-- $S_1$ -->
@@ -1934,7 +1934,7 @@ z
   </g>
  </g>
  <defs>
-  <clipPath id="p8f61606c3b">
+  <clipPath id="p8f2c30ff66">
    <rect x="1.44" y="1.44" width="117.18" height="127.512"/>
   </clipPath>
  </defs>

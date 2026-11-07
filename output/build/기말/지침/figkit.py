@@ -50,7 +50,8 @@ def new(xl, yl, size=(2.6, 2.0), aspect='auto', xlabel='x', ylabel='y', origin=T
     ax.set_xlim(*xl); ax.set_ylim(*yl); ax.set_aspect(aspect)
     for s in ax.spines.values(): s.set_visible(False)
     ax.set_xticks([]); ax.set_yticks([])
-    kw = dict(arrowstyle='-|>', lw=0.8, color='k', mutation_scale=8)
+    # 학교 시험지(2학기 중간 1·17번 그림) 대조 2026-11-07: 길고 뾰족한 채운 화살촉, 축 굵기 = 곡선 굵기
+    kw = dict(arrowstyle='-|>,head_length=1.1,head_width=0.26', lw=LW, color='k', mutation_scale=7, shrinkA=0, shrinkB=0)
     ax.annotate('', xy=(xl[1], 0), xytext=(xl[0], 0), arrowprops=kw)
     ax.annotate('', xy=(0, yl[1]), xytext=(0, yl[0]), arrowprops=kw)
     sx, sy = (xl[1] - xl[0]) * dx / 3, (yl[1] - yl[0]) * dy / 3
