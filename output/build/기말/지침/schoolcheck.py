@@ -5,7 +5,7 @@
 회차 유형은 <회차>/round.json {"type": "학교형"|"복습형"} (없으면 학교형).
 2026-11-07부터 새 회차는 {"type": "학교형", "db": true}: 변형 DB 방식(front.md 0-8·2절·4-4). 문항에 db_ref·ops를 요구하고,
 회차 분포는 기말 기준(예상밖 4–6, 그림 1–3, 내림차순 ≤4, 공차 1 8–12, 보기형 ≤1)으로 본다. db가 없는 옛 회차는 옛 기준 그대로."""
-import sys, os, re, json, runpy, collections
+import json, sys, os, re, runpy, collections
 from fractions import Fraction
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(HERE, '..', '..', '부교재_기말'))
@@ -167,6 +167,15 @@ def round_(d):
         out.append(('보기형 ≤1 (2025 기말 1)', len(bogi) <= 1, bogi))
         k1718 = [str(its[n].get('db_ref', '')) for n in (17, 18) if n in its]
         out.append(('17·18 중 설계A ≥1 · 설계B ≤1', any('설계A' in r or r.startswith('자체') for r in k1718) and sum('설계B' in r for r in k1718) <= 1, k1718))
+        # 계수·매개변수 자리 조작(3회 기준, 2026-11-07 사용자 "계수 붙히고 이런거 더 적극적으로"): round.json coef_min (4회부터 9)
+        try: cmin = json.load(open(os.path.join(d, 'round.json'))).get('coef_min')
+        except Exception: cmin = None
+        if cmin:
+            COEF = {'OP11', 'OP12', 'OP28', 'OP38', 'OP51'}
+            cf = [n for n, it in its.items() if COEF & set(it.get('ops') or [])]
+            out.append((f'계수·매개변수 조작(OP11·12·28·38·51) ≥{cmin}문항 (3회 7)', len(cf) >= cmin, cf))
+        s1 = S.get('S1', {}).get('subs') or []
+        out.append(('서답형1 소문항 2개·짧게 (2026-2 중간처럼, 사용자 지시)', len(s1) == 2, len(s1)))
     out.append(('내림차순 선지 ≤4 (2025 기말 4)' if db else '내림차순 선지 ≤2 (학교 17개 중 2)', len(desc) <= (4 if db else 2), desc))
     num = [(lambda v: (v[1] - v[0]) if None not in v and len(v) == 5 else None)([val(c) for c in it.get('choices') or []]) for it in its.values()]
     d1 = sum(1 for x in num if x is not None and abs(x) == 1); nn = sum(1 for x in num if x is not None)
