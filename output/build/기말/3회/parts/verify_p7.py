@@ -49,7 +49,14 @@ assert crit1 == [1]
 assert all(dS.subs(t, R(i, 100)) > 0 for i in range(1, 100)) and all(dS.subs(t, R(i, 100)) < 0 for i in range(101, 200))
 assert sp.integrate(f1, (x, 0, 1)) == 17 and f1.subs(x, 1) == 24 and f1.subs(x, 1)**2 / 8 == 72
 ANS1 = S.subs(t, 1)
-assert ANS1 == 89 and S1['ans'] == [r'\(89\)']
+assert ANS1 == 89 and S1['ans'][2] == r'(3) \(89\)'
+# 소문항 (1) x절편, (2) S(t)·S'(t)
+xint = t + f1.subs(x, t) / 4
+assert sp.expand(xint - (t**3 - 9 * t**2 + 15 * t)) == 0 and sp.expand(-4 * (xint - t) + f1.subs(x, t)) == 0
+assert S1['ans'][0] == r'(1) \(t+\dfrac{f(t)}{4}=t^3-9t^2+15t\)'
+assert sp.expand(S - (t**4 - 12 * t**3 + 28 * t**2 + 2 * t**2 * (t - 2)**2 * (t - 7)**2)) == 0
+assert sp.expand(dS - 12 * t * (t - 1) * (t - 2) * (t - 5) * (t - 7)) == 0
+assert 't^4-12t^3+28t^2+2t^2(t-2)^2(t-7)^2' in S1['ans'][1] and '12t(t-1)(t-2)(t-5)(t-7)' in S1['ans'][1]
 # 끝값: t→0+ 이면 0, t→2- 이면 ∫_0^2 f = 32 < 89 (최댓값은 내부 t=1)
 assert sp.limit(S, t, 0, '+') == 0 and sp.limit(S, t, 2, '-') == 32
 # 접선 x절편 = 남은 근 7 (숨은 관계 보존)
@@ -150,7 +157,8 @@ for xv in [R(i, 10) for i in range(-19, 20)]:
 A_L = sp.integrate(hL + 4, (x, -2, 0)); A_R = sp.integrate(hR + 4, (x, 0, 2))
 assert A_L == R(20, 3) and A_R == 4
 ANS2 = A_L + A_R
-assert ANS2 == R(32, 3) and S2['ans'][1] == r'(2) \(\dfrac{32}{3}\)'
+assert ANS2 == R(32, 3) and S2['ans'][2] == r'(3) \(\dfrac{32}{3}\)'
+assert sorted(rs2) == [-2, 2] and S2['ans'][1] == r'(2) \(-2\), \(2\)'                # (2) 교점
 # 수치 확인: |f - g| 를 [-2,2] 에서 직접 적분
 fl = sp.lambdify(x, f2)
 num = area_numeric(lambda xx: fl(xx) - (2 * xx * abs(xx) - 4), -2.0, 2.0, 20000)
@@ -170,10 +178,19 @@ assert cR == [2] and hR.subs(x, 2) == -4
 assert sp.integrate(hL + 4, (x, -1, 0)) == R(49, 12) and R(49, 12) + A_R == R(97, 12)
 # 채점 배점 합: (1) 3점, (2) 2+2+(1+1)+1 = 7점
 import re as _re
-pts2 = [int(v) for line in S2['rubric'][1:5] for v in _re.findall(r'\[(\d)점\]', line)]
-assert pts2 == [2, 2, 1, 1, 1] and sum(pts2) == 7 and '[3점]' in S2['rubric'][0]
-pts1 = [int(v) for line in S1['rubric'][:6] for v in _re.findall(r'\[(\d)점\]', line)]
-assert len(pts1) == 6 and sum(pts1) == 10
+# 소문항 3개, 배점 합 10: S1 3+3+4 (과정), S2 3+3+4 ((1)(2) 답만, (3) 과정)
+for it in (S1, S2):
+    assert len(it['subs']) == 3 and len(it['ans']) == 3 and len(it['sol']) == 3
+    sp_ = [int(_re.match(r'(\d+)점', q[1]).group(1)) for q in it['subs']]
+    assert sp_ == [3, 3, 4] and sum(sp_) == 10
+assert [q[1] for q in S1['subs']] == ['3점, 풀이과정을 상세히 쓰시오.'] * 2 + ['4점, 풀이과정을 상세히 쓰시오.']
+assert [q[1] for q in S2['subs']] == ['3점, 답만 적으시오.'] * 2 + ['4점, 풀이과정을 상세히 쓰시오.']
+pts1 = [[int(v) for v in _re.findall(r'\[(\d)점\]', line)] for line in S1['rubric'][:3]]
+assert [sum(a) for a in pts1] == [3, 3, 4], pts1
+assert '[3점]' in S2['rubric'][0] and '[3점]' in S2['rubric'][1]
+pts2 = [int(v) for line in S2['rubric'][2:5] for v in _re.findall(r'\[(\d)점\]', line)]
+assert pts2 == [2, 1, 1] and sum(pts2) == 4
+assert sp.solve(sp.expand((x - 2)**2 * (x + 1)), x) == [-1, 2]                     # (2) 오답 -1, 2
 print('S2 (2) OK: 교점 -2, 2(접점), 넓이 20/3 + 4 = 32/3')
 
 # ----- 조건 빼 보기 S2

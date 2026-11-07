@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """미적분I 서답형 답안지: 학교 실제 서답형 답안지(통합사회2, 2026 2학기 중간) 양식을 1:1로 옮김.
 선 위치·굵기, 글자 크기·위치는 원본 600dpi 스캔 실측(글자는 같은 글꼴로 그려 잉크 상자를 원본과 맞춘 값, 오차 1pt 이내).
-사용: python3 answer_sheet.py <출력 PDF> <글꼴 폴더: malgunbd.ttf·malgun.ttf(맑은 고딕 Bold·Regular, 원본 양식 글꼴, 저장소에 넣지 않음)>"""
+사용: python3 answer_sheet.py <출력 PDF> <글꼴 폴더: malgunbd.ttf·malgun.ttf(맑은 고딕 Bold·Regular, 원본 양식 글꼴, 저장소에 넣지 않음)> [회차 폴더]
+  회차 폴더를 주면 그 회차 서답형(SITEMS의 subs: 소문항 수·배점·'답만')으로 답란을 만든다(2026-11-07, 3회 4+4+2·4+4+2)."""
 import sys, os, subprocess, json
 import numpy as np, fitz
 OUT, FD = sys.argv[1], os.path.abspath(sys.argv[2])
@@ -29,6 +30,23 @@ TITLE = [f'(&nbsp;{SUBJ}&nbsp;)과', '서답형', '답안지']; TGAP = (10.44, 1
 # 답란 구성: (번호, [(소문항, 높이, 배점)], 합계) — 서답형1 풀이 서술 4+6, 서답형2 답만 4+4+2
 ROWS = [('1', [('(1)', 176.0, '4'), ('(2)', 199.8, '6')], '10'),
         ('2', [('(1) :', 40.0, '4'), ('(2) :', 40.0, '4'), ('(3) :', 40.0, '2')], '10')]
+if len(sys.argv) > 3:   # 회차 서답형 구성대로: 답만 소문항은 40pt, 풀이 소문항은 남은 높이를 나눠 가짐
+    import importlib.util, re as _re
+    _rd = os.path.abspath(sys.argv[3]); sys.path.insert(0, _rd)
+    _sp = importlib.util.spec_from_file_location('c3', os.path.join(_rd, 'content3.py')); _m = importlib.util.module_from_spec(_sp)
+    _cwd = os.getcwd(); os.chdir(_rd); _sp.loader.exec_module(_m); os.chdir(_cwd)
+    _all = [(no, _m.SITEMS[s_]['subs']) for no, s_ in (('1', 'S1'), ('2', 'S2'))]
+    _short = sum(40.0 for _, sb in _all for q in sb if '답만' in str(q[1]))
+    _ntall = sum(1 for _, sb in _all for q in sb if '답만' not in str(q[1]))
+    _th = (495.8 - _short) / max(1, _ntall)
+    ROWS = []
+    for no, sb in _all:
+        rows = []
+        for i, q in enumerate(sb):
+            pt = _re.match(r'\s*(\d+(?:\.\d+)?)\s*점', str(q[1])); pt = pt.group(1) if pt else ''
+            short = '답만' in str(q[1])
+            rows.append((f'({i + 1})' + (' :' if short else ''), 40.0 if short else _th, pt))
+        ROWS.append((no, rows, str(sum(float(r[2] or 0) for r in rows)).rstrip('0').rstrip('.')))
 
 def html(texts, lines):
     css = f"""@font-face{{font-family:'MB';src:url('file://{FD}/malgunbd.ttf')}}@font-face{{font-family:'NR';src:url('file://{FD}/malgun.ttf')}}
