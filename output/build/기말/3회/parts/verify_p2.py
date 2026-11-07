@@ -107,16 +107,25 @@ w5_end = h5.subs(x, 0)                                               # 끝값만
 assert (w5_out, w5_end) == (2, 4)
 chk(5, v5, [w5_out, w5_end])
 
-# ===== 6번 (I14) =====
-P6 = 3*x**4 + 2*x**3 - 5*x**2
-f6 = solve_I14(P6, 2)                                                # 차수 6 이하 다항함수 전수: 유일
-assert expand(f6 - (4*x**3 + 3*x**2 - 10*x - 2)) == 0
-assert expand(x*f6 - integrate(f6.subs(x, t), (t, 2, x)) - P6) == 0  # 항등식 확인
-assert 2*f6.subs(x, 2) == P6.subs(x, 2) == 44
-v6 = f6.subs(x, -1)
-assert v6 == 7
-w6_noC = (f6 + 2).subs(x, -1)                                       # 적분상수를 정하지 않음(C=0으로 둠)
-assert w6_noC == 9
+# ===== 6번 (I14 + GEN2-03-024 장치: 다항식을 적분 안으로) =====
+Q6 = 12*x**3 - 15*x
+def solve6(Q, lo, deg=6):
+    """xf(x) = ∫_lo^x {f(t)+Q(t)} dt 를 만족시키는 차수 deg 이하 다항함수 전수"""
+    cs = symbols(f'c0:{deg + 1}')
+    f = sum(cs[i] * x**i for i in range(deg + 1))
+    e = expand(x * f - integrate((f + Q).subs(x, t), (t, lo, x)))
+    sol = solve(Poly(e, x).all_coeffs(), cs, dict=True)
+    assert len(sol) == 1 and all(c in sol[0] for c in cs)
+    return expand(f.subs(sol[0]))
+f6 = solve6(Q6, 2)                                                   # 차수 6 이하 다항함수 중 유일
+assert expand(f6 - (4*x**3 - 15*x - 2)) == 0 and f6.subs(x, 2) == 0   # 아래끝 대입: 2f(2)=0
+assert expand(x*f6 - integrate((f6 + Q6).subs(x, t), (t, 2, x))) == 0
+v6 = f6.subs(x, 3)
+assert v6 == 61
+w6_noC = (f6 + 2).subs(x, 3)                                        # 적분상수를 정하지 않음(C=0으로 둠)
+assert w6_noC == 63
+# GEN2-03-024와 다른 수치(아래끝 -1, 피적분 다항식 2t^2+t, f(3)=12)인지 확인
+assert solve6(2*x**2 + x, -1).subs(x, 3) == 12 and Q6 != 2*x**2 + x
 chk(6, v6, [w6_noC])
 
 # ===== 7번 (D34 예상밖 1) =====
@@ -198,11 +207,13 @@ print('ABLATION 5 부등식의 등호(≤): 필요(<이면 a>6이라 최솟값�
 M5b = max_on_left(h5, -2)
 print(f'ABLATION 5 구간 끝 0: 필요(x≤-2이면 끝값이 최대라 답 바뀜 {v5} → {M5b})'); assert M5b != v5
 # 6번
-fC = 4*x**3 + 3*x**2 - 10*x + C                                      # 정적분 대신 부정적분이면 미분한 식만 남음
-vals6 = {fC.subs({C: c, x: -1}) for c in (0, -2, 5)}
-print(f'ABLATION 6 아래끝 2(정적분 → 부정적분): 필요(적분상수가 정해지지 않음, f(-1)={sorted(vals6)} 등)'); assert len(vals6) > 1
-f6b = solve_I14(P6, 1)
-print(f'ABLATION 6 아래끝 값 2: 필요(1이면 답 바뀜 {v6} → {f6b.subs(x, -1)})'); assert f6b.subs(x, -1) != v6
+fC = 4*x**3 - 15*x + C                                               # 정적분 대신 부정적분이면 미분한 식만 남음
+vals6 = {fC.subs({C: c, x: 3}) for c in (0, -2, 5)}
+print(f'ABLATION 6 아래끝 2(정적분 → 부정적분): 필요(적분상수가 정해지지 않음, f(3)={sorted(vals6)} 등)'); assert len(vals6) > 1
+f6b = solve6(Q6, 1)
+print(f'ABLATION 6 아래끝 값 2: 필요(1이면 답 바뀜 {v6} → {f6b.subs(x, 3)})'); assert f6b.subs(x, 3) != v6
+f6c = solve6(0*x, 2)
+print(f'ABLATION 6 피적분 다항식 12t^3-15t: 필요(빼면 f=0, 답 바뀜 {v6} → {f6c.subs(x, 3)})'); assert f6c.subs(x, 3) != v6
 # 7번
 cnt = {}
 for c in grid:
