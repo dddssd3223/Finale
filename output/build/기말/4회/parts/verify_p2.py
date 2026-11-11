@@ -140,32 +140,34 @@ assert tsk == [2, 4] and sum(diff(t**3 + t**2, t).subs(t, r) for r in tsk) == 72
 chk(7, v7, [w7_pos, w7_spd])
 
 # ===== 8번 (J24 후보_순위 2 = 학교식_예상 2 + 예상밖 2 장치: 접선이 y=x, 계수 a) =====
-f8a = x**3 + 3*x**2 + a*x
+f8a = 4*x**3 + a*x
 assert f8a.subs(x, 0) == 0                                            # 점 (0,0)은 a와 무관하게 곡선 위
 a8 = solve(diff(f8a, x).subs(x, 0) - 1, a)                            # 접선 y=x ⇔ f(0)=0, f'(0)=1
 assert a8 == [1]
 f8 = f8a.subs(a, 1)
-assert expand(f8 - x - x**2*(x + 3)) == 0
-assert real_roots(Poly(f8 - x, x), multiple=True) == [-3, 0, 0]       # 곡선과 y=x: x=-3, x=0(접함)
+assert expand(f8 - x - 4*x**3) == 0
+assert real_roots(Poly(f8 - x, x), multiple=True) == [0, 0, 0]        # 곡선과 y=x: 원점에서만 만남 → 둘만으로 닫힌 부분 없음
 r8 = real_roots(Poly(f8 - (-x + 6), x))
-assert r8 == [1] and f8.subs(x, 1) == 5 and expand(f8 + x - 6 - (x - 1)*(x**2 + 4*x + 6)) == 0   # 곡선과 y=-x+6: (1,5) 하나
+assert r8 == [1] and f8.subs(x, 1) == 5 and expand(f8 + x - 6 - 2*(x - 1)*(2*x**2 + 2*x + 3)) == 0   # 곡선과 y=-x+6: (1,5) 하나
+assert sp.discriminant(2*x**2 + 2*x + 3, x) < 0
 assert solve(x - (-x + 6), x) == [3]                                  # 두 직선: (3,3)
-# 세 경계로 둘러싸인 부분은 꼭짓점 (0,0), (1,5), (3,3)인 부분 하나: 0≤x≤1에서 x ≤ f ≤ -x+6, 1≤x≤3에서 x ≤ -x+6 ≤ f
+# 세 도형의 교점은 (0,0), (1,5), (3,3) 셋뿐(쌍마다 하나) → 닫힌 부분은 이 세 점이 꼭짓점인 부분 하나뿐
+# 0≤x≤1에서 x ≤ f ≤ -x+6, 1≤x≤3에서 x ≤ -x+6 ≤ f
 for q in [Rational(j, 20) for j in range(0, 61)]:
     fx, ln = f8.subs(x, q), -q + 6
     assert (q <= fx <= ln) if q <= 1 else (q <= ln <= fx)
+# x<0에서는 f(x) < x < -x+6 이라 닫힌 부분이 생기지 않음
+assert all(f8.subs(x, q) < q < -q + 6 for q in [Rational(-j, 10) for j in range(1, 101)])
 top = Piecewise((f8, x <= 1), (-x + 6, True))
 v8 = integrate(f8 - x, (x, 0, 1)) + integrate((-x + 6) - x, (x, 1, 3))
-assert v8 == Rational(21, 4) == integrate(top - x, (x, 0, 3))
-assert integrate(f8 - x, (x, 0, 1)) == Rational(5, 4) and Rational(1, 2)*4*2 == 4   # 곡선 부분 5/4 + 삼각형 (1,1),(1,5),(3,3) 넓이 4
-# 다른 방법(신발끈 + 곡선 조각): 다각형 (0,0),(1,1),(3,3),(1,5)는 일직선 부분 때문에 삼각형 (1,1),(3,3),(1,5)와 같음
-tri = Rational(abs((3 - 1)*(5 - 1) - (1 - 1)*(3 - 1)), 2)
-assert tri == 4 and tri + Rational(5, 4) == v8
-# 곡선과 y=x만으로 둘러싸인 부분(-3≤x≤0)은 직선 y=-x+6과 닿지 않음: 그 구간에서 f(x) < -x+6
-assert all(f8.subs(x, q) < -q + 6 for q in [Rational(j, 10) for j in range(-30, 1)])
+assert v8 == 5 == integrate(top - x, (x, 0, 3))
+assert integrate(f8 - x, (x, 0, 1)) == 1 and Rational(1, 2)*4*2 == 4   # 곡선 부분 1 + 삼각형 (1,1),(1,5),(3,3) 넓이 4
+tri = Rational(abs((3 - 1)*(5 - 1) - (1 - 1)*(3 - 1)), 2)             # 다른 방법(신발끈 + 곡선 조각)
+assert tri == 4 and tri + 1 == v8
 w8_nosub = integrate(f8, (x, 0, 1)) + 4                               # 곡선 부분에서 y=x를 빼지 않음
-assert w8_nosub == Rational(23, 4)
-chk(8, v8, [w8_nosub])
+w8_tri = integrate((-x + 6) - x, (x, 1, 3))                           # 곡선 부분을 빠뜨리고 삼각형 꼴만
+assert w8_nosub == Rational(11, 2) and w8_tri == 4
+chk(8, v8, [w8_nosub, w8_tri])
 
 # ===== 조건 빼 보기 =====
 print('--- 조건 빼 보기 ---')
@@ -204,8 +206,8 @@ ts_diff = sorted({r for s_ in (8, -8) for r in real_roots(Poly(D7 - s_, t)) if r
 print(f'ABLATION 7 중점(합의 절반): 필요(두 점 P, Q 사이의 거리가 8인 순간으로 읽으면 t={ts_diff}, 답 {v7} → {sum(vP.subs(t, r) for r in ts_diff)})'); assert ts_diff == [4] and sum(vP.subs(t, r) for r in ts_diff) == w7_pos
 # 8번
 def area8(av, kv=6):
-    """f=x^3+3x^2+av·x (av≥1), y=x, y=-x+kv: 곡선이 x≥0에서 y=x 위에 있을 때 세 경계 부분의 넓이"""
-    fa = x**3 + 3*x**2 + av*x
+    """f=4x^3+av·x (av≥1), y=x, y=-x+kv: 곡선이 x≥0에서 y=x 위에 있을 때 세 경계 부분의 넓이"""
+    fa = 4*x**3 + av*x
     rr = [r for r in real_roots(Poly(fa + x - kv, x)) if r > 0]
     assert len(rr) == 1
     assert all(fa.subs(x, q) >= q for q in [Rational(j, 10) for j in range(0, 61)])
@@ -213,9 +215,8 @@ def area8(av, kv=6):
 assert area8(1) == v8
 alt8 = sp.N(area8(2), 6)
 print(f'ABLATION 8 접선이 y=x(a=1): 필요(a=2이면 넓이 {alt8}로 달라짐, a가 정해지지 않음)'); assert abs(alt8 - sp.N(v8)) > 1e-3
-alt8k = area8(1, 24)                                                  # y=-x+24는 곡선과 (2, 22)에서 만남
-print(f'ABLATION 8 직선 y=-x+6: 필요(y=-x+24이면 답 {v8} → {alt8k}; 빼면 둘러싸인 부분이 -3≤x≤0의 다른 부분이 됨)'); assert alt8k == 112 and alt8k != v8
-loop8 = integrate(f8 - x, (x, -3, 0))
-print(f'ABLATION 8 직선 y=x: 필요(빼면 세 경계가 되지 않음; 참고로 곡선과 y=x만으로 둘러싸인 부분은 {loop8})'); assert loop8 == Rational(27, 4)
+alt8k = area8(1, 36)                                                  # y=-x+36은 곡선과 (2, 34)에서 만남
+print(f'ABLATION 8 직선 y=-x+6: 필요(y=-x+36이면 답 {v8} → {alt8k}; 빼면 곡선과 y=x는 원점에서만 만나 둘러싸인 부분이 없음)'); assert alt8k == 272 and alt8k != v8
+print('ABLATION 8 직선 y=x: 필요(빼면 곡선과 직선 y=-x+6은 점 (1, 5)에서만 만나 둘러싸인 부분이 없음)'); assert len(real_roots(Poly(f8 + x - 6, x))) == 1
 
 print('ALL OK')
