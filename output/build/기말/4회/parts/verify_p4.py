@@ -94,15 +94,19 @@ def loc_ext(f, kind):
 
 
 def g13(n):
-    """동전 n개: (a1, a2) 전수 → 극솟값을 갖는 경우의 극솟값 가운데 최솟값과 그때의 순서쌍"""
-    best, arg = None, []
+    """동전 n개: (a1, a2) 전수 → 극솟값을 갖는 경우의 극솟값 가운데 최솟값과 그때의 순서쌍.
+    f=x(x-i)(x-j), f'=3x^2-2(i+j)x+ij. 판별식 D/4=(i+j)^2-3ij>0이면 큰 근에서 극소(실수 계산으로 고르고 최소인 쌍만 정확히 계산)."""
+    cand = []
     for i in range(n + 1):
         for j in range(n + 1):
-            m = loc_ext(sp.expand(x * (x - i) * (x - j)), 'min')
-            if not m: continue
-            if best is None or m[0] < best: best, arg = m[0], [(i, j)]
-            elif m[0] == best: arg.append((i, j))
-    return best, arg
+            D = (i + j)**2 - 3 * i * j
+            if D <= 0: continue            # i=j=0뿐: 극값 없음
+            s_ = ((i + j) + D**0.5) / 3
+            cand.append((s_ * (s_ - i) * (s_ - j), i, j))
+    lo = min(c[0] for c in cand)
+    arg = [(i, j) for v, i, j in cand if abs(v - lo) < 1e-9]
+    exact = {loc_ext(sp.expand(x * (x - i) * (x - j)), 'min')[0] for i, j in arg}
+    return (exact.pop() if len(exact) == 1 else None), arg
 
 
 G13 = {n: g13(n) for n in range(1, 10)}
@@ -141,13 +145,18 @@ vtx = sp.factor(dR.subs(x, -a))
 check(14, sp.expand(vtx + (a - 3 * tn) * (a + tn)) == 0, f"x>0, a<0: 꼭짓점 값 f'(-a)={vtx} >= 0 → 3t<=a<=-t")
 
 
+from fractions import Fraction as Fr
+
+
 def feas14(av, tv, N=160):
-    """a=av, 전환점 tv, b=-3t^2-2at에서 조건(감소·증가)을 도함수 부호로 직접 확인"""
+    """a=av, 전환점 tv, b=-3t^2-2at에서 조건(감소·증가)을 도함수 부호로 직접 확인(분수 계산)"""
+    av, tv = Fr(str(av)), Fr(str(tv))
     bv = -3 * tv**2 - 2 * av * tv
-    d1 = sp.diff(L14, x).subs({a: av, b: bv}); d2 = sp.diff(R14, x).subs({a: av, b: bv})
-    if any(d1.subs(x, tv - R(i, 16)) > 0 for i in range(1, N)): return False
-    if any(d1.subs(x, tv * (1 - R(i, N))) < 0 for i in range(1, N)): return False
-    return not any(d2.subs(x, R(i, 32)) < 0 for i in range(0, 20 * N // 4))
+    d1 = lambda u: -3 * u * u - 2 * av * u - bv          # x<0
+    d2 = lambda u: u * u + 2 * av * u - bv               # x>0
+    if any(d1(tv - Fr(i, 16)) > 0 for i in range(1, N)): return False
+    if any(d1(tv * (1 - Fr(i, N))) < 0 for i in range(1, N)): return False
+    return not any(d2(Fr(i, 32)) < 0 for i in range(0, 32 * 20))
 
 
 def range14(tv):
@@ -185,10 +194,14 @@ o_lo = min(sp.solve(-a**2 - 2 * a + 1, a)); o14 = sp.simplify(3 * (R(1, 2) - o_l
 check('D9', o_lo == -1 - sp.sqrt(2) and sp.simplify(o14 - (R(9, 2) + 3 * sp.sqrt(2))) == 0 and orig_ans('D9') == r'\dfrac92+3\sqrt2',
       f'D9 원문: a∈[{o_lo}, 1/2], M-m={o14} = 원문 정답 {orig_ans("D9")}')
 print('--- 14번 조건 빼 보기 ---')
-ablation(14, "'[t, ∞)에서 증가' 가운데 x>0 부분", [], -2, undef='a의 아래쪽 제한이 없어져 t<-3/2에서 3a-b=3t^2+(3+2t)a의 최댓값이 없음')
-ablation(14, "'(-∞, t]에서 감소'", [], -2, undef="f'(t)=0과 a<=-3t/2가 없어져 b가 정해지지 않고 3a-b의 최댓값이 없음")
+# x>0에서의 증가 조건이 없으면 a>=3t가 사라짐: t<-3/2에서는 3a-b가 한없이 커지고, -3/2<=t<0에서는 최댓값 -9t/2<=27/4
+no_right = [s_ for s_ in sp.solve(sp.Eq(-R(9, 2) * tt, 18), tt) if -R(3, 2) <= s_ < 0]
+ablation(14, "'[t, ∞)에서 증가' 가운데 x>0 부분", no_right, -2, 'a>=3t가 없어져 t<-3/2에서는 3a-b의 최댓값이 없고, -3/2<=t<0에서는 최댓값이 27/4 이하라 18이 되는 t가 없음')
+# 감소 조건이 없으면 f'(t)=0이 필요 없어 b를 한없이 작게 잡아도 [t, ∞)에서 증가(예: a=0, b=-100)
+bigb = all(-3 * Fr(-2 * i, 100)**2 + 100 >= 0 for i in range(0, 101)) and all(Fr(i, 10)**2 + 100 >= 0 for i in range(0, 200))   # t=-2, a=0, b=-100: (-2, 0)과 x>0에서 f'>=0
+check(14, bigb, '감소 조건을 빼면 t=-2, a=0, b=-100도 [t, ∞)에서 증가(3a-b=100>18)')
+ablation(14, "'(-∞, t]에서 감소'", [], -2, undef="f'(t)=0이 필요 없어 b를 한없이 작게 잡을 수 있고(예: t=-2, a=0, b=-100) 3a-b의 최댓값이 없음")
 ablation(14, "'최댓값이 18'", [sp.Integer(-2), sp.Integer(-3), sp.Integer(-4)], -2, 't가 정해지지 않음')
-ablation(14, "구하는 식 3a-b를 원문의 a+b로", [sp.solve(sp.Eq(-R(3, 2) * tt, 18), tt)[0]], -2, 'a+b=-3t^2+(1-2t)a의 최댓값은 -3t/2')
 
 # ================= 15번 (I62 후보_순위 2 + GEN2-03-132 꼴에 계수 2) =================
 A_, B_ = sp.symbols('A_ B_', real=True)
@@ -233,78 +246,99 @@ o15 = so[0][A_] + fo.subs(so[0]).subs(x, 3)
 check('I62', len(so) == 1 and o15 == 8 and orig_ans('I62') == '8', f'I62 원문: a={so[0][A_]}, f={sp.expand(fo.subs(so[0]))}, a+f(3)={o15} = 원문 정답 {orig_ans("I62")}')
 print('--- 15번 조건 빼 보기 ---')
 fam = solve15(cond=False)
-vals = [sp.expand(fa + ff.subs(x, 2)).subs(A_, av) for fa, fb, ff in fam for av in (1, 2, 3)]
-ablation(15, "'∫_0^1 f(t)dt-f(1)=2'", vals, 12, f'a가 정해지지 않음: a+f(2)={sp.expand(fam[0][0] + fam[0][2].subs(x, 2))}')
-ablation(15, "계수 2(∫_1^x t f(t)dt의 앞)", [fa + ff.subs(x, 2) for fa, fb, ff in solve15(coef=1)], 12, '계수가 1이면 f=-12x^2+6ax, a=4가 되어 차 조건과 맞지 않음')
+vals = [sp.expand(fa + ff.subs(x, 2)).subs(B_, bv) for fa, fb, ff in fam for bv in (-3, -5, -7)]
+ablation(15, "'∫_0^1 f(t)dt-f(1)=2'", vals, 12, f'a가 정해지지 않음(a=-(b+1)/2): a+f(2)={sp.expand(fam[0][0] + fam[0][2].subs(x, 2))}')
+ablation(15, "계수 2(∫_1^x t f(t)dt의 앞)", [fa + ff.subs(x, 2) for fa, fb, ff in solve15(coef=1)], 12, '계수가 1이면 0=4x^3-3ax^2+3a+∫_1^x f에서 a=4, f=-12x^2+24x가 되어 차 조건 ∫_0^1 f-f(1)=-4와 맞지 않음')
 ablation(15, "'+3ax' 항", [fa + ff.subs(x, 2) for fa, fb, ff in solve15(kx=0)], 12, 'f의 상수항이 바뀜')
-ablation(15, "아래끝 1(0으로)", [fa + ff.subs(x, 2) for fa, fb, ff in solve15(lower=0)], 12, 'x=0 대입식이 달라짐')
+ablation(15, "아래끝 1(0으로)", [fa + ff.subs(x, 2) for fa, fb, ff in solve15(lower=0)], 12, 'x=0 대입에서 a=0, f=6x^2+C가 되어 차 조건과 맞지 않음')
 ablation(15, "'-ax^3'의 부호(+로)", [fa + ff.subs(x, 2) for fa, fb, ff in solve15(sgn=1)], 12)
 k15 = [sp.simplify(fa + fb + ff.subs(x, 2)) for kk in (0, 3, 5) for fa, fb, ff in solve15(kx=kk)]
 check(15, len(set(k15)) == 1, f'(참고) a+b+f(2)는 3ax의 계수와 무관({set(k15)}) → 구하는 값을 a+f(2)로 둠')
 
-# ================= 16번 (D67 결합 1: D47의 f' 최솟값 장치 + 불연속 개수 + 폭 k) =================
-def fprime(p_, q_):
-    """f'(x) = 3/2((x-p)^2 - q): q>0이면 두 근 p±sqrt(q), q=0이면 한 근, q<0이면 근 없음"""
-    return R(3, 2) * ((x - p_)**2 - q_)
-
-
-def roots16(p_, q_):
+# ================= 16번 (D67 결합 1: D47의 f' 최솟값 장치 + 폭 매개변수 k) =================
+# f'(x) = 3/2((x-p)^2 - q): q>0이면 두 근 p±sqrt(q)(q는 유리수의 제곱만 씀), q=0이면 한 근, q<0이면 근 없음
+def rt16(p_, q_):
+    p_, q_ = Fr(str(p_)), Fr(str(q_))
     if q_ < 0: return []
-    if q_ == 0: return [sp.nsimplify(p_)]
-    return [p_ - sp.sqrt(q_), p_ + sp.sqrt(q_)]
+    if q_ == 0: return [p_]
+    w = Fr(sp.sqrt(sp.Rational(q_.numerator, q_.denominator)).p, sp.sqrt(sp.Rational(q_.numerator, q_.denominator)).q)
+    assert w * w == q_
+    return [p_ - w, p_ + w]
+
+
+def fp16(u, p_, q_):
+    return Fr(3, 2) * ((Fr(str(u)) - Fr(str(p_)))**2 - Fr(str(q_)))
 
 
 def g16(tv, p_, q_, k_):
-    return sum(1 for r_ in roots16(p_, q_) if tv <= r_ <= tv + k_)
+    tv, k_ = Fr(str(tv)), Fr(str(k_))
+    return sum(1 for r_ in rt16(p_, q_) if tv <= r_ <= tv + k_)
 
 
 def h16(tv, p_, q_, k_):
-    fp = fprime(p_, q_)
-    if tv <= p_ <= tv + k_: return fp.subs(x, p_)
-    return min(fp.subs(x, tv), fp.subs(x, tv + k_))
+    tv, k_, pf = Fr(str(tv)), Fr(str(k_)), Fr(str(p_))
+    if tv <= pf <= tv + k_: return fp16(pf, p_, q_)
+    return min(fp16(tv, p_, q_), fp16(tv + k_, p_, q_))
 
 
-def disc16(p_, q_, k_):
-    """g(t)의 불연속점: 후보는 근, 근-k. 좌우 가까운 값과 함숫값을 비교"""
-    cands = set()
-    for r_ in roots16(p_, q_): cands |= {r_, r_ - k_}
-    e = R(1, 10**4); out = []
-    for c in cands:
-        l_, m_, r2 = g16(c - e, p_, q_, k_), g16(c, p_, q_, k_), g16(c + e, p_, q_, k_)
-        if not (l_ == m_ == r2): out.append(c)
-    return sorted(out, key=float)
+def limsum16(p_, q_, k_):
+    """(가)의 좌변 lim_{t→a+}g + lim_{t→a-}g 의 최댓값: g가 변하는 점(근, 근-k)과 그 사이 점에서 좌우 가까운 값의 합"""
+    k_ = Fr(str(k_)); bp = sorted({r_ - d for r_ in rt16(p_, q_) for d in (0, k_)})
+    if not bp: return 0
+    pts = bp + [(u + w) / 2 for u, w in zip(bp, bp[1:])] + [bp[0] - 1, bp[-1] + 1]
+    e = Fr(1, 10**6)
+    return max(g16(c + e, p_, q_, k_) + g16(c - e, p_, q_, k_) for c in pts)
 
 
-def hconst(p_, q_, k_, lo, hi, val):
-    return all(h16(lo + (hi - lo) * R(i, 40), p_, q_, k_) == val for i in range(41))
+def ndisc16(p_, q_, k_):
+    k_ = Fr(str(k_)); e = Fr(1, 10**6)
+    return sum(1 for c in {r_ - d for r_ in rt16(p_, q_) for d in (0, k_)} if not (g16(c - e, p_, q_, k_) == g16(c, p_, q_, k_) == g16(c + e, p_, q_, k_)))
 
 
-def fcubic(p_, q_, c3):
-    """f' = 3/2((x-p)^2-q), f(3)=c3"""
-    Fx = sp.integrate(fprime(p_, q_), x)
-    return sp.expand(Fx - Fx.subs(x, 3) + c3)
+def hconst(p_, q_, k_, lo=2, hi=3, val=Fr(-3, 2)):
+    return all(h16(lo + Fr(hi - lo) * Fr(i, 40), p_, q_, k_) == val for i in range(41))
 
 
-# (가): 간격과 폭의 대소에 따른 불연속점 개수
-cnt = {name: len(disc16(4, q_, k_)) for name, q_, k_ in [('간격<폭', 1, 3), ('간격=폭', 1, 2), ('간격>폭', 1, 1), ('근 하나', 0, 2), ('근 없음', -1, 2), ('간격=폭(4)', 4, 4), ('간격<폭(2)', R(1, 4), 2)]}
-check(16, cnt == {'간격<폭': 4, '간격=폭': 3, '간격>폭': 4, '근 하나': 2, '근 없음': 0, '간격=폭(4)': 3, '간격<폭(2)': 4}, f'(가) 불연속점 개수: {cnt} → 3개 ⇔ 두 근의 간격 = k')
-# 전수: q(최솟값 -3q/2), k, p 격자에서 (가)(다)를 만족시키는 경우
-QS = [-1, 0, R(1, 4), 1, R(9, 4), 4]; KS = [R(1, 2), 1, R(3, 2), 2, 3, 4, 5]; PS = [R(i, 4) for i in range(0, 37)]
-surv = [(p_, q_, k_) for q_ in QS for k_ in KS for p_ in PS if len(disc16(p_, q_, k_)) == 3 and hconst(p_, q_, k_, 2, 3, -R(3, 2))]
-check(16, surv and {(q_, k_) for p_, q_, k_ in surv} == {(1, 2)} and sorted(p_ for p_, q_, k_ in surv) == [R(i, 4) for i in range(12, 17)],
-      f'(가)(다) 격자 전수(q 6개 × k 7개 × p 37개): q=1(최솟값 -3/2), k=2, 3<=p<=4만 남음({len(surv)}개)')
+def fcubic(p_, q_, c3, at=3):
+    """f' = 3/2((x-p)^2-q), f(at)=c3"""
+    Fx = sp.integrate(R(3, 2) * ((x - sp.nsimplify(p_))**2 - sp.nsimplify(q_)), x)
+    return sp.expand(Fx - Fx.subs(x, at) + sp.nsimplify(c3))
+
+
+def fv(f_, u):
+    v = f_.subs(x, u)
+    return Fr(v.p, v.q)
+
+
+# (가)(나): 간격과 폭의 대소에 따른 극한의 합의 최댓값과 g=2인 t의 존재
+tab = {name: (limsum16(4, q_, k_), any(g16(Fr(i, 8), 4, q_, k_) == 2 for i in range(0, 80)), ndisc16(4, q_, k_))
+       for name, q_, k_ in [('간격<폭', 1, 3), ('간격=폭', 1, 2), ('간격>폭', 1, 1), ('근 하나', 0, 2), ('근 없음', -1, 2), ('간격=폭(4)', 4, 4), ('간격<폭(2)', Fr(1, 4), 2)]}
+for nm, (ls, g2, nd) in tab.items(): print(f'    {nm}: 극한의 합의 최댓값 {ls}, g=2인 t {"있음" if g2 else "없음"}, 불연속점 {nd}개')
+check(16, [nm for nm, (ls, g2, nd) in tab.items() if ls <= 2 and g2] == ['간격=폭', '간격=폭(4)'], '(가)이면서 g(t)=2인 t가 있는 것은 두 근의 간격 = k일 때뿐(이때 불연속점 3개)')
+# 전수: q(최솟값 -3q/2), k, p 격자에서 (가)(다)를 만족시키고 g=2인 t가 있는 경우
+QS = [-1, 0, Fr(1, 4), 1, Fr(9, 4), 4]; KS = [Fr(1, 2), 1, Fr(3, 2), 2, 3, 4, 5]; PS = [Fr(i, 4) for i in range(0, 37)]
+s_gd = [(p_, q_, k_) for q_ in QS for k_ in KS for p_ in PS if limsum16(p_, q_, k_) <= 2 and hconst(p_, q_, k_)]
+check(16, s_gd and {q_ for p_, q_, k_ in s_gd} == {1} and {k_ for p_, q_, k_ in s_gd} == {1, Fr(3, 2), 2} and all(3 <= p_ <= k_ + 2 for p_, q_, k_ in s_gd),
+      f'(가)(다) 격자 전수(q 6개 × k 7개 × p 37개): q=1(최솟값 -3/2, 간격 2), k<=2, 3<=p<=k+2 ({len(s_gd)}개)')
+surv = [(p_, q_, k_) for p_, q_, k_ in s_gd if any(g16(r_ - d, p_, q_, k_) == 2 for r_ in rt16(p_, q_) for d in (0, k_))]
+check(16, {k_ for p_, q_, k_ in surv} == {2} and sorted(p_ for p_, q_, k_ in surv) == [Fr(i, 4) for i in range(12, 17)], f'여기에 (나)의 g=2인 t가 있어야 하므로 k=2, 3<=p<=4만 남음({len(surv)}개)')
 # (나): g(t)=2 ⇔ t=α=p-1 → f(3)=f(6)=p-1
 pp = sp.symbols('pp', real=True)
-d36 = sp.factor(sp.integrate(fprime(pp, 1), (x, 3, 6)))
+d36 = sp.factor(sp.integrate(R(3, 2) * ((x - pp)**2 - 1), (x, 3, 6)))
 psol = sorted(sp.solve(d36, pp))
 check(16, sp.expand(d36 - R(9, 2) * (pp - 4) * (pp - 5)) == 0 and psol == [4, 5], f'f(6)-f(3)={d36}=0 → p={psol}')
-check(16, [tv for tv in [R(i, 8) for i in range(0, 60)] if g16(tv, 4, 1, 2) == 2] == [3], 'p=4, k=2: g(t)=2인 t는 작은 근 3뿐(1/8 격자)')
-final = []
-for p_ in psol:
-    if 3 <= p_ <= 4:
-        f_ = fcubic(p_, 1, p_ - 1)
-        if g16(f_.subs(x, 3), p_, 1, 2) == 2 and g16(f_.subs(x, 6), p_, 1, 2) == 2 and len(disc16(p_, 1, 2)) == 3 and hconst(p_, 1, 2, 2, 3, -R(3, 2)):
-            final.append((p_, f_))
+check(16, [tv for tv in [Fr(i, 8) for i in range(0, 60)] if g16(tv, 4, 1, 2) == 2] == [3], 'p=4, k=2: g(t)=2인 t는 작은 근 3뿐(1/8 격자)')
+
+
+def all_ok(p_, q_, k_, f_, use=('가', '나3', '나6', '다')):
+    if '가' in use and limsum16(p_, q_, k_) > 2: return False
+    if '나3' in use and g16(fv(f_, 3), p_, q_, k_) != 2: return False
+    if '나6' in use and g16(fv(f_, 6), p_, q_, k_) != 2: return False
+    if '다' in use and not hconst(p_, q_, k_): return False
+    return True
+
+
+final = [(p_, fcubic(p_, 1, p_ - 1)) for p_ in psol if all_ok(p_, 1, 2, fcubic(p_, 1, p_ - 1))]
 f16 = final[0][1]
 check(16, len(final) == 1 and final[0][0] == 4 and sp.expand(f16 - (R(1, 2) * (x - 3)**2 * (x - 6) + 3)) == 0 and sp.LC(f16, x) == R(1, 2),
       f'조건을 모두 만족시키는 f는 하나: p=4, f={sp.factor(f16 - 3)}+3')
@@ -314,54 +348,40 @@ ans_ok(16, ans16)
 # 오답: ⑤ 7 (다른 후보 p=5, α=4) / ③ 5 (g(t)=2인 t를 큰 근 β=5로: f(3)=f(6)=5)
 fB = fcubic(5, 1, 4); fb_ = fcubic(4, 1, 5)
 w_B = 2 + fB.subs(x, 5); w_beta = 2 + fb_.subs(x, 5)
-check(16, sp.expand(fB - (R(1, 2) * (x - 3) * (x - 6)**2 + 4)) == 0 and not hconst(5, 1, 2, 2, 3, -R(3, 2)) and w_B == 7 and fb_.subs(x, 6) == 5 and w_beta == 5,
-      f'오답: 다른 후보 p=5(f(3)=f(6)=4, (다) 불성립) → {w_B}, t=큰 근 착각 f(3)=f(6)=5 → {w_beta}')
+check(16, sp.expand(fB - (R(1, 2) * (x - 3) * (x - 6)**2 + 4)) == 0 and not hconst(5, 1, 2) and all_ok(5, 1, 2, fB, use=('가', '나3', '나6')) and w_B == 7 and fb_.subs(x, 6) == 5 and w_beta == 5,
+      f'오답: 다른 후보 p=5(f(3)=f(6)=4, (가)(나)는 만족·(다) 불성립) → {w_B}, t=큰 근 착각 f(3)=f(6)=5 → {w_beta}')
 wrong_in(16, [w_B, w_beta], '(다)로 거르지 않은 다른 후보 / g(t)=2인 t를 큰 근으로')
 # 원문 D67: [t,t+2], f(1)=f(4)=α, g(f(0))=1 → f(5)=9
 oc = []
 for al in sp.solve(sp.integrate(R(3, 2) * (x - pp) * (x - pp - 2), (x, 1, 4)), pp):
-    Fo = sp.integrate(R(3, 2) * (x - al) * (x - al - 2), x); fo_ = sp.expand(Fo - Fo.subs(x, 1) + al)
-    if sum(1 for r_ in (al, al + 2) if fo_.subs(x, 0) <= r_ <= fo_.subs(x, 0) + 2) == 1: oc.append(fo_.subs(x, 5))
+    fo_ = fcubic(al + 1, 1, al, at=1)
+    if g16(fv(fo_, 1), al + 1, 1, 2) == g16(fv(fo_, 4), al + 1, 1, 2) == 2 and g16(fv(fo_, 0), al + 1, 1, 2) == 1 and limsum16(al + 1, 1, 2) <= 2: oc.append(fo_.subs(x, 5))
 check('D67', oc == [9] and orig_ans('D67') == 9, f'D67 원문: f(5)={oc} = 원문 정답 {orig_ans("D67")}')
 print('--- 16번 조건 빼 보기 ---')
-
-
-def all_ok(p_, q_, k_, f_, use=('가', '나3', '나6', '다')):
-    if '가' in use and len(disc16(p_, q_, k_)) != 3: return False
-    if '나3' in use and g16(f_.subs(x, 3), p_, q_, k_) != 2: return False
-    if '나6' in use and g16(f_.subs(x, 6), p_, q_, k_) != 2: return False
-    if '다' in use and not hconst(p_, q_, k_, 2, 3, -R(3, 2)): return False
-    return True
-
-
 check(16, all_ok(4, 1, 2, f16), '정답 함수는 (가)(나)(다)를 모두 만족')
 # (가) 없음: k=3, p=4, f(3)=f(6)=c (2<=c<=3) 등도 가능
 vals = [k_ + fcubic(4, 1, c).subs(x, 5) for k_, c in [(2, 3), (3, 2), (3, R(5, 2)), (3, 3)] if all_ok(4, 1, k_, fcubic(4, 1, c), use=('나3', '나6', '다'))]
-ablation(16, '(가)', vals, 3, 'k=3이면 g(t)=2인 t가 구간 [2, 3]이 되어 f(3)=f(6)의 값과 k가 정해지지 않음')
+ablation(16, '(가)', vals, 3, 'k=3이면 g(t)=2인 t가 2<=t<=3 전체가 되어 f(3)=f(6)의 값과 k가 정해지지 않음')
 # g(f(3))=2 없음: f(6)=p-1, 3<=p<=4
-vals = []
-for p_ in (3, R(7, 2), 4):
-    Fx = sp.integrate(fprime(p_, 1), x); f_ = sp.expand(Fx - Fx.subs(x, 6) + p_ - 1)
-    if all_ok(p_, 1, 2, f_, use=('가', '나6', '다')): vals.append(2 + f_.subs(x, 5))
+vals = [2 + f_.subs(x, 5) for p_ in (3, R(7, 2), 4) for f_ in [fcubic(p_, 1, p_ - 1, at=6)] if all_ok(p_, 1, 2, f_, use=('가', '나6', '다'))]
 ablation(16, "(나) 'g(f(3))=2'", vals, 3, 'p가 3<=p<=4에서 정해지지 않음')
-vals = [2 + fcubic(p_, 1, p_ - 1).subs(x, 5) for p_ in (3, R(7, 2), 4) if all_ok(p_, 1, 2, fcubic(p_, 1, p_ - 1), use=('가', '나3', '다'))]
+vals = [2 + f_.subs(x, 5) for p_ in (3, R(7, 2), 4) for f_ in [fcubic(p_, 1, p_ - 1)] if all_ok(p_, 1, 2, f_, use=('가', '나3', '다'))]
 ablation(16, "(나) 'g(f(6))=2'", vals, 3, 'p가 3<=p<=4에서 정해지지 않음')
-# (다) 없음: k 자유. 간격 k, f(3)=f(6)=α → k=2(α=3, 4) 말고도 k=3(α=3±sqrt(6)/2) 등
+# (다) 없음: 폭 k와 간격이 같으면 (가)를 만족. k=2(α=3, 4) 말고도 k=3(α=3±sqrt(6)/2) 등에서 f(3)=f(6)=α
+al_ = sp.symbols('al_', real=True)
 vals = []
 for k_ in (2, 3):
-    al_ = sp.symbols('al_', real=True)
     for al in sp.solve(sp.integrate(R(3, 2) * (x - al_) * (x - al_ - k_), (x, 3, 6)), al_):
-        p_, q_ = al + R(k_, 2), R(k_, 2)**2
-        f_ = fcubic(p_, q_, al)
-        if all_ok(p_, q_, k_, f_, use=('가', '나3', '나6')): vals.append(sp.nsimplify(sp.simplify(k_ + f_.subs(x, 5))))
+        Fx = sp.integrate(R(3, 2) * (x - al) * (x - al - k_), x); f_ = sp.expand(Fx - Fx.subs(x, 3) + al)
+        good = sp.simplify(f_.subs(x, 6) - al) == 0          # f(3)=f(6)=α(작은 근), 간격 = k → g(α)=2, (가) 성립
+        if good: vals.append(sp.nsimplify(sp.simplify(k_ + f_.subs(x, 5))))
 ablation(16, '(다)', vals, 3, 'k와 두 근의 위치가 정해지지 않음')
 vals = [2 + f_.subs(x, 5) for p_, f_ in [(4, f16), (5, fB)] if all_ok(p_, 1, 2, f_, use=('가', '나3', '나6'))]
 ablation(16, "(다)의 구간 [2, 3](최솟값 -3/2만 남김)", vals, 3, '두 후보 p=4, 5를 거르지 못함')
 # (다)의 값: 최솟값이 -6이면 간격 4, k=4, 3<=p<=6 → f(3)=f(6)=p-2를 만족시키는 p가 범위에 없음
-al_ = sp.symbols('al_', real=True)
 c4 = [al + 2 for al in sp.solve(sp.integrate(R(3, 2) * (x - al_) * (x - al_ - 4), (x, 3, 6)), al_) if 3 <= al + 2 <= 6]
 ablation(16, "(다)의 값 -3/2(-6으로)", c4, 3, '간격 4, k=4, 3<=p<=6에서 f(3)=f(6)=p-2인 p가 없음')
-# 폭 k를 원문처럼 2로 고정하면 (가)가 (다)에서 따라 나옴 → k를 문자로 둔 이유
-check(16, len(disc16(4, 1, 2)) == 3, '(참고) 폭을 2로 고정하면 (다)의 간격 2에서 (가)가 따라 나옴 → 폭을 문자 k로 두어 (가)가 k를 정하게 함')
+# 폭을 원문처럼 2로 고정해도 답은 같지만, k를 문자로 두면 (다)의 간격 2와 (가)(나)의 '간격 = k'를 이어야 k가 정해짐
+check(16, {k_ for p_, q_, k_ in surv} == {2}, '(참고) 폭 k는 (가)(나)(다)를 함께 써야 2로 정해짐(k<2는 (나), k>2는 (가)에 어긋남)')
 
 print('ALL OK' if ok else 'SOME FAIL')
