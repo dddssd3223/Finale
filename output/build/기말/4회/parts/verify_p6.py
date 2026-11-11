@@ -13,7 +13,7 @@ import items_final as F
 x, t, a, r, q = sp.symbols('x t a r q', real=True)
 ns = {}; exec(open(os.path.join(HERE, 'p6.py')).read(), ns)
 it = ns['ITEMS'][18]
-assert it['cand'] == 'A18' and it['key'] == 'M28' and it['ans'] == 3 and it['db_ref'] == 'M28 킬러 설계A'
+assert it['cand'] == 'A18' and it['key'] == 'M28' and it['ans'] == 4 and it['db_ref'] == 'M28 킬러 설계A'
 assert it['core']['axis'] == '②' and set(it['core']) == {'axis', 'setting', 'principle', 'new'}
 assert not it.get('cond') and it['effect'] == '어려워짐' and it['bunseok'] is False and '함정 추가' not in it['vtype']
 assert 'x^3-3x^2+ax-5a+22' in it['body'] and 'f(x)g(x)=0' in it['body'] and r'\(S=2\)' in it['body'] and r'\(f(2)\)' in it['body']
@@ -132,7 +132,7 @@ print('  실근이 둘 이상인 a 구간의 끝(판별식=0):', [str(sp.N(v, 6)
 ans = sum(ask(av) for av in valid)
 assert sp.expand(fam.subs(x, 2) - (18 - 3*a)) == 0
 assert [ask(av) for av in sorted(valid)] == [30, 9] and ans == 39 and CH[it['ans'] - 1] == ans
-print(f'정답: f(2)=18-3a → 30 + 9 = {ans} = ③')
+print(f'정답: f(2)=18-3a → 30 + 9 = {ans} = ④')
 
 # ---------- 선지 ----------
 dif = {CH[i + 1] - CH[i] for i in range(4)}
@@ -144,8 +144,8 @@ w42 = ans + ask(5)                    # a=5(두 접점 겹침)를 버리지 않�
 w33 = ask(-4) + ask(5)                # a=3(수평접선 하나)을 놓치고 a=5를 넣음
 w30 = ask(-4)                         # 수평접선 두 개인 경우만 (선지 밖)
 w9 = ask(3)                           # a=3만 (선지 밖)
-assert (w42, w33, w30, w9) == (42, 33, 30, 9) and w30 not in CH and w9 not in CH
-assert it['wrongs'] == ['42', '33'] and all(sp.nsimplify(w) in CH for w in it['wrongs'])
+assert (w42, w33, w30, w9) == (42, 33, 30, 9) and w9 not in CH
+assert it['wrongs'] == ['42', '30', '33'] and all(sp.nsimplify(w) in CH for w in it['wrongs'])
 flat = it['wrong'].replace(r'\(', '').replace(r'\)', '').replace(' ', '')
 for s_ in ('30+9+3=42', '30+3=33', 'a=5'):
     assert s_ in flat, s_
