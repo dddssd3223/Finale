@@ -16,7 +16,7 @@ for _f in sorted(_os.listdir(_P)):
         _ns = {'_P': _P}; exec(open(_os.path.join(_P, _f)).read(), _ns)
         ITEMS.update(_ns.get('ITEMS', {})); SITEMS.update(_ns.get('SITEMS', {}))
 # 측정 뒤 자리 바꾸기: parts 파일의 번호(출제 때 번호) → 시험지 번호 (4회: 아직 없음)
-RENUM = {}
+RENUM = {1: 3, 3: 2, 2: 1}   # 1차 측정(측정_4회A·B): M42(3.8)를 3번으로, I54(1.7)를 1번으로, D53(3.4)를 2번으로
 ITEMS = {RENUM.get(n, n): it for n, it in ITEMS.items()}
 
 def _body(it):
