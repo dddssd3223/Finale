@@ -174,6 +174,16 @@ def round_(d):
             COEF = {'OP11', 'OP12', 'OP28', 'OP38', 'OP51'}
             cf = [n for n, it in its.items() if COEF & set(it.get('ops') or [])]
             out.append((f'계수·매개변수 조작(OP11·12·28·38·51) ≥{cmin}문항 (3회 7)', len(cf) >= cmin, cf))
+        # 난도 지수(성적노트 make_round.cuts와 같은 식) = 상·최상 배점 + 0.5×중상 배점, 서답형은 6점으로 셈.
+        # 2026-11-11 사용자 "너무 어렵네 / 중간 대비": 3·4회 지수 36.4·36.6 → 실제 2026-2 중간 25.6에 맞춤. round.json idx_range
+        try: irng = json.load(open(os.path.join(d, 'round.json'))).get('idx_range')
+        except Exception: irng = None
+        if irng:
+            PT = {n: (4.0 if n <= 4 else 4.2 if n <= 8 else 4.4 if n <= 10 else 4.5 if n <= 12 else 4.7 if n <= 15 else 4.9 if n == 16 else 5.2) for n in range(1, 19)}
+            lv = {**{int(n): (it.get('level') or '') for n, it in its.items()}, **{k: (it.get('level') or '') for k, it in S.items()}}
+            pt = lambda k: PT.get(k, 6) if isinstance(k, int) else 6
+            idx = sum(pt(k) for k, l in lv.items() if l in ('상', '최상')) + 0.5 * sum(pt(k) for k, l in lv.items() if l == '중상')
+            out.append((f'난도 지수 {irng[0]}–{irng[1]} (2026-2 중간 25.6, 사용자 "중간 대비")', irng[0] <= idx <= irng[1], round(idx, 1)))
         s1 = S.get('S1', {}).get('subs') or []
         out.append(('서답형1 소문항 2개·짧게 (2026-2 중간처럼, 사용자 지시)', len(s1) == 2, len(s1)))
     out.append(('내림차순 선지 ≤4 (2025 기말 4)' if db else '내림차순 선지 ≤2 (학교 17개 중 2)', len(desc) <= (4 if db else 2), desc))
