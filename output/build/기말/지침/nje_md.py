@@ -90,8 +90,8 @@ def main():
                     ch = rw.get('choices')
                     chs = ('\n\n' + '　'.join(f"{CIRC[i]} {fmt_choice(c)}" for i, c in enumerate(ch[:5]))) if ch else ''
                     lv = f" · {rw['level']}" if rw.get('level') else ''
-                    Q.append(f"**{n}.** `{KIND[it['kind']]}{lv}` {rw['problem']}{chs}\n")
-                    A.append(f"**{n}.** **{rw.get('answer', '')}** — {rw.get('solution', '')}" + (f"  \n  └ 주의: {rw['trap']}" if rw.get('trap') else '') + '\n')
+                    Q.append(f"**{n}.** `{KIND[it['kind']]}{lv}` {rw['problem']}{chs}\n\n")
+                    A.append(f"**{n}.** **{rw.get('answer', '')}** — {rw.get('solution', '')}" + (f"  \n  └ 주의: {rw['trap']}" if rw.get('trap') else '') + '\n\n')
                 else:
                     Q.append(f"**{n}.** `{KIND[it['kind']]}` {it['q']}\n")
                     A.append(f"**{n}.** {it['a'] or '(풀이 메모 없음 — 원문 풀이 참고)'}" + (f"  \n  └ {('주의' if it['kind'] != '결합' else '장치')}: {it['note']}" if it['note'] else '') + '\n')
@@ -110,7 +110,7 @@ def main():
                 sid = (DB[k].get('분석집_변형') or [])[int(r.split()[2]) - 1]['id']; s = STUDY.get(sid)
                 if not s: continue
                 n += 1; stat['분석집_변형'] += 1
-                Q.append(f"**{n}.** {s['problem']}\n"); A.append(f"**{n}.** {s['answer']}\n")
+                Q.append(f"**{n}.** {s['problem']}\n\n"); A.append(f"**{n}.** {s['answer']}\n\n")
         fn = os.path.join(OUT, '미적분1_기말_N제_분석집변형.md')
         open(fn, 'w').write(f"# 미적분Ⅰ 2학기 기말 N제 — 분석집 변형\n\n분석집에 실린 변형 가운데 모의고사에 들어가지 않은 {n}문항입니다(개인 학습용, 공유 금지).\n" + ''.join(Q) + '\n\n---\n\n# 정답 및 풀이\n' + ''.join(A)); files.append((fn, n))
         open(os.path.join(OUT, '.gitignore'), 'w').write('미적분1_기말_N제_분석집변형.md\n')
