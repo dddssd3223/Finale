@@ -9,7 +9,7 @@ with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'p1.py'), enc
     exec(fh.read(), ns)
 IT = ns['ITEMS']
 WANT = {1: 4, 2: 2, 3: 5, 4: 1}                                   # 분담표 정답 ④ ② ⑤ ①
-KEY = {1: ('M42', 'M42 후보_순위 1'), 2: ('I54', 'I54 후보_순위 1'), 3: ('D53', 'D53 후보_순위 1'), 4: ('M23', '자체 (가장 가까운 M23)')}
+KEY = {1: ('M42', 'M42 후보_순위 1'), 2: ('I54', 'I54 후보_순위 1'), 3: ('D53', 'D53 후보_순위 1'), 4: ('M11', '자체 (가장 가까운 M11)')}
 assert sorted(IT) == [1, 2, 3, 4]
 for n, it in IT.items():
     assert (it['key'], it['db_ref']) == KEY[n], n
@@ -47,10 +47,12 @@ def two_root_ks(h):
     cand = solve(discriminant(h + k, x), k)
     return sorted(c for c in cand if nroots(h + c) == 2), cand
 
-def meet_times(p1, p2, strict=True):
-    """두 위치 p1(t), p2(t)가 같아지는 시각 (strict: t>0, 아니면 t≥0), 오름차순"""
-    rs = sorted(set(real_roots(Poly(p1 - p2, t))))
-    return [r for r in rs if (r > 0 if strict else r >= 0)]
+def min_on_ge0(h):
+    """x≥0에서 다항식 h(x)(최고차항 계수 양수)의 최솟값과 그 값을 주는 x 전부: 끝점 0과 x>0인 정류점을 모두 비교"""
+    assert limit(h, x, oo) == oo
+    pts = [sp.Integer(0)] + [r for r in set(real_roots(Poly(diff(h, x), x))) if r > 0]
+    m = min(h.subs(x, r) for r in pts)
+    return m, sorted(r for r in pts if h.subs(x, r) == m)
 
 # ===== 원문 풀이 =====
 # M42: x^3-3x^2-9x+k=0, 서로 다른 실근 2개 → k=-5, 27, 합 22 (④)
@@ -60,10 +62,10 @@ assert ks0 == [-5, 27] and sum(ks0) == 22
 assert solve(integrate(4*x**3 + a, (x, 0, 1)) - 8, a) == [7]
 # D53: f(1)=3, 1<x<5에서 f'≥5 → f(5)≥3+5·4=23, f=5x-2에서 등호 (③)
 assert 3 + 5*(5 - 1) == 23 and (5*x - 2).subs(x, 1) == 3 and (5*x - 2).subs(x, 5) == 23
-# M23: x1=t^3-5t^2, x2=-2t^2+10t → t=5, p-q=35 (단답)
-o1, o2 = t**3 - 5*t**2, -2*t**2 + 10*t
-assert meet_times(o1, o2) == [5] and (diff(o1, t) - diff(o2, t)).subs(t, 5) == 35
-print('원문 풀이 OK (M42=22, I54=7, D53=23, M23=35)')
+# M11: x≥0에서 2x^3-6x^2+14>a → 최솟값 h(2)=6, 정수 a의 최댓값 5 (②)
+o4 = 2*x**3 - 6*x**2 + 14
+assert min_on_ge0(o4) == (6, [2]) and max(n for n in range(-20, 21) if n < 6) == 5
+print('원문 풀이 OK (M42=22, I54=7, D53=23, M11=5)')
 
 # ===== 1번 =====
 h1 = 2*x**3 - 15*x**2 + 24*x
@@ -114,21 +116,21 @@ assert w3_inc == 16
 chk(3, v3, [w3_inc])
 
 # ===== 4번 (자체 기본형) =====
-x1, x2 = -t**3 + 7*t**2, 2*t**2 + 6*t
-assert expand((x1 - x2) + t*(t - 2)*(t - 3)) == 0
-mt = meet_times(x1, x2)                                           # t>0에서 만나는 시각 전수
-assert mt == [2, 3]
-assert [x1.subs(t, s) for s in mt] == [x2.subs(t, s) for s in mt] == [20, 36]
-vP, vQ = diff(x1, t), diff(x2, t)
-assert expand(vP - (-3*t**2 + 14*t)) == 0 and expand(vQ - (4*t + 6)) == 0
-assert all(vP.subs(t, s) != 0 and vQ.subs(t, s) != 0 and vP.subs(t, s) != vQ.subs(t, s) for s in mt)   # 만나는 순간 정지·같은 속도 아님
-v4 = vP.subs(t, mt[1])
+h4 = 2*x**3 - 3*x**2 + k - (12*x - 5)                             # 부등식 ⇔ h4 ≥ 0
+assert expand(diff(h4, x) - 6*(x + 1)*(x - 2)) == 0
+m4, at4 = min_on_ge0(h4.subs(k, 0))                               # k=0일 때 x≥0에서의 최솟값 -15 (x=2 하나)
+assert (m4, at4) == (-15, [2]) and h4.subs({k: 0, x: 0}) == 5
+v4 = solve(sp.Eq(m4 + k, 0), k)[0]                                # 최솟값 k-15 ≥ 0 ⇔ k ≥ 15 → 최솟값 15 (등호 포함이라 달성)
 assert v4 == 15
-w4_first = vP.subs(t, mt[0])                                      # 오답: 처음 만나는 순간의 P의 속도
-w4_Q = vQ.subs(t, mt[1])                                          # 오답: 두 번째 만나는 순간의 Q의 속도
-assert (w4_first, w4_Q) == (16, 18)
-assert vQ.subs(t, mt[0]) == 14 and vQ.subs(t, mt[0]) not in [cv(c) for c in IT[4]['choices']]         # 두 실수가 겹쳐 정답이 되는 경로 없음
-chk(4, v4, [w4_first, w4_Q])
+for kk in [Rational(i, 4) for i in range(0, 161)]:                # 전수: k를 1/4 간격으로 훑어 '항상 성립 ⇔ k≥15' 확인
+    assert (min_on_ge0(h4.subs(k, kk))[0] >= 0) == (kk >= 15), kk
+w4_noc = -min_on_ge0(2*x**3 - 3*x**2 - 12*x)[0]                   # 오답: 우변의 상수 -5를 넣지 않음
+w4_sign = -min_on_ge0(2*x**3 - 3*x**2 - 12*x - 5)[0]              # 오답: -5를 옮길 때 부호를 바꾸지 않음
+assert (w4_noc, w4_sign) == (20, 25)
+ch4 = [cv(c) for c in IT[4]['choices']]
+assert -h4.subs({k: 0, x: 0}) not in ch4 and -h4.subs({k: 0, x: -1}) not in ch4   # 끝값 x=0(-5)·범위 밖 x=-1(-12)로 답하는 값은 선지에 없음
+assert arith(4)[1] == 5                                           # 공차 5 (공차 1 아님)
+chk(4, v4, [w4_noc, w4_sign])
 
 # ===== 조건 빼 보기 =====
 print('--- 조건 빼 보기 ---')
@@ -156,13 +158,12 @@ tail = integrate(m_*(x - 5)**2, (x, 5, 6))
 print(f"ABLATION 3 구간 2<x<6: 필요(2<x<5이면 x>5에서 f'=4+m(x-5)^2으로 두어 f(6)=15+4+{tail}로 최댓값 없음)"); assert limit(tail, m_, oo) == oo
 print(f"ABLATION 3 상한 4: 필요(원문 5이면 3+5·4={3 + 5*4} ≠ {v3})")
 # 4번
-both = sorted({vP.subs(t, s) for s in mt})
-print(f'ABLATION 4 두 번째로: 필요(빼면 만나는 순간이 t={mt} 둘이라 속도 {both}로 정해지지 않음)'); assert len(both) == 2
-mt0 = meet_times(x1, x2, strict=False)
-print(f'ABLATION 4 t>0: 필요(t≥0이면 만나는 시각 {mt0}, 두 번째는 t={mt0[1]}, 속도 {vP.subs(t, mt0[1])} ≠ {v4})'); assert mt0 == [0, 2, 3] and vP.subs(t, mt0[1]) != v4
-x2b = 2*t**2 + 4*t
-mtb = meet_times(x1, x2b)
-print(f'ABLATION 4 x2의 6t: 필요(4t이면 만나는 시각 {mtb}, 두 번째 속도 {vP.subs(t, mtb[1])} ≠ {v4})'); assert vP.subs(t, mtb[1]) != v4
+print(f'ABLATION 4 x≥0: 필요(빼면 삼차식이라 x→-∞에서 -∞, 어떤 k로도 항상 성립하지 않음)'); assert limit(h4, x, -oo) == -oo
+mb = min_on_ge0((2*x**3 - 3*x**2 - 12*x))[0]
+print(f'ABLATION 4 우변의 -5: 필요(빼면 최솟값 {mb}, k의 최솟값 {-mb} ≠ {v4})'); assert -mb != v4
+mc = min_on_ge0(2*x**3 - 3*x**2 - 36*x + 5)[0]
+print(f'ABLATION 4 우변의 12x: 필요(36x이면 k의 최솟값 {-mc} ≠ {v4})'); assert -mc != v4
+print(f'ABLATION 4 최솟값: 필요(최댓값으로 바꾸면 k≥{v4}인 모든 실수라 정해지지 않음)')
 
 print('정답 위치:', [IT[n]['ans'] for n in sorted(IT)])
 print('ALL OK')
