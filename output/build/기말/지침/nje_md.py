@@ -12,6 +12,9 @@ POOL = json.load(open(os.path.join(HERE, 'nje_pool.json')))
 SP = os.path.join(HERE, 'db', 'study_local.json')
 STUDY = json.load(open(SP)) if os.path.exists(SP) else {}
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, '..', '..', '..', 'N제')
+RWP = os.path.join(HERE, 'db', 'nje_rewrite.json')      # 메모 → 완결 문항으로 다시 쓴 것(id → problem·choices·answer·solution·trap·level 또는 drop)
+RW = json.load(open(RWP)) if os.path.exists(RWP) else {}
+CIRC = '①②③④⑤'
 UNIT = {'D': '04 도함수의 활용(1)', 'M': '05 도함수의 활용(2)', 'I': '06 부정적분과 정적분', 'J': '07 정적분의 활용'}
 KIND = {'학교식_예상': '학교식', '예상밖': '예상밖', 'v3_추가': '학교식+', '조작_보강': '계수·조건 바꾸기', '분석집_저격': '분석집 저격', '킬러': '킬러', '결합': '결합 아이디어'}
 ORDER = ['학교식_예상', 'v3_추가', '조작_보강', '예상밖', '분석집_저격', '킬러', '결합']
@@ -27,6 +30,11 @@ def split(sk):
     return q.strip().rstrip(',;:'), a.strip()
 
 def item(k, ref):
+    r = _item(k, ref)
+    if r: r['id'] = ref
+    return r
+
+def _item(k, ref):
     e = DB[k]; p = ref.split(); kind = p[1]
     if kind == '킬러':
         t = p[2][-1]; d = (e.get('킬러') or {}).get('설계' + t) or {}; kv = ((e.get('킬러') or {}).get('검산') or {}).get('설계' + t) or {}
@@ -49,6 +57,11 @@ def item(k, ref):
     if kind == '결합': note = x.get('결합', '')
     return dict(kind=kind, band=BAND.get(str(x.get('번호대', '')).replace('형', ''), 3), q=q, a=a, note=str(note)[:260])
 
+def fmt_choice(c):
+    c = str(c).strip()
+    if '\\(' in c or not re.search(r'[\\^_{}]', c): return c
+    return f'\\({c}\\)'
+
 def strip_html(t):
     import html as _h
     t = re.sub(r'<br\s*/?>', '\n', t); t = re.sub(r'<div class="fig">.*?</div>', '[그림]', t, flags=re.S)
@@ -69,11 +82,21 @@ def main():
             Q.append(f"\n## {k} (부교재 {F.D[k][1]}, 원문 난도 {F.D[k][0]})\n\n<details><summary>원문 보기</summary>\n\n{strip_html(F.I[k][0])}\n\n</details>\n")
             A.append(f"\n## {k}\n")
             for it in its:
+                rw = RW.get(it['id'])
+                if rw and rw.get('drop'): stat['버림'] += 1; continue
+                if RW and not rw: continue                      # 다시 쓰기가 있으면 다시 쓴 것만 싣는다
                 n += 1; stat[it['kind']] += 1
-                Q.append(f"**{n}.** `{KIND[it['kind']]}` {it['q']}\n")
-                A.append(f"**{n}.** {it['a'] or '(풀이 메모 없음 — 원문 풀이 참고)'}" + (f"  \n  └ {('주의' if it['kind'] != '결합' else '장치')}: {it['note']}" if it['note'] else '') + '\n')
+                if rw:
+                    ch = rw.get('choices')
+                    chs = ('\n\n' + '　'.join(f"{CIRC[i]} {fmt_choice(c)}" for i, c in enumerate(ch[:5]))) if ch else ''
+                    lv = f" · {rw['level']}" if rw.get('level') else ''
+                    Q.append(f"**{n}.** `{KIND[it['kind']]}{lv}` {rw['problem']}{chs}\n")
+                    A.append(f"**{n}.** **{rw.get('answer', '')}** — {rw.get('solution', '')}" + (f"  \n  └ 주의: {rw['trap']}" if rw.get('trap') else '') + '\n')
+                else:
+                    Q.append(f"**{n}.** `{KIND[it['kind']]}` {it['q']}\n")
+                    A.append(f"**{n}.** {it['a'] or '(풀이 메모 없음 — 원문 풀이 참고)'}" + (f"  \n  └ {('주의' if it['kind'] != '결합' else '장치')}: {it['note']}" if it['note'] else '') + '\n')
         head = (f"# 미적분Ⅰ 2학기 기말 N제 — {name}\n\n모의고사 회차표(1–60회)에 들어가지 않은 변형 {n}문항입니다. 원문마다 쉬운 것(학교식)부터 어려운 것(예상밖·킬러) 순서입니다.\n"
-                "출제 메모(스케치)를 그대로 옮긴 것이라 선지가 없는 문항은 값을 구하는 문제로 풉니다. 정답과 풀이는 파일 맨 아래에 있습니다.\n")
+                + ("선지가 없는 문항은 단답형입니다. 정답과 풀이는 파일 맨 아래에 있습니다.\n" if RW else "출제 메모(스케치)를 그대로 옮긴 초안입니다. 정답과 풀이는 파일 맨 아래에 있습니다.\n"))
         fn = os.path.join(OUT, f"미적분1_기말_N제_{name.split()[0]}_{name.split(' ', 1)[1].replace(' ', '')}.md")
         open(fn, 'w').write(head + ''.join(Q) + '\n\n---\n\n# 정답 및 풀이\n' + ''.join(A)); files.append((fn, n))
     # 분석집_변형 (본문은 저장소 밖)
