@@ -16,8 +16,8 @@ RWP = os.path.join(HERE, 'db', 'nje_rewrite.json')      # 메모 → 완결 문�
 RW = json.load(open(RWP)) if os.path.exists(RWP) else {}
 CIRC = '①②③④⑤'
 UNIT = {'D': '04 도함수의 활용(1)', 'M': '05 도함수의 활용(2)', 'I': '06 부정적분과 정적분', 'J': '07 정적분의 활용'}
-KIND = {'학교식_예상': '학교식', '예상밖': '예상밖', 'v3_추가': '학교식+', '조작_보강': '계수·조건 바꾸기', '분석집_저격': '분석집 저격', '킬러': '킬러', '결합': '결합 아이디어'}
-ORDER = ['학교식_예상', 'v3_추가', '조작_보강', '예상밖', '분석집_저격', '킬러', '결합']
+KIND = {'계수': '계수 변형', '학교식_예상': '학교식', '예상밖': '예상밖', 'v3_추가': '학교식+', '조작_보강': '계수·조건 바꾸기', '분석집_저격': '분석집 저격', '킬러': '킬러', '결합': '결합 아이디어'}
+ORDER = ['학교식_예상', 'v3_추가', '조작_보강', '계수', '예상밖', '분석집_저격', '킬러', '결합']
 BAND = {'1–4': 1, '5–8': 2, '9–12': 3, '13–16': 4, '17–18': 5, '서답': 4}
 
 def split(sk):
@@ -29,9 +29,20 @@ def split(sk):
     if m and len(q) - m[-1].end() < 40 and m[-1].start() > 15: a = q[m[-1].end():] + ' →' + a; q = q[:m[-1].end()]
     return q.strip().rstrip(',;:'), a.strip()
 
+COEF = {'OP11', 'OP12', 'OP28', 'OP38', 'OP51'}   # 계수·매개변수 자리 조작(front.md 0-9)
 def item(k, ref):
+    if ref.split()[1] == '계수':
+        rw = RW.get(ref) or {}
+        return dict(id=ref, kind='계수', band=3, q='-', a='', note='', coef=True) if rw and not rw.get('drop') else None
     r = _item(k, ref)
-    if r: r['id'] = ref
+    if r:
+        r['id'] = ref; p = ref.split(); e = DB[k]
+        if p[1] == '킬러': ops = str(((e.get('킬러') or {}).get('설계' + p[2][-1]) or {}).get('조작_조합', ''))
+        else:
+            f = {'학교식_예상': '학교식_예상', '예상밖': '예상밖_포인트', 'v3_추가': 'v3_추가_예상', '결합': '결합_후보', '조작_보강': '조작_보강', '분석집_저격': '분석집_저격'}.get(p[1])
+            x = (e.get(f) or [])[int(p[2]) - 1] if f else {}
+            ops = str(x.get('조작', '')) + str(x.get('왜_가능', '')) + str(x.get('근거', ''))
+        r['coef'] = bool(COEF & set(re.findall(r'OP\d+', ops)))
     return r
 
 def _item(k, ref):
@@ -74,9 +85,11 @@ def main():
     stat = collections.Counter(); files = []
     for u, name in UNIT.items():
         Q, A = [], []; n = 0
-        keys = sorted([k for k in POOL if k[0] == u], key=lambda k: int(k[1:]))
+        CK = {i.split()[0] for i in RW if i.split()[1] == '계수'}
+        keys = sorted([k for k in set(POOL) | CK if k[0] == u], key=lambda k: int(k[1:]))
         for k in keys:
-            its = [it for it in (item(k, r) for r in POOL[k]) if it and it['q']]
+            refs = POOL.get(k, []) + [i for i in RW if i.split()[0] == k and i.split()[1] == '계수']
+            its = [it for it in (item(k, r) for r in refs) if it and it['q']]
             if not its: continue
             its.sort(key=lambda it: (it['band'], ORDER.index(it['kind'])))
             Q.append(f"\n## {k} (부교재 {F.D[k][1]}, 원문 난도 {F.D[k][0]})\n\n<details><summary>원문 보기</summary>\n\n{strip_html(F.I[k][0])}\n\n</details>\n")
@@ -89,13 +102,13 @@ def main():
                 if rw:
                     ch = rw.get('choices')
                     chs = ('\n\n' + '　'.join(f"{CIRC[i]} {fmt_choice(c)}" for i, c in enumerate(ch[:5]))) if ch else ''
-                    lv = f" · {rw['level']}" if rw.get('level') else ''
+                    lv = (f" · {rw['level']}" if rw.get('level') else '') + (' · 계수' if it.get('coef') and it['kind'] != '계수' else '')
                     Q.append(f"**{n}.** `{KIND[it['kind']]}{lv}` {rw['problem']}{chs}\n\n")
                     A.append(f"**{n}.** **{rw.get('answer', '')}** — {rw.get('solution', '')}" + (f"  \n  └ 주의: {rw['trap']}" if rw.get('trap') else '') + '\n\n')
                 else:
                     Q.append(f"**{n}.** `{KIND[it['kind']]}` {it['q']}\n")
                     A.append(f"**{n}.** {it['a'] or '(풀이 메모 없음 — 원문 풀이 참고)'}" + (f"  \n  └ {('주의' if it['kind'] != '결합' else '장치')}: {it['note']}" if it['note'] else '') + '\n')
-        head = (f"# 미적분Ⅰ 2학기 기말 N제 — {name}\n\n모의고사 회차표(1–60회)에 들어가지 않은 변형 {n}문항입니다. 원문마다 쉬운 것(학교식)부터 어려운 것(예상밖·킬러) 순서입니다.\n"
+        head = (f"# 미적분Ⅰ 2학기 기말 N제 — {name}\n\n모의고사 회차표(1–60회)에 들어가지 않은 변형 {n}문항입니다. 원문마다 쉬운 것(학교식)부터 어려운 것(예상밖·킬러) 순서입니다.\n`계수 변형`과 `· 계수` 표시는 계수·매개변수 자리를 바꾼 문항입니다(학교 시험 습관).\n"
                 + ("선지가 없는 문항은 단답형입니다. 정답과 풀이는 파일 맨 아래에 있습니다.\n" if RW else "출제 메모(스케치)를 그대로 옮긴 초안입니다. 정답과 풀이는 파일 맨 아래에 있습니다.\n"))
         fn = os.path.join(OUT, f"미적분1_기말_N제_{name.split()[0]}_{name.split(' ', 1)[1].replace(' ', '')}.md")
         open(fn, 'w').write(head + ''.join(Q) + '\n\n---\n\n# 정답 및 풀이\n' + ''.join(A)); files.append((fn, n))
