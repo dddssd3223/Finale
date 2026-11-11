@@ -4,14 +4,17 @@
       python3 vdb.py killer <키>                 # 17·18 설계 A·B와 검산(수정_적용 포함)
       python3 vdb.py op <OP번호>                 # 학교 조작 설명·학교 사례
       python3 vdb.py used <회차 폴더>...         # 이미 쓴 DB 후보(문항 dict의 key·db_ref) 목록 — 같은 후보 두 번 쓰지 않기
-칸 이름: 원문_핵심 원문_장치 변형_목록 숫자만_ids 숫자만_재판정 LIVE_요약 학교식_예상 예상밖_포인트 출제_우선 후보_순위
+칸 이름: 분석집_변형(부교재 분석집 문제, 전문은 db/study_local.json) 원문_핵심 원문_장치 변형_목록 숫자만_ids 숫자만_재판정 LIVE_요약 학교식_예상 예상밖_포인트 출제_우선 후보_순위
         v3_추가_예상 조작_보강 조작_점검 오답_설계 결합_후보 서답형_버전 그림_버전 기말_기출_연결 킬러 최종검토_정정 후보_순위_이전
 정정 우선: 최종검토_정정 > 오답_설계[].검토_정정·전수검산 > 원래 값. 킬러는 검산.설계X.수정_적용 > 원래 설계."""
 import sys, os, json, runpy
 HERE = os.path.dirname(os.path.abspath(__file__))
 DB = json.load(open(os.path.join(HERE, 'db', 'variation_db.json')))
 OPS = json.load(open(os.path.join(HERE, 'db', 'school_ops_v3.json')))
-DEF = ['원문_핵심', '후보_순위', '학교식_예상', '예상밖_포인트', 'v3_추가_예상', '조작_보강', '오답_설계', '결합_후보', '기말_기출_연결', '최종검토_정정']
+DEF = ['원문_핵심', '후보_순위', '학교식_예상', '예상밖_포인트', 'v3_추가_예상', '조작_보강', '분석집_변형', '오답_설계', '결합_후보', '기말_기출_연결', '최종검토_정정']
+# 분석집 변형 전문은 저장소 밖 db/study_local.json(db/study_import.py로 만듦). 없으면 번호·정답만 보인다.
+_SL = os.path.join(HERE, 'db', 'study_local.json')
+STUDY = json.load(open(_SL)) if os.path.exists(_SL) else {}
 # 오답_설계 항목의 '검토_정정'(표본 최종 검토)·'전수검산'(판정 고침이면 그 값이 맞는 값)이 원래 값보다 우선한다.
 
 def pr(name, v):
@@ -24,7 +27,15 @@ def pr(name, v):
 def show(k, fields=None):
     e = DB[k]
     for f in (fields or DEF):
-        if f in e: pr(f, e[f])
+        if f not in e: continue
+        if f == '분석집_변형' and STUDY:
+            print('── 분석집_변형 (부교재 분석집, 전문은 저장소 밖)')
+            pt = STUDY.get(f'STUDY-{k}-변형포인트')
+            if pt: print('  포인트: ' + ' / '.join(pt))
+            for x in e[f]:
+                v = STUDY.get(x['id'], {})
+                print(f"  [{x['id']}] 정답 {x['정답']}\n    " + v.get('problem', '(전문 없음)').replace('\n', '\n    ') + '\n    풀이: ' + v.get('answer', ''))
+        else: pr(f, e[f])
 
 def used(dirs):
     out = []
