@@ -11,7 +11,7 @@ import sys, os, json, runpy
 HERE = os.path.dirname(os.path.abspath(__file__))
 DB = json.load(open(os.path.join(HERE, 'db', 'variation_db.json')))
 OPS = json.load(open(os.path.join(HERE, 'db', 'school_ops_v3.json')))
-DEF = ['원문_핵심', '후보_순위', '학교식_예상', '예상밖_포인트', 'v3_추가_예상', '조작_보강', '분석집_변형', '오답_설계', '결합_후보', '기말_기출_연결', '최종검토_정정']
+DEF = ['원문_핵심', '후보_순위', '학교식_예상', '예상밖_포인트', 'v3_추가_예상', '조작_보강', '분석집_변형', '분석집_저격', '오답_설계', '결합_후보', '기말_기출_연결', '최종검토_정정']
 # 분석집 변형 전문은 저장소 밖 db/study_local.json(db/study_import.py로 만듦). 없으면 번호·정답만 보인다.
 _SL = os.path.join(HERE, 'db', 'study_local.json')
 STUDY = json.load(open(_SL)) if os.path.exists(_SL) else {}
