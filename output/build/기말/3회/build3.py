@@ -65,7 +65,7 @@ body{font-family:'HB','MJ','GL',serif;font-size:9pt;line-height:1.78;color:#000;
 .jl{display:block;text-align:left;text-align-last:left;white-space:nowrap}
 .ptr{text-align:right}
 .ul{text-decoration:underline;text-decoration-thickness:.6pt;text-underline-offset:8pt;text-decoration-skip-ink:none}
-.qh{}.qh .n,.qt .n{display:inline-block;text-indent:0;vertical-align:baseline;font-family:'TN';font-weight:400;font-style:italic;font-size:10.5pt;letter-spacing:-.2pt}
+.qh{}.qh .n,.qt .n{display:inline-block;text-indent:0;vertical-align:baseline;font-family:'HB';font-weight:700;font-style:italic;font-size:10pt;letter-spacing:-.2pt}
 .qt{text-align:justify}.qr{text-align:justify}
 .pt{white-space:nowrap}
 .ch .c{font-family:'GL'}
