@@ -31,7 +31,7 @@ def unexpected_slots(rno):
     """예상밖 자리: 5–16번 중 5개(12회부터 4개). 회차 번호로 돌려 자리마다 고르게. 9–16번에 더 많이(2025 기말은 9–16이 가장 짙었다)."""
     import random
     pool = [6, 7, 9, 10, 11, 12, 13, 14, 15, 16]
-    n = 4 if rno >= 12 else 5
+    n = 6 if 35 <= rno <= 46 else 4 if rno >= 47 else 5      # 3단계 늘림, 4·5단계(실전) 줄임
     r = random.Random(rno); out = set(r.sample([x for x in pool if x >= 9], n - 1)) | {r.choice([6, 7])}
     return sorted(out)
 def db_hint(k, no, mode):
@@ -44,7 +44,42 @@ def db_hint(k, no, mode):
         return {'추천': [f"{c.get('순위')}. {c.get('출처')}" for c in top], **({'순위_정정': [str(x['고친_값'])[:160] for x in fx]} if fx else {})}
     pts = [f"예상밖 {i+1}" for i, x in enumerate(e.get('예상밖_포인트', []))] + [f"v3_추가 {i+1}" for i, x in enumerate(e.get('v3_추가_예상', []))] + [f"결합 {i+1}" for i, x in enumerate(e.get('결합_후보', []))]
     return {'추천': pts[:4]}
-HARD = (15, 16, 17, 18, 'S2')   # 고난도 자리: 분담표에 예비 원문 2개를 같이 적는다(독립 검토 2번 탈락 → 교체)
+HARD = (15, 16, 17, 18, 'S2')
+# 커리큘럼 (2026-11-11 사용자: 60회 유지, 4회 응시 66점 → "중간 대비" 난도·개념 복습 반영해 다시 분배)
+# (첫 회, 끝 회, 단계, 날짜, 난도 지수 범위) — 날짜는 시험일 12/24 기준
+PHASES = [(5, 14, '1 단원 집중', ('11-12', '11-22'), (22, 26)),
+          (15, 34, '2 전범위 학교형', ('11-23', '12-06'), (24, 28)),
+          (35, 46, '3 분석집 저격·예상밖', ('12-07', '12-14'), (28, 32)),
+          (47, 56, '4 실전 동형', ('12-15', '12-20'), (25, 27)),
+          (57, 60, '5 파이널', ('12-21', '12-23'), None)]
+FINAL_IDX = {57: (24, 28), 58: (24, 28), 59: (32, 36), 60: None}       # 60회 = 전 회차 오답 모음
+FOCUS = {5: 'D', 6: 'D', 7: 'M', 8: 'M', 9: 'I', 10: 'I', 11: 'J', 12: 'J'}   # 부교재 재풀이 순서(04→05→06→07)를 따라감
+WRONG_ROUNDS = (14, 34, 46, 56, 60)                                       # 단계 끝: 그 단계 오답 원문을 다른 변형으로 다시
+RESERVE_FROM = 47                                                         # 원문마다 학교식 1순위 후보는 4·5단계(실전 동형·파이널)용으로 남김
+def phase(r):
+    for p in PHASES:
+        if p[0] <= r <= p[1]: return p
+    return None
+def idx_range(r):
+    if r in FINAL_IDX: return FINAL_IDX[r]
+    p = phase(r); return p[4] if p else None
+def round_date(r):
+    import datetime as _dt
+    p = phase(r)
+    if not p: return None
+    a, b = (_dt.date(2026, int(x[:2]), int(x[3:])) for x in p[3]); n = p[1] - p[0]
+    return (a + (b - a) * (r - p[0]) / max(n, 1)).isoformat()
+def quota_for(rno):
+    u = FOCUS.get(rno)
+    if not u: return dict(QUOTA_ALT if rno % 2 == 0 else QUOTA)
+    q = {x: 3 for x in 'DMIJ'}; q[u] = 11; q[[x for x in 'DMIJ' if x != u][rno % 3]] = 3; return q
+def tier(k):
+    """원문별 총 출제 상한: 예측 점수 상위 70개 6번, 다음 140개 4번, 하위 70개 2번 (적중률 차등, 합 1,120 ≈ 56회 × 20)"""
+    global _TIER
+    try: return _TIER[k]
+    except NameError:
+        rows = sorted(F.I, key=lambda x: -score(x)); _TIER = {x: (6 if i < 70 else 4 if i < 210 else 2) for i, x in enumerate(rows)}
+        return _TIER[k]   # 고난도 자리: 분담표에 예비 원문 2개를 같이 적는다(독립 검토 2번 탈락 → 교체)
 
 def src(k):
     t = F.D[k][1]
@@ -78,23 +113,26 @@ def rank():
         l = L.get(k, {})
         print(f"{k:4} 점수 {score(k):.2f} 라이브 {l.get('n', 0):2} (최근 {l.get('years', {}).get('2024', 0) + l.get('years', {}).get('2025', 0)}) 자리중앙 {l.get('median', '-')} 서술 {l.get('seo', 0)} {src(k)} 난도 {F.D[k][0]} {'그림' if has_fig(k) else ''} {'작년기말' if k in Y25 else ''}")
 
-def cap(rno):
-    """원문 한 개를 몇 번까지 쓸 수 있나(회차표 3–60회, 2026-11-07): 1–14회 1번, 15–27회 2번, 28–40회 3번, 41–50회 4번, 51–60회 5번."""
-    return 1 + (rno > 14) + (rno > 27) + (rno > 40) + (rno > 50)
+def cap(rno, k=None):
+    """원문 한 개를 몇 번까지 쓸 수 있나 (2026-11-11 분배): 5–14회 1번, 15–34회 2번, 35–46회 4번, 47–56회 5번, 57–60회 6번.
+    원문마다 tier(k)(예측 점수 상위 6 · 중간 4 · 하위 2)를 넘지 않음."""
+    b = 1 if rno <= 14 else 2 if rno <= 34 else 4 if rno <= 46 else 5 if rno <= 56 else 6
+    return min(b, tier(k)) if k else b
 
 def plan(rno, used=(), recent=()):
     UC = collections.Counter(used); recent = set(recent)
-    used = {k for k, c in UC.items() if c >= cap(rno)} | recent; quota = dict(QUOTA_ALT if rno % 2 == 0 else QUOTA); pick = {}; reuse = set()
+    used = {k for k, c in UC.items() if c >= cap(rno, k)} | recent; quota = quota_for(rno); pick = {}; reuse = set()
+    ux0 = unexpected_slots(rno); ph3 = 35 <= rno <= 46
     def topic_ok(k):
         cnt = collections.Counter(tp for v in pick.values() for tp in topics(v))
         return all(cnt[tp] + 1 <= TOPIC_LIMIT[tp] for tp in topics(k))
     order = [s for s in SLOTS if s[0] in (17, 18, 'S2', 15, 16)] + [s for s in SLOTS if s[0] not in (17, 18, 'S2', 15, 16)]
-    def cands(no, sv, rng, need_fig=None, loose=False):
+    def cands(no, sv, rng, need_fig=None, loose=False, anyunit=False):
         out = []
         for k in F.I:
             if k in used or k in pick.values(): continue
             u = k[0]
-            if quota[u] <= 0: continue
+            if quota[u] <= 0 and not anyunit: continue
             if isinstance(no, int) and no <= 4 and sum(1 for n2, v in pick.items() if isinstance(n2, int) and n2 <= 4 and v[0] == u) >= 2: continue   # 1–4번 같은 단원 2개까지
             if sv == '자체':
                 if src(k) not in ('E', '평'): continue          # 자체 기본형: 가장 가까운 EBS·평가원 기본 원문 표시
@@ -105,6 +143,8 @@ def plan(rno, used=(), recent=()):
             if not loose and not topic_ok(k): continue                              # 소재 겹침 상한(마지막 대체에서만 풂)
             sc = score(k, no if isinstance(no, int) else 20) - 1.5 * UC.get(k, 0) + (3 if rno > 8 and not UC.get(k) else 0)   # 덜 쓴 원문 먼저, 9회부터 미노출 원문 크게 우대
             if no == 'S1': sc += math.log1p(L.get(k, {}).get('seo', 0))       # 서술형 출제 이력
+            if ph3 and no in ux0 and DB.get(k, {}).get('분석집_저격'): sc += 2.5     # 3단계 예상밖 자리: 분석집_저격이 있는 원문 우대
+            if 5 <= rno <= 14 and no in (1, 2, 3, 5, 6, 7, 8) and DB.get(k, {}).get('분석집_변형'): sc += 2   # 1단계 앞번호: 분석집_변형이 있는 원문 우대
             out.append((sc, k))
         return sorted(out, reverse=True)
     backup = {}
@@ -114,11 +154,16 @@ def plan(rno, used=(), recent=()):
         if not c: c = cands(no, sv, (rng[0] - 2, rng[1] + 2))
         if not c and sv in ('평', 'LU'): c = cands(no, 'LU' if sv == '평' else '평', rng)    # 고난도 출처끼리 바꿈
         if not c:                                                                             # 미사용 원문이 바닥나면 재출제(다른 후보로, front 3절)
-            saved = set(used); used.clear(); used |= recent | {x for x, n in UC.items() if n > cap(rno)}; c = cands(no, sv, (rng[0] - 1, rng[1] + 1)); used.clear(); used |= saved
+            saved = set(used); used.clear(); used |= recent | {x for x, n in UC.items() if n > cap(rno, x)}; c = cands(no, sv, (rng[0] - 1, rng[1] + 1)); used.clear(); used |= saved
             if c: reuse.add(no)
         if not c: c = cands(no, sv, (rng[0] - 2, rng[1] + 2), loose=True)                  # 단원 쿼터가 남은 쪽만 남았을 때
+        if not c: c = cands(no, sv, (rng[0] - 1, rng[1] + 1), anyunit=True)              # 단원 집중 회차: 그 자리에 맞는 원문이 집중 단원에 없으면 다른 단원
+        if not c: c = cands(no, sv, (rng[0] - 2, rng[1] + 2), loose=True, anyunit=True)
+        if not c:   # 마지막: 출제 상한을 넘더라도 최근 3회에 안 쓴 원문 재출제
+            saved = set(used); used.clear(); used |= recent; c = cands(no, sv, (rng[0] - 1, rng[1] + 1), loose=True, anyunit=True); used.clear(); used |= saved
+            if c: reuse.add(no)
         if not c: raise SystemExit(f'{no}번 자리 후보 없음 — 출처 {sv}, 난도 {rng}, 단원 쿼터 {quota}')
-        k = c[0][1]; pick[no] = k; quota[k[0]] -= 1
+        k = c[0][1]; pick[no] = k; quota[k[0]] = max(0, quota[k[0]] - 1)
         if no in HARD: backup[no] = [x for _, x in c[1:8]]          # 독립 검토 2번 탈락 시 바꿀 예비 원문(5번 개선)
     # 그림 2–3개를 9번 이후로 (모자라면 같은 출처·단원 쿼터 안에서 그림 원문으로 교체)
     figs = [n for n, k in pick.items() if has_fig(k)]
@@ -132,7 +177,7 @@ def plan(rno, used=(), recent=()):
     used_now = set(pick.values()); bk = {}
     for n in HARD:                                                     # 자리끼리 겹치지 않게 2개씩
         bk[n] = [b for b in backup.get(n, []) if b not in used_now][:2]; used_now |= set(bk[n])
-    ux = unexpected_slots(rno)
+    ux = ux0
     def mode(n): return '킬러(설계A·B)' if n in (17, 18) else '예상밖' if n in ux else '학교식'
     def kinfo(k):
         kv = (DB.get(k, {}).get('킬러') or {}).get('검산', {})
@@ -175,6 +220,9 @@ def next_ref(k, mode, taken, rno=0, band='mid'):
         if band == 'front': R = sorted(R, key=lambda z: not plain(z[1]))
         else: R = sorted(R, key=lambda z: plain(z[1]))
         opts = [o for o, _ in R] + [f'{k} 학교식_예상 {i + 1}' for i in range(len(e.get('학교식_예상', [])))]
+        rsv = f'{k} 후보_순위 1'
+        if rno < RESERVE_FROM and rsv in opts: opts = [o for o in opts if o != rsv] + [rsv]      # 실전용으로 남김(없을 때만 씀)
+        elif rno >= RESERVE_FROM and rsv in opts: opts = [rsv] + [o for o in opts if o != rsv]
     else:   # 예상밖 자리: 예상밖·점검표(v3)·결합을 번갈아(점검표 조작이 두 회차마다 나오게, front 3절)
         A = [[f'{k} 예상밖 {i + 1}' for i in range(len(e.get('예상밖_포인트', [])))], [f'{k} v3_추가 {i + 1}' for i in range(len(e.get('v3_추가_예상', [])))], [f'{k} 결합 {i + 1}' for i in range(len(e.get('결합_후보', [])))] + [f'{k} 조작_보강 {i + 1}' for i in range(len(e.get('조작_보강', [])))]]
         A = A[rno % 3:] + A[:rno % 3]                                   # 회차마다 시작 종류를 돌림
@@ -194,15 +242,23 @@ def next_ref(k, mode, taken, rno=0, band='mid'):
         if o not in taken and canon(o) not in taken: return o
     return opts[0] + ' (다시)' if opts else f'{k} 자체'
 
-def schedule(r0, r1, used=()):
+def schedule(r0, r1, used=(), taken0=()):
     """r0–r1회 회차표: 회차마다 자리·원문·mode·db_ref. 같은 원문은 3회 안에 다시 안 씀. 원문 재사용은 cap()까지, 매번 다른 후보."""
-    used = list(used); taken = set(); hist = []; out = {}
+    used = list(used); taken = set(taken0) | {canon(t) for t in taken0}; hist = []; out = {}
     for r in range(r0, r1 + 1):
         recent = {k for h in hist[-3:] for k in h}
         j = plan(r, used, recent); row = {}
         for n, v in j.items():
+            e = DB.get(v['key'], {}); ref = None
             if n in ('4', 'S1'): ref = f"자체 (가장 가까운 {v['key']})"   # 자체 자리: 4번 기본형·서답형1 — 원문은 가장 가까운 유형 표시
-            else: ref = next_ref(v['key'], v['mode'], taken, r, 'front' if (n in ('1', '2', '3', 'S2')) else 'mid'); taken |= {ref, canon(ref)}
+            elif 5 <= r <= 14 and n in ('1', '2', '3', '5', '6', '7', '8'):   # 1단계: 부교재 재풀이와 맞춰 분석집_변형(분석집이 실은 변형)을 앞번호에
+                ref = next((f"{v['key']} 분석집_변형 {i + 1}" for i in range(len(e.get('분석집_변형') or [])) if f"{v['key']} 분석집_변형 {i + 1}" not in taken), None)
+                if ref: v = {**v, 'mode': '분석집_변형'}
+            elif 35 <= r <= 46 and v['mode'] == '예상밖':                  # 3단계: 예상밖 자리는 분석집_저격 먼저
+                ref = next((f"{v['key']} 분석집_저격 {i + 1}" for i in range(len(e.get('분석집_저격') or [])) if f"{v['key']} 분석집_저격 {i + 1}" not in taken), None)
+                if ref: v = {**v, 'mode': '분석집_저격'}
+            if not ref: ref = next_ref(v['key'], v['mode'], taken, r, 'front' if (n in ('1', '2', '3', 'S2')) else 'mid')
+            taken |= {ref, canon(ref)}
             ov = []   # 겹쳐 쓰기(front 2절): 5–16번은 같은 원문의 조작_보강에서 번호대 맞는 장치 1–2개를 얹을 후보로
             if n.isdigit() and 5 <= int(n) <= 16:
                 cand = [(i, x) for i, x in enumerate(DB.get(v['key'], {}).get('조작_보강', []))]
@@ -220,8 +276,26 @@ def schedule(r0, r1, used=()):
 
 if __name__ == '__main__' and sys.argv[1] == 'schedule':
     a = sys.argv[2:]; used = a[2].split(',') if len(a) > 2 else []
-    S = schedule(int(a[0]), int(a[1]), used)
+    taken0 = []
+    if len(a) <= 2:   # 사용 키를 안 주면 이미 만든 회차(1–4회) content3에서 원문 키·db_ref를 읽는다
+        import importlib.util
+        for rd in sorted(os.listdir(os.path.join(HERE, '..'))):
+            m = re.fullmatch(r'(\d+)회', rd)
+            if not m or int(m.group(1)) >= int(a[0]): continue
+            cp = os.path.join(HERE, '..', rd, 'content3.py')
+            if not os.path.exists(cp): continue
+            cwd = os.getcwd(); os.chdir(os.path.dirname(cp)); sys.path.insert(0, os.path.dirname(cp))
+            try:
+                spec = importlib.util.spec_from_file_location(f'c{rd}', cp); c = importlib.util.module_from_spec(spec); spec.loader.exec_module(c)
+                its = list(getattr(c, 'ITEMS', {}).values()) + list(getattr(c, 'SITEMS', {}).values())
+                used += [it['key'] for it in its if it.get('key') in F.I]; taken0 += [str(it.get('db_ref', '')) for it in its if it.get('db_ref')]
+            except Exception as ex: print('건너뜀', rd, ex)
+            finally: os.chdir(cwd); sys.path.pop(0)
+        print('이미 만든 회차 원문', len(used), '개')
+    S = schedule(int(a[0]), int(a[1]), used, taken0)
     json.dump(S, open(os.path.join(HERE, 'schedule.json'), 'w'), ensure_ascii=False, indent=1)
+    CUR = {r: dict(단계=phase(int(r))[2], 날짜=round_date(int(r)), 난도_지수=idx_range(int(r)), 단원_집중=FOCUS.get(int(r)), 오답_재출제=int(r) in WRONG_ROUNDS) for r in S}
+    json.dump(CUR, open(os.path.join(HERE, 'curriculum.json'), 'w'), ensure_ascii=False, indent=1)
     C = collections.Counter(used + [v['key'] for row in S.values() for v in row.values()])
     print('회차', len(S), '자리', sum(len(r) for r in S.values()), '원문 노출 횟수 분포', dict(sorted(collections.Counter(C[k] for k in F.I).items())), '미노출', sorted(set(F.I) - set(C)))
     print('db_ref 종류', dict(collections.Counter(v['db_ref'].split()[1] for row in S.values() for v in row.values())), '(다시)', sum('(다시)' in v['db_ref'] for row in S.values() for v in row.values()))
