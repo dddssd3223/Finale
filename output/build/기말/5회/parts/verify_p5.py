@@ -163,8 +163,12 @@ cps = sp.solve(sp.diff(F_alt, x), x); assert all(not c.is_rational for c in cps)
 cv = crit_vals(F_alt); s = sum(cv) + (cv[0] + cv[1]) / 2
 c_alt = sp.solve(sp.Eq(3 * C + s, 3), C)[0]
 v_alt = sp.nsimplify(sp.integrate(F_alt + x + c_alt, (x, -1, 3)))
-assert v_alt != ANS
-ablation('(가)의 기울기 1(→ 0)', v_alt, '기준선 y=x+m 과 짝이 맞아야 F 의 극점이 -1, 3')
+assert v_alt == ANS
+print(f'참고(빼 보기 아님): (가)의 기울기 값 1 → 0 이면 F 의 극점이 무리수가 되지만 답은 {v_alt} 그대로 — 답은 두 기울기가 같다(중심 x=1)와 중심 높이로 정해지고, 값 1 은 F 의 극점을 -1, 3 으로 만드는 역할')
+# 기준선의 x 를 잊는 경로(오답 4): |f-m| 로 보면 f 의 중심 높이 f(1)=1 → ∫ = 4f(1) = 4
+f_wrong = x**3 - 3 * x**2 - 8 * x
+cvw = crit_vals(f_wrong); cw = sp.solve(sp.Eq(3 * C + sum(cvw) + (cvw[0] + cvw[1]) / 2, 3), C)[0]
+assert sp.nsimplify(sp.integrate(f_wrong + cw, (x, -1, 3))) == 4
 # (나) 합 6 빼기: C 가 정해지지 않음
 ablation('(나)의 합 3', '정해지지 않음(C 자유)', '∫=4(C-11)+4')
 # (나) '개수가 2' → '개수가 3': m 이 무수히 많아 합이 정의되지 않음
@@ -182,8 +186,8 @@ aa = sp.Symbol('aa', positive=True)
 Fa = aa * (x**3 - 3 * x**2 - 9 * x) + C                           # 극댓값 5aa+C, 극솟값 -27aa+C, 중심 -11aa+C → 합 3C-33aa
 ca = sp.solve(sp.Eq(3 * C - 33 * aa, 3), C)[0]
 Ia = sp.simplify(sp.integrate(Fa.subs(C, ca) + x, (x, -1, 3)))
-assert Ia.subs(aa, 1) == 8 and Ia.subs(aa, 2) != 8
-ablation("'최고차항의 계수가 1'", f'정해지지 않음({Ia})', '')
+assert sp.simplify(Ia - 8) == 0
+print(f"참고(빼 보기 아님): '최고차항의 계수가 1'을 a 로 바꿔도 답 {Ia} 그대로 — 원문 첫 문장 표현을 그대로 둔 것(답은 중심 높이로만 정해짐)")
 assert all(r_.startswith('필요') for r_ in out), out
 
 # ---------- 형식·기록
