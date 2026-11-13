@@ -106,13 +106,13 @@ print('원문·분석집 풀이 OK (D10=-10/2, J11=1/12·27/4, D35=30/-6, D22=9/
 f5 = -2*x**3 + a*x**2 + b*x
 assert expand(f5.subs(x, -2) - (4 - 2*diff(f5, x).subs(x, -1))) == 0   # f(-2) = 4 - 2f'(-1)
 bb = solve(diff(f5, x).subs(x, -1), b)[0]
-assert bb == 2*a + 6 and expand(diff(f5, x).subs(b, bb) + 2*(x + 1)*(3*x - a + 3)) == 0
+assert bb == 2*a + 6 and expand(diff(f5, x).subs(b, bb) + 2*(x + 1)*(3*x - a - 3)) == 0
 v5 = expand(f5.subs({b: bb, x: -2}))
 assert v5 == 4 and not v5.free_symbols                                # a에 관계없이 하나
-for A in range(-10, 11):                                              # 극값을 실제로 갖는 a(≠0)마다 4
+for A in range(-10, 11):                                              # 극값을 실제로 갖는 a(≠-6)마다 4
     fp = diff(f5, x).subs({a: A, b: 2*A + 6})
     sgn = (fp.subs(x, Rational(-11, 10)) * fp.subs(x, Rational(-9, 10)) < 0)
-    assert sgn == (A != 0) and f5.subs({a: A, b: 2*A + 6, x: -2}) == 4
+    assert sgn == (A != -6) and f5.subs({a: A, b: 2*A + 6, x: -2}) == 4
 fw = -2*x**3 + a*x**2 + b*x
 w5 = expand(fw.subs({b: 2*a + 3, x: -2}))                             # -3x^2로 미분(원문 -x^3 습관)
 assert w5 == 10
