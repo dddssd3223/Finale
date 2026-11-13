@@ -1,0 +1,67 @@
+{
+ "round": "3회",
+ "base": "기준프로필_기말",
+ "anchors": [
+  3,
+  7,
+  10,
+  12,
+  14,
+  16,
+  17,
+  18
+ ],
+ "items": {
+  "3회-1": {
+   "hash": "4e374eced6ee",
+   "bunseok": false,
+   "key": "M41"
+  },
+  "3회-3": {
+   "hash": "2a2109d444e4",
+   "bunseok": false,
+   "key": "M52"
+  },
+  "3회-5": {
+   "hash": "7ef4e553a6bd",
+   "bunseok": false,
+   "key": "M9"
+  },
+  "3회-7": {
+   "hash": "167e79faf696",
+   "bunseok": false,
+   "key": "D34"
+  },
+  "3회-9": {
+   "hash": "c750283c74e9",
+   "bunseok": false,
+   "key": "D65"
+  },
+  "3회-11": {
+   "hash": "ebd882e077d3",
+   "bunseok": false,
+   "key": "D48"
+  },
+  "3회-13": {
+   "hash": "89c6c5814731",
+   "bunseok": false,
+   "key": "D43"
+  },
+  "3회-15": {
+   "hash": "de5550a27cd3",
+   "bunseok": false,
+   "key": "J60"
+  },
+  "3회-17": {
+   "hash": "36cf5123565d",
+   "bunseok": false,
+   "key": "M26"
+  },
+  "3회-S1": {
+   "hash": "766b5496c2bc",
+   "key": "J1",
+   "bunseok": false,
+   "note": "측정 뒤 소문항 3개(4+4+2)로 나눔(사용자 요청 2026-11-07). 본문·정답 같음, 단계 안내로 조금 쉬워졌을 수 있음"
+  }
+ }
+}

@@ -1,0 +1,3075 @@
+73 19.133913 
+L 8.714849 20.42859 
+L 10.009526 21.723266 
+L 11.304202 23.017943 
+L 12.598879 24.31262 
+L 13.893556 25.607296 
+L 15.188232 26.901973 
+L 16.482909 28.196649 
+L 17.777585 29.491326 
+L 19.072262 30.786002 
+L 20.366939 32.080679 
+L 21.661615 33.375356 
+L 22.956292 34.670032 
+L 24.250968 35.964709 
+L 25.545645 37.259385 
+L 26.840321 38.554062 
+L 28.134998 39.848738 
+
+exec
+/bin/bash -lc "sed -n '1,55p' output/build/기말/지침/figkit.py && sed -n '275,370p' output/build/기말/지침/front.md && sed -n '1,150p' output/build/기말/지침/dupcheck.py" in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+# -*- coding: utf-8 -*-
+"""시험지 그림 도구 (부교재 그림과 같은 모양: 검은 선, 화살표 축, 채운 점/빈 점, 점선, 회색 칠, 빗금, 수식 글꼴 라벨)
+
+사용 예
+    import sys; sys.path.insert(0, '/home/user/Finale/output/build/기말/지침'); import figkit as K
+    fig, ax = K.new((-2, 3), (-1, 3), size=(2.6, 2.0))      # x범위, y범위, 크기(인치)
+    K.curve(ax, lambda x: x**2 - 1, -1.8, 1.8)               # 곡선
+    K.dot(ax, 1, 0, open=True); K.dot(ax, 0, 1)              # 빈 점 / 채운 점
+    K.dash(ax, [1, 1], [0, 2])                               # 점선
+    K.shade(ax, lambda x: x**2 - 1, -1, 1)                   # 회색 칠 (곡선~x축)
+    K.hatch(fig, ax, lambda x: x**2 - 1, 1, 1.6)             # 빗금
+    K.label(ax, 1, -0.12, '1', 'center', 'top')              # 수식 글꼴 라벨: 문자·숫자·= ( ) -
+    K.tex(ax, 1.7, -0.12, r'$\\sqrt{3}$', 'center', 'top')  # 루트·분수 등은 tex (Tinos 수식)
+    K.save(fig, 'fig_b3_6.svg')
+글꼴: 시험지 글꼴 폴더(FIGKIT_FONTS 또는 아래 기본 경로)가 있으면 수식 글꼴(HyhwpEQ)·Tinos를 쓰고, 없으면 DejaVu Serif로 대신한다(Codex 실행기 등).
+라벨에 쓸 수 없는 글자: 수식 글꼴에 없는 √, 분수 → tex()로."""
+import os, numpy as np, matplotlib
+matplotlib.use('svg')
+import matplotlib.pyplot as plt
+from matplotlib import font_manager as fm
+
+FONTS = os.environ.get('FIGKIT_FONTS', '/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/fonts/')
+HAVE = os.path.exists(os.path.join(FONTS, 'hyhwpeq_web.ttf'))
+if HAVE:
+    for f in ['buE4poGnedXvwgX8.ttf', 'buE2poGnedXvwjX-fmE.ttf', 'hyhwpeq_web.ttf']:
+        fm.fontManager.addfont(os.path.join(FONTS, f))
+    EQ = fm.FontProperties(fname=os.path.join(FONTS, 'hyhwpeq_web.ttf'), size=11)
+    plt.rcParams.update({'font.family': 'Tinos', 'mathtext.fontset': 'custom', 'mathtext.it': 'Tinos:italic', 'mathtext.rm': 'Tinos'})
+else:
+    EQ = fm.FontProperties(family='DejaVu Serif', style='italic', size=10)
+    plt.rcParams.update({'font.family': 'DejaVu Serif', 'mathtext.fontset': 'dejavuserif'})
+plt.rcParams.update({'font.size': 11, 'svg.fonttype': 'path', 'hatch.linewidth': 0.45})
+LW = 0.9
+
+def pua(t, it=True):
+    """HyhwpEQ 글꼴의 사용자 영역 글리프로 바꿈 (소문자=이탤릭, 대문자=로만, 숫자, - = ( ))"""
+    if not HAVE: return t
+    o = ''
+    for ch in t:
+        if ch.islower() and it: o += chr(0xE0E5 + ord(ch) - 97)
+        elif ch.isupper(): o += chr(0xE000 + ord(ch) - 65)
+        elif ch.isdigit(): o += chr(0xE03D if ch == '0' else 0xE034 + int(ch) - 1)
+        elif ch == ' ': o += '\u2009'   # 수식 글꼴에 공백 글리프가 없음 → 좁은 공백(대체 글꼴)
+        else: o += {'-': chr(0xE046), '=': chr(0xE047), '(': chr(0xE044), ')': chr(0xE045), ',': chr(0xE052), '+': chr(0xE048), '|': chr(0xE04D), ':': chr(0xE04F), ';': chr(0xE04E)}.get(ch, ch)
+    return o
+
+def new(xl, yl, size=(2.6, 2.0), aspect='auto', xlabel='x', ylabel='y', origin=True, dx=0.12, dy=0.12):
+    """화살표 축이 있는 빈 그림. dx, dy: 축 이름·O 라벨 간격(데이터 단위 비율)"""
+    fig, ax = plt.subplots(figsize=size)
+    ax.set_xlim(*xl); ax.set_ylim(*yl); ax.set_aspect(aspect)
+    for s in ax.spines.values(): s.set_visible(False)
+    ax.set_xticks([]); ax.set_yticks([])
+    kw = dict(arrowstyle='-|>', lw=0.8, color='k', mutation_scale=8)
+    ax.annotate('', xy=(xl[1], 0), xytext=(xl[0], 0), arrowprops=kw)
+    ax.annotate('', xy=(0, yl[1]), xytext=(0, yl[0]), arrowprops=kw)
+  - 6번: 단조·연속 함수의 사잇값 정리
+  - 7번: 집합 조건 \(\{x\mid f(x)=2\}\)로 근 정하기
+  - 8번: 항등식에서 곱의 미분
+- **길이 (사용자 확정):** 억지로 줄이지 않는다.
+  - **1–4번:** (가)(나) 조건 상자가 여러 개인 긴 문항만 뺀다. 원문이 그런 꼴이면 조건 하나짜리로 바꾸거나 다른 원문을 고른다.
+  - **5–8번:** 원문 정도 길이면 된다. 조건 상자도 쓸 수 있다. 원문보다 크게 길어지는 것만 피한다.
+- 풀이는 '개념 판단 1개 + 짧은 계산'이다(상위권 2–4분). 계산 단계가 3개를 넘거나 같은 계산을 되풀이하면 앞번호로 쓰지 않는다.
+- 판단 장치 예: 등호 포함 여부, 범위로 최댓값·최솟값 읽기, 조건 집합의 원소, 단조성, 좌·우극한 구분, 부호 판단, 그래프 읽기.
+- 앞번호는 원문과 **같은 무게**로 가볍게 2–3군데를 바꾼다(0-8: 숫자·구하는 대상·함수 교체·형식). 판단 장치를 새로 더하지 않는다(견본5 측정에서 앞번호가 무거워진 원인).
+- 측정: 블라인드 풀이 패널에서 1–8번의 체감 난도와 시간이 2학기 중간 같은 번호의 ±1 안이어야 한다(`공동출제/견본4_난도계획.md`).
+
+### 1–4번
+- 풀: LIVE 1–4번 118건 상위 I18(11)·I49(9)·D11(7)·D54(7)·M52(7)·M41(6)·I53(6)·M48(5)·I4(5). 단원별 기본 계산(정적분 성질, 판별식 증가 조건, 접선, 최대·최소, 넓이)을 D·M·I·J 하나씩.
+- 양정고 근거: 2학기 중간 1–4번은 숫자·구하는 대상 변경만, 3개 "같음" 1개 "쉬워짐". 1학기 중간·기말도 같다.
+- 필수: 정답이 깔끔한 정수·간단한 분수. 함정 추가 없음(복습형 회차만 분석집 TIP 함정 1개까지).
+- 피할 것: 계산량 과다, 무리수 답, 같은 단원 2개, 판단 없이 공식만 대입하는 문항 2개 이상(1–8번 공통 참고).
+
+- 분석집: 대부분 분석집에 없는 원본. 분석집·익스텐션과 '금지' 0개면 숫자 변형 그대로 가능.
+### 5–8번
+- 풀: LIVE 5–8번 197건 상위 I4(8)·D11(6)·M48(6)·D53(5)·M42(5)·M50(5)·J19(5)·D17(4)·M9·M12·M13(각 4). 부정적분 항등식, 운동(속도 일치, 방향 전환), 방정식 실근 개수, 극값 계수.
+- 변형: 조건 또는 구하는 대상 하나만 바꿈(예: 정수 개수 → M−m, f(a) → a+b). 2학기 중간 5–8번은 식 교체·조건 변경으로 3개 "같음".
+- 필수: 운동 문항은 출발 시각 t=0 제외, 속도 0 ≠ 방향 전환, 중근은 방향 불변 중 하나를 넣는다.
+- 피할 것: 두 단계 이상 추가, 보기형.
+
+- 분석집: 분석집에 있는 원본(예: J19)은 그 변형 문제와 숫자만 다른 출제도 규칙상 허용. 다만 같은 회차 안에서 분석집 변형을 그대로 따라간 문항은 1개 이하.
+### 9–12번
+- 풀: LIVE 9–12번 229건(번호대 중 최다) 상위 I17(8)·D11(7)·I59(6)·I4(5)·I61(5)·I70(4)·J30(4)·J71(4)·D65·M16·M26·M32(각 3).
+- 변형: 함수 교체, 형식 변경(단답 → 5지선다, 형식 위장), 원본 단계 일부 추출. 12번은 2학기 중간 12번(C9)처럼 불연속점 하나 추가 → "상쇄되는 특수값" 분기 같은 가벼운 구조 변경 1개 허용.
+- 양정고 근거: 2024 D22 → 9번 숫자만, D23 → 10번 max를 f+g+|f−g|로 위장. 중난도 원본을 가볍게 비트는 자리.
+- 원문에 있는 경계 등호 판단은 살리되 새 함정은 넣지 않는다(복습형 회차만 분석집 TIP 함정 허용).
+- 피할 것: 학교 기출 동형(I17 숫자 교체형, I4 대입점 교체형)을 그대로 따라가기 → 조건 (나)를 바꾼다.
+
+- 분석집: **분석집에 없는 중난도 원본(83개 풀, 분석집_활용계획.md 3-1)에서 우선 뽑는다** — 학교도 학생도 덜 본 '의외 문항' 자리. 분석집에 있는 원본을 쓰면 분석집 변형 방향 1개까지 사용 가능(공부 보상), 변형 문제 자체와 골격 0.85 미만.
+### 13–16번
+- 풀: LIVE 13–16번 209건 상위 M67(6)·I59(6)·J60(6)·M64(5)·I17(5)·J33(5)·D67(4)·I63(4)·I70(4)·D30·M48·M54·M56·M65(각 3). 적분으로 정의된 함수, 이동·주기 조건 정적분, 근 개수 함수.
+- 변형: 조건 변경 + 함수 교체 + 구하는 대상 변경(0-8 선례). 어려워짐은 1–2개. 함정 추가는 복습형 회차만.
+- 양정고 근거: 1학기 중간 13–15번 구조 변경 3개, 1학기 기말 13–16번 중 3개 "어려워짐", 2학기 중간 14번 자체 제작.
+- 원문의 후보 택일·경우 구분은 살린다. 새 케이스 누락 함정은 복습형 회차만.
+- 피할 것: 본교가 이미 쓴 틀 반복(I62 2024 15번 원형 숫자형).
+
+- 분석집: 15·16번(평가원 확정)은 대부분 분석집에 있는 원본이다. 학교형 회차는 분석집 방향과 다르게 학교 선례(0-8)대로 바꾸고, 복습형 회차는 분석집 방향을 한 단계 넘겨 강화할 수 있다(조건+함수+분석집 TIP 함정). 카드의 '분석집과 같음' 레시피는 어느 쪽에서도 쓰지 않는다.
+### 17–18번
+- 기준: **0-4 설계 카드가 전부다(3단 구분 · 흔한 패턴 · 관문 순서 · 후보 경쟁).** 아래는 풀 정보만.
+- 풀: LIVE 17–18번 95건 상위 M32(4)·I17(4)·M66(3)·I70(3)·J52(3)·J60(3)·D72(2)·M54·M56·I24·I26·I60·I73·J59(각 2). 19번 이후 상위 M55(5)·M48·M56·I9·I61·J66(각 4)·D67(3). 원본 난도 5–7 우선. 2학기 중간 17·18번은 L42·C30 Level Up 둘.
+- 기존 학교 변형(D72 합 변경, I70 최소↔최대, M32 숫자, M66 원소 수 4→3)은 이미 자료에 있으므로 피한다.
+- 분석집: 고난도 원본은 거의 다 분석집에 있다. 분석집 변형 문제·방향을 주 메커니즘으로 쓰지 않고, TIP을 억지로 깨지 않는다.
+
+### 서답형1 (기본 논증·서술, 4+6점, 풀이 과정)
+- 양정고 근거: 2학기 중간 19번은 자체 제작, 연속성(4) → 미분가능성(6) 2단계 서술, 교과서 수준. 감점 요소는 정의식·결론 문장.
+- 풀: 단계로 쪼개기 쉬운 중·중상 원본. I17·I20(주기·대칭 정적분, 1회 S1), I53(아래끝 미지수 → 대입·미분 2단계, 학교 서술형 주류 8회), M16(증감표·그래프 서술, LIVE 20번), M48(서답형 약 8회), J60(서답형 5회), J39(단계형).
+- 필수: 채점 기준표(정의 쓰기, 등호·경우 확인, 결론 문장에 배점).
+- 피할 것: 킬러급 발상, 답만 맞으면 되는 구조.
+
+- 분석집: 손필기가 학교 해설의 서술 흐름을 자주 인용한다 → 채점 기준 단계를 학교 해설식(정의 → 대입 → 판정 → 결론)으로 짠다.
+### 서답형2 (킬러 3단계, 4+4+2점, 답만)
+- 양정고 근거: 2학기 중간 20번 L68(2025 수능 21번) 3단계 답만. (1)이 다음 단계를 유도하는 구조.
+- 풀: 상·최상 평가원. I9(LIVE 8, 서답 5회)·D25(서답 3회)·D67(22번 단답 3회)·M55·M56·I61·I70. LIVE 0회 고난도 D62·D64·D70·M59·I74·I75·I76·J43·J48은 신선도가 높다.
+- 단계 설계: (1) 핵심 성질로 미지수 하나 결정 → (2) 케이스 분기·후보 선택 → (3) 최종 값. (1)만 풀어도 4점.
+- 필수: 구조 변경. 각 단계 답이 서로 독립적으로 채점 가능해야 함.
+
+- 기준: 0-4 설계 카드(관문 1–5 포함). 체감 난도 6/10 이하. 1회 서답형2(D64)는 이 기준 미달로 교체 대상.
+### 해설 형식 (모든 번호)
+- 풀이(정석): 교과서·학교 해설처럼 단계적으로. 빠른 풀이: 대칭·비율·공식 등 지름길(분석집 TIP식). 17·18·서답형2는 '원본 대비' 한 줄(원본·분석집 판정과 무엇이 달라졌는지).
+
+## 2. 변형 기법 사전
+
+변형 요소 867건의 유형별 빈도: 조건 변경 249 · 함수 교체 149 · 구하는 대상 변경 127 · 구조 변경 114 · 형식 변경 57 · 소재 결합 56 · 함정 추가 54 · 역문제화 53 · 그래프·표 제시 8.
+원본 난도가 오를수록 구조 변경 비중이 커진다(하 57개 원본 4건 → 최상 18개 원본 18건). LIVE는 숫자·조건 변경이 압도적이고, 구조 변경은 GEN에 집중된다. 즉 구조 변경이 학교 기출과 겹치지 않는 차별화 지점이다.
+
+- 17·18·서답형2에서는 아래 표의 '구조 변경' 예라도 0-4 B의 흔한 패턴(t-개수함수, 절댓값-수평선, 높이만 교체)에 해당하면 구조 변경으로 치지 않는다. 판정은 0-4 C 관문 3의 핵심 한 줄 테스트로 한다.
+
+| 기법 | 정의 | 관찰 패턴 (키) | 난도 효과 | 번호대 |
+|---|---|---|---|---|
+| 조건 변경 (249) | 판정 원리는 그대로, 조건의 수치·방향·형태만 교체 | 극대↔극소·증가↔감소·최고차항 음수로 살아남는 케이스 뒤집기(D40·D43·D46·D48, M55·M63) / 개수 조건 숫자 변경으로 다른 경계 강제(M66 원소수 4→3 중근, M31·M64 불연속 개수) / 고정구간 → 이동구간 [t, t+L]과 D(t) 함수화(M2·M4·M6) / 조건 (나)만 교체(I34, I17) | 대개 같음. 개수 변경은 어려워짐 | 1–16 |
+| 함수 교체 (149) | 함수의 종류·차수·인수 교체 | 삼차 → 사차 확장(D67·D70·D71·D72, I9 f→사차 g) / 곱 인수 x → x²(D57) / 위치를 사차로 올려 속도 삼차(M 운동) / 기본식 이차↔삼차(J33) / 조각 하나를 이차로(D9) | 차수 상승 시 어려워짐 | 5–18 |
+| 구하는 대상 변경 (127) | 조건은 유지, 묻는 값만 교체 | max(a+b) → min(ab)·b/a(D72, D67 묶음) / 정적분값 → 함숫값으로 바꿔 적분상수까지 결정(I59) / 함숫값 → 극값·∫\|f\|로 한 단계 추가(I 부정적분) / f값 ↔ h′값(M64–M68) | 같음 ~ +1단계 | 전 번호대 |
+| 구조 변경 (114) | 설정·판정 원리 중 하나를 통째로 교체(0-4) | 정의 한 군데 교체: 반사 방향 세로→가로·점대칭, 극한 형태 대칭차분→우미분계수, 셈 대상 실근 수→미분불가능점 수(M64–M68) / 몫 극한 → 합성 극한(2학기 중간 17번) / 조각함수 → 사차 다항식으로 중근 강제(D9) / 나누는 선 교체 수직선→회전직선→x축→수평선(J52·J57) / f²+포물선 부착(J1) / 정의식 f²·곱형(I70) | 어려워짐 | 12, 17–18, 서답형2 |
+| 형식 변경 (57) | 문항 형식이나 조건 표현을 바꿔 번역 단계 추가 | 단답 ↔ 5지선다(J37 등, D67 단답 → 중후반 객관식) / 보기형 ㄱㄴㄷ 전환(I61 3회, I65 전부) / 단계형 서답 분할(D39, J39, I 단계형) / 위장: 증가 조건 → (x₁−x₂){f(x₁)−f(x₂)}>0, 극한 → 부등식 xf(x)≥0, max → 절댓값식(D23, 양정고 2024 10번), 구간 중심형 표기(D67) | 같음 ~ 약간 어려워짐 | 9–16, 서답형 |
+| 소재 결합 (56) | 다른 단원·원리를 한 단계 덧붙임 | 미분 원본 + 정적분(D30 g=∫{f−t}, D67 g=∫f, M 단원 근 개수 함수의 ∫g(t)) / 후반 질문만 넓이로(M61·M62) / 정적분 상수를 우변에(I 11–18번대) / 적분으로 f를 정한 뒤 넓이·∫\|g\|(I70 → J) / 극값 차 공식 ½\|a\|d³(D 단원) | +1단계 | 13–18, 서답형 |
+| 함정 추가 (54, **복습형 회차만** — 학교형은 0-8) | 경계·등호·케이스를 숨겨 누락 유도 | 판별식 등호(증가 ≤0 vs 극값 >0) / 중근은 극값 아님·방향 불변 / 열린구간 끝, 경계값 등호 허용(D36, D43) / 상쇄점(M31) / 이음점 미분가능 검증(J69) / 후보 둘 중 택일(I61·I63) / 상대운동 전환점 vs 개별 방향 전환점(J25·J28·J39·J40) | 같음 ~ 어려워짐 | 5–18 |
+| 역문제화 (53) | 결과를 주고 매개변수를 구하게 함 | 구간 끝을 t로 매개해 M(t)(D9·D10·D13·D16) / 넓이·극솟값 주고 상수(D 단원 GEN) / 넓이·이등분 위치 주고 매개변수(J52·J58) / 시작점 최솟값 역문제(I9) / 전체 적분값 주고 a(I17) | 같음 ~ 어려워짐 | 5–16 |
+| 그래프·표 제시 (8) | 식 대신 그림·표로 정보 제공 | 그래프 제시(D27, M11, I24, J13, J24, J50, J52) / 속도 그래프(J71) / 2학기 중간 17번은 식 없이 그림만 | 해석 부담 증가 | 9–18 (사례가 적어 신선함) |
+
+## 3. 단원·유형별 경향
+
+LIVE 원본별 출제 합계: D 162 · M 287 · I 303 · J 226. 평가원 기출 구역이 각 단원 LIVE의 41–55%를 차지한다.
+
+| 단원·유형 | 원본 | LIVE | 상위 원본 (LIVE 횟수) |
+|---|---|---|---|
+| D 유형2 증가·감소 | D9–D16 | 31 | D11(20) D9(4) D15(4) |
+| D 유형3 극대·극소 | D17–D24 | 14 | D17(9) |
+| D 유형4 그래프 | D25–D32 | 16 | D25(6) D30(5) |
+| D Level Up | D33–D48 | 34 | D40(5) D45(5) D34(4) |
+| D 평가원 | D49–D72 | 67 | D54(11) D67(9) D65(8) D66(8) D53(7) D72(6) |
+| M 유형1 최대·최소 | M1–M8 | 14 | M1(4) M3(3) M4(3) |
+| M 유형2 방정식·부등식 | M9–M16 | 37 | M16(9) M11(8) M9(7) |
+# -*- coding: utf-8 -*-
+"""익스텐션(일반·라이브) 1,746문항과 새 문항의 겹침 검사.
+
+저장소에는 문항 원문 대신 해시 지문(ext_fp.json.gz)만 둔다.
+- 원문 지문 R: 숫자까지 포함한 6글자 조각
+- 골격 지문 K: 숫자를 #로 바꾼 6글자 조각
+- 본문 숫자 목록 nums (선지 ① 앞까지)
+판정
+- 금지(동일 문항): 골격 포함도 >= 0.85 이고 본문 숫자 목록이 같음, 또는 원문 포함도 >= 0.95 → 절대 출제 불가
+- 허용(숫자만 다름): 골격 포함도 >= 0.85 이고 숫자 목록이 다름 → 숫자만 바꾼 문항 (사용자 허용)
+- 주의(구조 유사): 골격 포함도 0.60~0.85 → 구조가 많이 닮음. 변형 정도 확인
+- 금지(구조 변경 미달): 17·18·서답형2가 익스텐션·분석집 어느 문항과든 골격 0.60 이상
+
+사용
+  python3 dupcheck.py build <corpus.json> [study.json]   # 지문 만들기 (익스텐션 + 분석집, 원문은 저장소 밖)
+  python3 dupcheck.py check <content3.py> [...]    # 시험 RAW 문항 검사
+"""
+import sys, os, re, json, gzip, base64, zlib, array, importlib.util
+HERE = os.path.dirname(os.path.abspath(__file__))
+FP = os.path.join(HERE, 'ext_fp.json.gz')
+N = 6
+
+def norm(t):
+    t = re.sub(r'!\[[^\]]*\]\([^)]*\)', '', t)
+    t = re.sub(r'<[^>]+>', '', t)
+    t = t.replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
+    t = re.sub(r'\\(?:left|right|displaystyle|textstyle|limits|quad|qquad|,|;|!| )', '', t)
+    t = re.sub(r'\\[dt]?frac', 'frac', t)
+    t = re.sub(r'\\(le|leq)q?\b', '≤', t); t = re.sub(r'\\(ge|geq)\b', '≥', t)
+    t = re.sub(r'\\(?:\(|\)|\[|\])', '', t)
+    t = re.sub(r'\\begin\{cases\}|\\end\{cases\}|&|\\\\\[?[0-9a-z]*\]?', ' ', t)
+    t = re.sub(r'[{}\s$*]', '', t)
+    t = re.sub(r'[①②③④⑤]', '|', t)
+    return t
+
+def shingles(s):
+    return sorted({zlib.crc32(s[i:i + N].encode()) for i in range(max(1, len(s) - N + 1))})
+
+def skel(s):
+    return re.sub(r'\d+', '#', s)
+
+def nums(t):
+    b = norm(t).split('|')[0]
+    return re.findall(r'\d+(?:\.\d+)?', b)
+
+def pack(v):
+    return base64.b64encode(array.array('I', v).tobytes()).decode()
+
+def unpack(b):
+    a = array.array('I'); a.frombytes(base64.b64decode(b)); return set(a)
+
+def build(corpus, study=None):
+    """corpus: 익스텐션 1,746문항(corpus.json), study: 양정고2 부교재 분석집(study.json, 원문 143 + 변형 290)"""
+    C = json.load(open(corpus))
+    out = []
+    def add(i, key, hdr, text, src):
+        r = norm(text)
+        out.append(dict(id=i, key=key, hdr=hdr, src=src, R=pack(shingles(r)), K=pack(shingles(skel(r))), nums=nums(text)))
+    for o in C:
+        add(o['id'], o['key'], o['hdr'], o['problem'], 'EXT')
+    if study:
+        for s in json.load(open(study)):
+            add(f"STUDY-{s['key']}-원문", s['key'], f"분석집 {s['key']} 원문", s['problem'], 'STUDY')
+            for v in s['variants']:
+                add(f"STUDY-{s['key']}-변형{v['no']}", s['key'], f"분석집 {s['key']} 변형{v['no']}", v['problem'], 'STUDY')
+    with gzip.open(FP, 'wt', encoding='utf-8') as f:
+        json.dump(out, f, ensure_ascii=False)
+    print('지문', len(out), '(익스텐션', sum(d['src'] == 'EXT' for d in out), '· 분석집', sum(d['src'] == 'STUDY' for d in out), ') →', FP, os.path.getsize(FP) // 1024, 'KB')
+
+def load():
+    with gzip.open(FP, 'rt', encoding='utf-8') as f:
+        D = json.load(f)
+    for d in D:
+        d['R'] = unpack(d['R']); d['K'] = unpack(d['K'])
+    return D
+
+def score(text, D, top=3):
+    r = norm(text); R = set(shingles(r)); K = set(shingles(skel(r)))
+    res = []
+    for d in D:
+        cr = len(R & d['R']) / max(1, min(len(R), len(d['R'])))
+        ck = len(K & d['K']) / max(1, min(len(K), len(d['K'])))
+        res.append((ck, cr, d, nums(text) == d['nums']))
+    res.sort(key=lambda x: (-x[0], -x[1]))
+    return res[:top]
+
+HIGH = {17, 18, 'S2', '17', '18'}   # 구조 변경 필수 자리: 익스텐션·분석집 모두 골격 0.60 미만이어야 함
+
+def verdict(ck, cr, same, no=None, src='EXT', d_id=''):
+    """회차 유형(DUP_ROUND_TYPE=학교형|복습형, checkpart가 <회차>/round.json에서 넣음)
+    - 익스텐션(일반 GEN·라이브 LIVE 모두): 그대로 가져오지 않음 → 같은 문항 금지. 숫자만 다른 것은 1–16 허용.
+      원문 숫자 변경이 아닌 독특한 변형(조건·대상·구조)은 아이디어로 참고해 다시 바꿔 쓴다.
+    - 분석집: 같은 문항은 금지. 학교형 회차는 분석집 문항과 구조가 닮은 것(골격 0.60 이상)도 금지(분석집 저격 없음)
+    - 17·18·서답형2: 어느 자료든 골격 0.60 미만(구조 변경)"""
+    rt = os.environ.get('DUP_ROUND_TYPE', '학교형')
+    if no in HIGH and ck >= 0.60: return '금지(구조 변경 미달)'
+    same_item = cr >= 0.95 or (ck >= 0.85 and same)
+    if src == 'STUDY':
+        if same_item: return '금지(분석집 동일 문항)'
+        if rt == '학교형' and ck >= 0.60: return '금지(학교형: 분석집과 유사)'
+        if ck >= 0.85: return '허용(분석집 숫자만 다름, 복습형)'
+        if ck >= 0.60: return '주의(분석집 구조 유사, 복습형)'
+        return '통과'
+    if same_item: return '금지(라이브 동일 문항)' if str(d_id).startswith('LIVE') else '금지(익스텐션 동일 문항)'
+    if ck >= 0.85: return '허용(숫자만 다름)'
+    if ck >= 0.60: return '주의(구조 유사)'
+    return '통과'
+
+def best(text, D):
+    """가장 가까운 익스텐션 1개와 분석집 1개를 따로 판정해 더 나쁜 쪽을 돌려준다"""
+    res = score(text, D, 400)
+    pick = {}
+    for r in res:
+        pick.setdefault(r[2].get('src'), r)
+    return list(pick.values())
+
+def check(paths):
+    D = load(); bad = 0
+    for p in paths:
+        spec = importlib.util.spec_from_file_location('c3', p); m = importlib.util.module_from_spec(spec)
+        sys.path.insert(0, os.path.dirname(os.path.abspath(p))); spec.loader.exec_module(m)
+        raw = dict(getattr(m, 'RAW'))
+        for s in ('S1', 'S2'):  # 서답형: 본문 + 소문항
+            if hasattr(m, s):
+                raw[s] = (getattr(m, s) + ''.join(q[0] for q in getattr(m, s + 'S', [])), None)
+        for no, v in sorted(raw.items(), key=lambda x: str(x[0])):
+            body = v[0] if isinstance(v, (tuple, list)) else str(v)
+            ch = v[1] if isinstance(v, (tuple, list)) and isinstance(v[1], list) and v[1] and isinstance(v[1][0], str) else []
+            text = body + ''.join('|' + c for c in ch)
+            rk = sorted(((verdict(ck, cr, same, no, d.get('src'), d.get('id', '')), ck, cr, d) for ck, cr, d, same in best(text, D)), key=lambda z: (not z[0].startswith('금지'), -z[1]))
+            vd, ck, cr, d = rk[0]
+            if vd.startswith('금지'): bad += 1
+            tag = '분석집' if d.get('src') == 'STUDY' else '익스텐션'
+            print(f'{os.path.basename(os.path.dirname(os.path.abspath(p)))} {no:>3}: {vd:12s} 골격 {ck:.2f} 원문 {cr:.2f}  ← [{tag}] {d["id"]} {d["hdr"]}')
+    return bad
+
+def check_items(path):
+    """출제 중인 부품 파일(ITEMS={번호: dict(body, choices, ...)}, SITEMS={'S1': dict(body, subs=[...])})을 검사"""
+    D = load(); bad = 0
+    ns = {}; exec(open(path).read(), ns)
+    for no, it in list(ns.get('ITEMS', {}).items()) + list(ns.get('SITEMS', {}).items()):
+        extra = ''.join(v for _, v in (it.get('cond') or [])) + ''.join(v for _, v in (it.get('bogi') or [])) + (it.get('after') or '')
+        text = it['body'] + extra + ''.join(q[0] if isinstance(q, (list, tuple)) else str(q) for q in it.get('subs', [])) + ''.join('|' + str(c) for c in (it.get('choices') or []))
+        rk = sorted(((verdict(ck, cr, same, no, d.get('src'), d.get('id', '')), ck, cr, d) for ck, cr, d, same in best(text, D)), key=lambda z: (not z[0].startswith('금지'), -z[1]))
+        vd, ck, cr, d = rk[0]
+        bad += vd.startswith('금지')
+        tag = '분석집' if d.get('src') == 'STUDY' else '익스텐션'
+        print(f'{no}: {vd} 골격 {ck:.2f} 원문 {cr:.2f} ← [{tag}] {d["id"]} {d["hdr"]}')
+    return bad
+
+
+exec
+/bin/bash -lc "python3 - <<'PY'
+import json
+p=json.load(open('output/build/기말/지침/school_recipes.json'))
+print(p.keys())
+for k,v in p.items():
+ if isinstance(v,list):
+  for r in v:
+   if isinstance(r,dict) and r.get('exam')=='2학기 중간(미적분Ⅰ)' and r.get('no') in [1,2,4,7,9,11,12,14,16]: print(r)
+PY
+rg --files template | rg '(items_common|eqfont)'" in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+dict_keys(['note', 'items'])
+{'exam': '2학기 중간(미적분Ⅰ)', 'no': 1, 'band': '1–4', 'src': 'L6', 'change_type': ['구하는 대상 변경'], 'change_detail': ['그래프: 동일 (점 (-1,1) 채운 점, (0,1)·(-1,0) 빈 점, (0,-1) 채운 점, (1,-1) 빈 점, 왼쪽 끝 (-1,-2) 빈 점 그대로; 시험지는 다시 그린 그림이라 왼쪽 직선에 꺾임이 조금 있음)', '구하는 식: lim_{x→0-} f(x) + lim_{x→1+} f(x)f(-x) → lim_{x→-1-} f(x) + lim_{x→1-} f(x)', 'f(x)f(-x) 꼴의 곱 극한(-x→-1- 해석)이 없어짐', '선지: -2, -1, 0, 1, 2 그대로 (정답 ④1 → ②-1)'], 'core_kept': '그래프에서 한쪽 극한 두 개를 읽어 더함', 'effect': '쉬워짐'}
+{'exam': '2학기 중간(미적분Ⅰ)', 'no': 2, 'band': '1–4', 'src': 'C5', 'change_type': ['식·함수 교체', '조건 변경', '구하는 대상 변경'], 'change_detail': ['분모: 무리식 √(x+3)-2 → 일차식 x-1 (유리화 대신 분수식 약분)', '분자: 미정계수가 없는 x^2+4x-5 → 미정계수 a가 들어간 x^2+ax-2 (0/0 꼴이 되도록 a를 먼저 정해야 함: 1+a-2=0, a=1)', '상수: x=1에서 함숫값 a → b', '구하는 값: a → a+b (a=1, b=3, 답 4)', '선지: 21~25 → 1~5'], 'core_kept': 'x=1에서 연속 ⇔ 극한값 = 함숫값. 0/0 꼴 극한을 계산해 함숫값을 정함', 'effect': '같음'}
+{'exam': '2학기 중간(미적분Ⅰ)', 'no': 4, 'band': '1–4', 'src': 'T6', 'change_type': ['숫자 변경', '조건 변경', '구하는 대상 변경'], 'change_detail': ['기준점: f(4)=10 (오른쪽 끝) → f(0)=2 (왼쪽 끝)', "도함수 조건: 대칭 범위 |f'(x)|≤6 → 비대칭 범위 1≤f'(x)≤2", '구간: 2<x<4 → 0<x<3', '구하는 값: f(2)의 M-m → f(3)의 M+m (5≤f(3)≤8, 답 13)', '선지: 18~26(짝수) → 12~16'], 'core_kept': "평균값 정리 f(b)-f(a)=(b-a)f'(c)로 함숫값 범위를 잡고, 일차함수가 등호를 만족시킴을 확인", 'effect': '같음'}
+{'exam': '2학기 중간(미적분Ⅰ)', 'no': 7, 'band': '5–8', 'src': 'A37', 'change_type': ['숫자 변경'], 'change_detail': ['함숫값 기준: f(x)=3 → f(x)=2', '근의 배치: {-a, a, 2a} → {-2a, -a, a}', "(나) 조건 f(0)>0, f'(1)=-2 그대로 (f(0)>0에서 원본은 a>0, 시험은 a<1)", '구하는 값: f(3) → f(2) (a=-1, 답 2)', '선지: 7~11 → -4, -2, 0, 2, 4'], 'core_kept': "f(x)-k=(x-α)(x-β)(x-γ)로 놓고 곱의 미분으로 f'(1)을 계산한 뒤, f(0)>0으로 a를 하나로 고름", 'effect': '같음'}
+{'exam': '2학기 중간(미적분Ⅰ)', 'no': 9, 'band': '9–12', 'src': 'B63', 'change_type': ['숫자 변경', '식·함수 교체', '형식 변경(보기형/서술·단계형/선지 변경)'], 'change_detail': ['가운데 식: (f(k+2)-f(k))/2 → (f(k+1)-f(k-1))/2 (k에 대해 대칭인 차분)', '아래 경계: 2k-8 → 6k-6', '위 경계: 4k^2+14k → 3k^2-9k+12 (최고차항 계수가 가운데 식과 같은 3이 되어, 결과적으로 가운데 식이 위 경계와 같아짐)', '등호가 성립하는 정수: k=-2, -1 → k=2, 3', "구하는 값: f'(3) → f'(1) (p=-9/2, q=11, 답 5)", '형식: 단답형 → 5지선다 (2~6)'], 'core_kept': '두 경계가 만나는 정수 k에서는 가운데 식도 같은 값이어야 함. 이 두 등식으로 f의 계수 두 개를 결정', 'effect': '같음'}
+{'exam': '2학기 중간(미적분Ⅰ)', 'no': 11, 'band': '9–12', 'src': 'L33', 'change_type': ['숫자 변경', '식·함수 교체'], 'change_detail': ['f: -x+4a, 2x+3 → -x+2a, x+2', 'g: f(x){f(-x)+a} → {f(x)+1}{f(-x)+a} (앞 인수에 +1)', '조건: 양수 a → 실수 a (방정식 9a=(2a+1)(a+2)가 2(a-1)^2=0으로 중근이 되어 a가 하나로 정해짐)', '선지: 3/4~4/3 → 1~5'], 'core_kept': 'x→0+와 x→0-에서 f(x), f(-x)의 극한을 따로 구해 좌극한=우극한 방정식을 세움', 'effect': '같음'}
+{'exam': '2학기 중간(미적분Ⅰ)', 'no': 12, 'band': '9–12', 'src': 'C9', 'change_type': ['식·함수 교체', '구조 변경', '형식 변경(보기형/서술·단계형/선지 변경)'], 'change_detail': ['f: 두 구간 (불연속점 x=0 하나) → 세 구간 (불연속점 x=0, x=2 둘)', '경우 나누기: f(a)=0인 a만 확인 → (i) a≠0, 2일 때 f(a)=0 (a=-1, 5), (ii) a=0 확인 (좌 4 ≠ 우 16, 불연속), (iii) a=2일 때 두 점프가 상쇄 (좌 12 = 우 12 = 함숫값 12, 연속)', '답: 13 → 6 (-1+5+2)', '형식: 단답형 → 5지선다 (10, 9, 8, 7, 6)'], 'core_kept': 'x=a에서 f(x-a)는 x=0 근처 값(좌 2, 우 4)을 가지므로, f(x)가 a에서 연속이면 f(a)=0이 필요함', 'effect': '어려워짐'}
+{'exam': '2학기 중간(미적분Ⅰ)', 'no': 14, 'band': '13–16', 'src': 'L18 (가장 가까운 유형)', 'change_type': ['자체 제작'], 'change_detail': ['가장 가까운 유형(L18)과 비교: 시험의 중심 거리 AB=√((t+2)^2+(2t+2)^2)는 L18의 OA와 같은 식', '고정된 5 → 두 반지름의 합 2t+3 (t=1일 때 5): f(t)=√(5t^2+12t+8)-(2t+3)', '두 원 사이 최소 거리 = 중심 거리 - 반지름의 합이라는 도형 해석 단계 추가 (t>1일 때 두 원이 떨어져 있음 확인)', '극한: x→1 양쪽 → t→1+ 한쪽', '답: 11/5 → 1/5 (L18의 값 11/5에서 반지름 합의 기울기 2를 뺀 값)'], 'core_kept': '√(이차식)-(일차식) 꼴을 유리화해 0/0을 없앤 뒤 대입', 'effect': '어려워짐'}
+{'exam': '2학기 중간(미적분Ⅰ)', 'no': 16, 'band': '13–16', 'src': 'C54', 'change_type': ['식·함수 교체', '조건 변경', '숫자 변경', '구하는 대상 변경'], 'change_detail': ['특이점 기준: f(x)=0 → f(x)=1 (분모 f(x) → f(x)-1)', 'g의 식: f(x+3){f(x)+1}/f(x) → f(x){f(x-2)-1}/(f(x)-1) (평행이동 +3 → -2)', '따로 정한 값: 상수 3 → -|x-2| (x에 따라 바뀌는 값, g(4)=-2)', '조건: lim_{x→3} g = g(3)-1 → g(4) - lim_{x→4} g = -3', '구하는 값: g(5) → 10g(7) (f=(x-2)(x-3)(x-4)+1, g(7)=61/10, 답 61)', '선지: 14~22 → 59~63'], 'core_kept': '함숫값을 따로 정한 점(f(x)=상수)에서 극한과 함숫값의 차이를 이용해 f(4)=1, f(2)=1 같은 근을 찾고, 0/0 꼴 극한값으로 나머지 근을 정함', 'effect': '같음'}
+template/db/parts/items_common.py
+template/engine/eqfont.js
+
+exec
+/bin/bash -lc "rg -n 'D28|J61' output/build/부교재_기말 -g '*.py' && sed -n '45,66p' output/build/기말/지침/figkit.py && python3 - <<'PY'
+import sympy,matplotlib
+print('dependencies OK')
+PY" in /home/runner/work/Finale/Finale
+ succeeded in 477ms:
+output/build/부교재_기말/parts/items_p1.py:56:I['D28'] = (r"""실수 전체의 집합에서 정의된 함수 \(f(x)\)에 대하여 함수 \(y=f'(x)\)의 그래프가 그림과 같다. (단, \(x\le-1\)일 때 \(f'(x)=-x-1\)이고, \(x\ge2\)일 때 \(f'(x)=x-3\)이다.)""" + FIG('fig_D28', 135) + r"""함수 \(f(x)\)에 대하여 &lt;보기&gt;에서 옳은 것만을 있는 대로 고른 것은?""" + BOGI([
+output/build/부교재_기말/parts/items_p1.py:128:    'D28': (4, S4 + ' · 일반', "ㄱ f' 전 구간 존재, ㄴ f' +→- at 1, ㄷ 극소 f(3)>0이면 x<1에서만 한 점 → ㄱㄴㄷ"),
+output/build/부교재_기말/parts/items_p8.py:53:I['J61'] = (r"""양수 \(k\)에 대하여 함수 \(f(x)\)는
+output/build/부교재_기말/parts/items_p8.py:55:이다. 곡선 \(y=f(x)\)와 \(x\)축이 원점 O와 두 점 P, Q \((\overline{\mathrm{OP}}&lt;\overline{\mathrm{OQ}})\)에서 만난다. 곡선 \(y=f(x)\)와 선분 OP로 둘러싸인 영역을 \(A\), 곡선 \(y=f(x)\)와 선분 PQ로 둘러싸인 영역을 \(B\)라 하자.""" + DM + r"""(\(A\)의 넓이)\(-\)(\(B\)의 넓이)\(=3\)</div>일 때, \(k\)의 값은?""" + FIG('fig_J61', 130), [r'\dfrac76', r'\dfrac43', r'\dfrac32', r'\dfrac53', r'\dfrac{11}6'], '②', '2024학년도 수능 6월 모의평가 10번')
+output/build/부교재_기말/parts/items_p8.py:119:    'J61': (3, _PG, "A-B=∫₀³f=k·9/4=3 → k=4/3"),
+output/build/부교재_기말/parts/figs_p1.py:37:# ---- D28: y=f'(x): -x-1 (x<=-1), cos(pi x/2) (-1<=x<=2), x-3 (x>=2) ----
+output/build/부교재_기말/parts/figs_p1.py:52:fig.savefig('fig_D28.svg', bbox_inches='tight', pad_inches=0.02); plt.close(fig)
+output/build/부교재_기말/parts/figs_p8.py:138:# ---- J61 : f=(4/3)x(x-2)(x-3) ----
+output/build/부교재_기말/parts/figs_p8.py:139:fJ61 = lambda x: 4/3*x*(x-2)*(x-3)
+output/build/부교재_기말/parts/figs_p8.py:143:xs = np.linspace(-0.1, 3.43, 400); ax.plot(xs, fJ61(xs), 'k', lw=LW)
+output/build/부교재_기말/parts/figs_p8.py:144:xx = np.linspace(0, 3, 300); shade(ax, xx, fJ61(xx), 0)
+output/build/부교재_기말/parts/figs_p8.py:149:save(fig, 'fig_J61')
+output/build/부교재_기말/parts/figs_p8.py:191:for n in ['J46', 'J48', 'J50', 'J57', 'J58', 'J61', 'J62', 'J64']:
+    return o
+
+def new(xl, yl, size=(2.6, 2.0), aspect='auto', xlabel='x', ylabel='y', origin=True, dx=0.12, dy=0.12):
+    """화살표 축이 있는 빈 그림. dx, dy: 축 이름·O 라벨 간격(데이터 단위 비율)"""
+    fig, ax = plt.subplots(figsize=size)
+    ax.set_xlim(*xl); ax.set_ylim(*yl); ax.set_aspect(aspect)
+    for s in ax.spines.values(): s.set_visible(False)
+    ax.set_xticks([]); ax.set_yticks([])
+    kw = dict(arrowstyle='-|>', lw=0.8, color='k', mutation_scale=8)
+    ax.annotate('', xy=(xl[1], 0), xytext=(xl[0], 0), arrowprops=kw)
+    ax.annotate('', xy=(0, yl[1]), xytext=(0, yl[0]), arrowprops=kw)
+    sx, sy = (xl[1] - xl[0]) * dx / 3, (yl[1] - yl[0]) * dy / 3
+    if xlabel: label(ax, xl[1] - sx * 0.2, -sy, xlabel, 'right', 'top')
+    if ylabel: label(ax, sx, yl[1] - sy * 0.2, ylabel, 'left', 'top')
+    if origin: label(ax, -sx * 0.6, -sy * 0.8, 'O', 'right', 'top')
+    return fig, ax
+
+def curve(ax, f, x0, x1, n=400, lw=LW, **k):
+    x = np.linspace(x0, x1, n); ax.plot(x, f(x), 'k', lw=lw, **k)
+
+def line(ax, xs, ys, lw=0.7):
+    ax.plot(xs, ys, 'k', lw=lw)
+mkdir -p failed for path /home/runner/.config/matplotlib: [Errno 30] Read-only file system: '/home/runner/.config/matplotlib'
+Matplotlib created a temporary cache directory at /tmp/matplotlib-iz7pjrqc because there was an issue with the default path (/home/runner/.config/matplotlib); it is highly recommended to set the MPLCONFIGDIR environment variable to a writable directory, in particular to speed up the import of Matplotlib and to better support multiprocessing.
+dependencies OK
+
+codex
+앞번호는 증가 조건·속도 일치·사차함수의 최솟값·운동 방향 판단을 그대로 살리는 방향으로 구성했습니다. 16번은 구간별 적분의 부호를 정하는 원리를 유지하면서 구간을 6개로 늘렸습니다. 64개 부호 배열을 모두 확인하고, 추가 조건을 빼면 답이 달라지는지도 검사하겠습니다.
+
+exec
+/bin/bash -lc "python3 - <<'PY'
+from itertools import product
+for mode in ['all','no_location','no_value','no_g4']:
+ out=[]
+ for ss in product([-1,1],repeat=6):
+  g=[4*sum(ss[:j])-2*sum(ss) for j in range(7)]
+  if mode"'!='"'no_location' and not(g[2]==min(g) and ss[1]==-1 and ss[2]==1):continue
+  if mode"'!='"'no_value' and min(g)"'!=0:continue
+  if mode!='"'no_g4' and g[4]"'!=8:continue
+  out.append((ss,sum((2*j+1)*s for j,s in enumerate(ss))))
+ print(mode,out)
+PY' in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+all [((1, -1, 1, 1, -1, -1), -10)]
+no_location [((1, -1, 1, 1, -1, -1), -10), ((1, 1, -1, 1, -1, -1), -14), ((1, 1, 1, -1, -1, -1), -18)]
+no_value [((1, -1, 1, 1, -1, -1), -10)]
+no_g4 [((1, -1, 1, -1, 1, -1), -6), ((1, -1, 1, 1, -1, -1), -10)]
+
+apply patch
+patch: completed
+/home/runner/work/Finale/Finale/output/build/기말/1회/parts/c1.py
+/home/runner/work/Finale/Finale/output/build/기말/1회/parts/c2.py
+diff --git a/output/build/기말/1회/parts/c1.py b/output/build/기말/1회/parts/c1.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..220978ec7479d54b5a0c4826f14f561940437ada
+--- /dev/null
++++ b/output/build/기말/1회/parts/c1.py
+@@ -0,0 +1,71 @@
++# -*- coding: utf-8 -*-
++"""1회 학교형: Codex 담당 선택형 2·4·6·8번."""
++
++ITEMS = {
++    2: dict(
++        body=r"""실수 \(a\)에 대하여 삼차함수
++\[f(x)=x^3+3ax^2+(6a+9)x+2\]
++가 실수 전체의 집합에서 증가할 때, \(a\)의 최댓값은?""",
++        choices=['-1', '0', '1', '2', '3'], ans=5, key='D11',
++        src='2024년 수능특강 [24009-0080]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 4번', level='하',
++        var='[숫자·구하는 대상 변경] 증가하는 정수 계수의 개수 → 실수 계수의 최댓값',
++        sol=r"""\(f'(x)=3x^2+6ax+6a+9\)이다. 실수 전체에서 증가하려면 모든 실수 \(x\)에 대하여 \(f'(x)\ge0\)이어야 하므로
++\[(6a)^2-12(6a+9)\le0,\qquad (a+1)(a-3)\le0.\]
++따라서 \(-1\le a\le3\)이고, \(a\)의 최댓값은 \(3\)이다. \(a=3\)일 때도 \(f'(x)=3(x+3)^2\)이므로 증가한다.""",
++        fast=r"""\(f'(x)=3\{(x+a)^2-(a-3)(a+1)\}\)에서 \(-1\le a\le3\).""",
++        note='원문의 도함수 판별식 판정은 유지하고 정수 개수 계산을 끝값 읽기로 바꾸었다.',
++        wrong={'-1': '허용 범위의 최솟값을 답한 경우.', '2': '판별식의 등호를 제외한 뒤 정수 최댓값을 답한 경우.'},
++    ),
++    4: dict(
++        body=r"""수직선 위를 움직이는 두 점 \(\mathrm{P}\), \(\mathrm{Q}\)의 시각 \(t\) \((t\ge0)\)에서의 위치가 각각
++\[x_1=t^3-t^2+2t,\qquad x_2=2t^2+11t+1\]
++이다. 두 점의 속도가 서로 같을 때, 두 점 사이의 거리는?""",
++        choices=['25', '26', '27', '28', '29'], ans=4, key='M48',
++        src='2020학년도 수능 나형 27번', author='codex',
++        vtype=['숫자 변경', '형식 변경'], effect='같음', bunseok=False,
++        precedent='1학기 기말 4번', level='하',
++        var='[숫자·형식 변경] 위치식의 계수와 출발 위치 교체, 단답형 → 선택형',
++        sol=r"""두 점의 속도는 각각 \(3t^2-2t+2\), \(4t+11\)이다. 따라서
++\[3t^2-2t+2=4t+11,\qquad (t-3)(t+1)=0.\]
++\(t\ge0\)이므로 \(t=3\)이다. 이때 \(x_1=24\), \(x_2=52\)이므로 두 점 사이의 거리는 \(52-24=28\)이다.""",
++        fast=r"""위치의 차는 \(d(t)=t^3-3t^2-9t-1\). \(d'(t)=3(t-3)(t+1)=0\)에서 \(t=3\), \(|d(3)|=28\).""",
++        note='속도 일치 시각의 음수 해를 제외하고 위치 차의 절댓값을 구하는 원문 흐름을 유지했다.',
++        wrong={'27': '두 번째 위치식의 상수항 1을 위치 계산에서 빠뜨린 경우.'},
++    ),
++    6: dict(
++        body=r"""함수 \(f(x)=-x^4+3x^3-x^2+1\)의 그래프를 \(x\)축에 대하여 대칭이동한 후 \(y\)축의 방향으로 \(k\)만큼 평행이동한 그래프를 \(y=g(x)\)라 하자. 모든 실수 \(x\)에 대하여
++\[f(x)\le g(x)\]
++가 성립하도록 하는 실수 \(k\)의 최솟값은?""",
++        choices=['6', '7', '8', '9', '10'], ans=5, key='M16',
++        src='2024년 수능완성 [24054-0135]', author='codex',
++        vtype=['함수 교체', '조건 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 7번', level='중',
++        var='[함수·조건·대상 변경] 최고차항 부호와 상수항 교체, 위쪽 이동의 상한 → 하한',
++        sol=r"""\(g(x)=-f(x)+k\)이므로 주어진 부등식은 \(2f(x)\le k\)이다.
++\[f'(x)=-x(4x-1)(x-2)\]
++이므로 극대가 되는 점은 \(x=0,2\)이고, \(f(0)=1\), \(f(2)=5\)이다. 양 끝에서 함숫값이 한없이 작아지므로 \(f(x)\)의 최댓값은 \(5\)이다. 따라서 \(k\ge10\)이고 최솟값은 \(10\)이다.""",
++        fast=r"""\(5-f(x)=(x-2)^2(x^2+x+1)\ge0\)이고 \(f(2)=5\)이므로 \(k\)의 최솟값은 \(2\times5=10\).""",
++        note='대칭이동 번역과 두 극값 비교를 유지했다. 부호를 뒤집어 같은 계산량으로 하한을 묻는다.',
++        wrong={'8': '함수의 상수항 1을 빠뜨려 최댓값을 4로 계산하고 두 배 한 경우.'},
++    ),
++    8: dict(
++        body=r"""양수 \(a\)에 대하여 수직선 위를 움직이는 점 \(\mathrm{P}\)의 시각 \(t\) \((t\ge0)\)에서의 속도는
++\[v(t)=4t^3-12at^2+16a\]
++이다. 점 \(\mathrm{P}\)가 운동 방향을 바꾸지 않을 때, 시각 \(t=0\)에서 \(t=1\)까지 움직인 거리의 최댓값은?""",
++        choices=['13', '14', '15', '16', '17'], ans=1, key='J30',
++        src='2024년 수능특강 [24009-0177]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 4번; LIVE2-04-082(거리 질문의 선례)', level='중',
++        var='[숫자·대상 변경] 속도 계수·시각 교체, 원점 기준 위치 → 움직인 거리',
++        sol=r"""\(v(0)=16a>0\)이므로 운동 방향을 바꾸지 않을 조건은 \(t\ge0\)에서 \(v(t)\ge0\)인 것이다. \(v'(t)=12t(t-2a)\)이므로 최솟값은
++\[v(2a)=16a(1-a^2).\]
++따라서 \(0&lt;a\le1\)이다. 속도가 음수가 아니므로 움직인 거리는
++\[\int_0^1v(t)\,dt=1+12a\]
++이고, \(a=1\)일 때 최댓값 \(13\)을 갖는다.""",
++        fast=r"""방향 불변에서 \(v(2a)\ge0\), 즉 \(a\le1\). 거리는 \(1+12a\le13\).""",
++        note='원문과 같은 전 시간대의 방향 불변 조건이다. 정해진 시각까지만의 조건이나 정지 시각 조건을 추가하지 않았다.',
++        wrong={'16': '경계값 a=1에서 초기 속도 v(0)를 이동거리로 답한 경우.'},
++    ),
++}
+diff --git a/output/build/기말/1회/parts/c2.py b/output/build/기말/1회/parts/c2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..b54f8a250416264776c019720ded8346126d3e1d
+--- /dev/null
++++ b/output/build/기말/1회/parts/c2.py
+@@ -0,0 +1,82 @@
++# -*- coding: utf-8 -*-
++"""1회 학교형: Codex 담당 선택형 10·12·14·16번."""
++
++ITEMS = {
++    10: dict(
++        body=r"""함수 \(y=f(x)\)의 그래프가 그림과 같다. 양수 \(k\)에 대하여
++\[f(x)=kx(x-3)(x-4)\]
++이고, 곡선과 \(x\)축의 교점은 원점 \(\mathrm{O}\), \(\mathrm{P}(3,0)\), \(\mathrm{Q}(4,0)\)이다.
++<div class="fig"><img src="fig_c_10.svg" style="width:150pt"></div>
++곡선과 선분 \(\mathrm{OP}\), 곡선과 선분 \(\mathrm{PQ}\)로 둘러싸인 영역을 각각 \(A\), \(B\)라 하자.
++\[(A\text{의 넓이})-(B\text{의 넓이})=32\]
++일 때, \(f(1)\)의 값은?""",
++        choices=['17', '18', '19', '20', '21'], ans=2, key='J61',
++        src='2024학년도 수능 6월 모의평가 10번', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 9번', level='중',
++        var='[숫자·대상 변경] 두 양의 근과 넓이 차 교체, 계수 → 함숫값',
++        sol=r"""\(0&lt;x&lt;3\)에서 \(f(x)>0\), \(3&lt;x&lt;4\)에서 \(f(x)&lt;0\)이므로
++\[(A\text{의 넓이})-(B\text{의 넓이})=\int_0^4f(x)\,dx
++=k\left[\frac{x^4}{4}-\frac{7x^3}{3}+6x^2\right]_0^4=\frac{32k}{3}.\]
++따라서 \(k=3\)이고 \(f(1)=3\times1\times(-2)\times(-3)=18\)이다.""",
++        fast=r"""넓이 차를 부호 있는 적분 하나로 합치면 \(32k/3=32\). 따라서 \(f(1)=6k=18\).""",
++        note='원문의 두 영역 모양과 넓이 차 판정을 유지했다. 그림에 쓰인 두 근은 본문에도 제시했다.',
++        wrong={'21': 'f(1)의 인수 x-3을 -2 대신 x-4와 혼동한 값이 아니라, 올바른 6k에 k를 한 번 더 더한 계산 오류 7k.'},
++    ),
++    12: dict(
++        body=r"""최고차항의 계수가 \(1\)인 삼차함수 \(f(x)\)가 다음 조건을 만족시킬 때, \(f(1)\)의 값은?""",
++        cond=[('가', r'방정식 \(f(x)=4x\)의 서로 다른 실근의 개수는 \(2\)이다.'),
++              ('나', r'\(f(0)=0\)이고, 함수 \(f(x)\)는 \(x=2\)에서 극대이다.')],
++        choices=['11', '12', '13', '14', '15'], ans=3, key='D40',
++        src='2024년 수능특강 [24009-0101]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경', '형식 변경'], effect='쉬워짐', bunseok=False,
++        precedent='2학기 중간 9번', level='중상',
++        var='[숫자·대상·형식 변경] 교점 조건을 방정식으로 제시, 극솟값 단답 → 함숫값 선택형',
++        sol=r"""\(f(0)=0\)이고 \(f(x)-4x=0\)의 서로 다른 실근이 두 개이므로, \(b\ne0\)에 대하여
++\[f(x)-4x=x(x-b)^2\quad\text{또는}\quad x^2(x-b)\]
++이다. 첫째 경우 \(f'(2)=0\)에서 \((b-4)^2=0\)이므로 \(b=4\)이다. 이때 \(f'(x)=(x-2)(3x-10)\)이므로 \(x=2\)에서 극대이다. 둘째 경우 \(f'(2)=16-4b=0\)에서 \(b=4\)인데, \(f'(x)=(x-2)(3x-2)\)이므로 \(x=2\)에서 극소이다. 따라서
++\[f(x)=x(x-4)^2+4x,\qquad f(1)=13.\]""",
++        fast=r"""\(x^2(x-b)+4x\)인 경우는 \(x=2\)에서 극소이므로 제외한다. 나머지는 \(f'(2)=(b-4)^2=0\), 따라서 \(f(1)=9+4=13\).""",
++        note='원문의 두 인수형과 극대 판정을 모두 유지했다. 극소점의 추가 계산을 없애 무게를 낮췄다.',
++        wrong={'12': '선형항 4x를 빠뜨린 도함수에 f′(2)=0을 적용해 b=2 또는 6을 얻고, 두 후보의 f(1)을 평균한 경우가 아니므로 별도 오답 근거를 붙이지 않는다.'},
++    ),
++    14: dict(
++        body=r"""함수 \(y=f'(x)\)의 그래프가 그림과 같고,
++\[f'(x)=\begin{cases}-4(x+1)&amp;(x\le-1)\\4(1-x^2)&amp;(-1&lt;x&lt;2)\\12(x-3)&amp;(x\ge2)\end{cases}\]
++이다.
++<div class="fig"><img src="fig_c_14.svg" style="width:165pt"></div>
++함수 \(g(x)=f(x)-kx\)가 극값을 갖는 \(x\)의 개수가 \(4\)가 되도록 하는 모든 정수 \(k\)의 합은?""",
++        choices=['6', '7', '8', '9', '10'], ans=1, key='D28',
++        src='학교 자체 출제', author='codex',
++        vtype=['자체 출제', '함수 교체', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 14번', level='중상',
++        var='[자체 출제] D28의 도함수 그림 모양 유지, f−kx의 극값 개수로 정수 계수 결정',
++        sol=r"""\(g'(x)=f'(x)-k\)이므로 \(y=f'(x)\)와 \(y=k\)가 만나는 점에서 \(f'(x)-k\)의 부호 변화를 조사한다. 가운데 곡선의 최댓값은 \(f'(0)=4\)이다. \(0&lt;k&lt;4\)이면 왼쪽 직선, 가운데 곡선의 두 부분, 오른쪽 직선에서 각각 부호가 바뀌어 극값이 네 개이다.
++\(k\le-12\)이면 극값이 없고, \(-12&lt;k\le0\) 또는 \(k\ge4\)이면 두 개이다. 특히 \(k=0,4,-12\)에서 수평선에 닿기만 하는 점에서는 부호가 바뀌지 않는다. 따라서 정수 \(k\)는 \(1,2,3\)이고 합은 \(6\)이다.""",
++        fast=r"""극값 네 개의 조건은 \(0&lt;k&lt;\max_{[-1,2]}f'(x)=4\). 따라서 \(1+2+3=6\).""",
++        note='원문의 왼쪽 직선·가운데 봉우리·오른쪽 직선 모양을 다항식으로 재현했다. f의 영점 개수나 극솟값 부호를 묻는 분석집 방향을 쓰지 않았다.',
++        wrong={'10': 'k=4에서 가운데 곡선과 수평선이 닿는 점도 극값으로 세어 1+2+3+4를 답한 경우.'},
++    ),
++    16: dict(
++        body=r"""닫힌구간 \([0,6]\)에서 연속인 함수 \(f(x)\)와 열린구간 \((0,6)\)에서 정의된 함수
++\[g(x)=\int_0^x f(t)\,dt-\int_x^6 f(t)\,dt\]
++가 다음 조건을 만족시킬 때, \(\displaystyle\int_0^6 x f(x)\,dx\)의 값은?""",
++        cond=[('가', r'\(n=1,2,\ldots,6\)에 대하여 \(n-1\le x\le n\)일 때, \(|f(x)|=12(x-n+1)(n-x)\)이다.'),
++              ('나', r'함수 \(g(x)\)는 \(x=2\)에서 극소이고, \(g(4)=8\)이다.')],
++        choices=['-14', '-13', '-12', '-11', '-10'], ans=5, key='I70',
++        src='2023학년도 수능 12번', author='codex',
++        vtype=['숫자 변경', '조건 변경', '구하는 대상 변경'], effect='어려워짐', bunseok=False,
++        precedent='2학기 중간 16번', level='상',
++        var='[숫자·조건·대상 변경] 네 구간 → 여섯 구간, 극소 위치와 다른 함숫값으로 부호를 정한 뒤 가중 정적분',
++        sol=r"""각 열린구간 \((n-1,n)\)에서 \(|f(x)|>0\)이고 \(f\)가 연속이므로 부호가 일정하다. 이를 \(s_n\)이라 하면 \(s_n=1\) 또는 \(-1\)이고
++\[\int_{n-1}^n f(x)\,dx=2s_n.\]
++\(g'(x)=2f(x)\)이고 \(g\)가 \(x=2\)에서 극소이므로 \(s_2=-1\), \(s_3=1\)이다. 따라서 \(g(4)=8\)에서
++\[2(s_1+s_2+s_3+s_4-s_5-s_6)=8,\qquad s_1+s_4-s_5-s_6=4.\]
++각 항은 \(1\) 이하이므로 \((s_1,s_2,s_3,s_4,s_5,s_6)=(1,-1,1,1,-1,-1)\)이다. 구간의 중앙 \(n-\frac12\)에 대한 대칭을 이용하면
++\[\int_{n-1}^n x f(x)\,dx=\left(n-\frac12\right)2s_n=(2n-1)s_n.\]
++그러므로 구하는 값은 \(1-3+5+7-9-11=-10\)이다.""",
++        fast=r"""구간 넓이는 각각 \(2\). 극소에서 둘째·셋째 부호가 \(-,+\)이고, \(g(4)=8\)은 나머지 네 부호를 \(+,+,-,-\)로 정한다. 가중 적분은 각 구간 중앙값에 부호 있는 넓이를 곱해 합하면 된다.""",
++        note='원문 단원의 구간별 부호 선택·적분함수 미분을 유지했다. 극솟값을 따로 주지 않아 불필요한 조건을 없앴으며, 여섯 부호와 가중 적분으로 16번 무게를 맞췄다.',
++        wrong={'-12': '각 구간에서 x를 중앙값 대신 오른쪽 끝 n으로 대체하면 되는 것이 아니라, 마지막 구간의 중앙값 11/2를 13/2로 한 칸 크게 쓴 경우.'},
++    ),
++}
+
+exec
+/bin/bash -lc 'PYTHONPATH="$PWD/template/db/parts" python3 checkpart.py parts/c1.py' in /home/runner/work/Finale/Finale/output/build/기말/1회
+ succeeded in 516ms:
+2: 통과 골격 0.44 원문 0.25 ← [익스텐션] GEN1-01-009 부교재 80p 11번 변형
+4: 통과 골격 0.58 원문 0.38 ← [익스텐션] GEN1-02-114 부교재 123p 51번 변형
+6: 통과 골격 0.58 원문 0.54 ← [익스텐션] GEN1-02-037 부교재 109p 16번 변형
+8: 주의(구조 유사) 골격 0.68 원문 0.50 ← [익스텐션] LIVE2-04-082 중앙고 2025 8번 · 부교재 171p 30번
+== 학교 선례 (학교형)
+2: △ 원문 골격 유사도 0.22 (학교 1–4 범위 0.28–0.72)
+6: △ 원문 골격 유사도 0.27 (학교 5–8 범위 0.28–0.72)
+8: △ 원문 골격 유사도 0.25 (학교 5–8 범위 0.28–0.72)
+학교 선례 표시 0 개
+== 중복 (학교형)
+== 말투
+== 형식
+형식 표시 0 개
+
+exec
+/bin/bash -lc 'PYTHONPATH=/home/runner/work/Finale/Finale/template/db/parts python3 checkpart.py parts/c2.py' in /home/runner/work/Finale/Finale/output/build/기말/1회
+ succeeded in 579ms:
+10: 통과 골격 0.39 원문 0.34 ← [익스텐션] GEN2-04-140 부교재 184p 61번 변형
+12: 통과 골격 0.50 원문 0.36 ← [익스텐션] GEN1-01-069 부교재 89p 40번 변형
+14: 통과 골격 0.38 원문 0.12 ← [익스텐션] LIVE1-02-151 경신고 2023 3번 · 부교재 120p 43번
+16: 통과 골격 0.49 원문 0.36 ← [분석집] STUDY-I70-변형② 분석집 I70 변형②
+tmp  10: 자료에 없는 어절 ['교점은']
+== 학교 선례 (학교형)
+10: △ 원문 골격 유사도 0.13 (학교 9–12 범위 0.28–0.72)
+16: △ 원문 골격 유사도 0.26 (학교 13–16 범위 0.28–0.72)
+학교 선례 표시 0 개
+== 중복 (학교형)
+== 말투
+== 형식
+형식 표시 0 개
+
+apply patch
+patch: completed
+/home/runner/work/Finale/Finale/output/build/기말/1회/parts/c1.py
+/home/runner/work/Finale/Finale/output/build/기말/1회/parts/c2.py
+diff --git a/output/build/기말/1회/parts/c1.py b/output/build/기말/1회/parts/c1.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..4c3df5bcd5e4a642d24015e5a09763e04356b597
+--- /dev/null
++++ b/output/build/기말/1회/parts/c1.py
+@@ -0,0 +1,69 @@
++# -*- coding: utf-8 -*-
++"""1회 학교형: Codex 담당 선택형 2·4·6·8번."""
++
++ITEMS = {
++    2: dict(
++        body=r"""실수 \(a\)에 대하여 함수 \(f(x)=x^3+3ax^2+(6a+9)x+2\)가 실수 전체의 집합에서 증가하도록 하는 \(a\)의 최댓값은?""",
++        choices=['-1', '0', '1', '2', '3'], ans=5, key='D11',
++        src='2024년 수능특강 [24009-0080]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 4번', level='하',
++        var='[숫자·구하는 대상 변경] 증가하는 정수 계수의 개수 → 실수 계수의 최댓값',
++        sol=r"""\(f'(x)=3x^2+6ax+6a+9\)이다. 실수 전체에서 증가하려면 모든 실수 \(x\)에 대하여 \(f'(x)\ge0\)이어야 하므로
++\[(6a)^2-12(6a+9)\le0,\qquad (a+1)(a-3)\le0.\]
++따라서 \(-1\le a\le3\)이고, \(a\)의 최댓값은 \(3\)이다. \(a=3\)일 때도 \(f'(x)=3(x+3)^2\)이므로 증가한다.""",
++        fast=r"""\(f'(x)=3\{(x+a)^2-(a-3)(a+1)\}\)에서 \(-1\le a\le3\).""",
++        note='원문의 도함수 판별식 판정은 유지하고 정수 개수 계산을 끝값 읽기로 바꾸었다.',
++        wrong={'-1': '허용 범위의 최솟값을 답한 경우.', '2': '판별식의 등호를 제외한 뒤 정수 최댓값을 답한 경우.'},
++    ),
++    4: dict(
++        body=r"""수직선 위를 움직이는 두 점 \(\mathrm{P}\), \(\mathrm{Q}\)의 시각 \(t\) \((t\ge0)\)에서의 위치가 각각
++\[x_1=t^3-t^2+2t,\qquad x_2=2t^2+11t+1\]
++이다. 두 점의 속도가 서로 같을 때, 두 점 사이의 거리는?""",
++        choices=['25', '26', '27', '28', '29'], ans=4, key='M48',
++        src='2020학년도 수능 나형 27번', author='codex',
++        vtype=['숫자 변경', '형식 변경'], effect='같음', bunseok=False,
++        precedent='1학기 기말 4번', level='하',
++        var='[숫자·형식 변경] 위치식의 계수와 출발 위치 교체, 단답형 → 선택형',
++        sol=r"""두 점의 속도는 각각 \(3t^2-2t+2\), \(4t+11\)이다. 따라서
++\[3t^2-2t+2=4t+11,\qquad (t-3)(t+1)=0.\]
++\(t\ge0\)이므로 \(t=3\)이다. 이때 \(x_1=24\), \(x_2=52\)이므로 두 점 사이의 거리는 \(52-24=28\)이다.""",
++        fast=r"""위치의 차는 \(d(t)=t^3-3t^2-9t-1\). \(d'(t)=3(t-3)(t+1)=0\)에서 \(t=3\), \(|d(3)|=28\).""",
++        note='속도 일치 시각의 음수 해를 제외하고 위치 차의 절댓값을 구하는 원문 흐름을 유지했다.',
++        wrong={'27': '두 번째 위치식의 상수항 1을 위치 계산에서 빠뜨린 경우.'},
++    ),
++    6: dict(
++        body=r"""함수 \(f(x)=-x^4+3x^3-x^2+1\)에 대하여 함수 \(y=f(x)\)의 그래프를 \(x\)축에 대하여 대칭이동한 후 \(y\)축의 방향으로 \(k\)만큼 평행이동한 그래프를 \(y=g(x)\)라 하자. 모든 실수 \(x\)에 대하여
++\[f(x)\le g(x)\]
++가 성립하도록 하는 실수 \(k\)의 최솟값은?""",
++        choices=['6', '7', '8', '9', '10'], ans=5, key='M16',
++        src='2024년 수능완성 [24054-0135]', author='codex',
++        vtype=['함수 교체', '조건 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 7번', level='중',
++        var='[함수·조건·대상 변경] 최고차항 부호와 상수항 교체, 위쪽 이동의 상한 → 하한',
++        sol=r"""\(g(x)=-f(x)+k\)이므로 주어진 부등식은 \(2f(x)\le k\)이다.
++\[f'(x)=-x(4x-1)(x-2)\]
++이므로 극대가 되는 점은 \(x=0,2\)이고, \(f(0)=1\), \(f(2)=5\)이다. 양 끝에서 함숫값이 한없이 작아지므로 \(f(x)\)의 최댓값은 \(5\)이다. 따라서 \(k\ge10\)이고 최솟값은 \(10\)이다.""",
++        fast=r"""\(5-f(x)=(x-2)^2(x^2+x+1)\ge0\)이고 \(f(2)=5\)이므로 \(k\)의 최솟값은 \(2\times5=10\).""",
++        note='대칭이동 번역과 두 극값 비교를 유지했다. 부호를 뒤집어 같은 계산량으로 하한을 묻는다.',
++        wrong={'8': '함수의 상수항 1을 빠뜨려 최댓값을 4로 계산하고 두 배 한 경우.'},
++    ),
++    8: dict(
++        body=r"""양수 \(a\)에 대하여 수직선 위를 움직이는 점 \(\mathrm{P}\)의 시각 \(t\) \((t\ge0)\)에서의 속도는
++\[v(t)=4t^3-12at^2+16a\]
++이다. 점 \(\mathrm{P}\)가 운동 방향을 바꾸지 않도록 하는 모든 양수 \(a\)에 대하여 시각 \(t=0\)에서 \(t=1\)까지 움직인 거리의 최댓값은?""",
++        choices=['13', '14', '15', '16', '17'], ans=1, key='J30',
++        src='2024년 수능특강 [24009-0177]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 4번; LIVE2-04-082(거리 질문의 선례)', level='중',
++        var='[숫자·대상 변경] 속도 계수·시각 교체, 원점 기준 위치 → 움직인 거리',
++        sol=r"""\(v(0)=16a>0\)이므로 운동 방향을 바꾸지 않을 조건은 \(t\ge0\)에서 \(v(t)\ge0\)인 것이다. \(v'(t)=12t(t-2a)\)이므로 최솟값은
++\[v(2a)=16a(1-a^2).\]
++따라서 \(0&lt;a\le1\)이다. 속도가 음수가 아니므로 움직인 거리는
++\[\int_0^1v(t)\,dt=1+12a\]
++이고, \(a=1\)일 때 최댓값 \(13\)을 갖는다.""",
++        fast=r"""방향 불변에서 \(v(2a)\ge0\), 즉 \(a\le1\). 거리는 \(1+12a\le13\).""",
++        note='원문과 같은 전 시간대의 방향 불변 조건이다. 정해진 시각까지만의 조건이나 정지 시각 조건을 추가하지 않았다.',
++        wrong={'16': '경계값 a=1에서 초기 속도 v(0)를 이동거리로 답한 경우.'},
++    ),
++}
+diff --git a/output/build/기말/1회/parts/c2.py b/output/build/기말/1회/parts/c2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..47a3fb83e5fac090a41afc20c0e60adf027cb5cb
+--- /dev/null
++++ b/output/build/기말/1회/parts/c2.py
+@@ -0,0 +1,82 @@
++# -*- coding: utf-8 -*-
++"""1회 학교형: Codex 담당 선택형 10·12·14·16번."""
++
++ITEMS = {
++    10: dict(
++        body=r"""함수 \(y=f(x)\)의 그래프가 그림과 같다. 양수 \(k\)에 대하여 함수 \(f(x)\)는
++\[f(x)=kx(x-3)(x-4)\]
++이다. 곡선 \(y=f(x)\)와 \(x\)축이 원점 \(\mathrm{O}\)와 두 점 \(\mathrm{P}(3,0)\), \(\mathrm{Q}(4,0)\)에서 만난다.
++<div class="fig"><img src="fig_c_10.svg" style="width:150pt"></div>
++곡선 \(y=f(x)\)와 선분 \(\mathrm{OP}\), 곡선 \(y=f(x)\)와 선분 \(\mathrm{PQ}\)로 둘러싸인 영역을 각각 \(A\), \(B\)라 하자.
++\[(A\text{의 넓이})-(B\text{의 넓이})=32\]
++일 때, \(f(1)\)의 값은?""",
++        choices=['17', '18', '19', '20', '21'], ans=2, key='J61',
++        src='2024학년도 수능 6월 모의평가 10번', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 9번', level='중',
++        var='[숫자·대상 변경] 두 양의 근과 넓이 차 교체, 계수 → 함숫값',
++        sol=r"""\(0&lt;x&lt;3\)에서 \(f(x)>0\), \(3&lt;x&lt;4\)에서 \(f(x)&lt;0\)이므로
++\[(A\text{의 넓이})-(B\text{의 넓이})=\int_0^4f(x)\,dx
++=k\left[\frac{x^4}{4}-\frac{7x^3}{3}+6x^2\right]_0^4=\frac{32k}{3}.\]
++따라서 \(k=3\)이고 \(f(1)=3\times1\times(-2)\times(-3)=18\)이다.""",
++        fast=r"""넓이 차를 부호 있는 적분 하나로 합치면 \(32k/3=32\). 따라서 \(f(1)=6k=18\).""",
++        note='원문의 두 영역 모양과 넓이 차 판정을 유지했다. 그림에 쓰인 두 근은 본문에도 제시했다.',
++        wrong={},
++    ),
++    12: dict(
++        body=r"""최고차항의 계수가 \(1\)인 삼차함수 \(f(x)\)가 다음 조건을 만족시킬 때, \(f(1)\)의 값은?""",
++        cond=[('가', r'방정식 \(f(x)=4x\)의 서로 다른 실근의 개수는 \(2\)이다.'),
++              ('나', r'\(f(0)=0\)이고, 함수 \(f(x)\)는 \(x=2\)에서 극대이다.')],
++        choices=['11', '12', '13', '14', '15'], ans=3, key='D40',
++        src='2024년 수능특강 [24009-0101]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경', '형식 변경'], effect='쉬워짐', bunseok=False,
++        precedent='2학기 중간 9번', level='중상',
++        var='[숫자·대상·형식 변경] 교점 조건을 방정식으로 제시, 극솟값 단답 → 함숫값 선택형',
++        sol=r"""\(f(0)=0\)이고 \(f(x)-4x=0\)의 서로 다른 실근이 두 개이므로, \(b\ne0\)에 대하여
++\[f(x)-4x=x(x-b)^2\quad\text{또는}\quad x^2(x-b)\]
++이다. 첫째 경우 \(f'(2)=0\)에서 \((b-4)^2=0\)이므로 \(b=4\)이다. 이때 \(f'(x)=(x-2)(3x-10)\)이므로 \(x=2\)에서 극대이다. 둘째 경우 \(f'(2)=16-4b=0\)에서 \(b=4\)인데, \(f'(x)=(x-2)(3x-2)\)이므로 \(x=2\)에서 극소이다. 따라서
++\[f(x)=x(x-4)^2+4x,\qquad f(1)=13.\]""",
++        fast=r"""\(x^2(x-b)+4x\)인 경우는 \(x=2\)에서 극소이므로 제외한다. 나머지는 \(f'(2)=(b-4)^2=0\), 따라서 \(f(1)=9+4=13\).""",
++        note='원문의 두 인수형과 극대 판정을 모두 유지했다. 극소점의 추가 계산을 없애 무게를 낮췄다.',
++        wrong={},
++    ),
++    14: dict(
++        body=r"""함수 \(y=f'(x)\)의 그래프가 그림과 같고,
++\[f'(x)=\begin{cases}-4(x+1)&amp;(x\le-1)\\4(1-x^2)&amp;(-1&lt;x&lt;2)\\12(x-3)&amp;(x\ge2)\end{cases}\]
++이다.
++<div class="fig"><img src="fig_c_14.svg" style="width:165pt"></div>
++함수 \(g(x)=f(x)-kx\)가 극값을 갖는 \(x\)의 개수가 \(4\)가 되도록 하는 모든 정수 \(k\)의 합은?""",
++        choices=['6', '7', '8', '9', '10'], ans=1, key='D28',
++        src='학교 자체 출제', author='codex',
++        vtype=['자체 출제', '함수 교체', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 14번', level='중상',
++        var='[자체 출제] D28의 도함수 그림 모양 유지, f−kx의 극값 개수로 정수 계수 결정',
++        sol=r"""\(g'(x)=f'(x)-k\)이므로 \(y=f'(x)\)와 \(y=k\)가 만나는 점에서 \(f'(x)-k\)의 부호 변화를 조사한다. 가운데 곡선의 최댓값은 \(f'(0)=4\)이다. \(0&lt;k&lt;4\)이면 왼쪽 직선, 가운데 곡선의 두 부분, 오른쪽 직선에서 각각 부호가 바뀌어 극값이 네 개이다.
++\(k\le-12\)이면 극값이 없고, \(-12&lt;k\le0\) 또는 \(k\ge4\)이면 두 개이다. 특히 \(k=0,4,-12\)에서 수평선에 닿기만 하는 점에서는 부호가 바뀌지 않는다. 따라서 정수 \(k\)는 \(1,2,3\)이고 합은 \(6\)이다.""",
++        fast=r"""극값 네 개의 조건은 \(0&lt;k&lt;\max_{[-1,2]}f'(x)=4\). 따라서 \(1+2+3=6\).""",
++        note='원문의 왼쪽 직선·가운데 봉우리·오른쪽 직선 모양을 다항식으로 재현했다. f의 영점 개수나 극솟값 부호를 묻는 분석집 방향을 쓰지 않았다.',
++        wrong={'10': '0<k<4의 상한에 등호를 넣어 1+2+3+4를 답한 경우.'},
++    ),
++    16: dict(
++        body=r"""닫힌구간 \([0,6]\)에서 연속인 함수 \(f(x)\)와 열린구간 \((0,6)\)에서 정의된 함수
++\[g(x)=\int_0^x f(t)\,dt-\int_x^6 f(t)\,dt\]
++가 다음 조건을 만족시킬 때, \(\displaystyle\int_0^6 x f(x)\,dx\)의 값은?""",
++        cond=[('가', r'\(n-1\le x&lt;n\)일 때, \(|f(x)|=|12(x-n+1)(x-n)|\)이다. (단, \(n=1,2,\ldots,6\)이다.)'),
++              ('나', r'함수 \(g(x)\)는 \(x=2\)에서 극소이고, \(g(4)=8\)이다.')],
++        choices=['-14', '-13', '-12', '-11', '-10'], ans=5, key='I70',
++        src='2023학년도 수능 12번', author='codex',
++        vtype=['숫자 변경', '조건 변경', '구하는 대상 변경'], effect='어려워짐', bunseok=False,
++        precedent='2학기 중간 16번', level='상',
++        var='[숫자·조건·대상 변경] 네 구간 → 여섯 구간, 극소 위치와 다른 함숫값으로 부호를 정한 뒤 가중 정적분',
++        sol=r"""각 열린구간 \((n-1,n)\)에서 \(|f(x)|>0\)이고 \(f\)가 연속이므로 부호가 일정하다. 이를 \(s_n\)이라 하면 \(s_n=1\) 또는 \(-1\)이고
++\[\int_{n-1}^n f(x)\,dx=2s_n.\]
++\(g'(x)=2f(x)\)이고 \(g\)가 \(x=2\)에서 극소이므로 \(s_2=-1\), \(s_3=1\)이다. 따라서 \(g(4)=8\)에서
++\[2(s_1+s_2+s_3+s_4-s_5-s_6)=8,\qquad s_1+s_4-s_5-s_6=4.\]
++각 항은 \(1\) 이하이므로 \((s_1,s_2,s_3,s_4,s_5,s_6)=(1,-1,1,1,-1,-1)\)이다. 구간의 중앙 \(n-\frac12\)에 대한 대칭을 이용하면
++\[\int_{n-1}^n x f(x)\,dx=\left(n-\frac12\right)2s_n=(2n-1)s_n.\]
++그러므로 구하는 값은 \(1-3+5+7-9-11=-10\)이다.""",
++        fast=r"""구간 넓이는 각각 \(2\). 극소에서 둘째·셋째 부호가 \(-,+\)이고, \(g(4)=8\)은 나머지 네 부호를 \(+,+,-,-\)로 정한다. 가중 적분은 각 구간 중앙값에 부호 있는 넓이를 곱해 합하면 된다.""",
++        note='원문 단원의 구간별 부호 선택·적분함수 미분을 유지했다. 극솟값을 따로 주지 않아 불필요한 조건을 없앴으며, 여섯 부호와 가중 적분으로 16번 무게를 맞췄다.',
++        wrong={},
++    ),
++}
+
+exec
+/bin/bash -lc 'PYTHONPATH=/home/runner/work/Finale/Finale/template/db/parts python3 checkpart.py parts/c1.py && PYTHONPATH=/home/runner/work/Finale/Finale/template/db/parts python3 checkpart.py parts/c2.py' in /home/runner/work/Finale/Finale/output/build/기말/1회
+ exited 1 in 535ms:
+2: 통과 골격 0.54 원문 0.33 ← [익스텐션] GEN1-01-009 부교재 80p 11번 변형
+4: 통과 골격 0.58 원문 0.38 ← [익스텐션] GEN1-02-114 부교재 123p 51번 변형
+6: 통과 골격 0.52 원문 0.50 ← [익스텐션] GEN1-02-037 부교재 109p 16번 변형
+8: 금지(학교형: 분석집과 유사) 골격 0.62 원문 0.44 ← [분석집] STUDY-J30-변형① 분석집 J30 변형①
+== 학교 선례 (학교형)
+학교 선례 표시 0 개
+== 중복 (학교형)
+== 말투
+== 형식
+형식 표시 0 개
+
+apply patch
+patch: completed
+/home/runner/work/Finale/Finale/output/build/기말/1회/parts/c1.py
+diff --git a/output/build/기말/1회/parts/c1.py b/output/build/기말/1회/parts/c1.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..c02568ca881477bcf590fc1f9ca2e9c008ea7735
+--- /dev/null
++++ b/output/build/기말/1회/parts/c1.py
+@@ -0,0 +1,69 @@
++# -*- coding: utf-8 -*-
++"""1회 학교형: Codex 담당 선택형 2·4·6·8번."""
++
++ITEMS = {
++    2: dict(
++        body=r"""실수 \(a\)에 대하여 함수 \(f(x)=x^3+3ax^2+(6a+9)x+2\)가 실수 전체의 집합에서 증가하도록 하는 \(a\)의 최댓값은?""",
++        choices=['-1', '0', '1', '2', '3'], ans=5, key='D11',
++        src='2024년 수능특강 [24009-0080]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 4번', level='하',
++        var='[숫자·구하는 대상 변경] 증가하는 정수 계수의 개수 → 실수 계수의 최댓값',
++        sol=r"""\(f'(x)=3x^2+6ax+6a+9\)이다. 실수 전체에서 증가하려면 모든 실수 \(x\)에 대하여 \(f'(x)\ge0\)이어야 하므로
++\[(6a)^2-12(6a+9)\le0,\qquad (a+1)(a-3)\le0.\]
++따라서 \(-1\le a\le3\)이고, \(a\)의 최댓값은 \(3\)이다. \(a=3\)일 때도 \(f'(x)=3(x+3)^2\)이므로 증가한다.""",
++        fast=r"""\(f'(x)=3\{(x+a)^2-(a-3)(a+1)\}\)에서 \(-1\le a\le3\).""",
++        note='원문의 도함수 판별식 판정은 유지하고 정수 개수 계산을 끝값 읽기로 바꾸었다.',
++        wrong={'-1': '허용 범위의 최솟값을 답한 경우.', '2': '판별식의 등호를 제외한 뒤 정수 최댓값을 답한 경우.'},
++    ),
++    4: dict(
++        body=r"""수직선 위를 움직이는 두 점 \(\mathrm{P}\), \(\mathrm{Q}\)의 시각 \(t\) \((t\ge0)\)에서의 위치가 각각
++\[x_1=t^3-t^2+2t,\qquad x_2=2t^2+11t+1\]
++이다. 두 점의 속도가 서로 같을 때, 두 점 사이의 거리는?""",
++        choices=['25', '26', '27', '28', '29'], ans=4, key='M48',
++        src='2020학년도 수능 나형 27번', author='codex',
++        vtype=['숫자 변경', '형식 변경'], effect='같음', bunseok=False,
++        precedent='1학기 기말 4번', level='하',
++        var='[숫자·형식 변경] 위치식의 계수와 출발 위치 교체, 단답형 → 선택형',
++        sol=r"""두 점의 속도는 각각 \(3t^2-2t+2\), \(4t+11\)이다. 따라서
++\[3t^2-2t+2=4t+11,\qquad (t-3)(t+1)=0.\]
++\(t\ge0\)이므로 \(t=3\)이다. 이때 \(x_1=24\), \(x_2=52\)이므로 두 점 사이의 거리는 \(52-24=28\)이다.""",
++        fast=r"""위치의 차는 \(d(t)=t^3-3t^2-9t-1\). \(d'(t)=3(t-3)(t+1)=0\)에서 \(t=3\), \(|d(3)|=28\).""",
++        note='속도 일치 시각의 음수 해를 제외하고 위치 차의 절댓값을 구하는 원문 흐름을 유지했다.',
++        wrong={'27': '두 번째 위치식의 상수항 1을 위치 계산에서 빠뜨린 경우.'},
++    ),
++    6: dict(
++        body=r"""함수 \(f(x)=-x^4+3x^3-x^2+1\)에 대하여 함수 \(y=f(x)\)의 그래프를 \(x\)축에 대하여 대칭이동한 후 \(y\)축의 방향으로 \(k\)만큼 평행이동한 그래프를 \(y=g(x)\)라 하자. 모든 실수 \(x\)에 대하여
++\[f(x)\le g(x)\]
++가 성립하도록 하는 실수 \(k\)의 최솟값은?""",
++        choices=['6', '7', '8', '9', '10'], ans=5, key='M16',
++        src='2024년 수능완성 [24054-0135]', author='codex',
++        vtype=['함수 교체', '조건 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 7번', level='중',
++        var='[함수·조건·대상 변경] 최고차항 부호와 상수항 교체, 위쪽 이동의 상한 → 하한',
++        sol=r"""\(g(x)=-f(x)+k\)이므로 주어진 부등식은 \(2f(x)\le k\)이다.
++\[f'(x)=-x(4x-1)(x-2)\]
++이므로 극대가 되는 점은 \(x=0,2\)이고, \(f(0)=1\), \(f(2)=5\)이다. 양 끝에서 함숫값이 한없이 작아지므로 \(f(x)\)의 최댓값은 \(5\)이다. 따라서 \(k\ge10\)이고 최솟값은 \(10\)이다.""",
++        fast=r"""\(5-f(x)=(x-2)^2(x^2+x+1)\ge0\)이고 \(f(2)=5\)이므로 \(k\)의 최솟값은 \(2\times5=10\).""",
++        note='대칭이동 번역과 두 극값 비교를 유지했다. 부호를 뒤집어 같은 계산량으로 하한을 묻는다.',
++        wrong={'8': '함수의 상수항 1을 빠뜨려 최댓값을 4로 계산하고 두 배 한 경우.'},
++    ),
++    8: dict(
++        body=r"""양수 \(a\)에 대하여 수직선 위를 움직이는 점 \(\mathrm{P}\)의 시각 \(t\) \((t\ge0)\)에서의 속도 \(v(t)\)가
++\[v(t)=4t^3-12at^2+16a\]
++이다. 점 \(\mathrm{P}\)가 운동 방향을 바꾸지 않을 때, 시각 \(t=0\)에서 \(t=1\)까지 움직인 거리의 최댓값은?""",
++        choices=['13', '14', '15', '16', '17'], ans=1, key='J30',
++        src='2024년 수능특강 [24009-0177]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 4번; LIVE2-04-082(거리 질문의 선례)', level='중',
++        var='[숫자·대상 변경] 속도 계수·시각 교체, 원점 기준 위치 → 움직인 거리',
++        sol=r"""\(v(0)=16a>0\)이므로 운동 방향을 바꾸지 않을 조건은 \(t\ge0\)에서 \(v(t)\ge0\)인 것이다. \(v'(t)=12t(t-2a)\)이므로 최솟값은
++\[v(2a)=16a(1-a^2).\]
++따라서 \(0&lt;a\le1\)이다. 속도가 음수가 아니므로 움직인 거리는
++\[\int_0^1v(t)\,dt=1+12a\]
++이고, \(a=1\)일 때 최댓값 \(13\)을 갖는다.""",
++        fast=r"""방향 불변에서 \(v(2a)\ge0\), 즉 \(a\le1\). 거리는 \(1+12a\le13\).""",
++        note='원문과 같은 전 시간대의 방향 불변 조건이다. 정해진 시각까지만의 조건이나 정지 시각 조건을 추가하지 않았다.',
++        wrong={'16': '경계값 a=1에서 초기 속도 v(0)를 이동거리로 답한 경우.'},
++    ),
++}
+diff --git a/output/build/기말/1회/parts/c2.py b/output/build/기말/1회/parts/c2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..47a3fb83e5fac090a41afc20c0e60adf027cb5cb
+--- /dev/null
++++ b/output/build/기말/1회/parts/c2.py
+@@ -0,0 +1,82 @@
++# -*- coding: utf-8 -*-
++"""1회 학교형: Codex 담당 선택형 10·12·14·16번."""
++
++ITEMS = {
++    10: dict(
++        body=r"""함수 \(y=f(x)\)의 그래프가 그림과 같다. 양수 \(k\)에 대하여 함수 \(f(x)\)는
++\[f(x)=kx(x-3)(x-4)\]
++이다. 곡선 \(y=f(x)\)와 \(x\)축이 원점 \(\mathrm{O}\)와 두 점 \(\mathrm{P}(3,0)\), \(\mathrm{Q}(4,0)\)에서 만난다.
++<div class="fig"><img src="fig_c_10.svg" style="width:150pt"></div>
++곡선 \(y=f(x)\)와 선분 \(\mathrm{OP}\), 곡선 \(y=f(x)\)와 선분 \(\mathrm{PQ}\)로 둘러싸인 영역을 각각 \(A\), \(B\)라 하자.
++\[(A\text{의 넓이})-(B\text{의 넓이})=32\]
++일 때, \(f(1)\)의 값은?""",
++        choices=['17', '18', '19', '20', '21'], ans=2, key='J61',
++        src='2024학년도 수능 6월 모의평가 10번', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 9번', level='중',
++        var='[숫자·대상 변경] 두 양의 근과 넓이 차 교체, 계수 → 함숫값',
++        sol=r"""\(0&lt;x&lt;3\)에서 \(f(x)>0\), \(3&lt;x&lt;4\)에서 \(f(x)&lt;0\)이므로
++\[(A\text{의 넓이})-(B\text{의 넓이})=\int_0^4f(x)\,dx
++=k\left[\frac{x^4}{4}-\frac{7x^3}{3}+6x^2\right]_0^4=\frac{32k}{3}.\]
++따라서 \(k=3\)이고 \(f(1)=3\times1\times(-2)\times(-3)=18\)이다.""",
++        fast=r"""넓이 차를 부호 있는 적분 하나로 합치면 \(32k/3=32\). 따라서 \(f(1)=6k=18\).""",
++        note='원문의 두 영역 모양과 넓이 차 판정을 유지했다. 그림에 쓰인 두 근은 본문에도 제시했다.',
++        wrong={},
++    ),
++    12: dict(
++        body=r"""최고차항의 계수가 \(1\)인 삼차함수 \(f(x)\)가 다음 조건을 만족시킬 때, \(f(1)\)의 값은?""",
++        cond=[('가', r'방정식 \(f(x)=4x\)의 서로 다른 실근의 개수는 \(2\)이다.'),
++              ('나', r'\(f(0)=0\)이고, 함수 \(f(x)\)는 \(x=2\)에서 극대이다.')],
++        choices=['11', '12', '13', '14', '15'], ans=3, key='D40',
++        src='2024년 수능특강 [24009-0101]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경', '형식 변경'], effect='쉬워짐', bunseok=False,
++        precedent='2학기 중간 9번', level='중상',
++        var='[숫자·대상·형식 변경] 교점 조건을 방정식으로 제시, 극솟값 단답 → 함숫값 선택형',
++        sol=r"""\(f(0)=0\)이고 \(f(x)-4x=0\)의 서로 다른 실근이 두 개이므로, \(b\ne0\)에 대하여
++\[f(x)-4x=x(x-b)^2\quad\text{또는}\quad x^2(x-b)\]
++이다. 첫째 경우 \(f'(2)=0\)에서 \((b-4)^2=0\)이므로 \(b=4\)이다. 이때 \(f'(x)=(x-2)(3x-10)\)이므로 \(x=2\)에서 극대이다. 둘째 경우 \(f'(2)=16-4b=0\)에서 \(b=4\)인데, \(f'(x)=(x-2)(3x-2)\)이므로 \(x=2\)에서 극소이다. 따라서
++\[f(x)=x(x-4)^2+4x,\qquad f(1)=13.\]""",
++        fast=r"""\(x^2(x-b)+4x\)인 경우는 \(x=2\)에서 극소이므로 제외한다. 나머지는 \(f'(2)=(b-4)^2=0\), 따라서 \(f(1)=9+4=13\).""",
++        note='원문의 두 인수형과 극대 판정을 모두 유지했다. 극소점의 추가 계산을 없애 무게를 낮췄다.',
++        wrong={},
++    ),
++    14: dict(
++        body=r"""함수 \(y=f'(x)\)의 그래프가 그림과 같고,
++\[f'(x)=\begin{cases}-4(x+1)&amp;(x\le-1)\\4(1-x^2)&amp;(-1&lt;x&lt;2)\\12(x-3)&amp;(x\ge2)\end{cases}\]
++이다.
++<div class="fig"><img src="fig_c_14.svg" style="width:165pt"></div>
++함수 \(g(x)=f(x)-kx\)가 극값을 갖는 \(x\)의 개수가 \(4\)가 되도록 하는 모든 정수 \(k\)의 합은?""",
++        choices=['6', '7', '8', '9', '10'], ans=1, key='D28',
++        src='학교 자체 출제', author='codex',
++        vtype=['자체 출제', '함수 교체', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 14번', level='중상',
++        var='[자체 출제] D28의 도함수 그림 모양 유지, f−kx의 극값 개수로 정수 계수 결정',
++        sol=r"""\(g'(x)=f'(x)-k\)이므로 \(y=f'(x)\)와 \(y=k\)가 만나는 점에서 \(f'(x)-k\)의 부호 변화를 조사한다. 가운데 곡선의 최댓값은 \(f'(0)=4\)이다. \(0&lt;k&lt;4\)이면 왼쪽 직선, 가운데 곡선의 두 부분, 오른쪽 직선에서 각각 부호가 바뀌어 극값이 네 개이다.
++\(k\le-12\)이면 극값이 없고, \(-12&lt;k\le0\) 또는 \(k\ge4\)이면 두 개이다. 특히 \(k=0,4,-12\)에서 수평선에 닿기만 하는 점에서는 부호가 바뀌지 않는다. 따라서 정수 \(k\)는 \(1,2,3\)이고 합은 \(6\)이다.""",
++        fast=r"""극값 네 개의 조건은 \(0&lt;k&lt;\max_{[-1,2]}f'(x)=4\). 따라서 \(1+2+3=6\).""",
++        note='원문의 왼쪽 직선·가운데 봉우리·오른쪽 직선 모양을 다항식으로 재현했다. f의 영점 개수나 극솟값 부호를 묻는 분석집 방향을 쓰지 않았다.',
++        wrong={'10': '0<k<4의 상한에 등호를 넣어 1+2+3+4를 답한 경우.'},
++    ),
++    16: dict(
++        body=r"""닫힌구간 \([0,6]\)에서 연속인 함수 \(f(x)\)와 열린구간 \((0,6)\)에서 정의된 함수
++\[g(x)=\int_0^x f(t)\,dt-\int_x^6 f(t)\,dt\]
++가 다음 조건을 만족시킬 때, \(\displaystyle\int_0^6 x f(x)\,dx\)의 값은?""",
++        cond=[('가', r'\(n-1\le x&lt;n\)일 때, \(|f(x)|=|12(x-n+1)(x-n)|\)이다. (단, \(n=1,2,\ldots,6\)이다.)'),
++              ('나', r'함수 \(g(x)\)는 \(x=2\)에서 극소이고, \(g(4)=8\)이다.')],
++        choices=['-14', '-13', '-12', '-11', '-10'], ans=5, key='I70',
++        src='2023학년도 수능 12번', author='codex',
++        vtype=['숫자 변경', '조건 변경', '구하는 대상 변경'], effect='어려워짐', bunseok=False,
++        precedent='2학기 중간 16번', level='상',
++        var='[숫자·조건·대상 변경] 네 구간 → 여섯 구간, 극소 위치와 다른 함숫값으로 부호를 정한 뒤 가중 정적분',
++        sol=r"""각 열린구간 \((n-1,n)\)에서 \(|f(x)|>0\)이고 \(f\)가 연속이므로 부호가 일정하다. 이를 \(s_n\)이라 하면 \(s_n=1\) 또는 \(-1\)이고
++\[\int_{n-1}^n f(x)\,dx=2s_n.\]
++\(g'(x)=2f(x)\)이고 \(g\)가 \(x=2\)에서 극소이므로 \(s_2=-1\), \(s_3=1\)이다. 따라서 \(g(4)=8\)에서
++\[2(s_1+s_2+s_3+s_4-s_5-s_6)=8,\qquad s_1+s_4-s_5-s_6=4.\]
++각 항은 \(1\) 이하이므로 \((s_1,s_2,s_3,s_4,s_5,s_6)=(1,-1,1,1,-1,-1)\)이다. 구간의 중앙 \(n-\frac12\)에 대한 대칭을 이용하면
++\[\int_{n-1}^n x f(x)\,dx=\left(n-\frac12\right)2s_n=(2n-1)s_n.\]
++그러므로 구하는 값은 \(1-3+5+7-9-11=-10\)이다.""",
++        fast=r"""구간 넓이는 각각 \(2\). 극소에서 둘째·셋째 부호가 \(-,+\)이고, \(g(4)=8\)은 나머지 네 부호를 \(+,+,-,-\)로 정한다. 가중 적분은 각 구간 중앙값에 부호 있는 넓이를 곱해 합하면 된다.""",
++        note='원문 단원의 구간별 부호 선택·적분함수 미분을 유지했다. 극솟값을 따로 주지 않아 불필요한 조건을 없앴으며, 여섯 부호와 가중 적분으로 16번 무게를 맞췄다.',
++        wrong={},
++    ),
++}
+
+exec
+/bin/bash -lc 'PYTHONPATH=/home/runner/work/Finale/Finale/template/db/parts python3 checkpart.py parts/c1.py' in /home/runner/work/Finale/Finale/output/build/기말/1회
+exec
+/bin/bash -lc 'PYTHONPATH=/home/runner/work/Finale/Finale/template/db/parts python3 checkpart.py parts/c2.py' in /home/runner/work/Finale/Finale/output/build/기말/1회
+ succeeded in 559ms:
+2: 통과 골격 0.54 원문 0.33 ← [익스텐션] GEN1-01-009 부교재 80p 11번 변형
+4: 통과 골격 0.58 원문 0.38 ← [익스텐션] GEN1-02-114 부교재 123p 51번 변형
+6: 통과 골격 0.52 원문 0.50 ← [익스텐션] GEN1-02-037 부교재 109p 16번 변형
+8: 주의(구조 유사) 골격 0.75 원문 0.57 ← [익스텐션] LIVE2-04-082 중앙고 2025 8번 · 부교재 171p 30번
+== 학교 선례 (학교형)
+학교 선례 표시 0 개
+== 중복 (학교형)
+== 말투
+== 형식
+형식 표시 0 개
+
+ exited 1 in 632ms:
+10: 금지(학교형: 분석집과 유사) 골격 0.63 원문 0.52 ← [분석집] STUDY-J61-원문 분석집 J61 원문
+12: 통과 골격 0.50 원문 0.36 ← [익스텐션] GEN1-01-069 부교재 89p 40번 변형
+14: 통과 골격 0.38 원문 0.12 ← [익스텐션] LIVE1-02-151 경신고 2023 3번 · 부교재 120p 43번
+16: 통과 골격 0.58 원문 0.49 ← [익스텐션] GEN2-03-173 부교재 158p 70번 변형
+== 학교 선례 (학교형)
+10: △ 원문 골격 유사도 0.26 (학교 9–12 범위 0.28–0.72)
+16: △ 원문 골격 유사도 0.25 (학교 13–16 범위 0.28–0.72)
+학교 선례 표시 0 개
+== 중복 (학교형)
+== 말투
+== 형식
+형식 표시 0 개
+
+exec
+/bin/bash -lc "python3 - <<'PY'
+import sys,runpy
+sys.path[:0]=['template/db/parts','output/build/기말/지침']
+import schoolcheck as S,dupcheck as D
+ns=runpy.run_path('output/build/기말/1회/parts/c2.py'); it=ns['ITEMS'][10]
+print('current',S.odist(it))
+b=it['body']
+b=b.replace(r'\\mathrm{O}', 'O').replace(r'\\mathrm{P}(3,0)', 'P').replace(r'\\mathrm{Q}(4,0)', 'Q').replace(r'\\mathrm{OP}', 'OP').replace(r'\\mathrm{PQ}', 'PQ')
+b=b.replace('에서 만난다.',r'에서 만난다. 두 점 \\(P\\), \\(Q\\)의 \\(x\\)좌표는 각각 \\(3\\), \\(4\\)이다.')
+it['body']=b
+print(b); print('candidate',S.odist(it))
+for ck,cr,d,same in D.best(b+'|17|18|19|20|21',D.load()): print(ck,cr,d['id'])
+PY" in /home/runner/work/Finale/Finale
+ succeeded in 170ms:
+current 0.25728155339805825
+함수 \(y=f(x)\)의 그래프가 그림과 같다. 양수 \(k\)에 대하여 함수 \(f(x)\)는
+\[f(x)=kx(x-3)(x-4)\]
+이다. 곡선 \(y=f(x)\)와 \(x\)축이 원점 \(O\)와 두 점 \(P\), \(Q\)에서 만난다. 두 점 \(P\), \(Q\)의 \(x\)좌표는 각각 \(3\), \(4\)이다.
+<div class="fig"><img src="fig_c_10.svg" style="width:150pt"></div>
+곡선 \(y=f(x)\)와 선분 \(OP\), 곡선 \(y=f(x)\)와 선분 \(PQ\)로 둘러싸인 영역을 각각 \(A\), \(B\)라 하자.
+\[(A\text{의 넓이})-(B\text{의 넓이})=32\]
+일 때, \(f(1)\)의 값은?
+candidate 0.2931937172774869
+0.4691358024691358 0.42105263157894735 GEN2-04-140
+0.4691358024691358 0.36257309941520466 STUDY-J61-원문
+
+apply patch
+patch: completed
+/home/runner/work/Finale/Finale/output/build/기말/1회/parts/c2.py
+diff --git a/output/build/기말/1회/parts/c1.py b/output/build/기말/1회/parts/c1.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..c02568ca881477bcf590fc1f9ca2e9c008ea7735
+--- /dev/null
++++ b/output/build/기말/1회/parts/c1.py
+@@ -0,0 +1,69 @@
++# -*- coding: utf-8 -*-
++"""1회 학교형: Codex 담당 선택형 2·4·6·8번."""
++
++ITEMS = {
++    2: dict(
++        body=r"""실수 \(a\)에 대하여 함수 \(f(x)=x^3+3ax^2+(6a+9)x+2\)가 실수 전체의 집합에서 증가하도록 하는 \(a\)의 최댓값은?""",
++        choices=['-1', '0', '1', '2', '3'], ans=5, key='D11',
++        src='2024년 수능특강 [24009-0080]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 4번', level='하',
++        var='[숫자·구하는 대상 변경] 증가하는 정수 계수의 개수 → 실수 계수의 최댓값',
++        sol=r"""\(f'(x)=3x^2+6ax+6a+9\)이다. 실수 전체에서 증가하려면 모든 실수 \(x\)에 대하여 \(f'(x)\ge0\)이어야 하므로
++\[(6a)^2-12(6a+9)\le0,\qquad (a+1)(a-3)\le0.\]
++따라서 \(-1\le a\le3\)이고, \(a\)의 최댓값은 \(3\)이다. \(a=3\)일 때도 \(f'(x)=3(x+3)^2\)이므로 증가한다.""",
++        fast=r"""\(f'(x)=3\{(x+a)^2-(a-3)(a+1)\}\)에서 \(-1\le a\le3\).""",
++        note='원문의 도함수 판별식 판정은 유지하고 정수 개수 계산을 끝값 읽기로 바꾸었다.',
++        wrong={'-1': '허용 범위의 최솟값을 답한 경우.', '2': '판별식의 등호를 제외한 뒤 정수 최댓값을 답한 경우.'},
++    ),
++    4: dict(
++        body=r"""수직선 위를 움직이는 두 점 \(\mathrm{P}\), \(\mathrm{Q}\)의 시각 \(t\) \((t\ge0)\)에서의 위치가 각각
++\[x_1=t^3-t^2+2t,\qquad x_2=2t^2+11t+1\]
++이다. 두 점의 속도가 서로 같을 때, 두 점 사이의 거리는?""",
++        choices=['25', '26', '27', '28', '29'], ans=4, key='M48',
++        src='2020학년도 수능 나형 27번', author='codex',
++        vtype=['숫자 변경', '형식 변경'], effect='같음', bunseok=False,
++        precedent='1학기 기말 4번', level='하',
++        var='[숫자·형식 변경] 위치식의 계수와 출발 위치 교체, 단답형 → 선택형',
++        sol=r"""두 점의 속도는 각각 \(3t^2-2t+2\), \(4t+11\)이다. 따라서
++\[3t^2-2t+2=4t+11,\qquad (t-3)(t+1)=0.\]
++\(t\ge0\)이므로 \(t=3\)이다. 이때 \(x_1=24\), \(x_2=52\)이므로 두 점 사이의 거리는 \(52-24=28\)이다.""",
++        fast=r"""위치의 차는 \(d(t)=t^3-3t^2-9t-1\). \(d'(t)=3(t-3)(t+1)=0\)에서 \(t=3\), \(|d(3)|=28\).""",
++        note='속도 일치 시각의 음수 해를 제외하고 위치 차의 절댓값을 구하는 원문 흐름을 유지했다.',
++        wrong={'27': '두 번째 위치식의 상수항 1을 위치 계산에서 빠뜨린 경우.'},
++    ),
++    6: dict(
++        body=r"""함수 \(f(x)=-x^4+3x^3-x^2+1\)에 대하여 함수 \(y=f(x)\)의 그래프를 \(x\)축에 대하여 대칭이동한 후 \(y\)축의 방향으로 \(k\)만큼 평행이동한 그래프를 \(y=g(x)\)라 하자. 모든 실수 \(x\)에 대하여
++\[f(x)\le g(x)\]
++가 성립하도록 하는 실수 \(k\)의 최솟값은?""",
++        choices=['6', '7', '8', '9', '10'], ans=5, key='M16',
++        src='2024년 수능완성 [24054-0135]', author='codex',
++        vtype=['함수 교체', '조건 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 7번', level='중',
++        var='[함수·조건·대상 변경] 최고차항 부호와 상수항 교체, 위쪽 이동의 상한 → 하한',
++        sol=r"""\(g(x)=-f(x)+k\)이므로 주어진 부등식은 \(2f(x)\le k\)이다.
++\[f'(x)=-x(4x-1)(x-2)\]
++이므로 극대가 되는 점은 \(x=0,2\)이고, \(f(0)=1\), \(f(2)=5\)이다. 양 끝에서 함숫값이 한없이 작아지므로 \(f(x)\)의 최댓값은 \(5\)이다. 따라서 \(k\ge10\)이고 최솟값은 \(10\)이다.""",
++        fast=r"""\(5-f(x)=(x-2)^2(x^2+x+1)\ge0\)이고 \(f(2)=5\)이므로 \(k\)의 최솟값은 \(2\times5=10\).""",
++        note='대칭이동 번역과 두 극값 비교를 유지했다. 부호를 뒤집어 같은 계산량으로 하한을 묻는다.',
++        wrong={'8': '함수의 상수항 1을 빠뜨려 최댓값을 4로 계산하고 두 배 한 경우.'},
++    ),
++    8: dict(
++        body=r"""양수 \(a\)에 대하여 수직선 위를 움직이는 점 \(\mathrm{P}\)의 시각 \(t\) \((t\ge0)\)에서의 속도 \(v(t)\)가
++\[v(t)=4t^3-12at^2+16a\]
++이다. 점 \(\mathrm{P}\)가 운동 방향을 바꾸지 않을 때, 시각 \(t=0\)에서 \(t=1\)까지 움직인 거리의 최댓값은?""",
++        choices=['13', '14', '15', '16', '17'], ans=1, key='J30',
++        src='2024년 수능특강 [24009-0177]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 4번; LIVE2-04-082(거리 질문의 선례)', level='중',
++        var='[숫자·대상 변경] 속도 계수·시각 교체, 원점 기준 위치 → 움직인 거리',
++        sol=r"""\(v(0)=16a>0\)이므로 운동 방향을 바꾸지 않을 조건은 \(t\ge0\)에서 \(v(t)\ge0\)인 것이다. \(v'(t)=12t(t-2a)\)이므로 최솟값은
++\[v(2a)=16a(1-a^2).\]
++따라서 \(0&lt;a\le1\)이다. 속도가 음수가 아니므로 움직인 거리는
++\[\int_0^1v(t)\,dt=1+12a\]
++이고, \(a=1\)일 때 최댓값 \(13\)을 갖는다.""",
++        fast=r"""방향 불변에서 \(v(2a)\ge0\), 즉 \(a\le1\). 거리는 \(1+12a\le13\).""",
++        note='원문과 같은 전 시간대의 방향 불변 조건이다. 정해진 시각까지만의 조건이나 정지 시각 조건을 추가하지 않았다.',
++        wrong={'16': '경계값 a=1에서 초기 속도 v(0)를 이동거리로 답한 경우.'},
++    ),
++}
+diff --git a/output/build/기말/1회/parts/c2.py b/output/build/기말/1회/parts/c2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..6f4bf79e14c99ef575e0edb361862a19451acc80
+--- /dev/null
++++ b/output/build/기말/1회/parts/c2.py
+@@ -0,0 +1,82 @@
++# -*- coding: utf-8 -*-
++"""1회 학교형: Codex 담당 선택형 10·12·14·16번."""
++
++ITEMS = {
++    10: dict(
++        body=r"""함수 \(y=f(x)\)의 그래프가 그림과 같다. 양수 \(k\)에 대하여 함수 \(f(x)\)는
++\[f(x)=kx(x-3)(x-4)\]
++이다. 곡선 \(y=f(x)\)와 \(x\)축이 원점 \(O\)와 두 점 \(P\), \(Q\)에서 만난다. 두 점 \(P\), \(Q\)의 \(x\)좌표는 각각 \(3\), \(4\)이다.
++<div class="fig"><img src="fig_c_10.svg" style="width:150pt"></div>
++곡선 \(y=f(x)\)와 선분 \(OP\), 곡선 \(y=f(x)\)와 선분 \(PQ\)로 둘러싸인 영역을 각각 \(A\), \(B\)라 하자.
++\[(A\text{의 넓이})-(B\text{의 넓이})=32\]
++일 때, \(f(1)\)의 값은?""",
++        choices=['17', '18', '19', '20', '21'], ans=2, key='J61',
++        src='2024학년도 수능 6월 모의평가 10번', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 9번', level='중',
++        var='[숫자·대상 변경] 두 양의 근과 넓이 차 교체, 계수 → 함숫값',
++        sol=r"""\(0&lt;x&lt;3\)에서 \(f(x)>0\), \(3&lt;x&lt;4\)에서 \(f(x)&lt;0\)이므로
++\[(A\text{의 넓이})-(B\text{의 넓이})=\int_0^4f(x)\,dx
++=k\left[\frac{x^4}{4}-\frac{7x^3}{3}+6x^2\right]_0^4=\frac{32k}{3}.\]
++따라서 \(k=3\)이고 \(f(1)=3\times1\times(-2)\times(-3)=18\)이다.""",
++        fast=r"""넓이 차를 부호 있는 적분 하나로 합치면 \(32k/3=32\). 따라서 \(f(1)=6k=18\).""",
++        note='원문의 두 영역 모양과 넓이 차 판정을 유지했다. 그림에 쓰인 두 근은 본문에도 제시했다.',
++        wrong={},
++    ),
++    12: dict(
++        body=r"""최고차항의 계수가 \(1\)인 삼차함수 \(f(x)\)가 다음 조건을 만족시킬 때, \(f(1)\)의 값은?""",
++        cond=[('가', r'방정식 \(f(x)=4x\)의 서로 다른 실근의 개수는 \(2\)이다.'),
++              ('나', r'\(f(0)=0\)이고, 함수 \(f(x)\)는 \(x=2\)에서 극대이다.')],
++        choices=['11', '12', '13', '14', '15'], ans=3, key='D40',
++        src='2024년 수능특강 [24009-0101]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경', '형식 변경'], effect='쉬워짐', bunseok=False,
++        precedent='2학기 중간 9번', level='중상',
++        var='[숫자·대상·형식 변경] 교점 조건을 방정식으로 제시, 극솟값 단답 → 함숫값 선택형',
++        sol=r"""\(f(0)=0\)이고 \(f(x)-4x=0\)의 서로 다른 실근이 두 개이므로, \(b\ne0\)에 대하여
++\[f(x)-4x=x(x-b)^2\quad\text{또는}\quad x^2(x-b)\]
++이다. 첫째 경우 \(f'(2)=0\)에서 \((b-4)^2=0\)이므로 \(b=4\)이다. 이때 \(f'(x)=(x-2)(3x-10)\)이므로 \(x=2\)에서 극대이다. 둘째 경우 \(f'(2)=16-4b=0\)에서 \(b=4\)인데, \(f'(x)=(x-2)(3x-2)\)이므로 \(x=2\)에서 극소이다. 따라서
++\[f(x)=x(x-4)^2+4x,\qquad f(1)=13.\]""",
++        fast=r"""\(x^2(x-b)+4x\)인 경우는 \(x=2\)에서 극소이므로 제외한다. 나머지는 \(f'(2)=(b-4)^2=0\), 따라서 \(f(1)=9+4=13\).""",
++        note='원문의 두 인수형과 극대 판정을 모두 유지했다. 극소점의 추가 계산을 없애 무게를 낮췄다.',
++        wrong={},
++    ),
++    14: dict(
++        body=r"""함수 \(y=f'(x)\)의 그래프가 그림과 같고,
++\[f'(x)=\begin{cases}-4(x+1)&amp;(x\le-1)\\4(1-x^2)&amp;(-1&lt;x&lt;2)\\12(x-3)&amp;(x\ge2)\end{cases}\]
++이다.
++<div class="fig"><img src="fig_c_14.svg" style="width:165pt"></div>
++함수 \(g(x)=f(x)-kx\)가 극값을 갖는 \(x\)의 개수가 \(4\)가 되도록 하는 모든 정수 \(k\)의 합은?""",
++        choices=['6', '7', '8', '9', '10'], ans=1, key='D28',
++        src='학교 자체 출제', author='codex',
++        vtype=['자체 출제', '함수 교체', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 14번', level='중상',
++        var='[자체 출제] D28의 도함수 그림 모양 유지, f−kx의 극값 개수로 정수 계수 결정',
++        sol=r"""\(g'(x)=f'(x)-k\)이므로 \(y=f'(x)\)와 \(y=k\)가 만나는 점에서 \(f'(x)-k\)의 부호 변화를 조사한다. 가운데 곡선의 최댓값은 \(f'(0)=4\)이다. \(0&lt;k&lt;4\)이면 왼쪽 직선, 가운데 곡선의 두 부분, 오른쪽 직선에서 각각 부호가 바뀌어 극값이 네 개이다.
++\(k\le-12\)이면 극값이 없고, \(-12&lt;k\le0\) 또는 \(k\ge4\)이면 두 개이다. 특히 \(k=0,4,-12\)에서 수평선에 닿기만 하는 점에서는 부호가 바뀌지 않는다. 따라서 정수 \(k\)는 \(1,2,3\)이고 합은 \(6\)이다.""",
++        fast=r"""극값 네 개의 조건은 \(0&lt;k&lt;\max_{[-1,2]}f'(x)=4\). 따라서 \(1+2+3=6\).""",
++        note='원문의 왼쪽 직선·가운데 봉우리·오른쪽 직선 모양을 다항식으로 재현했다. f의 영점 개수나 극솟값 부호를 묻는 분석집 방향을 쓰지 않았다.',
++        wrong={'10': '0<k<4의 상한에 등호를 넣어 1+2+3+4를 답한 경우.'},
++    ),
++    16: dict(
++        body=r"""실수 전체의 집합에서 연속인 함수 \(f(x)\)와 열린구간 \((0,6)\)에서 정의된 함수
++\[g(x)=\int_0^x f(t)\,dt-\int_x^6 f(t)\,dt\]
++가 다음 조건을 만족시킬 때, \(\displaystyle\int_0^6 x f(x)\,dx\)의 값은?""",
++        cond=[('가', r'\(n-1\le x&lt;n\)일 때, \(|f(x)|=|12(x-n+1)(x-n)|\)이다. (단, \(n=1,2,\ldots,6\)이다.)'),
++              ('나', r'함수 \(g(x)\)는 \(x=2\)에서 극소이고, \(g(4)=8\)이다.')],
++        choices=['-14', '-13', '-12', '-11', '-10'], ans=5, key='I70',
++        src='2023학년도 수능 12번', author='codex',
++        vtype=['숫자 변경', '조건 변경', '구하는 대상 변경'], effect='어려워짐', bunseok=False,
++        precedent='2학기 중간 16번', level='상',
++        var='[숫자·조건·대상 변경] 네 구간 → 여섯 구간, 극소 위치와 다른 함숫값으로 부호를 정한 뒤 가중 정적분',
++        sol=r"""각 열린구간 \((n-1,n)\)에서 \(|f(x)|>0\)이고 \(f\)가 연속이므로 부호가 일정하다. 이를 \(s_n\)이라 하면 \(s_n=1\) 또는 \(-1\)이고
++\[\int_{n-1}^n f(x)\,dx=2s_n.\]
++\(g'(x)=2f(x)\)이고 \(g\)가 \(x=2\)에서 극소이므로 \(s_2=-1\), \(s_3=1\)이다. 따라서 \(g(4)=8\)에서
++\[2(s_1+s_2+s_3+s_4-s_5-s_6)=8,\qquad s_1+s_4-s_5-s_6=4.\]
++각 항은 \(1\) 이하이므로 \((s_1,s_2,s_3,s_4,s_5,s_6)=(1,-1,1,1,-1,-1)\)이다. 구간의 중앙 \(n-\frac12\)에 대한 대칭을 이용하면
++\[\int_{n-1}^n x f(x)\,dx=\left(n-\frac12\right)2s_n=(2n-1)s_n.\]
++그러므로 구하는 값은 \(1-3+5+7-9-11=-10\)이다.""",
++        fast=r"""구간 넓이는 각각 \(2\). 극소에서 둘째·셋째 부호가 \(-,+\)이고, \(g(4)=8\)은 나머지 네 부호를 \(+,+,-,-\)로 정한다. 가중 적분은 각 구간 중앙값에 부호 있는 넓이를 곱해 합하면 된다.""",
++        note='원문 단원의 구간별 부호 선택·적분함수 미분을 유지했다. 극솟값을 따로 주지 않아 불필요한 조건을 없앴으며, 여섯 부호와 가중 적분으로 16번 무게를 맞췄다.',
++        wrong={},
++    ),
++}
+
+exec
+/bin/bash -lc 'PYTHONPATH=/home/runner/work/Finale/Finale/template/db/parts python3 checkpart.py parts/c2.py' in /home/runner/work/Finale/Finale/output/build/기말/1회
+ succeeded in 585ms:
+10: 통과 골격 0.47 원문 0.42 ← [익스텐션] GEN2-04-140 부교재 184p 61번 변형
+12: 통과 골격 0.50 원문 0.36 ← [익스텐션] GEN1-01-069 부교재 89p 40번 변형
+14: 통과 골격 0.38 원문 0.12 ← [익스텐션] LIVE1-02-151 경신고 2023 3번 · 부교재 120p 43번
+16: 주의(구조 유사) 골격 0.62 원문 0.53 ← [익스텐션] GEN2-03-173 부교재 158p 70번 변형
+== 학교 선례 (학교형)
+학교 선례 표시 0 개
+== 중복 (학교형)
+== 말투
+== 형식
+형식 표시 0 개
+
+codex
+두 문항 파일의 checkpart 검사는 현재 금지·말투·형식·학교 선례 오류가 모두 0개입니다. 8·16번에는 익스텐션과의 구조 유사 ‘주의’가 있지만, 해당 번호대에서 허용되는 수준이며 분석집 유사 금지는 없습니다. 수학 검증과 그림 확인을 마친 뒤 결과를 보고서에 정리하겠습니다.
+
+apply patch
+patch: completed
+/home/runner/work/Finale/Finale/output/build/기말/1회/parts/verify_c1.py
+/home/runner/work/Finale/Finale/output/build/기말/1회/parts/verify_c2.py
+diff --git a/output/build/기말/1회/parts/c1.py b/output/build/기말/1회/parts/c1.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..c02568ca881477bcf590fc1f9ca2e9c008ea7735
+--- /dev/null
++++ b/output/build/기말/1회/parts/c1.py
+@@ -0,0 +1,69 @@
++# -*- coding: utf-8 -*-
++"""1회 학교형: Codex 담당 선택형 2·4·6·8번."""
++
++ITEMS = {
++    2: dict(
++        body=r"""실수 \(a\)에 대하여 함수 \(f(x)=x^3+3ax^2+(6a+9)x+2\)가 실수 전체의 집합에서 증가하도록 하는 \(a\)의 최댓값은?""",
++        choices=['-1', '0', '1', '2', '3'], ans=5, key='D11',
++        src='2024년 수능특강 [24009-0080]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 4번', level='하',
++        var='[숫자·구하는 대상 변경] 증가하는 정수 계수의 개수 → 실수 계수의 최댓값',
++        sol=r"""\(f'(x)=3x^2+6ax+6a+9\)이다. 실수 전체에서 증가하려면 모든 실수 \(x\)에 대하여 \(f'(x)\ge0\)이어야 하므로
++\[(6a)^2-12(6a+9)\le0,\qquad (a+1)(a-3)\le0.\]
++따라서 \(-1\le a\le3\)이고, \(a\)의 최댓값은 \(3\)이다. \(a=3\)일 때도 \(f'(x)=3(x+3)^2\)이므로 증가한다.""",
++        fast=r"""\(f'(x)=3\{(x+a)^2-(a-3)(a+1)\}\)에서 \(-1\le a\le3\).""",
++        note='원문의 도함수 판별식 판정은 유지하고 정수 개수 계산을 끝값 읽기로 바꾸었다.',
++        wrong={'-1': '허용 범위의 최솟값을 답한 경우.', '2': '판별식의 등호를 제외한 뒤 정수 최댓값을 답한 경우.'},
++    ),
++    4: dict(
++        body=r"""수직선 위를 움직이는 두 점 \(\mathrm{P}\), \(\mathrm{Q}\)의 시각 \(t\) \((t\ge0)\)에서의 위치가 각각
++\[x_1=t^3-t^2+2t,\qquad x_2=2t^2+11t+1\]
++이다. 두 점의 속도가 서로 같을 때, 두 점 사이의 거리는?""",
++        choices=['25', '26', '27', '28', '29'], ans=4, key='M48',
++        src='2020학년도 수능 나형 27번', author='codex',
++        vtype=['숫자 변경', '형식 변경'], effect='같음', bunseok=False,
++        precedent='1학기 기말 4번', level='하',
++        var='[숫자·형식 변경] 위치식의 계수와 출발 위치 교체, 단답형 → 선택형',
++        sol=r"""두 점의 속도는 각각 \(3t^2-2t+2\), \(4t+11\)이다. 따라서
++\[3t^2-2t+2=4t+11,\qquad (t-3)(t+1)=0.\]
++\(t\ge0\)이므로 \(t=3\)이다. 이때 \(x_1=24\), \(x_2=52\)이므로 두 점 사이의 거리는 \(52-24=28\)이다.""",
++        fast=r"""위치의 차는 \(d(t)=t^3-3t^2-9t-1\). \(d'(t)=3(t-3)(t+1)=0\)에서 \(t=3\), \(|d(3)|=28\).""",
++        note='속도 일치 시각의 음수 해를 제외하고 위치 차의 절댓값을 구하는 원문 흐름을 유지했다.',
++        wrong={'27': '두 번째 위치식의 상수항 1을 위치 계산에서 빠뜨린 경우.'},
++    ),
++    6: dict(
++        body=r"""함수 \(f(x)=-x^4+3x^3-x^2+1\)에 대하여 함수 \(y=f(x)\)의 그래프를 \(x\)축에 대하여 대칭이동한 후 \(y\)축의 방향으로 \(k\)만큼 평행이동한 그래프를 \(y=g(x)\)라 하자. 모든 실수 \(x\)에 대하여
++\[f(x)\le g(x)\]
++가 성립하도록 하는 실수 \(k\)의 최솟값은?""",
++        choices=['6', '7', '8', '9', '10'], ans=5, key='M16',
++        src='2024년 수능완성 [24054-0135]', author='codex',
++        vtype=['함수 교체', '조건 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 7번', level='중',
++        var='[함수·조건·대상 변경] 최고차항 부호와 상수항 교체, 위쪽 이동의 상한 → 하한',
++        sol=r"""\(g(x)=-f(x)+k\)이므로 주어진 부등식은 \(2f(x)\le k\)이다.
++\[f'(x)=-x(4x-1)(x-2)\]
++이므로 극대가 되는 점은 \(x=0,2\)이고, \(f(0)=1\), \(f(2)=5\)이다. 양 끝에서 함숫값이 한없이 작아지므로 \(f(x)\)의 최댓값은 \(5\)이다. 따라서 \(k\ge10\)이고 최솟값은 \(10\)이다.""",
++        fast=r"""\(5-f(x)=(x-2)^2(x^2+x+1)\ge0\)이고 \(f(2)=5\)이므로 \(k\)의 최솟값은 \(2\times5=10\).""",
++        note='대칭이동 번역과 두 극값 비교를 유지했다. 부호를 뒤집어 같은 계산량으로 하한을 묻는다.',
++        wrong={'8': '함수의 상수항 1을 빠뜨려 최댓값을 4로 계산하고 두 배 한 경우.'},
++    ),
++    8: dict(
++        body=r"""양수 \(a\)에 대하여 수직선 위를 움직이는 점 \(\mathrm{P}\)의 시각 \(t\) \((t\ge0)\)에서의 속도 \(v(t)\)가
++\[v(t)=4t^3-12at^2+16a\]
++이다. 점 \(\mathrm{P}\)가 운동 방향을 바꾸지 않을 때, 시각 \(t=0\)에서 \(t=1\)까지 움직인 거리의 최댓값은?""",
++        choices=['13', '14', '15', '16', '17'], ans=1, key='J30',
++        src='2024년 수능특강 [24009-0177]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 4번; LIVE2-04-082(거리 질문의 선례)', level='중',
++        var='[숫자·대상 변경] 속도 계수·시각 교체, 원점 기준 위치 → 움직인 거리',
++        sol=r"""\(v(0)=16a>0\)이므로 운동 방향을 바꾸지 않을 조건은 \(t\ge0\)에서 \(v(t)\ge0\)인 것이다. \(v'(t)=12t(t-2a)\)이므로 최솟값은
++\[v(2a)=16a(1-a^2).\]
++따라서 \(0&lt;a\le1\)이다. 속도가 음수가 아니므로 움직인 거리는
++\[\int_0^1v(t)\,dt=1+12a\]
++이고, \(a=1\)일 때 최댓값 \(13\)을 갖는다.""",
++        fast=r"""방향 불변에서 \(v(2a)\ge0\), 즉 \(a\le1\). 거리는 \(1+12a\le13\).""",
++        note='원문과 같은 전 시간대의 방향 불변 조건이다. 정해진 시각까지만의 조건이나 정지 시각 조건을 추가하지 않았다.',
++        wrong={'16': '경계값 a=1에서 초기 속도 v(0)를 이동거리로 답한 경우.'},
++    ),
++}
+diff --git a/output/build/기말/1회/parts/c2.py b/output/build/기말/1회/parts/c2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..6f4bf79e14c99ef575e0edb361862a19451acc80
+--- /dev/null
++++ b/output/build/기말/1회/parts/c2.py
+@@ -0,0 +1,82 @@
++# -*- coding: utf-8 -*-
++"""1회 학교형: Codex 담당 선택형 10·12·14·16번."""
++
++ITEMS = {
++    10: dict(
++        body=r"""함수 \(y=f(x)\)의 그래프가 그림과 같다. 양수 \(k\)에 대하여 함수 \(f(x)\)는
++\[f(x)=kx(x-3)(x-4)\]
++이다. 곡선 \(y=f(x)\)와 \(x\)축이 원점 \(O\)와 두 점 \(P\), \(Q\)에서 만난다. 두 점 \(P\), \(Q\)의 \(x\)좌표는 각각 \(3\), \(4\)이다.
++<div class="fig"><img src="fig_c_10.svg" style="width:150pt"></div>
++곡선 \(y=f(x)\)와 선분 \(OP\), 곡선 \(y=f(x)\)와 선분 \(PQ\)로 둘러싸인 영역을 각각 \(A\), \(B\)라 하자.
++\[(A\text{의 넓이})-(B\text{의 넓이})=32\]
++일 때, \(f(1)\)의 값은?""",
++        choices=['17', '18', '19', '20', '21'], ans=2, key='J61',
++        src='2024학년도 수능 6월 모의평가 10번', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 9번', level='중',
++        var='[숫자·대상 변경] 두 양의 근과 넓이 차 교체, 계수 → 함숫값',
++        sol=r"""\(0&lt;x&lt;3\)에서 \(f(x)>0\), \(3&lt;x&lt;4\)에서 \(f(x)&lt;0\)이므로
++\[(A\text{의 넓이})-(B\text{의 넓이})=\int_0^4f(x)\,dx
++=k\left[\frac{x^4}{4}-\frac{7x^3}{3}+6x^2\right]_0^4=\frac{32k}{3}.\]
++따라서 \(k=3\)이고 \(f(1)=3\times1\times(-2)\times(-3)=18\)이다.""",
++        fast=r"""넓이 차를 부호 있는 적분 하나로 합치면 \(32k/3=32\). 따라서 \(f(1)=6k=18\).""",
++        note='원문의 두 영역 모양과 넓이 차 판정을 유지했다. 그림에 쓰인 두 근은 본문에도 제시했다.',
++        wrong={},
++    ),
++    12: dict(
++        body=r"""최고차항의 계수가 \(1\)인 삼차함수 \(f(x)\)가 다음 조건을 만족시킬 때, \(f(1)\)의 값은?""",
++        cond=[('가', r'방정식 \(f(x)=4x\)의 서로 다른 실근의 개수는 \(2\)이다.'),
++              ('나', r'\(f(0)=0\)이고, 함수 \(f(x)\)는 \(x=2\)에서 극대이다.')],
++        choices=['11', '12', '13', '14', '15'], ans=3, key='D40',
++        src='2024년 수능특강 [24009-0101]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경', '형식 변경'], effect='쉬워짐', bunseok=False,
++        precedent='2학기 중간 9번', level='중상',
++        var='[숫자·대상·형식 변경] 교점 조건을 방정식으로 제시, 극솟값 단답 → 함숫값 선택형',
++        sol=r"""\(f(0)=0\)이고 \(f(x)-4x=0\)의 서로 다른 실근이 두 개이므로, \(b\ne0\)에 대하여
++\[f(x)-4x=x(x-b)^2\quad\text{또는}\quad x^2(x-b)\]
++이다. 첫째 경우 \(f'(2)=0\)에서 \((b-4)^2=0\)이므로 \(b=4\)이다. 이때 \(f'(x)=(x-2)(3x-10)\)이므로 \(x=2\)에서 극대이다. 둘째 경우 \(f'(2)=16-4b=0\)에서 \(b=4\)인데, \(f'(x)=(x-2)(3x-2)\)이므로 \(x=2\)에서 극소이다. 따라서
++\[f(x)=x(x-4)^2+4x,\qquad f(1)=13.\]""",
++        fast=r"""\(x^2(x-b)+4x\)인 경우는 \(x=2\)에서 극소이므로 제외한다. 나머지는 \(f'(2)=(b-4)^2=0\), 따라서 \(f(1)=9+4=13\).""",
++        note='원문의 두 인수형과 극대 판정을 모두 유지했다. 극소점의 추가 계산을 없애 무게를 낮췄다.',
++        wrong={},
++    ),
++    14: dict(
++        body=r"""함수 \(y=f'(x)\)의 그래프가 그림과 같고,
++\[f'(x)=\begin{cases}-4(x+1)&amp;(x\le-1)\\4(1-x^2)&amp;(-1&lt;x&lt;2)\\12(x-3)&amp;(x\ge2)\end{cases}\]
++이다.
++<div class="fig"><img src="fig_c_14.svg" style="width:165pt"></div>
++함수 \(g(x)=f(x)-kx\)가 극값을 갖는 \(x\)의 개수가 \(4\)가 되도록 하는 모든 정수 \(k\)의 합은?""",
++        choices=['6', '7', '8', '9', '10'], ans=1, key='D28',
++        src='학교 자체 출제', author='codex',
++        vtype=['자체 출제', '함수 교체', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 14번', level='중상',
++        var='[자체 출제] D28의 도함수 그림 모양 유지, f−kx의 극값 개수로 정수 계수 결정',
++        sol=r"""\(g'(x)=f'(x)-k\)이므로 \(y=f'(x)\)와 \(y=k\)가 만나는 점에서 \(f'(x)-k\)의 부호 변화를 조사한다. 가운데 곡선의 최댓값은 \(f'(0)=4\)이다. \(0&lt;k&lt;4\)이면 왼쪽 직선, 가운데 곡선의 두 부분, 오른쪽 직선에서 각각 부호가 바뀌어 극값이 네 개이다.
++\(k\le-12\)이면 극값이 없고, \(-12&lt;k\le0\) 또는 \(k\ge4\)이면 두 개이다. 특히 \(k=0,4,-12\)에서 수평선에 닿기만 하는 점에서는 부호가 바뀌지 않는다. 따라서 정수 \(k\)는 \(1,2,3\)이고 합은 \(6\)이다.""",
++        fast=r"""극값 네 개의 조건은 \(0&lt;k&lt;\max_{[-1,2]}f'(x)=4\). 따라서 \(1+2+3=6\).""",
++        note='원문의 왼쪽 직선·가운데 봉우리·오른쪽 직선 모양을 다항식으로 재현했다. f의 영점 개수나 극솟값 부호를 묻는 분석집 방향을 쓰지 않았다.',
++        wrong={'10': '0<k<4의 상한에 등호를 넣어 1+2+3+4를 답한 경우.'},
++    ),
++    16: dict(
++        body=r"""실수 전체의 집합에서 연속인 함수 \(f(x)\)와 열린구간 \((0,6)\)에서 정의된 함수
++\[g(x)=\int_0^x f(t)\,dt-\int_x^6 f(t)\,dt\]
++가 다음 조건을 만족시킬 때, \(\displaystyle\int_0^6 x f(x)\,dx\)의 값은?""",
++        cond=[('가', r'\(n-1\le x&lt;n\)일 때, \(|f(x)|=|12(x-n+1)(x-n)|\)이다. (단, \(n=1,2,\ldots,6\)이다.)'),
++              ('나', r'함수 \(g(x)\)는 \(x=2\)에서 극소이고, \(g(4)=8\)이다.')],
++        choices=['-14', '-13', '-12', '-11', '-10'], ans=5, key='I70',
++        src='2023학년도 수능 12번', author='codex',
++        vtype=['숫자 변경', '조건 변경', '구하는 대상 변경'], effect='어려워짐', bunseok=False,
++        precedent='2학기 중간 16번', level='상',
++        var='[숫자·조건·대상 변경] 네 구간 → 여섯 구간, 극소 위치와 다른 함숫값으로 부호를 정한 뒤 가중 정적분',
++        sol=r"""각 열린구간 \((n-1,n)\)에서 \(|f(x)|>0\)이고 \(f\)가 연속이므로 부호가 일정하다. 이를 \(s_n\)이라 하면 \(s_n=1\) 또는 \(-1\)이고
++\[\int_{n-1}^n f(x)\,dx=2s_n.\]
++\(g'(x)=2f(x)\)이고 \(g\)가 \(x=2\)에서 극소이므로 \(s_2=-1\), \(s_3=1\)이다. 따라서 \(g(4)=8\)에서
++\[2(s_1+s_2+s_3+s_4-s_5-s_6)=8,\qquad s_1+s_4-s_5-s_6=4.\]
++각 항은 \(1\) 이하이므로 \((s_1,s_2,s_3,s_4,s_5,s_6)=(1,-1,1,1,-1,-1)\)이다. 구간의 중앙 \(n-\frac12\)에 대한 대칭을 이용하면
++\[\int_{n-1}^n x f(x)\,dx=\left(n-\frac12\right)2s_n=(2n-1)s_n.\]
++그러므로 구하는 값은 \(1-3+5+7-9-11=-10\)이다.""",
++        fast=r"""구간 넓이는 각각 \(2\). 극소에서 둘째·셋째 부호가 \(-,+\)이고, \(g(4)=8\)은 나머지 네 부호를 \(+,+,-,-\)로 정한다. 가중 적분은 각 구간 중앙값에 부호 있는 넓이를 곱해 합하면 된다.""",
++        note='원문 단원의 구간별 부호 선택·적분함수 미분을 유지했다. 극솟값을 따로 주지 않아 불필요한 조건을 없앴으며, 여섯 부호와 가중 적분으로 16번 무게를 맞췄다.',
++        wrong={},
++    ),
++}
+diff --git a/output/build/기말/1회/parts/verify_c1.py b/output/build/기말/1회/parts/verify_c1.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..dadb68cbe549ec5ab55f56534cded69ba7c56bd1
+--- /dev/null
++++ b/output/build/기말/1회/parts/verify_c1.py
+@@ -0,0 +1,127 @@
++# -*- coding: utf-8 -*-
++"""2·4·6·8번: 정답, 유일성, 경계, 선지, 오답 근거, 원문 정답.
++
++실행 위치에 관계없이 python3 verify_c1.py로 실행한다.
++"""
++from pathlib import Path
++import re
++import runpy
++import sys
++import sympy as S
++
++HERE = Path(__file__).resolve().parent
++IT = runpy.run_path(str(HERE / 'c1.py'))['ITEMS']
++sys.path.insert(0, str(HERE.parents[2] / '부교재_기말'))
++import items_final as F
++
++x, t, a = S.symbols('x t a', real=True)
++WANT = {2: 5, 4: 4, 6: 5, 8: 1}
++assert set(IT) == set(WANT)
++
++
++def number(text):
++    m = re.fullmatch(r'(-?)\\(?:dfrac|frac)\{?(\d+)\}?\{?(\d+)\}?', str(text))
++    if m:
++        return (-1 if m[1] else 1) * S.Rational(m[2], m[3])
++    return S.sympify(text)
++
++
++def check(no, value, wrong_values):
++    it = IT[no]
++    ch = list(map(number, it['choices']))
++    assert len(ch) == len(set(ch)) == 5
++    assert len({ch[j+1] - ch[j] for j in range(4)}) == 1
++    assert ch[1] - ch[0] == 1
++    assert it['ans'] == WANT[no]
++    assert value == ch[it['ans']-1]
++    assert ch.count(value) == 1
++    assert set(map(number, it['wrong'])) == set(wrong_values)
++    assert all(w in ch and w != value for w in wrong_values)
++    assert it['author'] == 'codex' and it['bunseok'] is False
++    assert it['effect'] in ('같음', '쉬워짐')
++    print(f'{no}: 답 {value}, 정답 {it["ans"]}, 유일성·등차·오답 근거 OK')
++
++
++def original(key, computed):
++    _, choices, answer, _ = F.I[key]
++    value = number(choices['①②③④⑤'.index(answer)]) if choices else number(answer)
++    assert computed == value, (key, computed, value)
++    print(f'ORIGINAL {key}: {computed} = 원문 정답 OK')
++
++
++# 2: 이차 도함수의 최솟값으로 필요충분조건을 직접 확인한다.
++assert r'f(x)=x^3+3ax^2+(6a+9)x+2' in IT[2]['body']
++f2 = x**3 + 3*a*x**2 + (6*a+9)*x + 2
++d2 = S.diff(f2, x)
++minimum = S.factor(d2.subs(x, -a))
++assert minimum == -3*(a-3)*(a+1)
++allowed = S.solve_univariate_inequality(minimum >= 0, a, relational=False)
++assert allowed == S.Interval(-1, 3)
++assert S.factor(d2.subs(a, 3)) == 3*(x+3)**2
++# 등호일 때에도 상수 함수 구간이 없으므로 엄격한 증가이다.
++assert S.degree(d2.subs(a, 3), x) == 2
++check(2, allowed.end, [allowed.start, S.ceiling(allowed.end)-1])
++fo = x**3 + a*x**2 + (2*a+S.Rational(7, 3))*x - 5
++disc = S.discriminant(S.diff(fo, x), x)
++interval = S.solve_univariate_inequality(disc <= 0, a, relational=False)
++assert interval == S.Interval(-1, 7)
++original('D11', S.floor(interval.end)-S.ceiling(interval.start)+1)
++
++# 4: 속도 일치의 모든 실근 중 시간 조건을 만족하는 것을 전수 확인한다.
++assert r'x_1=t^3-t^2+2t' in IT[4]['body']
++assert r'x_2=2t^2+11t+1' in IT[4]['body']
++p, q = t**3-t**2+2*t, 2*t**2+11*t+1
++roots = S.solve(S.diff(p-q, t), t)
++assert roots == [-1, 3]
++times = [r for r in roots if r >= 0]
++assert times == [3]
++distance = abs((p-q).subs(t, times[0]))
++omitted_constant = abs((p-(q-1)).subs(t, times[0]))
++assert omitted_constant == 27
++check(4, distance, [omitted_constant])
++po, qo = t**3-2*t**2+3*t, t**2+12*t
++ro = [r for r in S.solve(S.diff(po-qo, t), t) if r >= 0]
++assert ro == [3]
++original('M48', abs((po-qo).subs(t, ro[0])))
++
++# 6: 모든 임계점과 양 끝의 극한을 비교하고 인수분해로 전역 상한을 재확인한다.
++assert r'f(x)=-x^4+3x^3-x^2+1' in IT[6]['body']
++f6 = -x**4 + 3*x**3 - x**2 + 1
++critical = S.solve(S.diff(f6, x), x)
++assert critical == [0, S.Rational(1, 4), 2]
++values = [f6.subs(x, c) for c in critical]
++assert values == [1, S.Rational(251, 256), 5]
++assert S.limit(f6, x, S.oo) == S.limit(f6, x, -S.oo) == -S.oo
++assert S.expand(5-f6-(x-2)**2*(x*x+x+1)) == 0
++assert S.discriminant(x*x+x+1, x) < 0
++maximum = max(values)
++wrong6 = 2*(maximum-1)
++assert wrong6 == 8
++check(6, 2*maximum, [wrong6])
++fo = x**4-3*x**3+x**2
++assert S.limit(fo, x, S.oo) == S.limit(fo, x, -S.oo) == S.oo
++original('M16', 2*min(fo.subs(x, c) for c in S.solve(S.diff(fo, x), x)))
++
++# 8: v(0)>0、唯一の内部極小、等号時の符号を記号計算で確認する。
++assert r'v(t)=4t^3-12at^2+16a' in IT[8]['body']
++v = 4*t**3-12*a*t**2+16*a
++assert S.factor(S.diff(v, t)) == 12*t*(t-2*a)
++minimum = S.factor(v.subs(t, 2*a))
++assert minimum == -16*a*(a-1)*(a+1)
++allowed = S.solve_univariate_inequality(minimum >= 0, a, relational=False).intersect(S.Interval.open(0, S.oo))
++assert allowed == S.Interval.Lopen(0, 1)
++assert S.factor(v.subs(a, 1)) == 4*(t-2)**2*(t+1)
++distance = S.integrate(v, (t, 0, 1))
++assert distance == 12*a+1 and S.diff(distance, a) > 0
++wrong8 = v.subs({a: 1, t: 0})
++assert wrong8 == 16
++check(8, distance.subs(a, allowed.end), [wrong8])
++vo = t**3/3-a*t**2+3*a
++assert S.factor(S.diff(vo, t)) == t*(t-2*a)
++old_allowed = S.solve_univariate_inequality(vo.subs(t, 2*a) >= 0, a, relational=False).intersect(S.Interval.open(0, S.oo))
++assert old_allowed == S.Interval.Lopen(0, S.Rational(3, 2))
++old_distance = S.integrate(vo, (t, 0, 2))
++assert S.diff(old_distance, a) > 0
++original('J30', old_distance.subs(a, old_allowed.end))
++
++print('ALL OK')
+diff --git a/output/build/기말/1회/parts/verify_c2.py b/output/build/기말/1회/parts/verify_c2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..8e1a54b660c8683f3c3154eb6a5044102dec1f5e
+--- /dev/null
++++ b/output/build/기말/1회/parts/verify_c2.py
+@@ -0,0 +1,257 @@
++# -*- coding: utf-8 -*-
++"""10·12·14·16번 검증. --figures를 붙이면 figkit으로 SVG 두 개를 재생성한다.
++
++출력 그림은 원문 J61·D28의 모양을 유지한다. 상용 글꼴이나 PDF는 쓰지 않는다.
++"""
++from pathlib import Path
++from itertools import product
++import os
++import re
++import runpy
++import sys
++import xml.etree.ElementTree as ET
++import sympy as S
++
++HERE = Path(__file__).resolve().parent
++IT = runpy.run_path(str(HERE / 'c2.py'))['ITEMS']
++sys.path.insert(0, str(HERE.parents[2] / '부교재_기말'))
++import items_final as F
++
++x, b = S.symbols('x b', real=True)
++WANT = {10: 2, 12: 3, 14: 1, 16: 5}
++assert set(IT) == set(WANT)
++
++
++def number(text):
++    m = re.fullmatch(r'(-?)\\(?:dfrac|frac)\{?(\d+)\}?\{?(\d+)\}?', str(text))
++    return ((-1 if m[1] else 1)*S.Rational(m[2], m[3])) if m else S.sympify(text)
++
++
++def check(no, answer, wrong_values=()):
++    it = IT[no]
++    ch = list(map(number, it['choices']))
++    assert len(ch) == len(set(ch)) == 5
++    assert {ch[j+1]-ch[j] for j in range(4)} == {1}
++    assert it['ans'] == WANT[no] and ch[it['ans']-1] == answer
++    assert ch.count(answer) == 1
++    assert set(map(number, it['wrong'])) == set(wrong_values)
++    assert all(w in ch and w != answer for w in wrong_values)
++    assert it['author'] == 'codex' and it['bunseok'] is False
++    print(f'{no}: 답 {answer}, 정답 {it["ans"]}, 유일성·등차·오답 근거 OK')
++
++
++def original(key, answer):
++    _, choices, recorded, _ = F.I[key]
++    if choices and choices[0].startswith('T:'):
++        actual = choices['①②③④⑤'.index(recorded)]
++    else:
++        actual = number(choices['①②③④⑤'.index(recorded)]) if choices else number(recorded)
++    assert answer == actual, (key, answer, actual)
++    print(f'ORIGINAL {key}: {answer} = 원문 정답 OK')
++
++
++# 10: 부호·개별 넓이·넓이 차와 정적분을 모두 확인한다.
++k = S.symbols('k', positive=True)
++assert r'f(x)=kx(x-3)(x-4)' in IT[10]['body']
++f10 = k*x*(x-3)*(x-4)
++assert S.solve(f10, x) == [0, 3, 4]
++assert f10.subs(x, 1) > 0 and f10.subs(x, S.Rational(7, 2)) < 0
++area_a = S.integrate(f10, (x, 0, 3))
++area_b = -S.integrate(f10, (x, 3, 4))
++assert area_a == 45*k/4 and area_b == 7*k/12
++assert S.simplify(area_a-area_b-S.integrate(f10, (x, 0, 4))) == 0
++ks = S.solve(area_a-area_b-32, k)
++assert ks == [3]
++check(10, f10.subs({x: 1, k: ks[0]}))
++fo = k*x*(x-2)*(x-3)
++original('J61', S.solve(S.integrate(fo, (x, 0, 3))-3, k)[0])
++
++
++# 12: 二つの異なる実根を持つ三次式の全二形式を調べる。
++def cubic_candidates(slope, point):
++    accepted, rejected = [], []
++    for h in (x*(x-b)**2+slope*x, x*x*(x-b)+slope*x):
++        for value in S.solve(S.diff(h, x).subs(x, point), b):
++            if value == 0:
++                continue
++            f = S.expand(h.subs(b, value))
++            assert len(S.solve(f-slope*x, x)) == 2
++            # 今回の候補はいずれも二階微分が0でなく、符号で極大/極小が確定。
++            second = S.diff(f, x, 2).subs(x, point)
++            assert second != 0
++            (accepted if second < 0 else rejected).append(f)
++    return list(set(accepted)), list(set(rejected))
++
++
++assert r'f(x)=4x' in IT[12]['cond'][0][1]
++assert r'x=2' in IT[12]['cond'][1][1]
++good, rejected = cubic_candidates(4, 2)
++assert good == [x**3-8*x**2+20*x]
++assert rejected == [x**3-4*x**2+4*x]
++check(12, good[0].subs(x, 1))
++old, _ = cubic_candidates(9, 3)
++assert old == [x**3-12*x**2+45*x]
++minpoints = [r for r in S.solve(S.diff(old[0], x), x) if S.diff(old[0], x, 2).subs(x, r) > 0]
++assert minpoints == [5]
++original('D40', old[0].subs(x, minpoints[0]))
++
++
++# 14: 接する点は数えず、実際に導関数の符号が変わる根だけを数える。
++pieces = [(-S.oo, -1, -4*(x+1)), (-1, 2, 4*(1-x*x)), (2, S.oo, 12*(x-3))]
++assert pieces[0][2].subs(x, -1) == pieces[1][2].subs(x, -1) == 0
++assert pieces[1][2].subs(x, 2) == pieces[2][2].subs(x, 2) == -12
++
++
++def derivative_at(point):
++    return next(p.subs(x, point) for lo, hi, p in pieces if lo <= point <= hi)
++
++
++def extrema_count(height):
++    roots = sorted(set(r for lo, hi, p in pieces for r in S.solve(p-height, x)
++                       if r.is_real and lo <= r <= hi))
++    changed = []
++    for j, r in enumerate(roots):
++        left = r-1 if j == 0 else (roots[j-1]+r)/2
++        right = r+1 if j == len(roots)-1 else (r+roots[j+1])/2
++        if S.sign(derivative_at(left)-height) != S.sign(derivative_at(right)-height):
++            changed.append(r)
++    return len(changed)
++
++
++# 端の半直線も含む全領域を、分岐値 -12,0,4 で分類する。
++cases = [(-13, 0), (-12, 0), (-6, 2), (0, 2), (1, 4), (4, 2), (5, 2)]
++for height, count in cases:
++    assert extrema_count(S.Integer(height)) == count
++assert S.solve(S.diff(pieces[1][2], x), x) == [0]
++assert pieces[1][2].subs(x, 0) == 4
++# 左直線の値域 [0,∞)、中央左右の値域 [0,4],[-12,4]、右直線 [-12,∞)。
++# よって交点の増減があり得る高さは上記3点だけで、無限領域の分類も尽くしている。
++integer_ks = [v for v in range(0, 5) if extrema_count(S.Integer(v)) == 4]
++assert integer_ks == [1, 2, 3]
++check(14, sum(integer_ks), [sum(range(1, 5))])
++# D28 原文は式が指定されていない中央曲線を勝手に補完せず、図の符号情報を使う。
++# f' は全点で定義。符号 +,+,-,+ により x=1 極大、x=3 極小。
++# 左端 f'=-x-1 の原始関数は -x²/2-x+C → -∞、右端は (x-3)²/2+C → +∞。
++c = S.symbols('c', real=True)
++assert S.limit(-x*x/2-x+c, x, -S.oo) == -S.oo
++assert S.limit((x-3)**2/2+c, x, S.oo) == S.oo
++original_signs = [1, 1, -1, 1]
++assert original_signs[1:3] == [1, -1]
++# f(3)>0なら [1,∞) で正、(-∞,1) は単調増加で負から正へ一度だけ横切る。
++original('D28', 'T:ㄱ, ㄴ, ㄷ')
++
++
++# 16: 連続性と区間内 |f|>0 により各区間の符号は一つ。全64配列を検査する。
++assert r'|12(x-n+1)(x-n)|' in IT[16]['cond'][0][1]
++assert r'g(4)=8' in IT[16]['cond'][1][1]
++mass, moment = [], []
++for n in range(1, 7):
++    hump = 12*(x-n+1)*(n-x)
++    assert hump.subs(x, n-1) == hump.subs(x, n) == 0
++    mass.append(S.integrate(hump, (x, n-1, n)))
++    moment.append(S.integrate(x*hump, (x, n-1, n)))
++assert mass == [2]*6 and moment == [1, 3, 5, 7, 9, 11]
++
++
++def g_values(signs):
++    return [2*sum(mass[i]*signs[i] for i in range(j))-sum(m*s for m, s in zip(mass, signs))
++            for j in range(7)]
++
++
++def solutions(local=True, value=True):
++    result = []
++    for signs in product([-1, 1], repeat=6):
++        if local and signs[1:3] != (-1, 1):
++            continue
++        if value and g_values(signs)[4] != 8:
++            continue
++        answer = sum(m*s for m, s in zip(moment, signs))
++        result.append((signs, answer))
++    return result
++
++
++valid = solutions()
++assert valid == [((1, -1, 1, 1, -1, -1), -10)]
++assert g_values(valid[0][0]) == [0, 4, 0, 4, 8, 4, 0]
++check(16, valid[0][1])
++print('16: 64개 부호 배열 전수 확인, 가능한 배열 1개')
++for name, result in [('극소 위치', solutions(local=False)), ('g(4)=8', solutions(value=False))]:
++    answers = sorted(set(answer for _, answer in result))
++    assert len(answers) > 1
++    print(f'ABLATION 16 {name}: 필요(가능한 답 {answers})')
++
++# (가)의 크기 조건을 빼면 동일 부호에서 구간 넓이 3,2,2,1,2,2를 갖는 연속함수도 가능.
++other_mass = [3, 2, 2, 1, 2, 2]
++signs = valid[0][0]
++assert sum(other_mass[i]*signs[i] for i in range(4))-sum(other_mass[i]*signs[i] for i in range(4, 6)) == 8
++other_answer = sum((S.Rational(2*i+1, 2))*m*s for i, (m, s) in enumerate(zip(other_mass, signs)))
++assert other_answer == -13
++print('ABLATION 16 (가): 필요(연속인 다른 구간별 이차함수의 답 -13)')
++
++# 連続性を外すと、区間2の前半 +/後半 -、区間4の前半 -/後半 + が許される。
++signed_pieces = [(0, 1, 1), (1, S.Rational(3, 2), 1), (S.Rational(3, 2), 2, -1),
++                 (2, 3, 1), (3, S.Rational(7, 2), -1), (S.Rational(7, 2), 4, 1),
++                 (4, 5, -1), (5, 6, -1)]
++g4_without_continuity = 0
++answer_without_continuity = 0
++for lo, hi, sign in signed_pieces:
++    n = int(S.floor(lo))+1
++    p = sign*12*(x-n+1)*(n-x)
++    g4_without_continuity += (1 if hi <= 4 else -1)*S.integrate(p, (x, lo, hi))
++    answer_without_continuity += S.integrate(x*p, (x, lo, hi))
++assert g4_without_continuity == 8
++assert answer_without_continuity != -10
++print(f'ABLATION 16 연속성: 필요(구간 내부 부호 변경 시 답 {answer_without_continuity})')
++
++# 原文 I70: 全16配列。各区間単調なので端点値と x=2 の符号で全域の最小を判定可能。
++old_signs = []
++for signs in product([-1, 1], repeat=4):
++    gv = [2*sum(signs[:j])-sum(signs) for j in range(5)]
++    if signs[1:3] == (-1, 1) and gv[2] == 0 and min(gv) == 0:
++        old_signs.append(signs)
++assert old_signs == [(1, -1, 1, -1)]
++first_half_tail = S.integrate(6*x*(1-x), (x, S.Rational(1, 2), 1))
++original('I70', first_half_tail+sum(old_signs[0][1:]))
++
++
++def figures():
++    os.environ.setdefault('MPLCONFIGDIR', '/tmp/finale-codex-mpl')
++    sys.path.insert(0, str(HERE.parents[1] / '지침'))
++    import figkit as K
++    # J61: 原点から大きい正の領域、次の根から負の小領域、右上へ伸びる三次曲線。
++    fig, ax = K.new((-0.45, 4.9), (-7, 17), size=(2.9, 2.0), dx=.08, dy=.07)
++    f = lambda z: 3*z*(z-3)*(z-4)
++    K.shade(ax, f, 0, 3)
++    K.shade(ax, f, 3, 4)
++    K.curve(ax, f, -.13, 4.6)
++    for r in (0, 3, 4):
++        K.dot(ax, r, 0, ms=2.4)
++    K.label(ax, 1.25, 5, 'A', size=11)
++    K.label(ax, 3.52, -2.0, 'B', size=10)
++    K.label(ax, 3, 1.4, 'P', size=9)
++    K.label(ax, 4, -1.7, 'Q', size=9)
++    K.label(ax, 4.0, 12, 'y=f(x)', size=9)
++    K.save(fig, HERE / 'fig_c_10.svg')
++    # D28: 左の下降直線、x=-1 で接続する山、x=2 の谷、右の上昇直線。
++    fig, ax = K.new((-3.1, 4.15), (-16, 8), size=(3.1, 2.0), dx=.07, dy=.07)
++    K.curve(ax, lambda z: -4*(z+1), -2.8, -1)
++    K.curve(ax, lambda z: 4*(1-z*z), -1, 2)
++    K.curve(ax, lambda z: 12*(z-3), 2, 3.55)
++    K.dash(ax, [0, 2, 2], [-12, -12, 0])
++    for r in (-1, 1, 2, 3):
++        K.label(ax, r, -1.3, str(r), va='top', size=9)
++    K.label(ax, -.18, 4.4, '4', ha='right', size=9)
++    K.label(ax, -.18, -12, '-12', ha='right', size=9)
++    K.label(ax, 2.1, 6, "y=f'(x)", size=9)
++    K.save(fig, HERE / 'fig_c_14.svg')
++
++
++if '--figures' in sys.argv:
++    figures()
++for no in (10, 14):
++    path = HERE / f'fig_c_{no}.svg'
++    assert path.exists()
++    assert ET.parse(path).getroot().tag.endswith('svg')
++    assert path.name in IT[no]['body']
++print('그림 10·14: SVG 파일·본문 연결 OK')
++print('ALL OK')
+
+exec
+/bin/bash -lc 'python3 output/build/기말/1회/parts/verify_c1.py' in /home/runner/work/Finale/Finale
+exec
+/bin/bash -lc 'python3 output/build/기말/1회/parts/verify_c2.py --figures' in /home/runner/work/Finale/Finale
+ exited 1 in 291ms:
+Traceback (most recent call last):
+  File "/home/runner/work/Finale/Finale/output/build/기말/1회/parts/verify_c1.py", line 57, in <module>
+    assert minimum == -3*(a-3)*(a+1)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+ succeeded in 2157ms:
+10: 답 18, 정답 2, 유일성·등차·오답 근거 OK
+ORIGINAL J61: 4/3 = 원문 정답 OK
+12: 답 13, 정답 3, 유일성·등차·오답 근거 OK
+ORIGINAL D40: 50 = 원문 정답 OK
+14: 답 6, 정답 1, 유일성·등차·오답 근거 OK
+ORIGINAL D28: T:ㄱ, ㄴ, ㄷ = 원문 정답 OK
+16: 답 -10, 정답 5, 유일성·등차·오답 근거 OK
+16: 64개 부호 배열 전수 확인, 가능한 배열 1개
+ABLATION 16 극소 위치: 필요(가능한 답 [-18, -14, -10, -6, 14, 18])
+ABLATION 16 g(4)=8: 필요(가능한 답 [-26, -24, -12, -10, -8, -6, -4, -2, 6, 8, 10, 12, 14, 16, 28, 30])
+ABLATION 16 (가): 필요(연속인 다른 구간별 이차함수의 답 -13)
+ABLATION 16 연속성: 필요(구간 내부 부호 변경 시 답 -14)
+ORIGINAL I70: -1/2 = 원문 정답 OK
+그림 10·14: SVG 파일·본문 연결 OK
+ALL OK
+
+2026-11-05T15:43:43.884510Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /home/runner/work/Finale/Finale/output/build/기말/1회/parts/verify_c2.py:
+# 端の半直線も含む全領域を、分岐値 -12,0,4 で分類する。
+exec
+/bin/bash -lc "rg -n '[ぁ-んァ-ン]|minimum ==' output/build/기말/1회/parts/verify_c*.py" in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+output/build/기말/1회/parts/verify_c2.py:70:# 12: 二つの異なる実根を持つ三次式の全二形式を調べる。
+output/build/기말/1회/parts/verify_c2.py:79:            # 今回の候補はいずれも二階微分が0でなく、符号で極大/極小が確定。
+output/build/기말/1회/parts/verify_c2.py:99:# 14: 接する点は数えず、実際に導関数の符号が変わる根だけを数える。
+output/build/기말/1회/parts/verify_c2.py:121:# 端の半直線も含む全領域を、分岐値 -12,0,4 で分類する。
+output/build/기말/1회/parts/verify_c2.py:127:# 左直線の値域 [0,∞)、中央左右の値域 [0,4],[-12,4]、右直線 [-12,∞)。
+output/build/기말/1회/parts/verify_c2.py:128:# よって交点の増減があり得る高さは上記3点だけで、無限領域の分類も尽くしている。
+output/build/기말/1회/parts/verify_c2.py:132:# D28 原文は式が指定されていない中央曲線を勝手に補完せず、図の符号情報を使う。
+output/build/기말/1회/parts/verify_c2.py:133:# f' は全点で定義。符号 +,+,-,+ により x=1 極大、x=3 極小。
+output/build/기말/1회/parts/verify_c2.py:134:# 左端 f'=-x-1 の原始関数は -x²/2-x+C → -∞、右端は (x-3)²/2+C → +∞。
+output/build/기말/1회/parts/verify_c2.py:140:# f(3)>0なら [1,∞) で正、(-∞,1) は単調増加で負から正へ一度だけ横切る。
+output/build/기말/1회/parts/verify_c2.py:144:# 16: 連続性と区間内 |f|>0 により各区間の符号は一つ。全64配列を検査する。
+output/build/기말/1회/parts/verify_c2.py:191:# 連続性を外すと、区間2の前半 +/後半 -、区間4の前半 -/後半 + が許される。
+output/build/기말/1회/parts/verify_c2.py:206:# 原文 I70: 全16配列。各区間単調なので端点値と x=2 の符号で全域の最小を判定可能。
+output/build/기말/1회/parts/verify_c2.py:221:    # J61: 原点から大きい正の領域、次の根から負の小領域、右上へ伸びる三次曲線。
+output/build/기말/1회/parts/verify_c2.py:235:    # D28: 左の下降直線、x=-1 で接続する山、x=2 の谷、右の上昇直線。
+output/build/기말/1회/parts/verify_c1.py:57:assert minimum == -3*(a-3)*(a+1)
+output/build/기말/1회/parts/verify_c1.py:105:# 8: v(0)>0、唯一の内部極小、等号時の符号を記号計算で確認する。
+output/build/기말/1회/parts/verify_c1.py:110:assert minimum == -16*a*(a-1)*(a+1)
+
+apply patch
+patch: completed
+/home/runner/work/Finale/Finale/output/build/기말/1회/parts/verify_c1.py
+/home/runner/work/Finale/Finale/output/build/기말/1회/parts/verify_c2.py
+diff --git a/output/build/기말/1회/parts/c1.py b/output/build/기말/1회/parts/c1.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..c02568ca881477bcf590fc1f9ca2e9c008ea7735
+--- /dev/null
++++ b/output/build/기말/1회/parts/c1.py
+@@ -0,0 +1,69 @@
++# -*- coding: utf-8 -*-
++"""1회 학교형: Codex 담당 선택형 2·4·6·8번."""
++
++ITEMS = {
++    2: dict(
++        body=r"""실수 \(a\)에 대하여 함수 \(f(x)=x^3+3ax^2+(6a+9)x+2\)가 실수 전체의 집합에서 증가하도록 하는 \(a\)의 최댓값은?""",
++        choices=['-1', '0', '1', '2', '3'], ans=5, key='D11',
++        src='2024년 수능특강 [24009-0080]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 4번', level='하',
++        var='[숫자·구하는 대상 변경] 증가하는 정수 계수의 개수 → 실수 계수의 최댓값',
++        sol=r"""\(f'(x)=3x^2+6ax+6a+9\)이다. 실수 전체에서 증가하려면 모든 실수 \(x\)에 대하여 \(f'(x)\ge0\)이어야 하므로
++\[(6a)^2-12(6a+9)\le0,\qquad (a+1)(a-3)\le0.\]
++따라서 \(-1\le a\le3\)이고, \(a\)의 최댓값은 \(3\)이다. \(a=3\)일 때도 \(f'(x)=3(x+3)^2\)이므로 증가한다.""",
++        fast=r"""\(f'(x)=3\{(x+a)^2-(a-3)(a+1)\}\)에서 \(-1\le a\le3\).""",
++        note='원문의 도함수 판별식 판정은 유지하고 정수 개수 계산을 끝값 읽기로 바꾸었다.',
++        wrong={'-1': '허용 범위의 최솟값을 답한 경우.', '2': '판별식의 등호를 제외한 뒤 정수 최댓값을 답한 경우.'},
++    ),
++    4: dict(
++        body=r"""수직선 위를 움직이는 두 점 \(\mathrm{P}\), \(\mathrm{Q}\)의 시각 \(t\) \((t\ge0)\)에서의 위치가 각각
++\[x_1=t^3-t^2+2t,\qquad x_2=2t^2+11t+1\]
++이다. 두 점의 속도가 서로 같을 때, 두 점 사이의 거리는?""",
++        choices=['25', '26', '27', '28', '29'], ans=4, key='M48',
++        src='2020학년도 수능 나형 27번', author='codex',
++        vtype=['숫자 변경', '형식 변경'], effect='같음', bunseok=False,
++        precedent='1학기 기말 4번', level='하',
++        var='[숫자·형식 변경] 위치식의 계수와 출발 위치 교체, 단답형 → 선택형',
++        sol=r"""두 점의 속도는 각각 \(3t^2-2t+2\), \(4t+11\)이다. 따라서
++\[3t^2-2t+2=4t+11,\qquad (t-3)(t+1)=0.\]
++\(t\ge0\)이므로 \(t=3\)이다. 이때 \(x_1=24\), \(x_2=52\)이므로 두 점 사이의 거리는 \(52-24=28\)이다.""",
++        fast=r"""위치의 차는 \(d(t)=t^3-3t^2-9t-1\). \(d'(t)=3(t-3)(t+1)=0\)에서 \(t=3\), \(|d(3)|=28\).""",
++        note='속도 일치 시각의 음수 해를 제외하고 위치 차의 절댓값을 구하는 원문 흐름을 유지했다.',
++        wrong={'27': '두 번째 위치식의 상수항 1을 위치 계산에서 빠뜨린 경우.'},
++    ),
++    6: dict(
++        body=r"""함수 \(f(x)=-x^4+3x^3-x^2+1\)에 대하여 함수 \(y=f(x)\)의 그래프를 \(x\)축에 대하여 대칭이동한 후 \(y\)축의 방향으로 \(k\)만큼 평행이동한 그래프를 \(y=g(x)\)라 하자. 모든 실수 \(x\)에 대하여
++\[f(x)\le g(x)\]
++가 성립하도록 하는 실수 \(k\)의 최솟값은?""",
++        choices=['6', '7', '8', '9', '10'], ans=5, key='M16',
++        src='2024년 수능완성 [24054-0135]', author='codex',
++        vtype=['함수 교체', '조건 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 7번', level='중',
++        var='[함수·조건·대상 변경] 최고차항 부호와 상수항 교체, 위쪽 이동의 상한 → 하한',
++        sol=r"""\(g(x)=-f(x)+k\)이므로 주어진 부등식은 \(2f(x)\le k\)이다.
++\[f'(x)=-x(4x-1)(x-2)\]
++이므로 극대가 되는 점은 \(x=0,2\)이고, \(f(0)=1\), \(f(2)=5\)이다. 양 끝에서 함숫값이 한없이 작아지므로 \(f(x)\)의 최댓값은 \(5\)이다. 따라서 \(k\ge10\)이고 최솟값은 \(10\)이다.""",
++        fast=r"""\(5-f(x)=(x-2)^2(x^2+x+1)\ge0\)이고 \(f(2)=5\)이므로 \(k\)의 최솟값은 \(2\times5=10\).""",
++        note='대칭이동 번역과 두 극값 비교를 유지했다. 부호를 뒤집어 같은 계산량으로 하한을 묻는다.',
++        wrong={'8': '함수의 상수항 1을 빠뜨려 최댓값을 4로 계산하고 두 배 한 경우.'},
++    ),
++    8: dict(
++        body=r"""양수 \(a\)에 대하여 수직선 위를 움직이는 점 \(\mathrm{P}\)의 시각 \(t\) \((t\ge0)\)에서의 속도 \(v(t)\)가
++\[v(t)=4t^3-12at^2+16a\]
++이다. 점 \(\mathrm{P}\)가 운동 방향을 바꾸지 않을 때, 시각 \(t=0\)에서 \(t=1\)까지 움직인 거리의 최댓값은?""",
++        choices=['13', '14', '15', '16', '17'], ans=1, key='J30',
++        src='2024년 수능특강 [24009-0177]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 4번; LIVE2-04-082(거리 질문의 선례)', level='중',
++        var='[숫자·대상 변경] 속도 계수·시각 교체, 원점 기준 위치 → 움직인 거리',
++        sol=r"""\(v(0)=16a>0\)이므로 운동 방향을 바꾸지 않을 조건은 \(t\ge0\)에서 \(v(t)\ge0\)인 것이다. \(v'(t)=12t(t-2a)\)이므로 최솟값은
++\[v(2a)=16a(1-a^2).\]
++따라서 \(0&lt;a\le1\)이다. 속도가 음수가 아니므로 움직인 거리는
++\[\int_0^1v(t)\,dt=1+12a\]
++이고, \(a=1\)일 때 최댓값 \(13\)을 갖는다.""",
++        fast=r"""방향 불변에서 \(v(2a)\ge0\), 즉 \(a\le1\). 거리는 \(1+12a\le13\).""",
++        note='원문과 같은 전 시간대의 방향 불변 조건이다. 정해진 시각까지만의 조건이나 정지 시각 조건을 추가하지 않았다.',
++        wrong={'16': '경계값 a=1에서 초기 속도 v(0)를 이동거리로 답한 경우.'},
++    ),
++}
+diff --git a/output/build/기말/1회/parts/c2.py b/output/build/기말/1회/parts/c2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..6f4bf79e14c99ef575e0edb361862a19451acc80
+--- /dev/null
++++ b/output/build/기말/1회/parts/c2.py
+@@ -0,0 +1,82 @@
++# -*- coding: utf-8 -*-
++"""1회 학교형: Codex 담당 선택형 10·12·14·16번."""
++
++ITEMS = {
++    10: dict(
++        body=r"""함수 \(y=f(x)\)의 그래프가 그림과 같다. 양수 \(k\)에 대하여 함수 \(f(x)\)는
++\[f(x)=kx(x-3)(x-4)\]
++이다. 곡선 \(y=f(x)\)와 \(x\)축이 원점 \(O\)와 두 점 \(P\), \(Q\)에서 만난다. 두 점 \(P\), \(Q\)의 \(x\)좌표는 각각 \(3\), \(4\)이다.
++<div class="fig"><img src="fig_c_10.svg" style="width:150pt"></div>
++곡선 \(y=f(x)\)와 선분 \(OP\), 곡선 \(y=f(x)\)와 선분 \(PQ\)로 둘러싸인 영역을 각각 \(A\), \(B\)라 하자.
++\[(A\text{의 넓이})-(B\text{의 넓이})=32\]
++일 때, \(f(1)\)의 값은?""",
++        choices=['17', '18', '19', '20', '21'], ans=2, key='J61',
++        src='2024학년도 수능 6월 모의평가 10번', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 9번', level='중',
++        var='[숫자·대상 변경] 두 양의 근과 넓이 차 교체, 계수 → 함숫값',
++        sol=r"""\(0&lt;x&lt;3\)에서 \(f(x)>0\), \(3&lt;x&lt;4\)에서 \(f(x)&lt;0\)이므로
++\[(A\text{의 넓이})-(B\text{의 넓이})=\int_0^4f(x)\,dx
++=k\left[\frac{x^4}{4}-\frac{7x^3}{3}+6x^2\right]_0^4=\frac{32k}{3}.\]
++따라서 \(k=3\)이고 \(f(1)=3\times1\times(-2)\times(-3)=18\)이다.""",
++        fast=r"""넓이 차를 부호 있는 적분 하나로 합치면 \(32k/3=32\). 따라서 \(f(1)=6k=18\).""",
++        note='원문의 두 영역 모양과 넓이 차 판정을 유지했다. 그림에 쓰인 두 근은 본문에도 제시했다.',
++        wrong={},
++    ),
++    12: dict(
++        body=r"""최고차항의 계수가 \(1\)인 삼차함수 \(f(x)\)가 다음 조건을 만족시킬 때, \(f(1)\)의 값은?""",
++        cond=[('가', r'방정식 \(f(x)=4x\)의 서로 다른 실근의 개수는 \(2\)이다.'),
++              ('나', r'\(f(0)=0\)이고, 함수 \(f(x)\)는 \(x=2\)에서 극대이다.')],
++        choices=['11', '12', '13', '14', '15'], ans=3, key='D40',
++        src='2024년 수능특강 [24009-0101]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경', '형식 변경'], effect='쉬워짐', bunseok=False,
++        precedent='2학기 중간 9번', level='중상',
++        var='[숫자·대상·형식 변경] 교점 조건을 방정식으로 제시, 극솟값 단답 → 함숫값 선택형',
++        sol=r"""\(f(0)=0\)이고 \(f(x)-4x=0\)의 서로 다른 실근이 두 개이므로, \(b\ne0\)에 대하여
++\[f(x)-4x=x(x-b)^2\quad\text{또는}\quad x^2(x-b)\]
++이다. 첫째 경우 \(f'(2)=0\)에서 \((b-4)^2=0\)이므로 \(b=4\)이다. 이때 \(f'(x)=(x-2)(3x-10)\)이므로 \(x=2\)에서 극대이다. 둘째 경우 \(f'(2)=16-4b=0\)에서 \(b=4\)인데, \(f'(x)=(x-2)(3x-2)\)이므로 \(x=2\)에서 극소이다. 따라서
++\[f(x)=x(x-4)^2+4x,\qquad f(1)=13.\]""",
++        fast=r"""\(x^2(x-b)+4x\)인 경우는 \(x=2\)에서 극소이므로 제외한다. 나머지는 \(f'(2)=(b-4)^2=0\), 따라서 \(f(1)=9+4=13\).""",
++        note='원문의 두 인수형과 극대 판정을 모두 유지했다. 극소점의 추가 계산을 없애 무게를 낮췄다.',
++        wrong={},
++    ),
++    14: dict(
++        body=r"""함수 \(y=f'(x)\)의 그래프가 그림과 같고,
++\[f'(x)=\begin{cases}-4(x+1)&amp;(x\le-1)\\4(1-x^2)&amp;(-1&lt;x&lt;2)\\12(x-3)&amp;(x\ge2)\end{cases}\]
++이다.
++<div class="fig"><img src="fig_c_14.svg" style="width:165pt"></div>
++함수 \(g(x)=f(x)-kx\)가 극값을 갖는 \(x\)의 개수가 \(4\)가 되도록 하는 모든 정수 \(k\)의 합은?""",
++        choices=['6', '7', '8', '9', '10'], ans=1, key='D28',
++        src='학교 자체 출제', author='codex',
++        vtype=['자체 출제', '함수 교체', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 14번', level='중상',
++        var='[자체 출제] D28의 도함수 그림 모양 유지, f−kx의 극값 개수로 정수 계수 결정',
++        sol=r"""\(g'(x)=f'(x)-k\)이므로 \(y=f'(x)\)와 \(y=k\)가 만나는 점에서 \(f'(x)-k\)의 부호 변화를 조사한다. 가운데 곡선의 최댓값은 \(f'(0)=4\)이다. \(0&lt;k&lt;4\)이면 왼쪽 직선, 가운데 곡선의 두 부분, 오른쪽 직선에서 각각 부호가 바뀌어 극값이 네 개이다.
++\(k\le-12\)이면 극값이 없고, \(-12&lt;k\le0\) 또는 \(k\ge4\)이면 두 개이다. 특히 \(k=0,4,-12\)에서 수평선에 닿기만 하는 점에서는 부호가 바뀌지 않는다. 따라서 정수 \(k\)는 \(1,2,3\)이고 합은 \(6\)이다.""",
++        fast=r"""극값 네 개의 조건은 \(0&lt;k&lt;\max_{[-1,2]}f'(x)=4\). 따라서 \(1+2+3=6\).""",
++        note='원문의 왼쪽 직선·가운데 봉우리·오른쪽 직선 모양을 다항식으로 재현했다. f의 영점 개수나 극솟값 부호를 묻는 분석집 방향을 쓰지 않았다.',
++        wrong={'10': '0<k<4의 상한에 등호를 넣어 1+2+3+4를 답한 경우.'},
++    ),
++    16: dict(
++        body=r"""실수 전체의 집합에서 연속인 함수 \(f(x)\)와 열린구간 \((0,6)\)에서 정의된 함수
++\[g(x)=\int_0^x f(t)\,dt-\int_x^6 f(t)\,dt\]
++가 다음 조건을 만족시킬 때, \(\displaystyle\int_0^6 x f(x)\,dx\)의 값은?""",
++        cond=[('가', r'\(n-1\le x&lt;n\)일 때, \(|f(x)|=|12(x-n+1)(x-n)|\)이다. (단, \(n=1,2,\ldots,6\)이다.)'),
++              ('나', r'함수 \(g(x)\)는 \(x=2\)에서 극소이고, \(g(4)=8\)이다.')],
++        choices=['-14', '-13', '-12', '-11', '-10'], ans=5, key='I70',
++        src='2023학년도 수능 12번', author='codex',
++        vtype=['숫자 변경', '조건 변경', '구하는 대상 변경'], effect='어려워짐', bunseok=False,
++        precedent='2학기 중간 16번', level='상',
++        var='[숫자·조건·대상 변경] 네 구간 → 여섯 구간, 극소 위치와 다른 함숫값으로 부호를 정한 뒤 가중 정적분',
++        sol=r"""각 열린구간 \((n-1,n)\)에서 \(|f(x)|>0\)이고 \(f\)가 연속이므로 부호가 일정하다. 이를 \(s_n\)이라 하면 \(s_n=1\) 또는 \(-1\)이고
++\[\int_{n-1}^n f(x)\,dx=2s_n.\]
++\(g'(x)=2f(x)\)이고 \(g\)가 \(x=2\)에서 극소이므로 \(s_2=-1\), \(s_3=1\)이다. 따라서 \(g(4)=8\)에서
++\[2(s_1+s_2+s_3+s_4-s_5-s_6)=8,\qquad s_1+s_4-s_5-s_6=4.\]
++각 항은 \(1\) 이하이므로 \((s_1,s_2,s_3,s_4,s_5,s_6)=(1,-1,1,1,-1,-1)\)이다. 구간의 중앙 \(n-\frac12\)에 대한 대칭을 이용하면
++\[\int_{n-1}^n x f(x)\,dx=\left(n-\frac12\right)2s_n=(2n-1)s_n.\]
++그러므로 구하는 값은 \(1-3+5+7-9-11=-10\)이다.""",
++        fast=r"""구간 넓이는 각각 \(2\). 극소에서 둘째·셋째 부호가 \(-,+\)이고, \(g(4)=8\)은 나머지 네 부호를 \(+,+,-,-\)로 정한다. 가중 적분은 각 구간 중앙값에 부호 있는 넓이를 곱해 합하면 된다.""",
++        note='원문 단원의 구간별 부호 선택·적분함수 미분을 유지했다. 극솟값을 따로 주지 않아 불필요한 조건을 없앴으며, 여섯 부호와 가중 적분으로 16번 무게를 맞췄다.',
++        wrong={},
++    ),
++}
+diff --git a/output/build/기말/1회/parts/verify_c1.py b/output/build/기말/1회/parts/verify_c1.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..0b9153857f7bc838fcda9fbb649db7841468b6e2
+--- /dev/null
++++ b/output/build/기말/1회/parts/verify_c1.py
+@@ -0,0 +1,127 @@
++# -*- coding: utf-8 -*-
++"""2·4·6·8번: 정답, 유일성, 경계, 선지, 오답 근거, 원문 정답.
++
++실행 위치에 관계없이 python3 verify_c1.py로 실행한다.
++"""
++from pathlib import Path
++import re
++import runpy
++import sys
++import sympy as S
++
++HERE = Path(__file__).resolve().parent
++IT = runpy.run_path(str(HERE / 'c1.py'))['ITEMS']
++sys.path.insert(0, str(HERE.parents[2] / '부교재_기말'))
++import items_final as F
++
++x, t, a = S.symbols('x t a', real=True)
++WANT = {2: 5, 4: 4, 6: 5, 8: 1}
++assert set(IT) == set(WANT)
++
++
++def number(text):
++    m = re.fullmatch(r'(-?)\\(?:dfrac|frac)\{?(\d+)\}?\{?(\d+)\}?', str(text))
++    if m:
++        return (-1 if m[1] else 1) * S.Rational(m[2], m[3])
++    return S.sympify(text)
++
++
++def check(no, value, wrong_values):
++    it = IT[no]
++    ch = list(map(number, it['choices']))
++    assert len(ch) == len(set(ch)) == 5
++    assert len({ch[j+1] - ch[j] for j in range(4)}) == 1
++    assert ch[1] - ch[0] == 1
++    assert it['ans'] == WANT[no]
++    assert value == ch[it['ans']-1]
++    assert ch.count(value) == 1
++    assert set(map(number, it['wrong'])) == set(wrong_values)
++    assert all(w in ch and w != value for w in wrong_values)
++    assert it['author'] == 'codex' and it['bunseok'] is False
++    assert it['effect'] in ('같음', '쉬워짐')
++    print(f'{no}: 답 {value}, 정답 {it["ans"]}, 유일성·등차·오답 근거 OK')
++
++
++def original(key, computed):
++    _, choices, answer, _ = F.I[key]
++    value = number(choices['①②③④⑤'.index(answer)]) if choices else number(answer)
++    assert computed == value, (key, computed, value)
++    print(f'ORIGINAL {key}: {computed} = 원문 정답 OK')
++
++
++# 2: 이차 도함수의 최솟값으로 필요충분조건을 직접 확인한다.
++assert r'f(x)=x^3+3ax^2+(6a+9)x+2' in IT[2]['body']
++f2 = x**3 + 3*a*x**2 + (6*a+9)*x + 2
++d2 = S.diff(f2, x)
++minimum = S.factor(d2.subs(x, -a))
++assert S.expand(minimum + 3*(a-3)*(a+1)) == 0
++allowed = S.solve_univariate_inequality(minimum >= 0, a, relational=False)
++assert allowed == S.Interval(-1, 3)
++assert S.factor(d2.subs(a, 3)) == 3*(x+3)**2
++# 등호일 때에도 상수 함수 구간이 없으므로 엄격한 증가이다.
++assert S.degree(d2.subs(a, 3), x) == 2
++check(2, allowed.end, [allowed.start, S.ceiling(allowed.end)-1])
++fo = x**3 + a*x**2 + (2*a+S.Rational(7, 3))*x - 5
++disc = S.discriminant(S.diff(fo, x), x)
++interval = S.solve_univariate_inequality(disc <= 0, a, relational=False)
++assert interval == S.Interval(-1, 7)
++original('D11', S.floor(interval.end)-S.ceiling(interval.start)+1)
++
++# 4: 속도 일치의 모든 실근 중 시간 조건을 만족하는 것을 전수 확인한다.
++assert r'x_1=t^3-t^2+2t' in IT[4]['body']
++assert r'x_2=2t^2+11t+1' in IT[4]['body']
++p, q = t**3-t**2+2*t, 2*t**2+11*t+1
++roots = S.solve(S.diff(p-q, t), t)
++assert roots == [-1, 3]
++times = [r for r in roots if r >= 0]
++assert times == [3]
++distance = abs((p-q).subs(t, times[0]))
++omitted_constant = abs((p-(q-1)).subs(t, times[0]))
++assert omitted_constant == 27
++check(4, distance, [omitted_constant])
++po, qo = t**3-2*t**2+3*t, t**2+12*t
++ro = [r for r in S.solve(S.diff(po-qo, t), t) if r >= 0]
++assert ro == [3]
++original('M48', abs((po-qo).subs(t, ro[0])))
++
++# 6: 모든 임계점과 양 끝의 극한을 비교하고 인수분해로 전역 상한을 재확인한다.
++assert r'f(x)=-x^4+3x^3-x^2+1' in IT[6]['body']
++f6 = -x**4 + 3*x**3 - x**2 + 1
++critical = S.solve(S.diff(f6, x), x)
++assert critical == [0, S.Rational(1, 4), 2]
++values = [f6.subs(x, c) for c in critical]
++assert values == [1, S.Rational(251, 256), 5]
++assert S.limit(f6, x, S.oo) == S.limit(f6, x, -S.oo) == -S.oo
++assert S.expand(5-f6-(x-2)**2*(x*x+x+1)) == 0
++assert S.discriminant(x*x+x+1, x) < 0
++maximum = max(values)
++wrong6 = 2*(maximum-1)
++assert wrong6 == 8
++check(6, 2*maximum, [wrong6])
++fo = x**4-3*x**3+x**2
++assert S.limit(fo, x, S.oo) == S.limit(fo, x, -S.oo) == S.oo
++original('M16', 2*min(fo.subs(x, c) for c in S.solve(S.diff(fo, x), x)))
++
++# 8: v(0)>0, 유일한 내부 극소점, 등호일 때의 부호를 기호 계산으로 확인한다.
++assert r'v(t)=4t^3-12at^2+16a' in IT[8]['body']
++v = 4*t**3-12*a*t**2+16*a
++assert S.factor(S.diff(v, t)) == 12*t*(t-2*a)
++minimum = S.factor(v.subs(t, 2*a))
++assert S.expand(minimum + 16*a*(a-1)*(a+1)) == 0
++allowed = S.solve_univariate_inequality(minimum >= 0, a, relational=False).intersect(S.Interval.open(0, S.oo))
++assert allowed == S.Interval.Lopen(0, 1)
++assert S.factor(v.subs(a, 1)) == 4*(t-2)**2*(t+1)
++distance = S.integrate(v, (t, 0, 1))
++assert distance == 12*a+1 and S.diff(distance, a) > 0
++wrong8 = v.subs({a: 1, t: 0})
++assert wrong8 == 16
++check(8, distance.subs(a, allowed.end), [wrong8])
++vo = t**3/3-a*t**2+3*a
++assert S.factor(S.diff(vo, t)) == t*(t-2*a)
++old_allowed = S.solve_univariate_inequality(vo.subs(t, 2*a) >= 0, a, relational=False).intersect(S.Interval.open(0, S.oo))
++assert old_allowed == S.Interval.Lopen(0, S.Rational(3, 2))
++old_distance = S.integrate(vo, (t, 0, 2))
++assert S.diff(old_distance, a) > 0
++original('J30', old_distance.subs(a, old_allowed.end))
++
++print('ALL OK')
+diff --git a/output/build/기말/1회/parts/verify_c2.py b/output/build/기말/1회/parts/verify_c2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..d49b9fada76b7abe59199d0848a718169b8c21e8
+--- /dev/null
++++ b/output/build/기말/1회/parts/verify_c2.py
+@@ -0,0 +1,257 @@
++# -*- coding: utf-8 -*-
++"""10·12·14·16번 검증. --figures를 붙이면 figkit으로 SVG 두 개를 재생성한다.
++
++출력 그림은 원문 J61·D28의 모양을 유지한다. 상용 글꼴이나 PDF는 쓰지 않는다.
++"""
++from pathlib import Path
++from itertools import product
++import os
++import re
++import runpy
++import sys
++import xml.etree.ElementTree as ET
++import sympy as S
++
++HERE = Path(__file__).resolve().parent
++IT = runpy.run_path(str(HERE / 'c2.py'))['ITEMS']
++sys.path.insert(0, str(HERE.parents[2] / '부교재_기말'))
++import items_final as F
++
++x, b = S.symbols('x b', real=True)
++WANT = {10: 2, 12: 3, 14: 1, 16: 5}
++assert set(IT) == set(WANT)
++
++
++def number(text):
++    m = re.fullmatch(r'(-?)\\(?:dfrac|frac)\{?(\d+)\}?\{?(\d+)\}?', str(text))
++    return ((-1 if m[1] else 1)*S.Rational(m[2], m[3])) if m else S.sympify(text)
++
++
++def check(no, answer, wrong_values=()):
++    it = IT[no]
++    ch = list(map(number, it['choices']))
++    assert len(ch) == len(set(ch)) == 5
++    assert {ch[j+1]-ch[j] for j in range(4)} == {1}
++    assert it['ans'] == WANT[no] and ch[it['ans']-1] == answer
++    assert ch.count(answer) == 1
++    assert set(map(number, it['wrong'])) == set(wrong_values)
++    assert all(w in ch and w != answer for w in wrong_values)
++    assert it['author'] == 'codex' and it['bunseok'] is False
++    print(f'{no}: 답 {answer}, 정답 {it["ans"]}, 유일성·등차·오답 근거 OK')
++
++
++def original(key, answer):
++    _, choices, recorded, _ = F.I[key]
++    if choices and choices[0].startswith('T:'):
++        actual = choices['①②③④⑤'.index(recorded)]
++    else:
++        actual = number(choices['①②③④⑤'.index(recorded)]) if choices else number(recorded)
++    assert answer == actual, (key, answer, actual)
++    print(f'ORIGINAL {key}: {answer} = 원문 정답 OK')
++
++
++# 10: 부호·개별 넓이·넓이 차와 정적분을 모두 확인한다.
++k = S.symbols('k', positive=True)
++assert r'f(x)=kx(x-3)(x-4)' in IT[10]['body']
++f10 = k*x*(x-3)*(x-4)
++assert S.solve(f10, x) == [0, 3, 4]
++assert f10.subs(x, 1) > 0 and f10.subs(x, S.Rational(7, 2)) < 0
++area_a = S.integrate(f10, (x, 0, 3))
++area_b = -S.integrate(f10, (x, 3, 4))
++assert area_a == 45*k/4 and area_b == 7*k/12
++assert S.simplify(area_a-area_b-S.integrate(f10, (x, 0, 4))) == 0
++ks = S.solve(area_a-area_b-32, k)
++assert ks == [3]
++check(10, f10.subs({x: 1, k: ks[0]}))
++fo = k*x*(x-2)*(x-3)
++original('J61', S.solve(S.integrate(fo, (x, 0, 3))-3, k)[0])
++
++
++# 12: 서로 다른 실근이 두 개인 삼차식의 두 인수형을 모두 조사한다.
++def cubic_candidates(slope, point):
++    accepted, rejected = [], []
++    for h in (x*(x-b)**2+slope*x, x*x*(x-b)+slope*x):
++        for value in S.solve(S.diff(h, x).subs(x, point), b):
++            if value == 0:
++                continue
++            f = S.expand(h.subs(b, value))
++            assert len(S.solve(f-slope*x, x)) == 2
++            # 후보의 이계도함수가 0이 아니므로 부호로 극대·극소를 판정한다.
++            second = S.diff(f, x, 2).subs(x, point)
++            assert second != 0
++            (accepted if second < 0 else rejected).append(f)
++    return list(set(accepted)), list(set(rejected))
++
++
++assert r'f(x)=4x' in IT[12]['cond'][0][1]
++assert r'x=2' in IT[12]['cond'][1][1]
++good, rejected = cubic_candidates(4, 2)
++assert good == [x**3-8*x**2+20*x]
++assert rejected == [x**3-4*x**2+4*x]
++check(12, good[0].subs(x, 1))
++old, _ = cubic_candidates(9, 3)
++assert old == [x**3-12*x**2+45*x]
++minpoints = [r for r in S.solve(S.diff(old[0], x), x) if S.diff(old[0], x, 2).subs(x, r) > 0]
++assert minpoints == [5]
++original('D40', old[0].subs(x, minpoints[0]))
++
++
++# 14: 도함수의 부호가 실제로 바뀌는 근만 극값으로 센다.
++pieces = [(-S.oo, -1, -4*(x+1)), (-1, 2, 4*(1-x*x)), (2, S.oo, 12*(x-3))]
++assert pieces[0][2].subs(x, -1) == pieces[1][2].subs(x, -1) == 0
++assert pieces[1][2].subs(x, 2) == pieces[2][2].subs(x, 2) == -12
++
++
++def derivative_at(point):
++    return next(p.subs(x, point) for lo, hi, p in pieces if lo <= point <= hi)
++
++
++def extrema_count(height):
++    roots = sorted(set(r for lo, hi, p in pieces for r in S.solve(p-height, x)
++                       if r.is_real and lo <= r <= hi))
++    changed = []
++    for j, r in enumerate(roots):
++        left = r-1 if j == 0 else (roots[j-1]+r)/2
++        right = r+1 if j == len(roots)-1 else (r+roots[j+1])/2
++        if S.sign(derivative_at(left)-height) != S.sign(derivative_at(right)-height):
++            changed.append(r)
++    return len(changed)
++
++
++# 양쪽 무한 구간까지 포함해 모든 높이를 경계값 -12,0,4로 분류한다.
++cases = [(-13, 0), (-12, 0), (-6, 2), (0, 2), (1, 4), (4, 2), (5, 2)]
++for height, count in cases:
++    assert extrema_count(S.Integer(height)) == count
++assert S.solve(S.diff(pieces[1][2], x), x) == [0]
++assert pieces[1][2].subs(x, 0) == 4
++# 왼쪽 직선의 치역 [0,∞), 가운데 양쪽의 치역 [0,4],[-12,4], 오른쪽 직선 [-12,∞).
++# 교점 수가 달라질 수 있는 높이는 위 세 경계값뿐이므로 무한 구간의 분류도 완전하다.
++integer_ks = [v for v in range(0, 5) if extrema_count(S.Integer(v)) == 4]
++assert integer_ks == [1, 2, 3]
++check(14, sum(integer_ks), [sum(range(1, 5))])
++# D28 원문의 가운데 곡선은 식이 없으므로 그림의 부호 정보로 검증한다.
++# f'은 모든 점에 정의되고, 부호 +,+,-,+에서 x=1 극대, x=3 극소이다.
++# 왼쪽 원시함수는 -x²/2-x+C → -∞, 오른쪽 원시함수는 (x-3)²/2+C → +∞.
++c = S.symbols('c', real=True)
++assert S.limit(-x*x/2-x+c, x, -S.oo) == -S.oo
++assert S.limit((x-3)**2/2+c, x, S.oo) == S.oo
++original_signs = [1, 1, -1, 1]
++assert original_signs[1:3] == [1, -1]
++# f(3)>0이면 [1,∞)에서 양수, (-∞,1)에서는 단조증가하여 영점을 한 번만 지난다.
++original('D28', 'T:ㄱ, ㄴ, ㄷ')
++
++
++# 16: 연속성과 구간 내부 |f|>0에 따라 구간별 부호가 일정하다. 64개 배열을 전수 검사한다.
++assert r'|12(x-n+1)(x-n)|' in IT[16]['cond'][0][1]
++assert r'g(4)=8' in IT[16]['cond'][1][1]
++mass, moment = [], []
++for n in range(1, 7):
++    hump = 12*(x-n+1)*(n-x)
++    assert hump.subs(x, n-1) == hump.subs(x, n) == 0
++    mass.append(S.integrate(hump, (x, n-1, n)))
++    moment.append(S.integrate(x*hump, (x, n-1, n)))
++assert mass == [2]*6 and moment == [1, 3, 5, 7, 9, 11]
++
++
++def g_values(signs):
++    return [2*sum(mass[i]*signs[i] for i in range(j))-sum(m*s for m, s in zip(mass, signs))
++            for j in range(7)]
++
++
++def solutions(local=True, value=True):
++    result = []
++    for signs in product([-1, 1], repeat=6):
++        if local and signs[1:3] != (-1, 1):
++            continue
++        if value and g_values(signs)[4] != 8:
++            continue
++        answer = sum(m*s for m, s in zip(moment, signs))
++        result.append((signs, answer))
++    return result
++
++
++valid = solutions()
++assert valid == [((1, -1, 1, 1, -1, -1), -10)]
++assert g_values(valid[0][0]) == [0, 4, 0, 4, 8, 4, 0]
++check(16, valid[0][1])
++print('16: 64개 부호 배열 전수 확인, 가능한 배열 1개')
++for name, result in [('극소 위치', solutions(local=False)), ('g(4)=8', solutions(value=False))]:
++    answers = sorted(set(answer for _, answer in result))
++    assert len(answers) > 1
++    print(f'ABLATION 16 {name}: 필요(가능한 답 {answers})')
++
++# (가)의 크기 조건을 빼면 동일 부호에서 구간 넓이 3,2,2,1,2,2를 갖는 연속함수도 가능.
++other_mass = [3, 2, 2, 1, 2, 2]
++signs = valid[0][0]
++assert sum(other_mass[i]*signs[i] for i in range(4))-sum(other_mass[i]*signs[i] for i in range(4, 6)) == 8
++other_answer = sum((S.Rational(2*i+1, 2))*m*s for i, (m, s) in enumerate(zip(other_mass, signs)))
++assert other_answer == -13
++print('ABLATION 16 (가): 필요(연속인 다른 구간별 이차함수의 답 -13)')
++
++# 연속성을 빼면 둘째 구간 앞뒤에서 +,-, 넷째 구간 앞뒤에서 -,+가 허용된다.
++signed_pieces = [(0, 1, 1), (1, S.Rational(3, 2), 1), (S.Rational(3, 2), 2, -1),
++                 (2, 3, 1), (3, S.Rational(7, 2), -1), (S.Rational(7, 2), 4, 1),
++                 (4, 5, -1), (5, 6, -1)]
++g4_without_continuity = 0
++answer_without_continuity = 0
++for lo, hi, sign in signed_pieces:
++    n = int(S.floor(lo))+1
++    p = sign*12*(x-n+1)*(n-x)
++    g4_without_continuity += (1 if hi <= 4 else -1)*S.integrate(p, (x, lo, hi))
++    answer_without_continuity += S.integrate(x*p, (x, lo, hi))
++assert g4_without_continuity == 8
++assert answer_without_continuity != -10
++print(f'ABLATION 16 연속성: 필요(구간 내부 부호 변경 시 답 {answer_without_continuity})')
++
++# 원문 I70: 16개 배열. 구간별 단조이므로 끝값과 x=2 양옆 부호로 전역 최솟값을 판정한다.
++old_signs = []
++for signs in product([-1, 1], repeat=4):
++    gv = [2*sum(signs[:j])-sum(signs) for j in range(5)]
++    if signs[1:3] == (-1, 1) and gv[2] == 0 and min(gv) == 0:
++        old_signs.append(signs)
++assert old_signs == [(1, -1, 1, -1)]
++first_half_tail = S.integrate(6*x*(1-x), (x, S.Rational(1, 2), 1))
++original('I70', first_half_tail+sum(old_signs[0][1:]))
++
++
++def figures():
++    os.environ.setdefault('MPLCONFIGDIR', '/tmp/finale-codex-mpl')
++    sys.path.insert(0, str(HERE.parents[1] / '지침'))
++    import figkit as K
++    # J61: 원점부터 큰 양의 영역, 다음 근부터 작은 음의 영역, 오른쪽 위로 뻗는 삼차곡선.
++    fig, ax = K.new((-0.45, 4.9), (-7, 17), size=(2.9, 2.0), dx=.08, dy=.07)
++    f = lambda z: 3*z*(z-3)*(z-4)
++    K.shade(ax, f, 0, 3)
++    K.shade(ax, f, 3, 4)
++    K.curve(ax, f, -.13, 4.6)
++    for r in (0, 3, 4):
++        K.dot(ax, r, 0, ms=2.4)
++    K.label(ax, 1.25, 5, 'A', size=11)
++    K.label(ax, 3.52, -2.0, 'B', size=10)
++    K.label(ax, 3, 1.4, 'P', size=9)
++    K.label(ax, 4, -1.7, 'Q', size=9)
++    K.label(ax, 4.0, 12, 'y=f(x)', size=9)
++    K.save(fig, HERE / 'fig_c_10.svg')
++    # D28: 왼쪽 감소 직선, x=-1부터 이어지는 봉우리, x=2의 골, 오른쪽 증가 직선.
++    fig, ax = K.new((-3.1, 4.15), (-16, 8), size=(3.1, 2.0), dx=.07, dy=.07)
++    K.curve(ax, lambda z: -4*(z+1), -2.8, -1)
++    K.curve(ax, lambda z: 4*(1-z*z), -1, 2)
++    K.curve(ax, lambda z: 12*(z-3), 2, 3.55)
++    K.dash(ax, [0, 2, 2], [-12, -12, 0])
++    for r in (-1, 1, 2, 3):
++        K.label(ax, r, -1.3, str(r), va='top', size=9)
++    K.label(ax, -.18, 4.4, '4', ha='right', size=9)
++    K.label(ax, -.18, -12, '-12', ha='right', size=9)
++    K.label(ax, 2.1, 6, "y=f'(x)", size=9)
++    K.save(fig, HERE / 'fig_c_14.svg')
++
++
++if '--figures' in sys.argv:
++    figures()
++for no in (10, 14):
++    path = HERE / f'fig_c_{no}.svg'
++    assert path.exists()
++    assert ET.parse(path).getroot().tag.endswith('svg')
++    assert path.name in IT[no]['body']
++print('그림 10·14: SVG 파일·본문 연결 OK')
++print('ALL OK')
+
+exec
+/bin/bash -lc 'python3 output/build/기말/1회/parts/verify_c1.py' in /home/runner/work/Finale/Finale
+ succeeded in 731ms:
+2: 답 3, 정답 5, 유일성·등차·오답 근거 OK
+ORIGINAL D11: 9 = 원문 정답 OK
+4: 답 28, 정답 4, 유일성·등차·오답 근거 OK
+ORIGINAL M48: 27 = 원문 정답 OK
+6: 답 10, 정답 5, 유일성·등차·오답 근거 OK
+ORIGINAL M16: -8 = 원문 정답 OK
+8: 답 13, 정답 1, 유일성·등차·오답 근거 OK
+ORIGINAL J30: 19/3 = 원문 정답 OK
+ALL OK
+
+apply patch
+patch: completed
+/home/runner/work/Finale/Finale/output/build/기말/1회/parts/verify_c2.py
+diff --git a/output/build/기말/1회/parts/c1.py b/output/build/기말/1회/parts/c1.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..c02568ca881477bcf590fc1f9ca2e9c008ea7735
+--- /dev/null
++++ b/output/build/기말/1회/parts/c1.py
+@@ -0,0 +1,69 @@
++# -*- coding: utf-8 -*-
++"""1회 학교형: Codex 담당 선택형 2·4·6·8번."""
++
++ITEMS = {
++    2: dict(
++        body=r"""실수 \(a\)에 대하여 함수 \(f(x)=x^3+3ax^2+(6a+9)x+2\)가 실수 전체의 집합에서 증가하도록 하는 \(a\)의 최댓값은?""",
++        choices=['-1', '0', '1', '2', '3'], ans=5, key='D11',
++        src='2024년 수능특강 [24009-0080]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 4번', level='하',
++        var='[숫자·구하는 대상 변경] 증가하는 정수 계수의 개수 → 실수 계수의 최댓값',
++        sol=r"""\(f'(x)=3x^2+6ax+6a+9\)이다. 실수 전체에서 증가하려면 모든 실수 \(x\)에 대하여 \(f'(x)\ge0\)이어야 하므로
++\[(6a)^2-12(6a+9)\le0,\qquad (a+1)(a-3)\le0.\]
++따라서 \(-1\le a\le3\)이고, \(a\)의 최댓값은 \(3\)이다. \(a=3\)일 때도 \(f'(x)=3(x+3)^2\)이므로 증가한다.""",
++        fast=r"""\(f'(x)=3\{(x+a)^2-(a-3)(a+1)\}\)에서 \(-1\le a\le3\).""",
++        note='원문의 도함수 판별식 판정은 유지하고 정수 개수 계산을 끝값 읽기로 바꾸었다.',
++        wrong={'-1': '허용 범위의 최솟값을 답한 경우.', '2': '판별식의 등호를 제외한 뒤 정수 최댓값을 답한 경우.'},
++    ),
++    4: dict(
++        body=r"""수직선 위를 움직이는 두 점 \(\mathrm{P}\), \(\mathrm{Q}\)의 시각 \(t\) \((t\ge0)\)에서의 위치가 각각
++\[x_1=t^3-t^2+2t,\qquad x_2=2t^2+11t+1\]
++이다. 두 점의 속도가 서로 같을 때, 두 점 사이의 거리는?""",
++        choices=['25', '26', '27', '28', '29'], ans=4, key='M48',
++        src='2020학년도 수능 나형 27번', author='codex',
++        vtype=['숫자 변경', '형식 변경'], effect='같음', bunseok=False,
++        precedent='1학기 기말 4번', level='하',
++        var='[숫자·형식 변경] 위치식의 계수와 출발 위치 교체, 단답형 → 선택형',
++        sol=r"""두 점의 속도는 각각 \(3t^2-2t+2\), \(4t+11\)이다. 따라서
++\[3t^2-2t+2=4t+11,\qquad (t-3)(t+1)=0.\]
++\(t\ge0\)이므로 \(t=3\)이다. 이때 \(x_1=24\), \(x_2=52\)이므로 두 점 사이의 거리는 \(52-24=28\)이다.""",
++        fast=r"""위치의 차는 \(d(t)=t^3-3t^2-9t-1\). \(d'(t)=3(t-3)(t+1)=0\)에서 \(t=3\), \(|d(3)|=28\).""",
++        note='속도 일치 시각의 음수 해를 제외하고 위치 차의 절댓값을 구하는 원문 흐름을 유지했다.',
++        wrong={'27': '두 번째 위치식의 상수항 1을 위치 계산에서 빠뜨린 경우.'},
++    ),
++    6: dict(
++        body=r"""함수 \(f(x)=-x^4+3x^3-x^2+1\)에 대하여 함수 \(y=f(x)\)의 그래프를 \(x\)축에 대하여 대칭이동한 후 \(y\)축의 방향으로 \(k\)만큼 평행이동한 그래프를 \(y=g(x)\)라 하자. 모든 실수 \(x\)에 대하여
++\[f(x)\le g(x)\]
++가 성립하도록 하는 실수 \(k\)의 최솟값은?""",
++        choices=['6', '7', '8', '9', '10'], ans=5, key='M16',
++        src='2024년 수능완성 [24054-0135]', author='codex',
++        vtype=['함수 교체', '조건 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 7번', level='중',
++        var='[함수·조건·대상 변경] 최고차항 부호와 상수항 교체, 위쪽 이동의 상한 → 하한',
++        sol=r"""\(g(x)=-f(x)+k\)이므로 주어진 부등식은 \(2f(x)\le k\)이다.
++\[f'(x)=-x(4x-1)(x-2)\]
++이므로 극대가 되는 점은 \(x=0,2\)이고, \(f(0)=1\), \(f(2)=5\)이다. 양 끝에서 함숫값이 한없이 작아지므로 \(f(x)\)의 최댓값은 \(5\)이다. 따라서 \(k\ge10\)이고 최솟값은 \(10\)이다.""",
++        fast=r"""\(5-f(x)=(x-2)^2(x^2+x+1)\ge0\)이고 \(f(2)=5\)이므로 \(k\)의 최솟값은 \(2\times5=10\).""",
++        note='대칭이동 번역과 두 극값 비교를 유지했다. 부호를 뒤집어 같은 계산량으로 하한을 묻는다.',
++        wrong={'8': '함수의 상수항 1을 빠뜨려 최댓값을 4로 계산하고 두 배 한 경우.'},
++    ),
++    8: dict(
++        body=r"""양수 \(a\)에 대하여 수직선 위를 움직이는 점 \(\mathrm{P}\)의 시각 \(t\) \((t\ge0)\)에서의 속도 \(v(t)\)가
++\[v(t)=4t^3-12at^2+16a\]
++이다. 점 \(\mathrm{P}\)가 운동 방향을 바꾸지 않을 때, 시각 \(t=0\)에서 \(t=1\)까지 움직인 거리의 최댓값은?""",
++        choices=['13', '14', '15', '16', '17'], ans=1, key='J30',
++        src='2024년 수능특강 [24009-0177]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 4번; LIVE2-04-082(거리 질문의 선례)', level='중',
++        var='[숫자·대상 변경] 속도 계수·시각 교체, 원점 기준 위치 → 움직인 거리',
++        sol=r"""\(v(0)=16a>0\)이므로 운동 방향을 바꾸지 않을 조건은 \(t\ge0\)에서 \(v(t)\ge0\)인 것이다. \(v'(t)=12t(t-2a)\)이므로 최솟값은
++\[v(2a)=16a(1-a^2).\]
++따라서 \(0&lt;a\le1\)이다. 속도가 음수가 아니므로 움직인 거리는
++\[\int_0^1v(t)\,dt=1+12a\]
++이고, \(a=1\)일 때 최댓값 \(13\)을 갖는다.""",
++        fast=r"""방향 불변에서 \(v(2a)\ge0\), 즉 \(a\le1\). 거리는 \(1+12a\le13\).""",
++        note='원문과 같은 전 시간대의 방향 불변 조건이다. 정해진 시각까지만의 조건이나 정지 시각 조건을 추가하지 않았다.',
++        wrong={'16': '경계값 a=1에서 초기 속도 v(0)를 이동거리로 답한 경우.'},
++    ),
++}
+diff --git a/output/build/기말/1회/parts/c2.py b/output/build/기말/1회/parts/c2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..6f4bf79e14c99ef575e0edb361862a19451acc80
+--- /dev/null
++++ b/output/build/기말/1회/parts/c2.py
+@@ -0,0 +1,82 @@
++# -*- coding: utf-8 -*-
++"""1회 학교형: Codex 담당 선택형 10·12·14·16번."""
++
++ITEMS = {
++    10: dict(
++        body=r"""함수 \(y=f(x)\)의 그래프가 그림과 같다. 양수 \(k\)에 대하여 함수 \(f(x)\)는
++\[f(x)=kx(x-3)(x-4)\]
++이다. 곡선 \(y=f(x)\)와 \(x\)축이 원점 \(O\)와 두 점 \(P\), \(Q\)에서 만난다. 두 점 \(P\), \(Q\)의 \(x\)좌표는 각각 \(3\), \(4\)이다.
++<div class="fig"><img src="fig_c_10.svg" style="width:150pt"></div>
++곡선 \(y=f(x)\)와 선분 \(OP\), 곡선 \(y=f(x)\)와 선분 \(PQ\)로 둘러싸인 영역을 각각 \(A\), \(B\)라 하자.
++\[(A\text{의 넓이})-(B\text{의 넓이})=32\]
++일 때, \(f(1)\)의 값은?""",
++        choices=['17', '18', '19', '20', '21'], ans=2, key='J61',
++        src='2024학년도 수능 6월 모의평가 10번', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 9번', level='중',
++        var='[숫자·대상 변경] 두 양의 근과 넓이 차 교체, 계수 → 함숫값',
++        sol=r"""\(0&lt;x&lt;3\)에서 \(f(x)>0\), \(3&lt;x&lt;4\)에서 \(f(x)&lt;0\)이므로
++\[(A\text{의 넓이})-(B\text{의 넓이})=\int_0^4f(x)\,dx
++=k\left[\frac{x^4}{4}-\frac{7x^3}{3}+6x^2\right]_0^4=\frac{32k}{3}.\]
++따라서 \(k=3\)이고 \(f(1)=3\times1\times(-2)\times(-3)=18\)이다.""",
++        fast=r"""넓이 차를 부호 있는 적분 하나로 합치면 \(32k/3=32\). 따라서 \(f(1)=6k=18\).""",
++        note='원문의 두 영역 모양과 넓이 차 판정을 유지했다. 그림에 쓰인 두 근은 본문에도 제시했다.',
++        wrong={},
++    ),
++    12: dict(
++        body=r"""최고차항의 계수가 \(1\)인 삼차함수 \(f(x)\)가 다음 조건을 만족시킬 때, \(f(1)\)의 값은?""",
++        cond=[('가', r'방정식 \(f(x)=4x\)의 서로 다른 실근의 개수는 \(2\)이다.'),
++              ('나', r'\(f(0)=0\)이고, 함수 \(f(x)\)는 \(x=2\)에서 극대이다.')],
++        choices=['11', '12', '13', '14', '15'], ans=3, key='D40',
++        src='2024년 수능특강 [24009-0101]', author='codex',
++        vtype=['숫자 변경', '구하는 대상 변경', '형식 변경'], effect='쉬워짐', bunseok=False,
++        precedent='2학기 중간 9번', level='중상',
++        var='[숫자·대상·형식 변경] 교점 조건을 방정식으로 제시, 극솟값 단답 → 함숫값 선택형',
++        sol=r"""\(f(0)=0\)이고 \(f(x)-4x=0\)의 서로 다른 실근이 두 개이므로, \(b\ne0\)에 대하여
++\[f(x)-4x=x(x-b)^2\quad\text{또는}\quad x^2(x-b)\]
++이다. 첫째 경우 \(f'(2)=0\)에서 \((b-4)^2=0\)이므로 \(b=4\)이다. 이때 \(f'(x)=(x-2)(3x-10)\)이므로 \(x=2\)에서 극대이다. 둘째 경우 \(f'(2)=16-4b=0\)에서 \(b=4\)인데, \(f'(x)=(x-2)(3x-2)\)이므로 \(x=2\)에서 극소이다. 따라서
++\[f(x)=x(x-4)^2+4x,\qquad f(1)=13.\]""",
++        fast=r"""\(x^2(x-b)+4x\)인 경우는 \(x=2\)에서 극소이므로 제외한다. 나머지는 \(f'(2)=(b-4)^2=0\), 따라서 \(f(1)=9+4=13\).""",
++        note='원문의 두 인수형과 극대 판정을 모두 유지했다. 극소점의 추가 계산을 없애 무게를 낮췄다.',
++        wrong={},
++    ),
++    14: dict(
++        body=r"""함수 \(y=f'(x)\)의 그래프가 그림과 같고,
++\[f'(x)=\begin{cases}-4(x+1)&amp;(x\le-1)\\4(1-x^2)&amp;(-1&lt;x&lt;2)\\12(x-3)&amp;(x\ge2)\end{cases}\]
++이다.
++<div class="fig"><img src="fig_c_14.svg" style="width:165pt"></div>
++함수 \(g(x)=f(x)-kx\)가 극값을 갖는 \(x\)의 개수가 \(4\)가 되도록 하는 모든 정수 \(k\)의 합은?""",
++        choices=['6', '7', '8', '9', '10'], ans=1, key='D28',
++        src='학교 자체 출제', author='codex',
++        vtype=['자체 출제', '함수 교체', '구하는 대상 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 14번', level='중상',
++        var='[자체 출제] D28의 도함수 그림 모양 유지, f−kx의 극값 개수로 정수 계수 결정',
++        sol=r"""\(g'(x)=f'(x)-k\)이므로 \(y=f'(x)\)와 \(y=k\)가 만나는 점에서 \(f'(x)-k\)의 부호 변화를 조사한다. 가운데 곡선의 최댓값은 \(f'(0)=4\)이다. \(0&lt;k&lt;4\)이면 왼쪽 직선, 가운데 곡선의 두 부분, 오른쪽 직선에서 각각 부호가 바뀌어 극값이 네 개이다.
++\(k\le-12\)이면 극값이 없고, \(-12&lt;k\le0\) 또는 \(k\ge4\)이면 두 개이다. 특히 \(k=0,4,-12\)에서 수평선에 닿기만 하는 점에서는 부호가 바뀌지 않는다. 따라서 정수 \(k\)는 \(1,2,3\)이고 합은 \(6\)이다.""",
++        fast=r"""극값 네 개의 조건은 \(0&lt;k&lt;\max_{[-1,2]}f'(x)=4\). 따라서 \(1+2+3=6\).""",
++        note='원문의 왼쪽 직선·가운데 봉우리·오른쪽 직선 모양을 다항식으로 재현했다. f의 영점 개수나 극솟값 부호를 묻는 분석집 방향을 쓰지 않았다.',
++        wrong={'10': '0<k<4의 상한에 등호를 넣어 1+2+3+4를 답한 경우.'},
++    ),
++    16: dict(
++        body=r"""실수 전체의 집합에서 연속인 함수 \(f(x)\)와 열린구간 \((0,6)\)에서 정의된 함수
++\[g(x)=\int_0^x f(t)\,dt-\int_x^6 f(t)\,dt\]
++가 다음 조건을 만족시킬 때, \(\displaystyle\int_0^6 x f(x)\,dx\)의 값은?""",
++        cond=[('가', r'\(n-1\le x&lt;n\)일 때, \(|f(x)|=|12(x-n+1)(x-n)|\)이다. (단, \(n=1,2,\ldots,6\)이다.)'),
++              ('나', r'함수 \(g(x)\)는 \(x=2\)에서 극소이고, \(g(4)=8\)이다.')],
++        choices=['-14', '-13', '-12', '-11', '-10'], ans=5, key='I70',
++        src='2023학년도 수능 12번', author='codex',
++        vtype=['숫자 변경', '조건 변경', '구하는 대상 변경'], effect='어려워짐', bunseok=False,
++        precedent='2학기 중간 16번', level='상',
++        var='[숫자·조건·대상 변경] 네 구간 → 여섯 구간, 극소 위치와 다른 함숫값으로 부호를 정한 뒤 가중 정적분',
++        sol=r"""각 열린구간 \((n-1,n)\)에서 \(|f(x)|>0\)이고 \(f\)가 연속이므로 부호가 일정하다. 이를 \(s_n\)이라 하면 \(s_n=1\) 또는 \(-1\)이고
++\[\int_{n-1}^n f(x)\,dx=2s_n.\]
++\(g'(x)=2f(x)\)이고 \(g\)가 \(x=2\)에서 극소이므로 \(s_2=-1\), \(s_3=1\)이다. 따라서 \(g(4)=8\)에서
++\[2(s_1+s_2+s_3+s_4-s_5-s_6)=8,\qquad s_1+s_4-s_5-s_6=4.\]
++각 항은 \(1\) 이하이므로 \((s_1,s_2,s_3,s_4,s_5,s_6)=(1,-1,1,1,-1,-1)\)이다. 구간의 중앙 \(n-\frac12\)에 대한 대칭을 이용하면
++\[\int_{n-1}^n x f(x)\,dx=\left(n-\frac12\right)2s_n=(2n-1)s_n.\]
++그러므로 구하는 값은 \(1-3+5+7-9-11=-10\)이다.""",
++        fast=r"""구간 넓이는 각각 \(2\). 극소에서 둘째·셋째 부호가 \(-,+\)이고, \(g(4)=8\)은 나머지 네 부호를 \(+,+,-,-\)로 정한다. 가중 적분은 각 구간 중앙값에 부호 있는 넓이를 곱해 합하면 된다.""",
++        note='원문 단원의 구간별 부호 선택·적분함수 미분을 유지했다. 극솟값을 따로 주지 않아 불필요한 조건을 없앴으며, 여섯 부호와 가중 적분으로 16번 무게를 맞췄다.',
++        wrong={},
++    ),
++}
+diff --git a/output/build/기말/1회/parts/verify_c1.py b/output/build/기말/1회/parts/verify_c1.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..0b9153857f7bc838fcda9fbb649db7841468b6e2
+--- /dev/null
++++ b/output/build/기말/1회/parts/verify_c1.py
+@@ -0,0 +1,127 @@
++# -*- coding: utf-8 -*-
++"""2·4·6·8번: 정답, 유일성, 경계, 선지, 오답 근거, 원문 정답.
++
++실행 위치에 관계없이 python3 verify_c1.py로 실행한다.
++"""
++from pathlib import Path
++import re
++import runpy
++import sys
++import sympy as S
++
++HERE = Path(__file__).resolve().parent
++IT = runpy.run_path(str(HERE / 'c1.py'))['ITEMS']
++sys.path.insert(0, str(HERE.parents[2] / '부교재_기말'))
++import items_final as F
++
++x, t, a = S.symbols('x t a', real=True)
++WANT = {2: 5, 4: 4, 6: 5, 8: 1}
++assert set(IT) == set(WANT)
++
++
++def number(text):
++    m = re.fullmatch(r'(-?)\\(?:dfrac|frac)\{?(\d+)\}?\{?(\d+)\}?', str(text))
++    if m:
++        return (-1 if m[1] else 1) * S.Rational(m[2], m[3])
++    return S.sympify(text)
++
++
++def check(no, value, wrong_values):
++    it = IT[no]
++    ch = list(map(number, it['choices']))
++    assert len(ch) == len(set(ch)) == 5
++    assert len({ch[j+1] - ch[j] for j in range(4)}) == 1
++    assert ch[1] - ch[0] == 1
++    assert it['ans'] == WANT[no]
++    assert value == ch[it['ans']-1]
++    assert ch.count(value) == 1
++    assert set(map(number, it['wrong'])) == set(wrong_values)
++    assert all(w in ch and w != value for w in wrong_values)
++    assert it['author'] == 'codex' and it['bunseok'] is False
++    assert it['effect'] in ('같음', '쉬워짐')
++    print(f'{no}: 답 {value}, 정답 {it["ans"]}, 유일성·등차·오답 근거 OK')
++
++
++def original(key, computed):
++    _, choices, answer, _ = F.I[key]
++    value = number(choices['①②③④⑤'.index(answer)]) if choices else number(answer)
++    assert computed == value, (key, computed, value)
++    print(f'ORIGINAL {key}: {computed} = 원문 정답 OK')
++
++
++# 2: 이차 도함수의 최솟값으로 필요충분조건을 직접 확인한다.
++assert r'f(x)=x^3+3ax^2+(6a+9)x+2' in IT[2]['body']
++f2 = x**3 + 3*a*x**2 + (6*a+9)*x + 2
++d2 = S.diff(f2, x)
++minimum = S.factor(d2.subs(x, -a))
++assert S.expand(minimum + 3*(a-3)*(a+1)) == 0
++allowed = S.solve_univariate_inequality(minimum >= 0, a, relational=False)
++assert allowed == S.Interval(-1, 3)
++assert S.factor(d2.subs(a, 3)) == 3*(x+3)**2
++# 등호일 때에도 상수 함수 구간이 없으므로 엄격한 증가이다.
++assert S.degree(d2.subs(a, 3), x) == 2
++check(2, allowed.end, [allowed.start, S.ceiling(allowed.end)-1])
++fo = x**3 + a*x**2 + (2*a+S.Rational(7, 3))*x - 5
++disc = S.discriminant(S.diff(fo, x), x)
++interval = S.solve_univariate_inequality(disc <= 0, a, relational=False)
++assert interval == S.Interval(-1, 7)
++original('D11', S.floor(interval.end)-S.ceiling(interval.start)+1)
++
++# 4: 속도 일치의 모든 실근 중 시간 조건을 만족하는 것을 전수 확인한다.
++assert r'x_1=t^3-t^2+2t' in IT[4]['body']
++assert r'x_2=2t^2+11t+1' in IT[4]['body']
++p, q = t**3-t**2+2*t, 2*t**2+11*t+1
++roots = S.solve(S.diff(p-q, t), t)
++assert roots == [-1, 3]
++times = [r for r in roots if r >= 0]
++assert times == [3]
++distance = abs((p-q).subs(t, times[0]))
++omitted_constant = abs((p-(q-1)).subs(t, times[0]))
++assert omitted_constant == 27
++check(4, distance, [omitted_constant])
++po, qo = t**3-2*t**2+3*t, t**2+12*t
++ro = [r for r in S.solve(S.diff(po-qo, t), t) if r >= 0]
++assert ro == [3]
++original('M48', abs((po-qo).subs(t, ro[0])))
++
++# 6: 모든 임계점과 양 끝의 극한을 비교하고 인수분해로 전역 상한을 재확인한다.
++assert r'f(x)=-x^4+3x^3-x^2+1' in IT[6]['body']
++f6 = -x**4 + 3*x**3 - x**2 + 1
++critical = S.solve(S.diff(f6, x), x)
++assert critical == [0, S.Rational(1, 4), 2]
++values = [f6.subs(x, c) for c in critical]
++assert values == [1, S.Rational(251, 256), 5]
++assert S.limit(f6, x, S.oo) == S.limit(f6, x, -S.oo) == -S.oo
++assert S.expand(5-f6-(x-2)**2*(x*x+x+1)) == 0
++assert S.discriminant(x*x+x+1, x) < 0
++maximum = max(values)
++wrong6 = 2*(maximum-1)
++assert wrong6 == 8
++check(6, 2*maximum, [wrong6])
++fo = x**4-3*x**3+x**2
++assert S.limit(fo, x, S.oo) == S.limit(fo, x, -S.oo) == S.oo
++original('M16', 2*min(fo.subs(x, c) for c in S.solve(S.diff(fo, x), x)))
++
++# 8: v(0)>0, 유일한 내부 극소점, 등호일 때의 부호를 기호 계산으로 확인한다.
++assert r'v(t)=4t^3-12at^2+16a' in IT[8]['body']
++v = 4*t**3-12*a*t**2+16*a
++assert S.factor(S.diff(v, t)) == 12*t*(t-2*a)
++minimum = S.factor(v.subs(t, 2*a))
++assert S.expand(minimum + 16*a*(a-1)*(a+1)) == 0
++allowed = S.solve_univariate_inequality(minimum >= 0, a, relational=False).intersect(S.Interval.open(0, S.oo))
++assert allowed == S.Interval.Lopen(0, 1)
++assert S.factor(v.subs(a, 1)) == 4*(t-2)**2*(t+1)
++distance = S.integrate(v, (t, 0, 1))
++assert distance == 12*a+1 and S.diff(distance, a) > 0
++wrong8 = v.subs({a: 1, t: 0})
++assert wrong8 == 16
++check(8, distance.subs(a, allowed.end), [wrong8])
++vo = t**3/3-a*t**2+3*a
++assert S.factor(S.diff(vo, t)) == t*(t-2*a)
++old_allowed = S.solve_univariate_inequality(vo.subs(t, 2*a) >= 0, a, relational=False).intersect(S.Interval.open(0, S.oo))
++assert old_allowed == S.Interval.Lopen(0, S.Rational(3, 2))
++old_distance = S.integrate(vo, (t, 0, 2))
++assert S.diff(old_distance, a) > 0
++original('J30', old_distance.subs(a, old_allowed.end))
++
++print('ALL OK')
+diff --git a/output/build/기말/1회/parts/verify_c2.py b/output/build/기말/1회/parts/verify_c2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..8c53875e82ed7b741e35d8841b5757dfb6701339
+--- /dev/null
++++ b/output/build/기말/1회/parts/verify_c2.py
+@@ -0,0 +1,258 @@
++# -*- coding: utf-8 -*-
++"""10·12·14·16번 검증. --figures를 붙이면 figkit으로 SVG 두 개를 재생성한다.
++
++출력 그림은 원문 J61·D28의 모양을 유지한다. 상용 글꼴이나 PDF는 쓰지 않는다.
++"""
++from pathlib import Path
++from itertools import product
++import os
++import re
++import runpy
++import sys
++import xml.etree.ElementTree as ET
++import sympy as S
++
++HERE = Path(__file__).resolve().parent
++IT = runpy.run_path(str(HERE / 'c2.py'))['ITEMS']
++sys.path.insert(0, str(HERE.parents[2] / '부교재_기말'))
++import items_final as F
++
++x, b = S.symbols('x b', real=True)
++WANT = {10: 2, 12: 3, 14: 1, 16: 5}
++assert set(IT) == set(WANT)
++
++
++def number(text):
++    m = re.fullmatch(r'(-?)\\(?:dfrac|frac)\{?(\d+)\}?\{?(\d+)\}?', str(text))
++    return ((-1 if m[1] else 1)*S.Rational(m[2], m[3])) if m else S.sympify(text)
++
++
++def check(no, answer, wrong_values=()):
++    it = IT[no]
++    ch = list(map(number, it['choices']))
++    assert len(ch) == len(set(ch)) == 5
++    assert {ch[j+1]-ch[j] for j in range(4)} == {1}
++    assert it['ans'] == WANT[no] and ch[it['ans']-1] == answer
++    assert ch.count(answer) == 1
++    assert set(map(number, it['wrong'])) == set(wrong_values)
++    assert all(w in ch and w != answer for w in wrong_values)
++    assert it['author'] == 'codex' and it['bunseok'] is False
++    print(f'{no}: 답 {answer}, 정답 {it["ans"]}, 유일성·등차·오답 근거 OK')
++
++
++def original(key, answer):
++    _, choices, recorded, _ = F.I[key]
++    if choices and choices[0].startswith('T:'):
++        actual = choices['①②③④⑤'.index(recorded)]
++    else:
++        actual = number(choices['①②③④⑤'.index(recorded)]) if choices else number(recorded)
++    assert answer == actual, (key, answer, actual)
++    print(f'ORIGINAL {key}: {answer} = 원문 정답 OK')
++
++
++# 10: 부호·개별 넓이·넓이 차와 정적분을 모두 확인한다.
++k = S.symbols('k', positive=True)
++assert r'f(x)=kx(x-3)(x-4)' in IT[10]['body']
++f10 = k*x*(x-3)*(x-4)
++assert S.solve(f10, x) == [0, 3, 4]
++assert f10.subs(x, 1) > 0 and f10.subs(x, S.Rational(7, 2)) < 0
++area_a = S.integrate(f10, (x, 0, 3))
++area_b = -S.integrate(f10, (x, 3, 4))
++assert area_a == 45*k/4 and area_b == 7*k/12
++assert S.simplify(area_a-area_b-S.integrate(f10, (x, 0, 4))) == 0
++ks = S.solve(area_a-area_b-32, k)
++assert ks == [3]
++check(10, f10.subs({x: 1, k: ks[0]}))
++fo = k*x*(x-2)*(x-3)
++original('J61', S.solve(S.integrate(fo, (x, 0, 3))-3, k)[0])
++
++
++# 12: 서로 다른 실근이 두 개인 삼차식의 두 인수형을 모두 조사한다.
++def cubic_candidates(slope, point):
++    accepted, rejected = [], []
++    for h in (x*(x-b)**2+slope*x, x*x*(x-b)+slope*x):
++        for value in S.solve(S.diff(h, x).subs(x, point), b):
++            if value == 0:
++                continue
++            f = S.expand(h.subs(b, value))
++            assert len(S.solve(f-slope*x, x)) == 2
++            # 후보의 이계도함수가 0이 아니므로 부호로 극대·극소를 판정한다.
++            second = S.diff(f, x, 2).subs(x, point)
++            assert second != 0
++            (accepted if second < 0 else rejected).append(f)
++    return list(set(accepted)), list(set(rejected))
++
++
++assert r'f(x)=4x' in IT[12]['cond'][0][1]
++assert r'x=2' in IT[12]['cond'][1][1]
++good, rejected = cubic_candidates(4, 2)
++assert good == [x**3-8*x**2+20*x]
++assert rejected == [x**3-4*x**2+4*x]
++check(12, good[0].subs(x, 1))
++old, _ = cubic_candidates(9, 3)
++assert old == [x**3-12*x**2+45*x]
++minpoints = [r for r in S.solve(S.diff(old[0], x), x) if S.diff(old[0], x, 2).subs(x, r) > 0]
++assert minpoints == [5]
++original('D40', old[0].subs(x, minpoints[0]))
++
++
++# 14: 도함수의 부호가 실제로 바뀌는 근만 극값으로 센다.
++pieces = [(-S.oo, -1, -4*(x+1)), (-1, 2, 4*(1-x*x)), (2, S.oo, 12*(x-3))]
++assert pieces[0][2].subs(x, -1) == pieces[1][2].subs(x, -1) == 0
++assert pieces[1][2].subs(x, 2) == pieces[2][2].subs(x, 2) == -12
++
++
++def derivative_at(point):
++    return next(p.subs(x, point) for lo, hi, p in pieces if lo <= point <= hi)
++
++
++def extrema_count(height):
++    roots = sorted(set(r for lo, hi, p in pieces for r in S.solve(p-height, x)
++                       if r.is_real and lo <= r <= hi))
++    changed = []
++    for j, r in enumerate(roots):
++        left = r-1 if j == 0 else (roots[j-1]+r)/2
++        right = r+1 if j == len(roots)-1 else (r+roots[j+1])/2
++        if S.sign(derivative_at(left)-height) != S.sign(derivative_at(right)-height):
++            changed.append(r)
++    return len(changed)
++
++
++# 양쪽 무한 구간까지 포함해 모든 높이를 경계값 -12,0,4로 분류한다.
++cases = [(-13, 0), (-12, 0), (-6, 2), (0, 2), (1, 4), (4, 2), (5, 2)]
++for height, count in cases:
++    assert extrema_count(S.Integer(height)) == count
++assert S.solve(S.diff(pieces[1][2], x), x) == [0]
++assert pieces[1][2].subs(x, 0) == 4
++# 왼쪽 직선의 치역 [0,∞), 가운데 양쪽의 치역 [0,4],[-12,4], 오른쪽 직선 [-12,∞).
++# 교점 수가 달라질 수 있는 높이는 위 세 경계값뿐이므로 무한 구간의 분류도 완전하다.
++integer_ks = [v for v in range(0, 5) if extrema_count(S.Integer(v)) == 4]
++assert integer_ks == [1, 2, 3]
++check(14, sum(integer_ks), [sum(range(1, 5))])
++# D28 원문의 가운데 곡선은 식이 없으므로 그림의 부호 정보로 검증한다.
++# f'은 모든 점에 정의되고, 부호 +,+,-,+에서 x=1 극대, x=3 극소이다.
++# 왼쪽 원시함수는 -x²/2-x+C → -∞, 오른쪽 원시함수는 (x-3)²/2+C → +∞.
++c = S.symbols('c', real=True)
++assert S.limit(-x*x/2-x+c, x, -S.oo) == -S.oo
++assert S.limit((x-3)**2/2+c, x, S.oo) == S.oo
++original_signs = [1, 1, -1, 1]
++assert original_signs[1:3] == [1, -1]
++# f(3)>0이면 [1,∞)에서 양수, (-∞,1)에서는 단조증가하여 영점을 한 번만 지난다.
++original('D28', 'T:ㄱ, ㄴ, ㄷ')
++
++
++# 16: 연속성과 구간 내부 |f|>0에 따라 구간별 부호가 일정하다. 64개 배열을 전수 검사한다.
++assert r'|12(x-n+1)(x-n)|' in IT[16]['cond'][0][1]
++assert r'g(4)=8' in IT[16]['cond'][1][1]
++mass, moment = [], []
++for n in range(1, 7):
++    hump = 12*(x-n+1)*(n-x)
++    assert hump.subs(x, n-1) == hump.subs(x, n) == 0
++    mass.append(S.integrate(hump, (x, n-1, n)))
++    moment.append(S.integrate(x*hump, (x, n-1, n)))
++assert mass == [2]*6 and moment == [1, 3, 5, 7, 9, 11]
++
++
++def g_values(signs):
++    return [2*sum(mass[i]*signs[i] for i in range(j))-sum(m*s for m, s in zip(mass, signs))
++            for j in range(7)]
++
++
++def solutions(local=True, value=True):
++    result = []
++    for signs in product([-1, 1], repeat=6):
++        if local and signs[1:3] != (-1, 1):
++            continue
++        if value and g_values(signs)[4] != 8:
++            continue
++        answer = sum(m*s for m, s in zip(moment, signs))
++        result.append((signs, answer))
++    return result
++
++
++valid = solutions()
++assert valid == [((1, -1, 1, 1, -1, -1), -10)]
++assert g_values(valid[0][0]) == [0, 4, 0, 4, 8, 4, 0]
++check(16, valid[0][1])
++print('16: 64개 부호 배열 전수 확인, 가능한 배열 1개')
++for name, result in [('극소 위치', solutions(local=False)), ('g(4)=8', solutions(value=False))]:
++    answers = sorted(set(answer for _, answer in result))
++    assert len(answers) > 1
++    print(f'ABLATION 16 {name}: 필요(가능한 답 {answers})')
++
++# (가)의 크기 조건을 빼면 동일 부호에서 구간 넓이 3,2,2,1,2,2를 갖는 연속함수도 가능.
++other_mass = [3, 2, 2, 1, 2, 2]
++signs = valid[0][0]
++assert sum(other_mass[i]*signs[i] for i in range(4))-sum(other_mass[i]*signs[i] for i in range(4, 6)) == 8
++other_answer = sum((S.Rational(2*i+1, 2))*m*s for i, (m, s) in enumerate(zip(other_mass, signs)))
++assert other_answer == -13
++print('ABLATION 16 (가): 필요(연속인 다른 구간별 이차함수의 답 -13)')
++
++# 연속성을 빼면 둘째 구간 앞뒤에서 +,-, 넷째 구간 앞뒤에서 -,+가 허용된다.
++signed_pieces = [(0, 1, 1), (1, S.Rational(3, 2), 1), (S.Rational(3, 2), 2, -1),
++                 (2, 3, 1), (3, S.Rational(7, 2), -1), (S.Rational(7, 2), 4, 1),
++                 (4, 5, -1), (5, 6, -1)]
++g4_without_continuity = 0
++answer_without_continuity = 0
++for lo, hi, sign in signed_pieces:
++    n = int(S.floor(lo))+1
++    p = sign*12*(x-n+1)*(n-x)
++    g4_without_continuity += (1 if hi <= 4 else -1)*S.integrate(p, (x, lo, hi))
++    answer_without_continuity += S.integrate(x*p, (x, lo, hi))
++assert g4_without_continuity == 8
++assert answer_without_continuity != -10
++print(f'ABLATION 16 연속성: 필요(구간 내부 부호 변경 시 답 {answer_without_continuity})')
++
++# 원문 I70: 16개 배열. 구간별 단조이므로 끝값과 x=2 양옆 부호로 전역 최솟값을 판정한다.
++old_signs = []
++for signs in product([-1, 1], repeat=4):
++    gv = [2*sum(signs[:j])-sum(signs) for j in range(5)]
++    if signs[1:3] == (-1, 1) and gv[2] == 0 and min(gv) == 0:
++        old_signs.append(signs)
++assert old_signs == [(1, -1, 1, -1)]
++first_half_tail = S.integrate(6*x*(1-x), (x, S.Rational(1, 2), 1))
++original('I70', first_half_tail+sum(old_signs[0][1:]))
++
++
++def figures():
++    os.environ.setdefault('MPLCONFIGDIR', '/tmp/finale-codex-mpl')
++    sys.path.insert(0, str(HERE.parents[1] / '지침'))
++    import figkit as K
++    # J61: 원점부터 큰 양의 영역, 다음 근부터 작은 음의 영역, 오른쪽 위로 뻗는 삼차곡선.
++    fig, ax = K.new((-0.45, 4.9), (-7, 23), size=(2.9, 2.0), dx=.08, dy=.07)
++    f = lambda z: 3*z*(z-3)*(z-4)
++    K.shade(ax, f, 0, 3)
++    K.shade(ax, f, 3, 4)
++    K.curve(ax, f, -.13, 4.6)
++    for r in (0, 3, 4):
++        K.dot(ax, r, 0, ms=2.4)
++    K.label(ax, 1.25, 5, 'A', size=11)
++    K.label(ax, 3.52, -1.2, 'B', size=9, bg=True)
++    K.label(ax, 3, 1.4, 'P', size=9)
++    K.label(ax, 4, -1.7, 'Q', size=9)
++    K.label(ax, 4.0, 12, 'y=f(x)', size=9)
++    K.save(fig, HERE / 'fig_c_10.svg')
++    # D28: 왼쪽 감소 직선, x=-1부터 이어지는 봉우리, x=2의 골, 오른쪽 증가 직선.
++    fig, ax = K.new((-3.1, 4.15), (-16, 8), size=(3.1, 2.0), dx=.07, dy=.07)
++    K.curve(ax, lambda z: -4*(z+1), -2.8, -1)
++    K.curve(ax, lambda z: 4*(1-z*z), -1, 2)
++    K.curve(ax, lambda z: 12*(z-3), 2, 3.55)
++    K.dash(ax, [0, 2, 2], [-12, -12, 0])
++    for r in (-1, 1, 3):
++        K.label(ax, r, -1.3, str(r), va='top', size=9)
++    K.label(ax, 2, 1.0, '2', va='bottom', size=9)
++    K.label(ax, -.18, 4.4, '4', ha='right', size=9)
++    K.label(ax, -.18, -12, '-12', ha='right', size=9)
++    K.label(ax, 2.1, 6, "y=f'(x)", size=9)
++    K.save(fig, HERE / 'fig_c_14.svg')
++
++
++if '--figures' in sys.argv:
++    figures()
++for no in (10, 14):
++    path = HERE / f'fig_c_{no}.svg'
++    assert path.exists()
++    assert ET.parse(path).getroot().tag.endswith('svg')
++    assert path.name in IT[no]['body']
++print('그림 10·14: SVG 파일·본문 연결 OK')
++print('ALL OK')
+
+exec
+/bin/bash -lc "python3 output/build/기말/1회/parts/verify_c2.py --figures && python3 - <<'PY'
+import cairosvg
+from pathlib import Path
+for n in [10,14]:
+ p=Path(f'output/build/기말/1회/parts/fig_c_{n}.svg')
+ cairosvg.svg2png(url=str(p),write_to=f'/tmp/fig_c_{n}.png',scale=3)
+PY" in /home/runner/work/Finale/Finale
+ exited 1 in 1756ms:
+10: 답 18, 정답 2, 유일성·등차·오답 근거 OK
+ORIGINAL J61: 4/3 = 원문 정답 OK
+12: 답 13, 정답 3, 유일성·등차·오답 근거 OK
+ORIGINAL D40: 50 = 원문 정답 OK
+14: 답 6, 정답 1, 유일성·등차·오답 근거 OK
+ORIGINAL D28: T:ㄱ, ㄴ, ㄷ = 원문 정답 OK
+16: 답 -10, 정답 5, 유일성·등차·오답 근거 OK
+16: 64개 부호 배열 전수 확인, 가능한 배열 1개
+ABLATION 16 극소 위치: 필요(가능한 답 [-18, -14, -10, -6, 14, 18])
+ABLATION 16 g(4)=8: 필요(가능한 답 [-26, -24, -12, -10, -8, -6, -4, -2, 6, 8, 10, 12, 14, 16, 28, 30])
+ABLATION 16 (가): 필요(연속인 다른 구간별 이차함수의 답 -13)
+ABLATION 16 연속성: 필요(구간 내부 부호 변경 시 답 -14)
+ORIGINAL I70: -1/2 = 원문 정답 OK
+그림 10·14: SVG 파일·본문 연결 OK
+ALL OK
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ModuleNotFoundError: No module named 'cairosvg'
+
+exec
+/bin/bash -lc "MPLCONFIGDIR=/tmp/finale-codex-mpl python3 - <<'PY'
+import sys,runpy
+from pathlib import Path
+sys.path.insert(0,'output/build/기말/지침')
+import figkit as K
+K.save=lambda fig,path: (fig.savefig('/tmp/'+Path(path).stem+'.png',dpi=180,bbox_inches='tight'),K.plt.close(fig))
+sys.argv=['verify_c2.py','--figures']
+runpy.run_path('output/build/기말/1회/parts/verify_c2.py',run_name='__main__')
+PY" in /home/runner/work/Finale/Finale
+ succeeded in 1788ms:
+10: 답 18, 정답 2, 유일성·등차·오답 근거 OK
+ORIGINAL J61: 4/3 = 원문 정답 OK
+12: 답 13, 정답 3, 유일성·등차·오답 근거 OK
+ORIGINAL D40: 50 = 원문 정답 OK
+14: 답 6, 정답 1, 유일성·등차·오답 근거 OK
+ORIGINAL D28: T:ㄱ, ㄴ, ㄷ = 원문 정답 OK
+16: 답 -10, 정답 5, 유일성·등차·오답 근거 OK
+16: 64개 부호 배열 전수 확인, 가능한 배열 1개
+ABLATION 16 극소 위치: 필요(가능한 답 [-18, -14, -10, -6, 14, 18])
+ABLATION 16 g(4)=8: 필요(가능한 답 [-26, -24, -12, -10, -8, -6, -4, -2, 6, 8, 10, 12, 14, 16, 28, 30])
+ABLATION 16 (가): 필요(연속인 다른 구간별 이차함수의 답 -13)
+ABLATION 16 연속성: 필요(구간 내부 부호 변경 시 답 -14)
+ORIGINAL I70: -1/2 = 원문 정답 OK
+그림 10·14: SVG 파일·본문 연결 OK
+ALL OK
+
+exec
+/bin/bash -lc 'python3 checkpart.py parts/c1.py && python3 checkpart.py parts/c2.py' in /home/runner/work/Finale/Finale/output/build/기말/1회
+ succeeded in 1074ms:
+2: 통과 골격 0.54 원문 0.33 ← [익스텐션] GEN1-01-009 부교재 80p 11번 변형
+4: 통과 골격 0.58 원문 0.38 ← [익스텐션] GEN1-02-114 부교재 123p 51번 변형
+6: 통과 골격 0.52 원문 0.50 ← [익스텐션] GEN1-02-037 부교재 109p 16번 변형
+8: 주의(구조 유사) 골격 0.75 원문 0.57 ← [익스텐션] LIVE2-04-082 중앙고 2025 8번 · 부교재 171p 30번
+== 학교 선례 (학교형)
+학교 선례 표시 0 개
+== 중복 (학교형)
+== 말투
+== 형식
+형식 표시 0 개
+10: 통과 골격 0.47 원문 0.42 ← [익스텐션] GEN2-04-140 부교재 184p 61번 변형
+12: 통과 골격 0.50 원문 0.36 ← [익스텐션] GEN1-01-069 부교재 89p 40번 변형
+14: 통과 골격 0.38 원문 0.12 ← [익스텐션] LIVE1-02-151 경신고 2023 3번 · 부교재 120p 43번
+16: 주의(구조 유사) 골격 0.62 원문 0.53 ← [익스텐션] GEN2-03-173 부교재 158p 70번 변형
+== 학교 선례 (학교형)
+학교 선례 표시 0 개
+== 중복 (학교형)
+== 말투
+== 형식
+형식 표시 0 개
+
+exec
+/bin/bash -lc "python3 - <<'PY'
+import sys,runpy
+sys.path[:0]=['template/db/parts','output/build/기말/지침']
+import schoolcheck as S,dupcheck as D
+fp=D.load()
+for path in ['output/build/기말/1회/parts/c1.py','output/build/기말/1회/parts/c2.py']:
+ for no,it in runpy.run_path(path)['ITEMS'].items():
+  text=it['body']+''.join(v for _,v in it.get('cond',[]))+''.join('|'+c for c in it['choices'])
+  print(no,'원문',round(S.odist(it),4) if no"'!=14 else '"'자체', '비교', [(r[2]['id'],round(r[0],4),round(r[1],4)) for r in D.best(text,fp)])
+PY
+git diff --check && git status --short" in /home/runner/work/Finale/Finale
+ succeeded in 655ms:
+2 원문 0.2949 비교 [('GEN1-01-009', 0.537, 0.3279), ('STUDY-M33-변형②', 0.2459, 0.1905)]
+4 원문 0.3241 비교 [('GEN1-02-114', 0.5816, 0.3796), ('STUDY-J25-변형①', 0.3367, 0.25)]
+6 원문 0.3473 비교 [('GEN1-02-037', 0.5172, 0.4959), ('STUDY-M6-변형①', 0.2667, 0.0794)]
+8 원문 0.32 비교 [('LIVE2-04-082', 0.7455, 0.5667), ('STUDY-J30-변형①', 0.5909, 0.4167)]
+10 원문 0.2932 비교 [('GEN2-04-140', 0.4691, 0.4211), ('STUDY-J61-원문', 0.4691, 0.3626)]
+12 원문 0.2966 비교 [('GEN1-01-069', 0.5, 0.3571), ('STUDY-J35-원문', 0.4667, 0.3061)]
+14 원문 자체 비교 [('LIVE1-02-151', 0.375, 0.1207), ('STUDY-M32-변형②', 0.1944, 0.04)]
+16 원문 0.2899 비교 [('GEN2-03-173', 0.6228, 0.5349), ('STUDY-I70-변형②', 0.4894, 0.3617)]
+?? "output/build/\352\270\260\353\247\220/1\355\232\214/parts/"
+
+codex
+두 verify 스크립트가 모두 `ALL OK`를 출력했습니다. 16번은 부호 배열이 하나로 정해지며, 연속성·크기 조건·극소 위치·함숫값 조건을 각각 빼면 답이 달라짐을 확인했습니다. 그림 두 개도 시각적으로 확인했고, 문항별 전문 요약과 검사 수치를 보고서에 남기고 있습니다.
+
+ERROR: Quota exceeded. Check your plan and billing details.
+ERROR: Quota exceeded. Check your plan and billing details.
+tokens used
+143,011

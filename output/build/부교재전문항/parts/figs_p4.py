@@ -1,0 +1,46 @@
+exec(open('/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/wb2/figs_head.py').read())
+
+def opn(ax, x, y): ax.plot(x, y, 'o', ms=3, mfc='white', mec='k', mew=0.8, zorder=5)
+def cls(ax, x, y): ax.plot(x, y, 'ko', ms=3, zorder=5)
+
+# ---- C11 ----
+fig, ax = plt.subplots(figsize=(1.9, 1.5))
+axes(ax, (-5.2, 10.2), (-5.0, 9.0), asp='auto', dx=0.6, dy=0.4)
+ax.texts[-1].remove()
+ax.text(-0.35, 0.3, 'O', ha='right', va='bottom')
+# y = 6 + p x^2 + q x^3 with y(-3.4)=0, y(-4.3)=-4.75
+A = np.array([[3.4**2, -3.4**3], [4.3**2, -4.3**3]]); p, q = np.linalg.solve(A, [-6, -10.75])
+xs = np.linspace(-4.3, 0, 200); ax.plot(xs, 6 + p*xs**2 + q*xs**3, 'k', lw=1)
+ax.plot([0, 9.2], [-2, -2 + 2/3.9*9.2], 'k', lw=1)
+opn(ax, 0, 6); cls(ax, 0, -2)
+ax.text(0.35, 6, '6', ha='left', va='center')
+ax.text(-0.35, -2, '-2', ha='right', va='center')
+ax.text(5.6, 3.6, 'y=f(x)', ha='left', va='bottom')
+fig.savefig('fig_C11.svg', bbox_inches='tight', pad_inches=0.02); plt.close(fig)
+
+# ---- C19 ----
+fig, ax = plt.subplots(figsize=(2.1, 1.35))
+axes(ax, (-0.6, 5.0), (-0.7, 2.75), dx=0.12, dy=0.1)
+ax.plot([0, 1], [2, 1], 'k', lw=1); ax.plot([1, 3], [0, 2], 'k', lw=1); ax.plot([3, 4], [0, 1], 'k', lw=1)
+dash(ax, [0, 3], [2, 2]); dash(ax, [0, 4], [1, 1])
+dash(ax, [1, 1], [0, 1]); dash(ax, [3, 3], [0, 2]); dash(ax, [4, 4], [0, 1])
+cls(ax, 0, 2); cls(ax, 1, 1); cls(ax, 3, 2); cls(ax, 4, 1); opn(ax, 1, 0); opn(ax, 3, 0)
+ax.text(-0.12, 2, '2', ha='right', va='center'); ax.text(-0.12, 1, '1', ha='right', va='center')
+for v in (1, 3, 4): ax.text(v, -0.1, str(v), ha='center', va='top')
+ax.text(1.75, 2.15, 'y=f(x)', ha='left', va='bottom')
+fig.savefig('fig_C19.svg', bbox_inches='tight', pad_inches=0.02); plt.close(fig)
+
+# ---- C27 ----
+fig, ax = plt.subplots(figsize=(1.9, 1.75))
+axes(ax, (-0.9, 6.6), (-0.8, 6.7), dx=0.3, dy=0.15)
+ax.texts[-1].remove()
+ax.text(0.08, -0.12, 'O', ha='left', va='top')
+th = np.linspace(0, 2*np.pi, 300); ax.plot(3 + 1.5*np.cos(th), 4 + 1.5*np.sin(th), 'k', lw=1)
+ax.plot([-0.85, 6.0], [-0.85*0.5, 6.0*0.5], 'k', lw=0.8)
+dash(ax, [0, 3], [4, 4]); dash(ax, [3, 3], [0, 4])
+cls(ax, 3, 4)
+ax.text(3.12, 4, 'P', ha='left', va='center')
+ax.text(4.3, 5.25, 'C', ha='left', va='bottom')
+ax.text(4.75, 3.05, 'y=mx', ha='left', va='bottom')
+ax.text(-0.15, 4, '4', ha='right', va='center'); ax.text(3, -0.15, '3', ha='center', va='top')
+fig.savefig('fig_C27.svg', bbox_inches='tight', pad_inches=0.02); plt.close(fig)

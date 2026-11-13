@@ -1,0 +1,656 @@
+[
+ {
+  "no": 1,
+  "pts": 4.0,
+  "level_학원": "기본",
+  "src_page": 5,
+  "src_no": 6,
+  "src_key": "L6",
+  "src_kind": "수능특강·수능완성 EBS",
+  "wb_section": "01 함수의 극한 · 유형1 함수의 극한",
+  "src_origin": "2022 수능완성 [22054-0098]",
+  "src_answer": "④ 1",
+  "original": "그래프로 주어진 f(x)에 대해 lim_{x→0-} f(x) + lim_{x→1+} f(x)f(-x)의 값을 구한다 (답 1).",
+  "exam": "같은 그래프의 f(x)에 대해 lim_{x→-1-} f(x) + lim_{x→1-} f(x)의 값을 구한다.",
+  "change_type": [
+   "구하는 대상 변경"
+  ],
+  "change_detail": [
+   "그래프: 동일 (점 (-1,1) 채운 점, (0,1)·(-1,0) 빈 점, (0,-1) 채운 점, (1,-1) 빈 점, 왼쪽 끝 (-1,-2) 빈 점 그대로; 시험지는 다시 그린 그림이라 왼쪽 직선에 꺾임이 조금 있음)",
+   "구하는 식: lim_{x→0-} f(x) + lim_{x→1+} f(x)f(-x) → lim_{x→-1-} f(x) + lim_{x→1-} f(x)",
+   "f(x)f(-x) 꼴의 곱 극한(-x→-1- 해석)이 없어짐",
+   "선지: -2, -1, 0, 1, 2 그대로 (정답 ④1 → ②-1)"
+  ],
+  "core_kept": "그래프에서 한쪽 극한 두 개를 읽어 더함",
+  "diff_effect": "쉬워짐: f(-x)의 방향을 바꿔 읽는 단계가 빠지고, 단순히 극한값 두 개를 읽어 더하기만 하면 됨",
+  "answer": "② -1",
+  "confidence": "높음",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_1.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_1.png"
+ },
+ {
+  "no": 2,
+  "pts": 4.0,
+  "level_학원": "기본",
+  "src_page": 31,
+  "src_no": 5,
+  "src_key": "C5",
+  "src_kind": "수능특강·수능완성 EBS",
+  "wb_section": "02 함수의 연속 · 유형1 함수의 연속",
+  "src_origin": "2024 수능특강 [24009-0037]",
+  "src_answer": "④ 24",
+  "original": "f(x)=(x^2+4x-5)/(√(x+3)-2) (x≠1), a (x=1)이 x=1에서 연속일 때 a를 구한다 (분모를 유리화하면 a=24).",
+  "exam": "f(x)=(x^2+ax-2)/(x-1) (x≠1), b (x=1)이 x=1에서 연속일 때 a+b를 구한다.",
+  "change_type": [
+   "식·함수 교체",
+   "조건 변경",
+   "구하는 대상 변경"
+  ],
+  "change_detail": [
+   "분모: 무리식 √(x+3)-2 → 일차식 x-1 (유리화 대신 분수식 약분)",
+   "분자: 미정계수가 없는 x^2+4x-5 → 미정계수 a가 들어간 x^2+ax-2 (0/0 꼴이 되도록 a를 먼저 정해야 함: 1+a-2=0, a=1)",
+   "상수: x=1에서 함숫값 a → b",
+   "구하는 값: a → a+b (a=1, b=3, 답 4)",
+   "선지: 21~25 → 1~5"
+  ],
+  "core_kept": "x=1에서 연속 ⇔ 극한값 = 함숫값. 0/0 꼴 극한을 계산해 함숫값을 정함",
+  "diff_effect": "같음: 유리화가 빠져 계산은 가벼워졌지만, \"분모→0이므로 분자→0\"으로 미정계수를 먼저 정하는 단계가 하나 추가됨",
+  "answer": "④ 4",
+  "confidence": "높음",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_2.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_2.png"
+ },
+ {
+  "no": 3,
+  "pts": 4.0,
+  "level_학원": "기본",
+  "src_page": 53,
+  "src_no": 5,
+  "src_key": "A5",
+  "src_kind": "수능특강·수능완성 EBS",
+  "wb_section": "03 미분계수와 도함수 · 유형1 미분계수",
+  "src_origin": "2022 수능특강 [22009-0051]",
+  "src_answer": "③ 5/2",
+  "original": "f(x)=x^2+1에서 x가 1에서 4까지 변할 때의 평균변화율과 f'(c)가 같은 c를 구한다 (c=5/2).",
+  "exam": "f(x)=x^2+3에서 x가 2에서 5까지 변할 때의 평균변화율과 f'(c)가 같은 c를 구한다.",
+  "change_type": [
+   "숫자 변경"
+  ],
+  "change_detail": [
+   "f(x)=x^2+1 → x^2+3 (상수항만 바뀌어 결과에는 영향 없음)",
+   "구간 [1, 4] → [2, 5] (평균변화율 5 → 7)",
+   "선지: 3/2, 2, 5/2, 3, 7/2 → 7/2, 4, 9/2, 5, 11/2 (모두 +2; 정답 위치 ③ → ①)"
+  ],
+  "core_kept": "평균값 정리: 이차함수는 c가 구간의 중점 (c=(2+5)/2)",
+  "diff_effect": "같음: 숫자만 바뀜",
+  "answer": "① 7/2",
+  "confidence": "높음",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_3.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_3.png"
+ },
+ {
+  "no": 4,
+  "pts": 4.0,
+  "level_학원": "기본",
+  "src_page": 79,
+  "src_no": 6,
+  "src_key": "T6",
+  "src_kind": "수능특강·수능완성 EBS",
+  "wb_section": "04 도함수의 활용(1) · 유형1 접선의 방정식 (평균값 정리 응용)",
+  "src_origin": "2023 수능완성 [23054-0130]",
+  "src_answer": "④ 24 (직접 풀이: f(2)∈[-2,22])",
+  "original": "(가) f(4)=10, (나) 2<x<4에서 |f'(x)|≤6인 다항함수 f에 대해 f(2)의 최댓값 M, 최솟값 m으로 M-m을 구한다 (24).",
+  "exam": "(가) f(0)=2, (나) 0<x<3에서 1≤f'(x)≤2인 다항함수 f에 대해 f(3)의 최댓값 M, 최솟값 m으로 M+m을 구한다.",
+  "change_type": [
+   "숫자 변경",
+   "조건 변경",
+   "구하는 대상 변경"
+  ],
+  "change_detail": [
+   "기준점: f(4)=10 (오른쪽 끝) → f(0)=2 (왼쪽 끝)",
+   "도함수 조건: 대칭 범위 |f'(x)|≤6 → 비대칭 범위 1≤f'(x)≤2",
+   "구간: 2<x<4 → 0<x<3",
+   "구하는 값: f(2)의 M-m → f(3)의 M+m (5≤f(3)≤8, 답 13)",
+   "선지: 18~26(짝수) → 12~16"
+  ],
+  "core_kept": "평균값 정리 f(b)-f(a)=(b-a)f'(c)로 함숫값 범위를 잡고, 일차함수가 등호를 만족시킴을 확인",
+  "diff_effect": "같음: 절댓값이 없어 범위 잡기는 오히려 단순하고, M+m으로 바뀌어 두 끝값을 모두 정확히 구해야 함",
+  "answer": "② 13",
+  "confidence": "높음",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_4.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_4.png",
+  "note": "부교재 DB(items.py)에는 T6이 전사되지 않음. 원문은 PDF 이미지로 확인함"
+ },
+ {
+  "no": 5,
+  "pts": 4.2,
+  "level_학원": "기본",
+  "src_page": 11,
+  "src_no": 29,
+  "src_key": "L29",
+  "src_kind": "수능특강·수능완성 EBS",
+  "wb_section": "01 함수의 극한 · 유형4 미정계수의 결정",
+  "src_origin": "2022 수능완성 [22054-0103]",
+  "src_answer": "① 1",
+  "original": "-x^2+3 ≤ f(x)/g(x) ≤ 2x^2-6x+6이 모든 x에서 성립할 때 lim_{x→1} 3f(x)g(x)/({f(x)}^2+2{g(x)}^2)를 구한다 (f/g→2, 답 1).",
+  "exam": "(3x^2+1)/(x^2+3) ≤ f(x)/g(x) ≤ (6x^2+5)/(2x^2+1)일 때 lim_{x→∞} ({f}^2+4fg)/(2{f}^2-3{g}^2)를 구한다.",
+  "change_type": [
+   "식·함수 교체",
+   "조건 변경"
+  ],
+  "change_detail": [
+   "극한 위치: x→1 → x→∞",
+   "양쪽 경계식: 다항식 -x^2+3, 2x^2-6x+6 (x=1에서 둘 다 2) → 분수식 (3x^2+1)/(x^2+3), (6x^2+5)/(2x^2+1) (x→∞에서 둘 다 3)",
+   "구하는 식: 3fg/(f^2+2g^2) → (f^2+4fg)/(2f^2-3g^2) (g^2으로 나누면 (9+12)/(18-3)=7/5)",
+   "선지: 1~5 → 1, 6/5, 7/5, 8/5, 9/5"
+  ],
+  "core_kept": "함수의 극한의 대소 관계(샌드위치)로 f/g의 극한을 구한 뒤 분모·분자를 g^2으로 나눠 대입",
+  "diff_effect": "같음: x→∞에서 최고차항 비교 단계가 추가되지만, 구조는 같음",
+  "answer": "③ 7/5",
+  "confidence": "높음",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_5.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_5.png"
+ },
+ {
+  "no": 6,
+  "pts": 4.2,
+  "level_학원": "기본",
+  "src_page": 40,
+  "src_no": 34,
+  "src_key": "C34",
+  "src_kind": "Level Up",
+  "wb_section": "02 함수의 연속 · Level Up",
+  "src_origin": "2025 수능특강 [25009-0048]",
+  "src_answer": "③ (2, 3)",
+  "original": "연속이고 감소(x1<x2이면 f(x1)≥f(x2))하며 x축과 한 점에서 만나는 f에 대해 f(1)=3, f(2)=-1, f(3)=-2일 때, f(x)+f(x-1)=2x-3의 해가 있는 구간을 고른다 (답 (2,3)).",
+  "exam": "연속이고 증가(x1<x2이면 f(x1)≤f(x2))하며 x축과 한 점에서 만나는 f에 대해 f(1)=-1, f(2)=1, f(3)=2일 때, f(x)+f(x+1)=-x의 해가 있는 구간을 고른다.",
+  "change_type": [
+   "조건 변경",
+   "숫자 변경",
+   "식·함수 교체"
+  ],
+  "change_detail": [
+   "단조 조건: f(x1)≥f(x2) (감소) → f(x1)≤f(x2) (증가)",
+   "함숫값: f(1)=3, f(2)=-1, f(3)=-2 → f(1)=-1, f(2)=1, f(3)=2",
+   "방정식: f(x)+f(x-1)=2x-3 → f(x)+f(x+1)=-x",
+   "선지 구간: (0,1)~(4,5) → (-1,0)~(3,4) (정답 ③(2,3) → ②(0,1))",
+   "판단 방식: 원본은 h(2)=1>0, h(3)=-6<0처럼 주어진 값만으로 부호가 정해짐 → 시험은 h(0)=f(0)+f(1)를 구할 때 주어지지 않은 f(0)을 단조성 f(0)≤f(1)=-1로 어림해야 함"
+  ],
+  "core_kept": "h(x)=f(x)+f(x±1)+(일차식)으로 두고 사잇값 정리로 부호가 바뀌는 구간을 찾으며, 단조성으로 해가 하나뿐임을 보임",
+  "diff_effect": "약간 어려워짐: 학원 분석은 \"부등호 방향만 다름\"이라 했지만, 실제로는 함숫값·방정식·구간도 모두 바뀜. 주어지지 않은 f(0)의 부호를 단조성으로 판단하는 단계가 추가됨",
+  "answer": "② (0, 1)",
+  "confidence": "높음 (출처) / 변형 내용은 학원 설명보다 많음",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_6.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_6.png"
+ },
+ {
+  "no": 7,
+  "pts": 4.2,
+  "level_학원": "기본",
+  "src_page": 62,
+  "src_no": 37,
+  "src_key": "A37",
+  "src_kind": "Level Up",
+  "wb_section": "03 미분계수와 도함수 · Level Up",
+  "src_origin": "2024 수능특강 [24009-0069]",
+  "src_answer": "⑤ 11",
+  "original": "최고차항의 계수가 1인 삼차함수 f가 (가) {x|f(x)=3}={-a, a, 2a}, (나) f(0)>0, f'(1)=-2를 만족시킬 때 f(3)을 구한다 (a=1, 답 11).",
+  "exam": "최고차항의 계수가 1인 삼차함수 f가 (가) {x|f(x)=2}={-2a, -a, a}, (나) f(0)>0, f'(1)=-2를 만족시킬 때 f(2)를 구한다.",
+  "change_type": [
+   "숫자 변경"
+  ],
+  "change_detail": [
+   "함숫값 기준: f(x)=3 → f(x)=2",
+   "근의 배치: {-a, a, 2a} → {-2a, -a, a}",
+   "(나) 조건 f(0)>0, f'(1)=-2 그대로 (f(0)>0에서 원본은 a>0, 시험은 a<1)",
+   "구하는 값: f(3) → f(2) (a=-1, 답 2)",
+   "선지: 7~11 → -4, -2, 0, 2, 4"
+  ],
+  "core_kept": "f(x)-k=(x-α)(x-β)(x-γ)로 놓고 곱의 미분으로 f'(1)을 계산한 뒤, f(0)>0으로 a를 하나로 고름",
+  "diff_effect": "같음: 숫자만 바뀜. 나오는 a의 이차방정식(a^2-4a-5=0)에서 부호 조건으로 근을 고르는 단계도 같음",
+  "answer": "④ 2",
+  "confidence": "높음",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_7.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_7.png"
+ },
+ {
+  "no": 8,
+  "pts": 4.2,
+  "level_학원": "기본",
+  "src_page": 59,
+  "src_no": 29,
+  "src_key": "A29",
+  "src_kind": "수능특강·수능완성 EBS",
+  "wb_section": "03 미분계수와 도함수 · 유형4 미분법",
+  "src_origin": "2022 수능완성 [22054-0129]",
+  "src_answer": "2 (단답)",
+  "original": "(x^2-1)g(x)=f(x)-2이고 h=fg, f'(1)=-2, h'(1)=6일 때 g'(1)을 구한다 (단답, 답 2).",
+  "exam": "(x+2)(x-2)g(x)=f(x)+3이고 h=fg, f'(2)=-4, h'(2)=1일 때 g'(2)를 구한다.",
+  "change_type": [
+   "숫자 변경",
+   "형식 변경(보기형/서술·단계형/선지 변경)"
+  ],
+  "change_detail": [
+   "관계식: (x^2-1)g(x)=f(x)-2 → (x+2)(x-2)g(x)=f(x)+3 (근 x=1 → x=2, 상수 -2 → +3)",
+   "조건: f'(1)=-2, h'(1)=6 → f'(2)=-4, h'(2)=1",
+   "구하는 값: g'(1) → g'(2) (f(2)=-3, g(2)=-1, 답 1)",
+   "형식: 단답형 → 5지선다 (-1~3)"
+  ],
+  "core_kept": "대입으로 f(근)을 구하고, 양변을 미분해 근을 대입하면 g(근)이 나옴. 이어서 곱의 미분 h'=f'g+fg'",
+  "diff_effect": "같음 (5지선다라 약간 쉬움)",
+  "answer": "③ 1",
+  "confidence": "높음",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_8.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_8.png"
+ },
+ {
+  "no": 9,
+  "pts": 4.4,
+  "level_학원": "기본",
+  "src_page": 73,
+  "src_no": 63,
+  "src_key": "B63",
+  "src_kind": "평가원 기출",
+  "wb_section": "04 도함수의 활용 · 평가원 기출",
+  "src_origin": "2025학년도 9월 모의평가 21번",
+  "src_answer": "31 (단답)",
+  "original": "최고차항의 계수가 1인 삼차함수 f가 모든 정수 k에 대해 2k-8 ≤ (f(k+2)-f(k))/2 ≤ 4k^2+14k를 만족시킬 때 f'(3)을 구한다 (양 끝이 같아지는 k=-2, -1을 이용, 답 31).",
+  "exam": "최고차항의 계수가 1인 삼차함수 f가 모든 정수 k에 대해 6k-6 ≤ (f(k+1)-f(k-1))/2 ≤ 3k^2-9k+12를 만족시킬 때 f'(1)을 구한다.",
+  "change_type": [
+   "숫자 변경",
+   "식·함수 교체",
+   "형식 변경(보기형/서술·단계형/선지 변경)"
+  ],
+  "change_detail": [
+   "가운데 식: (f(k+2)-f(k))/2 → (f(k+1)-f(k-1))/2 (k에 대해 대칭인 차분)",
+   "아래 경계: 2k-8 → 6k-6",
+   "위 경계: 4k^2+14k → 3k^2-9k+12 (최고차항 계수가 가운데 식과 같은 3이 되어, 결과적으로 가운데 식이 위 경계와 같아짐)",
+   "등호가 성립하는 정수: k=-2, -1 → k=2, 3",
+   "구하는 값: f'(3) → f'(1) (p=-9/2, q=11, 답 5)",
+   "형식: 단답형 → 5지선다 (2~6)"
+  ],
+  "core_kept": "두 경계가 만나는 정수 k에서는 가운데 식도 같은 값이어야 함. 이 두 등식으로 f의 계수 두 개를 결정",
+  "diff_effect": "같음 (5지선다·계수 계산 비슷. 위 경계와 가운데 식이 같아져 검증은 쉬움)",
+  "answer": "④ 5",
+  "confidence": "높음",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_9.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_9.png"
+ },
+ {
+  "no": 10,
+  "pts": 4.4,
+  "level_학원": "기본",
+  "src_page": 22,
+  "src_no": 58,
+  "src_key": "L58",
+  "src_kind": "평가원 기출",
+  "wb_section": "01 함수의 극한 · 평가원 기출",
+  "src_origin": "2010학년도 6월 모의평가 가형 19번",
+  "src_answer": "10 (단답)",
+  "original": "lim_{x→0+} (x^3 f(1/x)-1)/(x^3+x)=5, lim_{x→1} f(x)/(x^2+x-2)=1/3을 만족시키는 다항함수 f에 대해 f(2)를 구한다 (f=x^3+5x^2-12x+6, 답 10).",
+  "exam": "lim_{x→0+} (x^3 f(1/x)-5)/(x^3+5x)=5, lim_{x→0} f(x+2)/(x^2+7x)=10을 만족시키는 다항함수 f에 대해 f(1)을 구한다.",
+  "change_type": [
+   "숫자 변경",
+   "조건 변경",
+   "형식 변경(보기형/서술·단계형/선지 변경)"
+  ],
+  "change_detail": [
+   "첫째 극한: x^3 f(1/x)-1, 분모 x^3+x → x^3 f(1/x)-5, 분모 x^3+5x (f의 최고차항 1x^3+5x^2 → 5x^3+25x^2)",
+   "둘째 극한: x→1에서 f(x)/(x^2+x-2)=1/3 → x→0에서 f(x+2)/(x^2+7x)=10 (평행이동 꼴, f(2)=0, f'(2)=70)",
+   "구하는 값: f(2) → f(1) (답 -20)",
+   "형식: 단답형 → 5지선다 (0, -5, -10, -15, -20)"
+  ],
+  "core_kept": "1/x=s로 치환해 x→∞ 극한으로 바꿔 f의 차수와 최고차 두 항을 정하고, 0/0 꼴 극한에서 f(근)=0과 미분계수로 나머지 계수를 정함",
+  "diff_effect": "같음: 최고차항 계수가 1이 아니어서 계산은 커졌지만 풀이 흐름은 그대로",
+  "answer": "⑤ -20",
+  "confidence": "높음",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_10.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_10.png"
+ },
+ {
+  "no": 11,
+  "pts": 4.5,
+  "level_학원": "기본",
+  "src_page": 12,
+  "src_no": 33,
+  "src_key": "L33",
+  "src_kind": "Level Up",
+  "wb_section": "01 함수의 극한 · Level Up",
+  "src_origin": "2021 수능특강 [21009-0014]",
+  "src_answer": "① 3/4",
+  "original": "f(x)=-x+4a (x≤0), 2x+3 (x>0)일 때, g(x)=f(x){f(-x)+a}의 x→0 극한이 존재하는 양수 a를 구한다 (우극한 3·5a = 좌극한 4a(3+a)에서 a=3/4).",
+  "exam": "f(x)=-x+2a (x≤0), x+2 (x>0)일 때, g(x)={f(x)+1}{f(-x)+a}의 x→0 극한이 존재하는 실수 a를 구한다.",
+  "change_type": [
+   "숫자 변경",
+   "식·함수 교체"
+  ],
+  "change_detail": [
+   "f: -x+4a, 2x+3 → -x+2a, x+2",
+   "g: f(x){f(-x)+a} → {f(x)+1}{f(-x)+a} (앞 인수에 +1)",
+   "조건: 양수 a → 실수 a (방정식 9a=(2a+1)(a+2)가 2(a-1)^2=0으로 중근이 되어 a가 하나로 정해짐)",
+   "선지: 3/4~4/3 → 1~5"
+  ],
+  "core_kept": "x→0+와 x→0-에서 f(x), f(-x)의 극한을 따로 구해 좌극한=우극한 방정식을 세움",
+  "diff_effect": "같음",
+  "answer": "① 1",
+  "confidence": "높음",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_11.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_11.png"
+ },
+ {
+  "no": 12,
+  "pts": 4.5,
+  "level_학원": "기본",
+  "src_page": 32,
+  "src_no": 9,
+  "src_key": "C9",
+  "src_kind": "대표기출",
+  "wb_section": "02 함수의 연속 · 유형2 연속함수의 성질 (대표기출)",
+  "src_origin": "2014학년도 수능 A형 28번 [8107-0084]",
+  "src_answer": "13 (단답)",
+  "original": "f(x)=x+1 (x≤0), -x/2+7 (x>0)일 때, f(x)f(x-a)가 x=a에서 연속이 되는 모든 a의 합을 구한다 (f(a)=0인 a=-1, 14, 답 13).",
+  "exam": "f(x)=2x+2 (x≤0), x+4 (0<x≤2), -x+5 (x>2)일 때, f(x)f(x-a)가 x=a에서 연속이 되는 모든 a의 합을 구한다.",
+  "change_type": [
+   "식·함수 교체",
+   "구조 변경",
+   "형식 변경(보기형/서술·단계형/선지 변경)"
+  ],
+  "change_detail": [
+   "f: 두 구간 (불연속점 x=0 하나) → 세 구간 (불연속점 x=0, x=2 둘)",
+   "경우 나누기: f(a)=0인 a만 확인 → (i) a≠0, 2일 때 f(a)=0 (a=-1, 5), (ii) a=0 확인 (좌 4 ≠ 우 16, 불연속), (iii) a=2일 때 두 점프가 상쇄 (좌 12 = 우 12 = 함숫값 12, 연속)",
+   "답: 13 → 6 (-1+5+2)",
+   "형식: 단답형 → 5지선다 (10, 9, 8, 7, 6)"
+  ],
+  "core_kept": "x=a에서 f(x-a)는 x=0 근처 값(좌 2, 우 4)을 가지므로, f(x)가 a에서 연속이면 f(a)=0이 필요함",
+  "diff_effect": "어려워짐: 불연속점이 하나 늘어서 \"점프가 서로 상쇄되는 특수한 a\"(a=2)와 \"상쇄 안 되는 a\"(a=0)를 따로 확인해야 함",
+  "answer": "⑤ 6",
+  "confidence": "높음",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_12.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_12.png"
+ },
+ {
+  "no": 13,
+  "pts": 4.7,
+  "level_학원": "기본",
+  "src_page": 67,
+  "src_no": 47,
+  "src_key": "B47",
+  "src_kind": "Level Up",
+  "wb_section": "03 미분계수와 도함수 · Level Up",
+  "src_origin": "2025 수능특강 [25009-0076]",
+  "src_answer": "53 (단답)",
+  "original": "최고차항의 계수가 1인 이차함수 f가 (가) f'(x)+f'(8-x)=0, (나) Σ_{k=1}^{10} lim_{h→0} [f(k-3+h)-f(k-3-h)]/h = -f(0)을 만족시킬 때 f(1)을 구한다 (대칭축 x=4, 답 53).",
+  "exam": "최고차항의 계수가 1인 이차함수 f가 (가) f(2x-1)=f(11-2x), (나) Σ_{k=1}^{6} lim_{h→0} [f(2k-3+2h)-f(2k-3-h)]/h = -f(0)을 만족시킬 때 f(2)를 구한다.",
+  "change_type": [
+   "조건 변경",
+   "숫자 변경",
+   "형식 변경(보기형/서술·단계형/선지 변경)"
+  ],
+  "change_detail": [
+   "대칭 조건: 도함수 식 f'(x)+f'(8-x)=0 (축 x=4) → 함숫값 식 f(2x-1)=f(11-2x) (축 x=5)",
+   "극한 안의 식: [f(k-3+h)-f(k-3-h)]/h → 2f'(k-3) 에서 [f(2k-3+2h)-f(2k-3-h)]/h → 3f'(2k-3) (h의 계수가 비대칭)",
+   "합의 범위: k=1~10 → k=1~6 (홀수 점 -1, 1, …, 9)",
+   "구하는 값: f(1) → f(2) (c=11, 답 20)",
+   "형식: 단답형 → 5지선다 (16~20)"
+  ],
+  "core_kept": "대칭축으로 f=(x-p)^2+c를 놓고, 미분계수 정의로 극한을 f'으로 바꾼 뒤 Σ를 계산해 c를 정함",
+  "diff_effect": "같음 (h 계수가 비대칭으로 바뀌었지만 5지선다)",
+  "answer": "⑤ 20",
+  "confidence": "높음",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_13.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_13.png"
+ },
+ {
+  "no": 14,
+  "pts": 4.7,
+  "level_학원": "2등급",
+  "src_page": 8,
+  "src_no": 18,
+  "src_key": "L18 (가장 가까운 유형)",
+  "src_kind": "학교 자체",
+  "wb_section": "(가장 가까운 유형: 01 함수의 극한 · 유형3 함수의 극한값의 계산)",
+  "src_origin": "학교 자체 출제 (가장 가까운 유형: 2025 수능특강 [25009-0006])",
+  "src_answer": "② 11/5 (L18)",
+  "original": "[가장 가까운 유형 L18] 점 A(t+2, 2t+2)에 대해 OA의 길이를 f(t)라 할 때 lim_{t→1} (f(t)-5)/(t-1)을 구한다 (유리화, 답 11/5).",
+  "exam": "중심 A(t,-1)·반지름 t+1인 원 C1과 중심 B(-2, 2t+1)·반지름 t+2인 원 C2에서 PQ의 최솟값을 f(t)라 할 때 lim_{t→1+} f(t)/(t-1)을 구한다.",
+  "change_type": [
+   "자체 제작"
+  ],
+  "change_detail": [
+   "가장 가까운 유형(L18)과 비교: 시험의 중심 거리 AB=√((t+2)^2+(2t+2)^2)는 L18의 OA와 같은 식",
+   "고정된 5 → 두 반지름의 합 2t+3 (t=1일 때 5): f(t)=√(5t^2+12t+8)-(2t+3)",
+   "두 원 사이 최소 거리 = 중심 거리 - 반지름의 합이라는 도형 해석 단계 추가 (t>1일 때 두 원이 떨어져 있음 확인)",
+   "극한: x→1 양쪽 → t→1+ 한쪽",
+   "답: 11/5 → 1/5 (L18의 값 11/5에서 반지름 합의 기울기 2를 뺀 값)"
+  ],
+  "core_kept": "√(이차식)-(일차식) 꼴을 유리화해 0/0을 없앤 뒤 대입",
+  "diff_effect": "어려워짐 (L18 대비): 원 두 개의 최소 거리라는 도형 설정을 해석해야 하고, 빼는 값이 상수가 아니라 일차식",
+  "answer": "④ 1/5",
+  "confidence": "중간 (자체 출제는 학원 분석을 따름. L18과 같은 거리식이라 사실상 L18을 원 상황으로 바꾼 문항으로도 볼 수 있음)",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_14.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_14.png",
+  "closest": {
+   "page": 8,
+   "no": 18,
+   "key": "L18",
+   "origin": "2025 수능특강 [25009-0006]"
+  }
+ },
+ {
+  "no": 15,
+  "pts": 4.7,
+  "level_학원": "2등급",
+  "src_page": 78,
+  "src_no": 1,
+  "src_key": "T1",
+  "src_kind": "대표기출",
+  "wb_section": "04 도함수의 활용(1) · 유형1 접선의 방정식 (대표기출)",
+  "src_origin": "2024학년도 수능 20번 [24107-0113]",
+  "src_answer": "25 (단답)",
+  "original": "a>√2일 때 f(x)=-x^3+ax^2+2x 위의 점 O에서의 접선이 곡선과 다시 만나는 점 A, A에서의 접선이 x축과 만나는 점 B에 대해, A가 OB를 지름으로 하는 원 위에 있을 때(∠OAB=90°) OA×AB를 구한다 (답 25).",
+  "exam": "최고차항의 계수가 1이고 원점을 지나는 삼차함수 f에 대해 같은 방식으로 A, B를 잡고, OA=AB, OB=4일 때 OA^2을 구한다 (A의 x좌표는 양수).",
+  "change_type": [
+   "식·함수 교체",
+   "조건 변경",
+   "구하는 대상 변경",
+   "형식 변경(보기형/서술·단계형/선지 변경)"
+  ],
+  "change_detail": [
+   "함수: f(x)=-x^3+ax^2+2x (미정계수 a 하나) → 최고차항의 계수가 1이고 원점을 지나는 삼차함수 f(x)=x^3+px^2+qx (미정계수 2개)",
+   "도형 조건: A가 OB를 지름으로 하는 원 위의 점 (∠OAB=90°) → OA=AB (이등변삼각형), OB=4",
+   "OA=AB 조건은 부교재 p.79 7번 [25054-0143] (OA=AB, OC=BC=5/2)과 같은 아이디어",
+   "구하는 값: OA×AB → OA^2 (답 20)",
+   "형식: 단답형 → 5지선다 (18~26 짝수)"
+  ],
+  "core_kept": "O에서의 접선과 곡선의 교점 A(x좌표 -p), A에서의 접선의 x절편 B를 차례로 구하고 도형 조건으로 미정계수를 정함",
+  "diff_effect": "쉬워짐: OA=AB이면 A가 OB의 수직이등분선 위에 있어 A의 x좌표가 바로 2로 정해짐 (원본은 수직 조건으로 a의 방정식을 풀어야 함)",
+  "answer": "② 20",
+  "confidence": "높음 (출처 T1) / p.79 7번이 조건 재료일 가능성 있음",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_15.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_15.png",
+  "also_related": {
+   "page": 79,
+   "no": 7,
+   "origin": "2025 수능완성 [25054-0143]"
+  }
+ },
+ {
+  "no": 16,
+  "pts": 4.9,
+  "level_학원": "2등급",
+  "src_page": 48,
+  "src_no": 54,
+  "src_key": "C54",
+  "src_kind": "평가원 기출",
+  "wb_section": "02 함수의 연속 · 평가원 기출",
+  "src_origin": "2024학년도 9월 모의평가 15번",
+  "src_answer": "④ 20",
+  "original": "최고차항의 계수가 1인 삼차함수 f에 대해 g(x)=f(x+3){f(x)+1}/f(x) (f(x)≠0), 3 (f(x)=0)이고 lim_{x→3} g(x)=g(3)-1일 때 g(5)를 구한다 (f=(x-3)(x-4)(x-6), 답 20).",
+  "exam": "g(x)=f(x){f(x-2)-1}/(f(x)-1) (f(x)≠1), -|x-2| (f(x)=1)이고 g(4)-lim_{x→4} g(x)=-3일 때 10g(7)을 구한다.",
+  "change_type": [
+   "식·함수 교체",
+   "조건 변경",
+   "숫자 변경",
+   "구하는 대상 변경"
+  ],
+  "change_detail": [
+   "특이점 기준: f(x)=0 → f(x)=1 (분모 f(x) → f(x)-1)",
+   "g의 식: f(x+3){f(x)+1}/f(x) → f(x){f(x-2)-1}/(f(x)-1) (평행이동 +3 → -2)",
+   "따로 정한 값: 상수 3 → -|x-2| (x에 따라 바뀌는 값, g(4)=-2)",
+   "조건: lim_{x→3} g = g(3)-1 → g(4) - lim_{x→4} g = -3",
+   "구하는 값: g(5) → 10g(7) (f=(x-2)(x-3)(x-4)+1, g(7)=61/10, 답 61)",
+   "선지: 14~22 → 59~63"
+  ],
+  "core_kept": "함숫값을 따로 정한 점(f(x)=상수)에서 극한과 함숫값의 차이를 이용해 f(4)=1, f(2)=1 같은 근을 찾고, 0/0 꼴 극한값으로 나머지 근을 정함",
+  "diff_effect": "같음: 같은 2024 9월 15번 구조. 따로 정한 값이 -|x-2|로 바뀌고 답이 분수(10배)인 정도",
+  "answer": "③ 61",
+  "confidence": "높음",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_16.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_16.png"
+ },
+ {
+  "no": 17,
+  "pts": 5.2,
+  "level_학원": "1등급 변별",
+  "src_page": 16,
+  "src_no": 42,
+  "src_key": "L42",
+  "src_kind": "Level Up",
+  "wb_section": "01 함수의 극한 · Level Up",
+  "src_origin": "2024 수능특강 [24009-0025]",
+  "src_answer": "12 (단답)",
+  "original": "그래프가 주어진 조각 함수 f(x) ((x+3)(x-3)/9, (x-α)(x-β)(x-γ), -x+3)와 최고차항의 계수가 1인 삼차함수 g에 대해, -3<a<3인 모든 a에서 lim_{x→a} g(x)/f(x)가 존재할 때 g(3)을 구한다 (답 12).",
+  "exam": "같은 그래프의 f와 최고차항의 계수가 1인 이차함수 g에 대해, lim_{x→t} (f∘g)(x)가 존재하지 않는 t가 α, β뿐이고 αβ=0일 때 g(3)의 최솟값을 구한다.",
+  "change_type": [
+   "식·함수 교체",
+   "조건 변경",
+   "구하는 대상 변경",
+   "구조 변경",
+   "형식 변경(보기형/서술·단계형/선지 변경)"
+  ],
+  "change_detail": [
+   "그래프: 그대로 사용 (식 없이 그림만 제시. x=0, 1에서 불연속이고 lim_{x→0-}=-1, lim_{x→0+}=1, lim_{x→1-}=0, lim_{x→1+}=2)",
+   "g: 최고차항의 계수가 1인 삼차함수 → 이차함수",
+   "극한 구조: 몫 g(x)/f(x)의 극한 존재 (f의 근을 g가 상쇄) → 합성 (f∘g)(x)의 극한 존재 (속함수 g가 0, 1에 어느 방향에서 다가가는지 봄)",
+   "조건: -3<a<3에서 모두 존재 → 존재하지 않는 t가 α, β 둘뿐이고 αβ=0",
+   "구하는 값: g(3)의 값 → g(3)의 최솟값 (g=x^2+bx+1, -2≤b<0 또는 0<b≤2, b=-2일 때 4)",
+   "형식: 단답형 → 5지선다 (4~8)"
+  ],
+  "core_kept": "같은 그래프 f의 불연속점 x=0, 1과 각 점의 좌·우극한 정보를 이용해 g를 결정",
+  "diff_effect": "어려워짐 (심화 변형): 합성함수 극한에서 꼭짓점이 0 또는 1과 같을 때 한쪽에서만 다가가는 경우를 나눠야 하고, 근의 개수와 최솟값 조건까지 다뤄야 함. 1등급 변별 문항",
+  "answer": "① 4",
+  "confidence": "높음",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_17.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_17.png"
+ },
+ {
+  "no": 18,
+  "pts": 5.2,
+  "level_학원": "1등급 변별",
+  "src_page": 38,
+  "src_no": 30,
+  "src_key": "C30",
+  "src_kind": "Level Up",
+  "wb_section": "02 함수의 연속 · Level Up",
+  "src_origin": "2024 수능완성 [24054-0106]",
+  "src_answer": "② -4",
+  "original": "최고차항의 계수가 1인 이차함수 f에 대해 (가) g(x)=x/f(x^2+4)는 x=a에서만 불연속, (나) h(x)=f(x-4)/f(x^2)는 x=b, c에서만 불연속일 때, lim_{x→b} h(x)가 존재하면 f(c)×lim_{x→b} h(x)를 구한다.",
+  "exam": "최고차항의 계수가 1인 사차함수 f에 대해 g(x)=f(x)/f(x^2)가 (가) 서로 다른 세 점에서만 불연속, (나) 극한이 존재하지 않는 점이 하나뿐, (다) lim_{x→-3} g(x)=0일 때 f(2)를 구한다.",
+  "change_type": [
+   "식·함수 교체",
+   "조건 변경",
+   "구하는 대상 변경",
+   "구조 변경"
+  ],
+  "change_detail": [
+   "f: 이차함수 → 사차함수",
+   "함수: g=x/f(x^2+4), h=f(x-4)/f(x^2) 두 개 → g=f(x)/f(x^2) 하나 (분자와 분모가 같은 f)",
+   "조건: 불연속점이 1개, 2개 → 불연속점 3개 + 극한이 존재하지 않는 점 1개 + lim_{x→-3} g=0",
+   "분석 대상: f(x^2)=0의 근 ±√r의 개수와 분자에 의한 약분 여부 → f(0)=0, 양의 근이 r=1 하나, f(-3)=0",
+   "구하는 값: f(c)×lim h → f(2) (f=x(x-1)(x+1)(x+3), 답 30)"
+  ],
+  "core_kept": "분모 f(x^2)=0이 되는 x가 불연속점 후보(±로 쌍을 이룸). 분자가 같은 인수를 가져 약분되면 극한은 존재함",
+  "diff_effect": "어려워짐: 사차함수에 조건이 세 개로 늘고, x=0에서 차수 비교(f(x^2)이 x를 두 배로 가짐)까지 해야 함. 1등급 변별 문항",
+  "answer": "④ 30",
+  "confidence": "중간~높음 (같은 \"f(x^2) 분모 불연속\" 유형으로, 숫자 대응이 아니라 유형 대응)",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_18.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_18.png"
+ },
+ {
+  "no": 19,
+  "pts": 10.0,
+  "level_학원": "기본(서술)",
+  "src_page": 54,
+  "src_no": 11,
+  "src_key": "A11 (가장 가까운 유형)",
+  "src_kind": "학교 자체",
+  "wb_section": "(가장 가까운 유형: 03 미분계수와 도함수 · 유형2 미분가능성과 연속)",
+  "src_origin": "학교 자체 출제 (가장 가까운 유형: 2023 수능완성 [23054-0125])",
+  "src_answer": "① ㄱ",
+  "original": "[가장 가까운 유형 A11] 조각 함수 x^2-1 (x<0), 1-x^3 (0≤x<1), 3-3x (x≥1)에 대해 <보기> ㄱ. 좌극한 lim_{x→0-}(f(x)+1)/x, ㄴ. x=0에서 미분가능성, ㄷ. |f|의 x=1에서 미분가능성을 판단한다.",
+  "exam": "f(x)=x^3-3|x|+2 (x≠0), 2 (x=0)에 대해 (1) x=0에서의 연속성(4점), (2) x=0에서의 미분가능성(6점)을 풀이 과정과 함께 서술한다.",
+  "change_type": [
+   "자체 제작",
+   "형식 변경(보기형/서술·단계형/선지 변경)"
+  ],
+  "change_detail": [
+   "가장 가까운 유형(A11 ㄴ)과 비교: 조각 함수 → 절댓값 함수 x^3-3|x|+2 (x=0의 값은 따로 2로 정했지만 식의 값과 같음)",
+   "형식: <보기> 참·거짓 판단 → 서술형 2단계 (연속성 → 미분가능성)",
+   "판정: 좌미분계수 3, 우미분계수 -3 → 미분가능하지 않음"
+  ],
+  "core_kept": "x=0에서 극한값=함숫값으로 연속을 보이고, 좌·우 미분계수를 정의대로 계산해 비교함",
+  "diff_effect": "쉬워짐 (A11 대비): 교과서 수준의 기본 논증. 다만 서술 감점 요소(정의식 쓰기, 결론 쓰기)가 있음",
+  "answer": "(1) 연속이다 (2) 미분가능하지 않다 (좌미분계수 3, 우미분계수 -3)",
+  "confidence": "중간 (자체 출제는 학원 분석을 따름)",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_19.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_19.png",
+  "closest": {
+   "page": 54,
+   "no": 11,
+   "key": "A11",
+   "origin": "2023 수능완성 [23054-0125]"
+  },
+  "sub_pts": {
+   "(1)": 4,
+   "(2)": 6
+  }
+ },
+ {
+  "no": 20,
+  "pts": 10.0,
+  "level_학원": "2등급",
+  "src_page": 27,
+  "src_no": 68,
+  "src_key": "L68",
+  "src_kind": "평가원 기출",
+  "wb_section": "01 함수의 극한 · 평가원 기출",
+  "src_origin": "2025학년도 수능 21번",
+  "src_answer": "16 (단답)",
+  "original": "f(x)=x^3+ax^2+bx+4 (a, b 정수)가 모든 실수 α에서 lim_{x→α} f(2x+1)/f(x)가 존재할 때 f(1)의 최댓값을 구한다 (f(-1)=0, 나머지 이차식은 판별식<0, 답 16).",
+  "exam": "f(x)=x^3+ax^2-(2a+1)x+b (a, b 정수)가 모든 실수 α에서 lim_{x→α} f(4x+4)/f(2x+3)가 존재할 때 (1) b, (2) a의 최솟값, (3) f(1)의 최댓값을 구한다 (답만 쓰기).",
+  "change_type": [
+   "식·함수 교체",
+   "숫자 변경",
+   "형식 변경(보기형/서술·단계형/선지 변경)",
+   "구하는 대상 변경"
+  ],
+  "change_detail": [
+   "극한식: f(2x+1)/f(x) → f(4x+4)/f(2x+3) (분모 근 r에 대응하는 분자 점: r → 2r+1 대신 r → 2r-2, 고정점 -1 → 2)",
+   "계수 구조: 상수항 4 고정, a·b 미정 → x의 계수를 -(2a+1)로 묶고 상수항 b를 미정으로 둠 (f(2)=6+b로 a가 사라져 b=-6이 바로 나옴)",
+   "나머지 이차식: x^2+(a-1)x+4 (판별식 (a-1)^2-16<0, -3<a<5) → x^2+(a+2)x+3 (판별식 (a+2)^2-12<0, -2-2√3<a<-2+2√3)",
+   "형식: 단답 1개 → 서답형 3단계 (1) b=-6 (2) a의 최솟값 -5 (3) f(1)=-6-a의 최댓값 -1",
+   "최댓값을 주는 방향: 원본은 a 최대(f(1)=2a+8)에서 → 시험은 a 최소(f(1)=-6-a)에서"
+  ],
+  "core_kept": "f의 실근 r에 대해 분자 쪽 점(2r-2)도 근이어야 하므로, 근이 계속 생기지 않으려면 실근은 고정점 하나뿐이고 나머지 이차식은 실근이 없음(판별식<0)",
+  "diff_effect": "같음~약간 쉬워짐: 핵심은 2025 수능 21번 그대로지만, 단계형이라 (1)에서 고정점 근 x=2를 쓰도록 유도하고 부분 점수를 받을 수 있음. 판별식 범위가 무리수 경계라 정수 처리는 필요",
+  "answer": "(1) -6 (2) -5 (3) -1",
+  "confidence": "높음",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/exam_20.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s2m_work/crops/src_20.png",
+  "sub_pts": {
+   "(1)": 4,
+   "(2)": 4,
+   "(3)": 2
+  }
+ }
+]
