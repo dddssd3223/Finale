@@ -185,26 +185,26 @@ chk(7, v7, [w7a, w7b])
 
 # ===== 8번 (D22 분석집_변형 1 + 조작_보강 1: 직선 y=x-3에 두 점에서 접함) =====
 g8 = (x - al)**2*(x - be)**2 - 3                                      # f(x)-x
-S8 = solve([diff(g8, x).subs(x, 1), g8.subs(x, 1) - 13], [al, be], dict=True)
+S8 = solve([diff(g8, x).subs(x, 0), g8.subs(x, 0) - 13], [al, be], dict=True)
 S8 = [so for so in S8 if so[al].is_real and so[be].is_real and so[al] < so[be]]
-assert len(S8) == 1 and (S8[0][al], S8[0][be]) == (-1, 3)
+assert len(S8) == 1 and (S8[0][al], S8[0][be]) == (-2, 2)
 f8 = expand(g8.subs(S8[0]) + x)
 assert Poly(f8, x).LC() == 1 and Poly(f8, x).degree() == 4
-assert expand(f8 - (x - 3) - (x + 1)**2*(x - 3)**2) == 0             # 직선 y=x-3과 x=-1, 3에서 접함
+assert expand(f8 - (x - 3) - (x + 2)**2*(x - 2)**2) == 0             # 직선 y=x-3과 x=-2, 2에서 접함
 g8v = f8 - x
 crit = sorted(real_roots(Poly(diff(g8v, x), x)))
-assert crit == [-1, 1, 3] and diff(g8v, x, 2).subs(x, 1) < 0 and g8v.subs(x, 1) == 13   # x=1에서 극대
+assert crit == [-2, 0, 2] and diff(g8v, x, 2).subs(x, 0) < 0 and g8v.subs(x, 0) == 13   # x=0에서 극대
 # 일반 사차함수로 전수: f=x^4+...; f-(x-3)이 두 이중근, (f-x)'(1)=0, (f-x)(1)=13
 e3, e2, e1, e0 = symbols('e3 e2 e1 e0', real=True)
 F8 = x**4 + e3*x**3 + e2*x**2 + e1*x + e0
 G = expand(F8 - (x - 3) - (x - al)**2*(x - be)**2)
-eqs = Poly(G, x).all_coeffs() + [diff(F8 - x, x).subs(x, 1), (F8 - x).subs(x, 1) - 13]
+eqs = Poly(G, x).all_coeffs() + [diff(F8 - x, x).subs(x, 0), (F8 - x).subs(x, 0) - 13]
 SS = [so for so in solve(eqs, [e3, e2, e1, e0, al, be], dict=True) if all(v_.is_real for v_ in so.values()) and so[al] != so[be]]
-vals8 = {F8.subs(so).subs(x, 2) for so in SS}
-assert vals8 == {8}
-v8 = f8.subs(x, 2)
-w8 = g8v.subs(x, 2)
-assert (v8, w8) == (8, 6)
+vals8 = {F8.subs(so).subs(x, 1) for so in SS}
+assert vals8 == {7}
+v8 = f8.subs(x, 1)
+w8 = g8v.subs(x, 1)
+assert (v8, w8) == (7, 6)
 chk(8, v8, [w8])
 
 # ===== 조건 빼 보기 =====
@@ -235,15 +235,15 @@ pS2 = solve(integrate(3*p*(x + 3)*(x - 3), (x, 3, -3)) - 16, p)[0]
 print(f'ABLATION 7 b의 최댓값 1: 필요(3이면 p={pS2}, 답 {(3*pS2*(x + 3)*(x - 3)).subs(x, -1) + 2})'); assert (3*pS2*(x + 3)*(x - 3)).subs(x, -1) + 2 != v7
 # 8번
 g8b = (x - al)**2*(x - be)**2 - 3
-S8b = [so for so in solve([diff(g8b, x).subs(x, 1), g8b.subs(x, 1) - 13], [al, be], dict=True) if so[al].is_real and so[al] < so[be]]
-alt8 = (g8b.subs(S8b[0]) + 0*x).subs(x, 2)
-print(f'ABLATION 8 직선의 기울기 1(y=x-3, f(x)-x): 필요(y=-3, f(x)로 두면 f(2)={alt8})'); assert alt8 != v8
-S8c = [so for so in solve([diff(g8, x).subs(x, 1), g8.subs(x, 1) - 78], [al, be], dict=True) if so[al].is_real and so[al] < so[be]]
-alt8c = (g8.subs(S8c[0]) + x).subs(x, 2)
-print(f'ABLATION 8 극댓값 13: 필요(78이면 f(2)={alt8c})'); assert alt8c != v8
-print('ABLATION 8 서로 다른 두 점에서 접함: 필요(빼면 x=1에서의 두 조건만 남아 f(2)가 계수 e3, e2에 따라 달라짐)')
+S8b = [so for so in solve([diff(g8b, x).subs(x, 0), g8b.subs(x, 0) - 13], [al, be], dict=True) if so[al].is_real and so[al] < so[be]]
+alt8 = (g8b.subs(S8b[0]) + 0*x).subs(x, 1)
+print(f'ABLATION 8 직선의 기울기 1(y=x-3, f(x)-x): 필요(y=-3, f(x)로 두면 f(1)={alt8})'); assert alt8 != v8
+S8c = [so for so in solve([diff(g8, x).subs(x, 0), g8.subs(x, 0) - 78], [al, be], dict=True) if so[al].is_real and so[al] < so[be]]
+alt8c = (g8.subs(S8c[0]) + x).subs(x, 1)
+print(f'ABLATION 8 극댓값 13: 필요(78이면 f(1)={alt8c})'); assert alt8c != v8
+print('ABLATION 8 서로 다른 두 점에서 접함: 필요(빼면 x=0에서의 두 조건만 남아 f(1)가 계수 e3, e2에 따라 달라짐)')
 fa_ = x**4 + e3*x**3 + e2*x**2 + e1*x + e0
-free = solve([diff(fa_ - x, x).subs(x, 1), (fa_ - x).subs(x, 1) - 13], [e1, e0], dict=True)[0]
-assert (fa_.subs(free)).subs(x, 2).free_symbols
+free = solve([diff(fa_ - x, x).subs(x, 0), (fa_ - x).subs(x, 0) - 13], [e1, e0], dict=True)[0]
+assert (fa_.subs(free)).subs(x, 1).free_symbols
 
 print('ALL OK')

@@ -146,12 +146,13 @@ ok(npts(2, 4, -1) == 2 and npts(2, 4, 9) == 2 and npts(2, 4, 0) == 3, '11번 경
 # 유리수 격자 전수: 세 점인 k는 (-1, 9) 전체
 qs = [Rational(j, 4) for j in range(-12, 45)]
 ok(all((npts(2, 4, q) == 3) == (-1 < q < 9) for q in qs), '11번 k=-3~11(간격 1/4) 전수: 세 점 ⇔ -1<k<9')
-chk(11, len(ks))
-ok(len(ks) + 1 == 10 and len(ks) + 2 == 11 and {'10', '11'} == set(IT[11]['wrongs']), '11번 오답 10(경계 하나 포함), 11(경계 둘 포함)')
-# 빼 보기
-print('ABLATION 11 절댓값: 필요(곡선 y=x(x+2)이면 직선과 많아야 두 점, 개수 0)')
+al, be = -1, 9
+chk(11, al + be)
+ok(npts(2, 4, 0) == 3 and [r for r in real_roots(Poly(x**2 - 2 * x, x))] == [0, 2], '11번 오답 9 = k=0(꺾인 점 통과)을 경계로 본 값 0+9')
+ok('9' in IT[11]['wrongs'], '11번 wrongs 9')
+print('ABLATION 11 절댓값: 필요(곡선 y=x(x+2)이면 직선과 많아야 두 점, 범위 없음)')
 assert all(len(set(real_roots(Poly(x**2 + 2 * x - 4 * x - kv, x)))) <= 2 for kv in range(-20, 21))
-print('ABLATION 11 서로 다른: 필요(중복 근까지 세면 k=-1, 9도 세 점 → 11)')
+print('ABLATION 11 서로 다른: 필요(접할 때 중근까지 세면 범위 끝이 포함되어 α<k<β 꼴이 아님)')
 
 # ---------- 12번 (D61) ----------
 def tset(P):
