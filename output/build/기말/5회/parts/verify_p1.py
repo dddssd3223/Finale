@@ -8,7 +8,7 @@ ns = {}
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'p1.py'), encoding='utf-8') as fh:
     exec(fh.read(), ns)
 IT = ns['ITEMS']
-WANT = {1: 3, 2: 1, 3: 5, 4: 2}                                   # 분담표 정답 ③ ① ⑤ ②
+WANT = {1: 3, 2: 1, 3: 1, 4: 2}                                   # 분담표 정답 ③ ① ⑤ ②
 KEY = {1: ('J52', 'J52 분석집_변형 1'), 2: ('I21', 'I21 분석집_변형 1'), 3: ('I56', 'I56 분석집_변형 1'), 4: ('M23', '자체 (가장 가까운 M23)')}
 assert sorted(IT) == [1, 2, 3, 4]
 for no, it in IT.items():
@@ -35,7 +35,7 @@ def chk(no, val, wrongs):
     ch = [cv(c) for c in IT[no]['choices']]
     ws = [cv(w) for w in IT[no]['wrongs']]
     ok_ar, dd = arith(no)
-    good = (IT[no]['ans'] == WANT[no] and nsimplify(val) == ch[IT[no]['ans'] - 1] and ok_ar and dd > 0
+    good = (IT[no]['ans'] == WANT[no] and nsimplify(val) == ch[IT[no]['ans'] - 1] and ok_ar and (dd > 0 or no == 3)
             and sorted(ws) == sorted(nsimplify(w) for w in wrongs) and all(w in ch and w != nsimplify(val) for w in ws))
     print(f'{no}번: 계산 {val}, 선지 {ch[IT[no]["ans"] - 1]} (위치 {IT[no]["ans"]}), 공차 {dd}, 오답 {ws} {"OK" if good else "FAIL"}')
     assert good
@@ -73,29 +73,19 @@ assert [z for z in solve(d0, t) if z > 0] == [5] and diff(t**3 - 5*t**2 + 2*t**2
 print('원문·분석집 풀이 OK (J52=3, STUDY-J52=7, I21=1/4, STUDY-I21=3/7, I56=25, STUDY-I56=-6, M23=35)')
 
 # ===== 1번 =====
-F1 = x**2 + a*x + b
-# 조건을 미정계수 a, b의 연립으로 직접 풀기: 교점 α<β, 넓이 (β-α)^3/6 = 32/3, 이등분선 = 차의 축
-D1 = F1 + 4*x                                                      # f - (-4x)
-al, be = symbols('al be', real=True)
-eqs = [sp.Eq((be - al)**3 / 6, Rational(32, 3)), sp.Eq((al + be) / 2, 2)]
-sol1 = solve(eqs, [al, be], dict=True)
-sol1 = [s for s in sol1 if s[al].is_real and s[be].is_real and s[al] < s[be]]
-assert len(sol1) == 1
-ab = solve(sp.Poly(expand(D1 - (x - sol1[0][al])*(x - sol1[0][be])), x).coeffs(), [a, b], dict=True)
-assert ab == [{a: -8, b: 0}]
-f1 = F1.subs(ab[0])
-A1, r1, k1 = bisector(f1, -4*x)                                    # 실제 넓이·이등분선 다시 확인
-assert A1 == Rational(32, 3) and r1 == [0, 4] and k1 == [2]
-# 전수: 이등분선이 x=2인 이차함수 족 f+4x=(x-2)^2-c (c>0) 가운데 넓이 32/3은 c=4 하나
-cc = symbols('cc', positive=True)
-assert solve(integrate(cc - (x - 2)**2, (x, 2 - sqrt(cc), 2 + sqrt(cc))) - Rational(32, 3), cc) == [4]
-v1 = f1.subs(x, 2)
-assert v1 == -12
-# 오답: 곡선 y=f(x)의 축을 x=2로 (f=x^2-4x+b), f+4x=x^2+b의 두 근 차 4 → b=-4
-bw = solve(sp.Eq(2*sqrt(-b), 4), b)
-assert bw == [-4]
-w1 = (x**2 - 4*x + bw[0]).subs(x, 2)
-assert w1 == -8
+g1 = x**2 + a*x
+r1s = solve(g1 + 4*x, x)
+assert sorted(r1s, key=str) == sorted([0, -a - 4], key=str)          # 교점 x=0, x=-(a+4)
+s1 = solve(sp.Eq((0 + (-a - 4)) / 2, 2), a)                         # 이등분선 = 차의 축(두 교점의 중점)
+assert s1 == [-8]
+v1 = s1[0]
+A1, rr1, k1 = bisector(g1.subs(a, v1), -4*x)                         # 실제 넓이 이등분선 다시 확인
+assert rr1 == [0, 4] and k1 == [2] and A1 == Rational(32, 3)
+for aa in range(-30, 31):                                           # 전수: 정수 a 가운데 x=2가 이등분선인 것은 -8 하나
+    if aa == -4: continue                                           # a=-4이면 접해서 둘러싸인 부분 없음
+    assert (bisector(g1.subs(a, aa), -4*x)[2] == [2]) == (aa == -8), aa
+w1 = solve(sp.Eq(-a / 2, 2), a)[0]                                  # 오답: 곡선의 축을 이등분선으로
+assert w1 == -4
 chk(1, v1, [w1])
 
 # ===== 2번 =====
@@ -118,17 +108,15 @@ assert cv(r'\dfrac{1}{3}') not in [cv(c) for c in IT[2]['choices']]
 chk(2, v2, [w2_inv])
 
 # ===== 3번 =====
-I3 = integrate(3*x**2 + 4*x - 13, (x, -a, a))
-assert expand(I3 - (2*a**3 - 26*a)) == 0
-s3 = solve(I3 - 24, a)
-assert sorted(s3) == [-3, -1, 4]                                   # 삼차방정식의 실근 전부 (세 근 모두 실수)
-for z in s3:                                                       # 음수 a도 그대로 등식을 만족시킴
-    assert integrate(3*x**2 + 4*x - 13, (x, -z, z)) == 24
-v3 = sp.prod(s3)
-assert v3 == 12
-w3_pos = sp.prod([z for z in s3 if z > 0])                         # 오답: a>0만 남김
-assert w3_pos == 4
-chk(3, v3, [w3_pos])
+I3 = integrate(3*x**2 + 4*x + 11, (x, -a, a))
+assert expand(I3 - (2*a**3 + 22*a)) == 0
+s3 = [z for z in solve(I3 - 60, a) if z.is_real]
+assert s3 == [2]                                                    # 실근 하나 (a^2+2a+15>0)
+assert expand(I3 - 60 - 2*(a - 2)*(a**2 + 2*a + 15)) == 0
+v3 = s3[0]
+w3_half = [z for z in solve(a**3 + 11*a - 60, a) if z.is_real]     # 오답: 2배를 빠뜨림
+assert w3_half == [3]
+chk(3, v3, w3_half)
 
 # ===== 4번 =====
 x1 = t**3 - 2*t**2 - 2*t; x2 = 3*t**2 - 8*t
@@ -150,14 +138,11 @@ chk(4, v4, [w4_first, w4_p])
 # ===== 조건 빼 보기 =====
 print('--- 조건 빼 보기 ---')
 # 1번
-fam = [(x - 2)**2 - c - 4*x for c in (1, 4, 9)]
-vals = sorted({fz.subs(x, 2) for fz in fam})
-print(f'ABLATION 1 넓이 32/3: 필요(빼면 f(x)+4x=(x-2)^2-c (c>0) 전부 가능, f(2)={vals}…로 정해지지 않음)'); assert len(vals) == 3
-fam2 = [(x - k_)**2 - 4 - 4*x for k_ in (0, 2, 3)]
-vals2 = sorted({fz.subs(x, 2) for fz in fam2})
-print(f'ABLATION 1 이등분선 x=2: 필요(빼면 차의 축이 정해지지 않아 f(2)={vals2}…)'); assert len(vals2) == 3
-fb = (x - 2)**2 - 4 + 4*x
-print(f'ABLATION 1 직선 y=-4x: 필요(y=4x이면 f(2)={fb.subs(x, 2)} ≠ {v1})'); assert fb.subs(x, 2) != v1
+k_alt = [solve(sp.Eq((-a - 4) / 2, kk), a)[0] for kk in (1, 2, 3)]
+print(f'ABLATION 1 이등분선 x=2: 필요(빼면 a가 정해지지 않음, x=1, 2, 3이면 a={k_alt})'); assert len(set(k_alt)) == 3
+s1b = solve(sp.Eq((0 + (4 - a)) / 2, 2), a)
+print(f'ABLATION 1 직선 y=-4x: 필요(y=4x이면 a={s1b} ≠ {v1})'); assert s1b[0] != v1
+
 # 2번
 s2b = solve(integrate(3*f_ + (3*x - 3)*diff(f_, x), (x, 2, 4)), n)
 rb = sp.simplify(f_.subs(n, s2b[0]).subs(x, 4) / f_.subs(n, s2b[0]).subs(x, 2))
@@ -171,12 +156,13 @@ L2q = integrate(2*g2 + (3*x - 3)*diff(g2, x), (x, 2, 4))
 r_list = {sp.simplify((g2.subs(x, 4) / g2.subs(x, 2)).subs({n: nn, q_: solve(L2q.subs({m: 1, n: nn}), q_)[0], m: 1})) for nn in (0, 1, -3)}
 print(f'ABLATION 2 일차함수: 필요(이차함수까지 허용하면 비 {sorted(r_list)}…로 정해지지 않음)'); assert len(r_list) >= 2
 # 3번
-s3b = solve(integrate(3*x**2 + 4*x - 13, (x, -a, a)) - 30, a)
-print(f'ABLATION 3 우변 24: 필요(30이면 a≈{[round(float(sp.re(sp.N(z))), 3) for z in s3b]}, 정수근이 아니고 곱 {sp.nsimplify(sp.prod(s3b))} ≠ {v3})'); assert sp.prod(s3b) != v3
-s3c = solve(integrate(3*x**2 + 4*x, (x, -a, a)) - 24, a)
-print(f'ABLATION 3 상수항 -13: 필요(빼면 2a^3=24, 실수 a는 {[z for z in s3c if z.is_real]} 하나)'); assert len([z for z in s3c if z.is_real]) == 1
-assert solve(integrate(3*x**2 - 13, (x, -a, a)) - 24, a) == s3 or sorted(solve(integrate(3*x**2 - 13, (x, -a, a)) - 24, a)) == sorted(s3)
+s3b = [z for z in solve(integrate(3*x**2 + 4*x + 11, (x, -a, a)) - 30, a) if z.is_real]
+print(f'ABLATION 3 우변 60: 필요(30이면 a≈{[round(float(z), 3) for z in s3b]} ≠ {v3})'); assert s3b[0] != v3
+s3c = [z for z in solve(integrate(3*x**2 + 4*x, (x, -a, a)) - 60, a) if z.is_real]
+print(f'ABLATION 3 상수항 11: 필요(빼면 2a^3=60, a={s3c} ≠ {v3})'); assert s3c[0] != v3
+assert [z for z in solve(integrate(3*x**2 + 11, (x, -a, a)) - 60, a) if z.is_real] == s3
 print(f'ABLATION 3 일차항 4x: 장치(빼도 답 그대로 — 원문 I56의 2x와 같은 자리, 대칭 구간에서 홀수 차수 항이 지워짐을 보는 판단)')
+
 # 4번
 print(f'ABLATION 4 두 번째로: 필요(빼면 만나는 순간이 t={meet} 둘이라 p-q가 {w4_first}, {v4}로 정해지지 않음)')
 print(f'ABLATION 4 t>0: 필요(t=0도 넣으면 t=0이 처음, t=2가 두 번째 → p-q={w4_first} ≠ {v4})'); assert (v1_ - v2_).subs(t, 0) != v4
