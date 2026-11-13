@@ -114,7 +114,7 @@ vals = {obj5.subs(c) for c in cands}
 v5 = max(vals)
 best = [c for c in cands if obj5.subs(c) == v5]
 assert v5 == 12 and best == [{a: -5, b: -7}]
-assert inc_on(-5, -7, -2, -1) and dec_shift(-5, -7, 7) and factor(fp_of(-5, -7)) == -(x + 1)*(3*x + 7)
+assert inc_on(-5, -7, -2, -1) and dec_shift(-5, -7, 7) and expand(fp_of(-5, -7) + (x + 1)*(3*x + 7)) == 0
 # 격자 전수(유리 격자): 조건을 만족하는 (a,b) 중 최댓값이 12를 넘지 않음
 mx = max(obj5.subs({a: A, b: B}) for A in [Rational(j, 4) for j in range(-80, 9)] for B in [Rational(j, 4) for j in range(-80, 9)]
          if inc_on(A, B, -2, -1) and dec_shift(A, B, 7))
@@ -174,8 +174,8 @@ assert v7 == -4
 # 감소 조건 확인: (-3,1) 안에서 f(x2)-f(x1) < 2(x2-x1), 구간을 넓히면 깨짐
 pts = [Rational(-3) + Rational(j, 10) for j in range(1, 40)]
 assert all(F7.subs(x, u) - F7.subs(x, t_) < 2*(u - t_) for t_, u in itertools.combinations(pts, 2))
-assert F7.subs(x, Rational(11, 10)) - F7.subs(x, Rational(1, 2)) > 2*(Rational(11, 10) - Rational(1, 2))
-assert F7.subs(x, Rational(-5, 2)) - F7.subs(x, Rational(-31, 10)) > 2*(Rational(-5, 2) - Rational(-31, 10))
+assert F7.subs(x, Rational(6, 5)) - F7.subs(x, 1) > 2*(Rational(6, 5) - 1)                    # b>1이면 (1, 6/5)에서 깨짐
+assert F7.subs(x, -3) - F7.subs(x, Rational(-16, 5)) > 2*(-3 - Rational(-16, 5))              # a<-3이면 (-16/5, -3)에서 깨짐
 # 극댓값 6, 극솟값 -10 확인
 assert (F7 - 2*x).subs(x, -3) == 6 and (F7 - 2*x).subs(x, 1) == -10
 w7a = diff(F7 - 2*x, x).subs(x, -1)                                   # g'(-1)
@@ -224,7 +224,6 @@ print(f'ABLATION 6 넓이 1/12: 필요(4/3이면 a={s6b}, 곱 {s6b[0]*s6b[1]})')
 allA = sorted(set(sol6) | {2, 4})
 assert all(any(ar == Rational(1, 12) for _, ar in lines6(av, allowA=True)) for av in allA)
 print(f'ABLATION 6 단서(B는 A가 아님): 필요(빼면 A에서의 접선도 들어가 a={allA}, 곱 {sp.prod(allA)})'); assert sp.prod(allA) != v6
-c6b = x**3 - a*x**2 - x                                                # 일차항 계수를 바꾸면 A의 좌표가 바뀌나 합 관계는 같음
 print('ABLATION 6 A의 x좌표 1: 필요(x좌표가 0이면 β=a/2, |β|=1에서 a=±2, 곱 -4)'); assert sorted(solve((a/2)**4/12 - Rational(1, 12), a)) == [-2, 2]
 # 7번
 pS0 = solve(integrate(3*p*(x + 3)*(x - 1), (x, 1, -3)) - 16, p)[0]
@@ -242,7 +241,7 @@ print(f'ABLATION 8 직선의 기울기 1(y=x-3, f(x)-x): 필요(y=-3, f(x)로 �
 S8c = [so for so in solve([diff(g8, x).subs(x, 1), g8.subs(x, 1) - 78], [al, be], dict=True) if so[al].is_real and so[al] < so[be]]
 alt8c = (g8.subs(S8c[0]) + x).subs(x, 2)
 print(f'ABLATION 8 극댓값 13: 필요(78이면 f(2)={alt8c})'); assert alt8c != v8
-print('ABLATION 8 서로 다른 두 점에서 접함: 필요(빼면 f(x)-x는 x=1에서 극대인 사차함수 전체라 f(2)가 정해지지 않음, 예: (x-1)^4-8(x-1)^2+16 와 -(x-1)^2... 꼴)')
+print('ABLATION 8 서로 다른 두 점에서 접함: 필요(빼면 x=1에서의 두 조건만 남아 f(2)가 계수 e3, e2에 따라 달라짐)')
 fa_ = x**4 + e3*x**3 + e2*x**2 + e1*x + e0
 free = solve([diff(fa_ - x, x).subs(x, 1), (fa_ - x).subs(x, 1) - 13], [e1, e0], dict=True)[0]
 assert (fa_.subs(free)).subs(x, 2).free_symbols

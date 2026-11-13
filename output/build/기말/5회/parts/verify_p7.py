@@ -178,7 +178,7 @@ assert (f2.subs(x, 7) * f2.subs(x, 5)) / (f2.subs(x, 0) * f2.subs(x, 1)) == R(5,
 assert len(S2['subs']) == 3 and len(S2['ans']) == 3 and len(S2['sol']) == 3 and [c[0] for c in S2['cond']] == ['가', '나']
 assert [q[1] for q in S2['subs']] == ['4점, 답만 적으시오.', '3점, 답만 적으시오.', '3점, 답만 적으시오.']
 pts2 = [[int(v) for v in re.findall(r'\[(\d)점\]', line)] for line in S2['rubric'][:3]]
-assert pts2 == [[3], [3], [4]], pts2
+assert pts2 == [[4], [3], [3]], pts2
 assert not re.findall(r'\[(\d)점\]', ''.join(S2['rubric'][3:]))
 assert all('채점자 참고용' in line for line in S2['rubric'][:3])
 assert S2['db_ref'] == 'D66 후보_순위 2' and S2['cand'] == 'S2' and set(S2['core']) == {'axis', 'setting', 'principle', 'new'} and S2['level'] == '중상'
