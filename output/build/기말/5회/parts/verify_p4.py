@@ -163,8 +163,8 @@ k_alt = -R(9, 2) / mn_m1[0] * (-1)
 f_alt = sp.expand(k_alt * x * (x - 1)); g_alt = sp.expand((x**2 - 2 * x) * f_alt)
 _, nz_a, nt_a, mn_a = cond13(f_alt)
 alt_area = area13(f_alt, g_alt)
-check(13, nt_a == 1 and len(mn_a) == 1 and sp.simplify(mn_a[0] + R(9, 2)) == 0 and k_alt < 0, f'(가) 없이: p=-1, k={sp.nsimplify(k_alt)}도 (나)(다)를 만족(영점 {nz_a}개)')
-ablation(13, '(가) 집합의 원소의 개수', [ans13, sp.nsimplify(alt_area)], ans13, f'p=-1이면 넓이 {float(alt_area):.4f}')
+check(13, nt_a == 1 and len(mn_a) == 1 and sp.simplify(mn_a[0] + R(9, 2)) == 0 and k_alt < 0, f'(가) 없이: p=-1, k≈{float(k_alt):.4f}도 (나)(다)를 만족(영점 {nz_a}개)')
+ablation(13, '(가) 집합의 원소의 개수', [ans13, sp.Float(float(alt_area), 6)], ans13, 'p=-1, k<0이면 g=kx^2(x-2)(x-1)')
 # (나) 없이: p=-2, k=-9/2 (g=kx^2(x-2)^2, 극소 x=1에서 k)
 f_b = -R(9, 2) * x * (x - 2); g_b = sp.expand((x**2 - 2 * x) * f_b)
 _, nz_b, nt_b, mn_b = cond13(f_b)
@@ -236,18 +236,14 @@ w_mid = f14(0, 4) - f14(2, 4)                                                   
 w_swap = 2 * sp.integrate(uu**2 + 4 * uu, (uu, 0, R(1, 2))) - m14                  # 2∫_0^{1/2}에 x<0 조각을 넣음
 check(14, w_onepiece == 4 and w_mid == 4 and w_swap == 5, f'오답: x<0 조각 무시 {w_onepiece}(가운데 함숫값 어림 {w_mid}), 2∫_0^(1/2)에 x<0 조각 {w_swap}')
 wrong_in(14, [w_onepiece, w_swap], 'x<0 조각 무시 / 조각 바꿔 넣기')
-# 원문 D32: g(t)=[t, t+1]에서 f의 최댓값, 미분가능하지 않은 t=α에서 g(α)=-3/4
+# 원문 D32: g(t)=[t, t+1]에서 f의 최댓값(끝값과 구간 안의 극점 -1, 1 비교, 정확한 계산), 미분가능하지 않은 t=α에서 g(α)=-3/4
 fo = lambda u: -u * (u + 2) if u < 0 else u * (u - 2)
-def gmax(tv, n=400):
-    return max(fo(tv + R(i, n)) for i in range(n + 1))
-kinks = []
-for i in range(-40, 40):
-    t0 = R(i, 20) + R(1, 40)
-    h_ = R(1, 4000)
-    sl = (gmax(t0) - gmax(t0 - h_)) / h_; sr = (gmax(t0 + h_) - gmax(t0)) / h_
-    if abs(float(sl - sr)) > 0.2: kinks.append(t0)
-check('D32', kinks == [R(1, 2) + R(1, 40) - R(1, 40)] or kinks == [R(21, 40)] or all(abs(float(k_ - R(1, 2))) < 0.06 for k_ in kinks),
-      f'D32 원문: 최댓값 함수의 꺾인 점 근처 {kinks}')
+def gmax(tv):
+    return max([fo(tv), fo(tv + 1)] + [fo(c_) for c_ in (-1, 1) if tv <= c_ <= tv + 1])
+hh = R(1, 10**6)
+kinks = [tv for tv in [R(i, 20) for i in range(-60, 41)]
+         if abs((gmax(tv) - gmax(tv - hh)) / hh - (gmax(tv + hh) - gmax(tv)) / hh) > R(1, 100)]
+check('D32', kinks == [R(1, 2)], f'D32 원문: 최댓값 함수가 미분가능하지 않은 t (1/20 격자 -3..2) = {kinks}')
 check('D32', fo(R(1, 2)) == fo(R(3, 2)) == -R(3, 4) and orig_ans('D32') == r'-\dfrac34', f'D32 원문: g(1/2)=f(1/2)=f(3/2)=-3/4 = 원문 정답 {orig_ans("D32")}')
 print('--- 14번 조건 빼 보기 ---')
 alt14 = []
@@ -290,10 +286,15 @@ def parts15(av):
     return lower, upper
 
 
-import mpmath
+lo_a, hi_a = R(2), R(5, 2)
 fz = lambda av: (lambda lu: float(lu[0] - 2 * lu[1]))(parts15(av))
-a_star = mpmath.findroot(lambda z: fz(sp.Float(z, 30)), (2.5, 5.5), solver='bisect') if fz(R(5, 2)) * fz(R(11, 2)) < 0 else None
-check(15, a_star is not None and 2 < a_star < 6, f'단서 없이: 2<a<6에서 (아래):(위)=2:1이 되는 a≈{float(a_star):.4f}도 있음(곡선이 두 부분으로 나눔)')
+a_star = None
+if fz(lo_a) < 0 < fz(hi_a):
+    for _ in range(30):
+        mid = (lo_a + hi_a) / 2
+        lo_a, hi_a = (mid, hi_a) if fz(mid) < 0 else (lo_a, mid)
+    a_star = (lo_a + hi_a) / 2
+check(15, a_star is not None and 2 < a_star < 6, f'단서 없이: 2<a<6에서 (아래):(위)=2:1이 되는 a≈{float(a_star or 0):.4f}도 있음(곡선이 위 곡선 밖으로 나갔다 들어와도 도형은 두 부분)')
 ablation(15, '단서 (단, 0<a<2)', [ans15, sp.Float(a_star, 6)], ans15)
 ablation(15, '넓이의 비 1:2', [sp.solve(sp.Eq(lo, up), aa)[0], ans15, sp.solve(sp.Eq(lo, 3 * up), aa)[0]], ans15, '이등분이면 33/20 등 비에 따라 a가 바뀜')
 
@@ -373,17 +374,18 @@ ablation(16, 'f(x)<=f(-1)', [ans16, sp.diff(gv, x).subs(x, 6)] if count_ga(fv, g
 # 이차항이 있으면: g'=3B(x-3)(x-r), r=2A/(9B)<0 (양수 근은 3 하나)
 Bq = R(1, 9)
 Aq_list = []
-for Av in [R(-i, 20) for i in range(1, 200)]:
-    r_ = 2 * Av / (9 * Bq); b2v = -3 * Bq * (3 + r_) / 2
-    fv, gv = H16(Av, Bq, b2v=b2v)
-    if count_ga(fv, gv) == 3 and diff_on(fv, gv) == 10: Aq_list.append((Av, sp.diff(gv, x).subs(x, 6)))
-check(16, len(Aq_list) >= 1 and all(v_ != ans16 for _, v_ in Aq_list), f'이차항 허용: B=1/9이면 (A, h\'(6)) = {Aq_list}')
+for Bq in (R(1, 9), R(1, 18)):
+    for Av in sp.solve(sp.Eq(-A - (27 * Bq + 9 * (-3 * Bq * (3 + 2 * A / (9 * Bq)) / 2) + 6 * A), 10), A):   # 최솟값 g(3)일 때
+        r_ = 2 * Av / (9 * Bq); b2v = -3 * Bq * (3 + r_) / 2
+        fv, gv = H16(Av, Bq, b2v=b2v)
+        if Av < 0 and r_ < 0 and count_ga(fv, gv) == 3 and diff_on(fv, gv) == 10: Aq_list.append((Av, sp.diff(gv, x).subs(x, 6)))
+check(16, len(Aq_list) >= 1 and all(v_ != ans16 for _, v_ in Aq_list), f'이차항 허용(g\'=3B(x-3)(x-r), r<0): B=1/9, 1/18이면 (A, h\'(6)) = {Aq_list}')
 ablation(16, 'g(-x)+g(x)=2g(0)', [ans16] + [v_ for _, v_ in Aq_list], ans16)
 fv, gv = H16(-1, R(1, 6), Cv=-R(9, 2))   # x=0에서 연속이지만 미분가능하지 않음(C≠2A)
 ablation(16, '실수 전체에서 미분가능', [ans16, sp.diff(gv, x).subs(x, 6)] if count_ga(fv, gv) == 3 and diff_on(fv, gv) == 10 else [], ans16, 'A=-1, B=1/6, C=-9/2(연속, 꺾임)')
 As = sp.solve(sp.Eq(diff_on(*H16(-1, R(1, 54))) * (-A), 10), A)[0]
 fv, gv = H16(As, -As / 54)
 ablation(16, '(가) 실근의 개수 3', [ans16, sp.diff(gv, x).subs(x, 6)] if diff_on(fv, gv) == 10 else [], ans16, f's=6(B=-A/54), A={As}이면 실근 {count_ga(fv, gv)}개')
-ablation(16, '(나) 차 10', [sp.diff(H16(Av, -2 * Av / 27)[1], x).subs(x, 6) for Av in (-1, -2, -3)], ans16, "h'(6)=-6A")
+ablation(16, '(나) 차 10', [sp.nsimplify(sp.diff(H16(Av, -2 * R(Av) / 27)[1], x).subs(x, 6)) for Av in (-1, -2, -3)], ans16, "h'(6)=-6A")
 
 print('ALL OK' if ok else 'SOME FAIL')
