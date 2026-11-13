@@ -8,7 +8,7 @@ x, t, k, a, b = symbols('x t k a b', real=True)
 HERE = os.path.dirname(os.path.abspath(__file__))
 ns = {}; exec(open(os.path.join(HERE, 'p3.py')).read(), ns)
 IT = ns['ITEMS']
-WANT = {9: 2, 10: 4, 11: 1, 12: 5}
+WANT = {9: 2, 10: 4, 11: 3, 12: 5}
 DBREF = {9: 'D63 후보_순위 2', 10: 'D26 후보_순위 2', 11: 'D33 v3_추가 1', 12: 'D61 후보_순위 3'}
 KEYS = {9: 'D63', 10: 'D26', 11: 'D33', 12: 'D61'}
 LEVEL = {9: '중', 10: '중', 11: '중', 12: '중'}
