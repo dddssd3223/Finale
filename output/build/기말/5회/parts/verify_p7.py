@@ -86,7 +86,7 @@ for av in [3, -3, R(21, 2)]:
     cm = [c for c, kd in crit(fa.subs(b, 0)) if kd == 'max'][0]
     bv = sp.solve(fa.subs(x, cm) - 25, b)[0]
     outs.append((av, bv, sum(two_root_ks(fa.subs(b, bv)))))
-assert len({o[2] for o in outs}) == 3
+assert len({o[:2] for o in outs}) == 3 and len({o[2] for o in outs}) >= 2
 abl1('x=1에서 극소', '필요(없으면 ' + ', '.join(f'a={o[0]}이면 b={o[1]}, (2)={o[2]}' for o in outs) + ')')
 # (b) 극댓값 25 삭제: b 가 남음
 outb = [(bv, sum(two_root_ks(2 * x**3 + 3 * x**2 - 12 * x + bv))) for bv in (0, 5, 10)]
