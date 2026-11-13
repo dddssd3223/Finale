@@ -125,8 +125,8 @@ print('D66 원문 OK: f=p(x+1)(x-1)(x-3), a=2, g(8)/(f(0)f(8))=105 (원문 정�
 assert sp.Abs(fo.subs(x, 4) * fo.subs(x, 2 - 4)) / (fo.subs(x, 0) * fo.subs(x, 8)) == R(5, 21)
 
 # --- S2: (가) f(2)=f(3)=0, (나) {x<=3, f'=0} 1개
-assert r"f(2)=f(3)=0" in S2['cond'][0][1] and r"x\le3" in S2['cond'][1][1] and r"\(1\)이다" in S2['cond'][1][1]
-assert r"g(x)=|f(x)f(a-x)|" in S2['after']
+assert r"f(2)=f(3)=0" in S2['cond'][0][1] and r"\(3\) 이하인 것은 오직 하나" in S2['cond'][0][1] and '미분가능' in S2['cond'][1][1]
+assert r"g(x)=|f(x)f(a-x)|" in S2["body"] and not S2.get("after")
 def survivors(r_list, a_list, need_nab=True, ab_cond=None):
     out = []
     for rv in r_list:
@@ -189,7 +189,7 @@ def abl2(cname, msg): print(f'ABLATION S2 {cname}: {msg}')
 # (a) (나) 삭제
 sa = survivors(r_grid, a_grid, need_nab=False)
 assert len({av for _, av in sa}) > 1 and (4, 6) in sa
-abl2('(나)', '필요(없으면 (r, a)=' + ', '.join(f'({u}, {v})' for u, v in sa) + ' 가 모두 되어 a가 정해지지 않음)')
+abl2('(가)의 f\'(x)=0 조건', '필요(없으면 (r, a)=' + ', '.join(f'({u}, {v})' for u, v in sa) + ' 가 모두 되어 a가 정해지지 않음)')
 # (b) (나)의 x≤3 을 원문 방향 x≥2 로 되돌리면 답이 바뀜
 sb = []
 for rv in r_grid:
@@ -197,7 +197,7 @@ for rv in r_grid:
     if count_crit(fx, 'ge', 2) != 1: continue
     sb += [(rv, av) for av in a_grid if g_diffable(fx, av)]
 assert sb == [(1, 4)]
-abl2('(나)의 방향 x≤3', '필요(원문처럼 x≥2이면 r=1, a=4로 바뀌고 (3)의 분모 f(1)=0)')
+abl2('(가)의 방향 3 이하', '필요(원문처럼 2 이상이면 r=1, a=4로 바뀌고 (3)의 분모 f(1)=0)')
 # (c) (가) 의 f(3)=0 삭제 (f(2)=0 만): 다른 두 근이 자유 → a 가 여럿
 sc = []
 for s_ in [R(i, 2) for i in range(-6, 13)]:
@@ -211,7 +211,7 @@ assert len(set(sc)) > 1
 abl2('(가)의 f(3)=0', f'필요(없으면 a가 {sorted(set(sc))[:6]} 등 여럿)')
 # (d) 미분가능 조건 삭제: a 가 아무 값
 assert not g_diffable(f2, 5) and not g_diffable(f2, 7)
-abl2('g(x)가 미분가능', '필요(없으면 a가 정해지지 않음: a=5, 7 등에서는 미분가능하지 않으므로 이 조건이 a=6을 고름)')
+abl2('(나) g(x)가 미분가능', '필요(없으면 a에 대한 조건이 없어 a가 정해지지 않음: a=5, 7 등에서는 미분가능하지 않으므로 이 조건이 a=6을 고름)')
 # (e) (나)의 개수 1 → 2: r<=3 쪽이 남아 여러 경우
 se = []
 for rv in r_grid:
@@ -219,6 +219,6 @@ for rv in r_grid:
     if count_crit(fx, 'le', 3) != 2: continue
     se += [(rv, av) for av in a_grid if g_diffable(fx, av)]
 assert se and (4, 6) not in se
-abl2('(나)의 개수 1', '필요(2로 바꾸면 (r, a)=' + ', '.join(f'({u}, {v})' for u, v in se) + ')')
+abl2('(가)의 오직 하나', '필요(2로 바꾸면 (r, a)=' + ', '.join(f'({u}, {v})' for u, v in se) + ')')
 
 print('ALL OK')
