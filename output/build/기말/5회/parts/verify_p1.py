@@ -73,21 +73,14 @@ assert [z for z in solve(d0, t) if z > 0] == [5] and diff(t**3 - 5*t**2 + 2*t**2
 print('원문·분석집 풀이 OK (J52=3, STUDY-J52=7, I21=1/4, STUDY-I21=3/7, I56=25, STUDY-I56=-6, M23=35)')
 
 # ===== 1번 =====
-g1 = x**2 + a*x
-r1s = solve(g1 + 4*x, x)
-assert sorted(r1s, key=str) == sorted([0, -a - 4], key=str)          # 교점 x=0, x=-(a+4)
-s1 = solve(sp.Eq((0 + (-a - 4)) / 2, 2), a)                         # 이등분선 = 차의 축(두 교점의 중점)
-assert s1 == [-8]
-v1 = s1[0]
-A1, rr1, k1 = bisector(g1.subs(a, v1), -4*x)                         # 실제 넓이 이등분선 다시 확인
-assert rr1 == [0, 4] and k1 == [2] and A1 == Rational(32, 3)
-for aa in range(-30, 31):                                           # 전수: 정수 a 가운데 x=2가 이등분선인 것은 -8 하나
-    if aa == -4: continue                                           # a=-4이면 접해서 둘러싸인 부분 없음
-    assert (bisector(g1.subs(a, aa), -4*x)[2] == [2]) == (aa == -8), aa
-w1 = solve(sp.Eq(-a / 2, 2), a)[0]                                  # 오답: 곡선의 축을 이등분선으로
-assert w1 == -4
+g1 = x**2 - 4*x
+assert sorted(solve(g1 - 2*x, x)) == [0, 6]
+A1, rr1, k1 = bisector(g1, 2*x)                                     # 이등분선 전수: 교점 사이에서 넓이 반이 되는 k 전부
+assert rr1 == [0, 6] and A1 == 36 and k1 == [3]
+v1 = k1[0]
+w1 = solve(diff(g1, x), x)[0]                                       # 오답: 곡선의 축
+assert w1 == 2
 chk(1, v1, [w1])
-
 # ===== 2번 =====
 L2 = integrate(2*f_ + (3*x - 3)*diff(f_, x), (x, 2, 4))
 assert expand(L2 - (24*m + 4*n)) == 0
@@ -138,11 +131,10 @@ chk(4, v4, [w4_first, w4_p])
 # ===== 조건 빼 보기 =====
 print('--- 조건 빼 보기 ---')
 # 1번
-k_alt = [solve(sp.Eq((-a - 4) / 2, kk), a)[0] for kk in (1, 2, 3)]
-print(f'ABLATION 1 이등분선 x=2: 필요(빼면 a가 정해지지 않음, x=1, 2, 3이면 a={k_alt})'); assert len(set(k_alt)) == 3
-s1b = solve(sp.Eq((0 + (4 - a)) / 2, 2), a)
-print(f'ABLATION 1 직선 y=-4x: 필요(y=4x이면 a={s1b} ≠ {v1})'); assert s1b[0] != v1
-
+kb = bisector(x**2 - 4*x, 4*x)[2]
+print(f'ABLATION 1 직선 y=2x: 필요(y=4x이면 k={kb} ≠ [{v1}])'); assert kb != [v1]
+kc = bisector(x**2 - 2*x, 2*x)[2]
+print(f'ABLATION 1 곡선의 일차항 -4x: 필요(-2x이면 k={kc} ≠ [{v1}])'); assert kc != [v1]
 # 2번
 s2b = solve(integrate(3*f_ + (3*x - 3)*diff(f_, x), (x, 2, 4)), n)
 rb = sp.simplify(f_.subs(n, s2b[0]).subs(x, 4) / f_.subs(n, s2b[0]).subs(x, 2))

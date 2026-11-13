@@ -199,7 +199,6 @@ chk(8, v8, [w8])
 print('--- 조건 빼 보기 ---')
 # 5번
 print("ABLATION 5 (가) (-2,-1)에서 증가: 필요(빼면 b→-∞에서 f(-2)가 한없이 커짐)"); assert ok5(-1, -100, use=('나',)) and obj5.subs({a: -1, b: -100}) > 100
-mx3 = max(obj5.subs({a: A, b: B}) for A in grid for B in grid if ok5(A, B) and fp5(A, B).subs(x, -3) >= 0)
 print(f"ABLATION 5 (가)의 끝 -1: 필요(구간을 (-2,-1)에서 (-3,-2)로 옮기면 f(-2)=16+4a-2b의 최댓값이 바뀜)"); assert max(obj5.subs({a: A, b: B}) for A in grid for B in grid if ok5(A, B, use=('나',)) and fp5(A, B).subs(x, -3) >= 0 and fp5(A, B).subs(x, -2) >= 0) != v5
 print("ABLATION 5 (나) (0,∞)에서 감소: 군더더기(답 그대로) — 분석집 문항과 같이 b=0 습관(오답 -8)을 부르는 원문 조건으로 둠"); assert max(obj5.subs({a: A, b: B}) for A in grid for B in grid if ok5(A, B, use=('가',))) == v5
 # 6번
