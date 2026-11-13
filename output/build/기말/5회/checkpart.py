@@ -40,6 +40,9 @@ for n, it in IT.items():
         elif len({v[i + 1] - v[i] for i in range(4)}) != 1: msg.append('선지 비등차')
     if it.get('cond') and '?' not in re.sub(r'<[^>]+>', '', it['body']): msg.append('상자→질문형(18번 같은 최고난도 한 문항만 허용)')
     if re.search(r'(?<![a-zA-Z\\])[loWVYZ](?![a-zA-Z])', ''.join(re.findall(r'\\\((.*?)\\\)', body(it)))): msg.append('수식에 l·o·W·V·Y·Z 변수(글꼴에 없음)')
+    _t = str(it.get('body', '')) + ' '.join(str(v) for _, v in (it.get('cond') or [])) + str(it.get('after', '')) + ' '.join(str(q) for q, _ in (it.get('subs') or []))
+    _m = [x.group(0) for x in re.finditer(r'\\\(.*?\\\)|\\\[.*?\\\]', _t, re.S) if '<' in x.group(0) or '>' in x.group(0)]
+    if _m: msg.append(f"수식 안 맨 '<'·'>' {len(_m)}곳 → &lt;·&gt;로(HTML 태그로 먹힘, 5회 5번 측정 때 조건이 통째로 빠짐): {_m[0][:40]}")
     if msg: bad += 1; print(f'{n}: ' + ' | '.join(msg))
 print('형식 표시', bad, '개')
 gate = 0

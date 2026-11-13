@@ -22,6 +22,7 @@ def txt(it):
     if it.get('bogi'): b += '\n[보기] ' + ' '.join(f'{k}. {v}' for k, v in it['bogi']) + ' '   # 보기형(2026-11-07 3회 측정에서 빠져 있던 것)
     if it.get('after'): b += it['after']
     b = re.sub(r'<div class="fig"><img src="([^"]+?)(\.svg)?"[^>]*></div>', lambda m: f' [그림: {os.path.basename(m[1])}.png] ', b)
+    b = re.sub(r'\\\(.*?\\\)|\\\[.*?\\\]', lambda m: m.group(0).replace('<', '&lt;').replace('>', '&gt;'), b, flags=re.S)   # 수식 안 맨 '<'가 태그로 지워지지 않게(5회 5번: '-2<x_1<x_2<-1'이 통째로 빠짐)
     b = re.sub(r'<[^>]+>', ' ', b).replace('&lt;', '<').replace('&gt;', '>').replace('\n', ' ')
     if it.get('subs'): b += ' ' + ' '.join(f'({i}) {q[0]}' for i, q in enumerate(it['subs'], 1)) + ' [서답형: 각 소문항 답을 적는다]'
     if it.get('choices'): b += '  ' + ' '.join(f'{"①②③④⑤"[i]} {str(c).removeprefix("T:")}' for i, c in enumerate(it['choices']))
