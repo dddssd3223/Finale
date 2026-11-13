@@ -67,30 +67,32 @@ print('m 전수(C=0, 반정수 -45..20 + 경계 근방 + ±100): 불연속점 2�
 mm = sp.symbols('mm', real=True)
 assert set(sp.solve(sp.Eq((5 - mm)**2, (mm + 27)**2), mm)) == {-11}
 
-# ---------- 3) (나): 합 3C-33 = 6 → C = 13, 답
-Csol = sp.solve(sp.Eq(3 * C - 33, 6), C); assert Csol == [13]
-fF = x**3 - 3 * x**2 - 8 * x + 13
+# ---------- 3) (나): 합 3C-33 = 3 → C = 12, 답 ∫_{-1}^{3} f
+Csol = sp.solve(sp.Eq(3 * C - 33, 3), C); assert Csol == [12]
+fF = x**3 - 3 * x**2 - 8 * x + 12
 assert sp.diff(fF, x).subs(x, -1) == 1 and sp.diff(fF, x).subs(x, 3) == 1
 Fn = fF - x
-gd = [mv for mv in [-14, 2, 18, 0, 1, 3, 10, -20, 30] if len(discont(Fn, mv)) == 2]
-assert gd == [-14, 2, 18] and sum(gd) == 6
-ANS = sp.integrate(fF, (x, -1, 1)); assert ANS == 24
-assert sp.integrate(Fsym + x, (x, -1, 1)) == 2 * C - 2
-print(f'(나): m = -14, 2, 18 의 합 6 → C=13, f=x^3-3x^2-8x+13, ∫_-1^1 f = {ANS}')
+gd = [mv for mv in [-15, 1, 17, 0, 2, 3, 10, -20, 30, -14, 18] if len(discont(Fn, mv)) == 2]
+assert gd == [-15, 1, 17] and sum(gd) == 3
+ANS = sp.integrate(fF, (x, -1, 3)); assert ANS == 8
+assert sp.expand(sp.integrate(Fsym + x, (x, -1, 3)) - (4 * (C - 11) + 4)) == 0      # 중심 x=1 대칭: 4F(1) + ∫x
+assert sp.integrate(x, (x, -1, 3)) == 4 and sp.integrate(Fn, (x, -1, 3)) == 4
+print(f'(나): m = -15, 1, 17 의 합 3 → C=12, f=x^3-3x^2-8x+12, ∫_-1^3 f = 4(C-11)+4 = {ANS}')
 
 ch = IT['choices']
-assert ch[IT['ans'] - 1] == str(ANS) and IT['ans'] == 1
+assert ch[IT['ans'] - 1] == str(ANS) and IT['ans'] == 3
 assert len(set(ch)) == 5 and {int(ch[i + 1]) - int(ch[i]) for i in range(4)} == {2}
-print('정답 24 = 선지 ①, 선지 24..32 공차 2 오름차순')
+print('정답 8 = 선지 ③, 선지 4..12 공차 2 오름차순')
 
-# ---------- 4) 오답 근거
-w26a = 2 * sp.solve(sp.Eq(2 * C - 22, 6), C)[0] - 2          # 중심 m 놓침
-w26b = 2 * 13                                                 # -2 빠뜨림
-w32 = 2 * sp.solve(sp.Eq(C - 11, 6), C)[0] - 2               # 극값 m 놓침
-w28 = 2 * 13 + 2                                              # 부호 실수
-assert (w26a, w26b, w32, w28) == (26, 26, 32, 28)
-assert all(v in ch for v in IT['wrongs']) and IT['wrongs'] == ['26', '32']
-print('오답 근거 OK: 26(m=C-11 놓침 / -2 빠뜨림) · 32(m=C±… 극값 놓침) · 28(부호 실수)')
+# ---------- 4) 오답 근거 (모두 판단 누락 값, 선지 안)
+I_of = lambda c11, withx=True: 4 * c11 + (4 if withx else 0)
+c_nocenter = sp.solve(sp.Eq(2 * C - 22, 3), C)[0] - 11          # m=C-11 놓침: (C-27)+(C+5)=3
+c_noext = sp.solve(sp.Eq(C - 11, 3), C)[0] - 11                 # 극값 m 놓침: C-11=3
+W = dict(w10=I_of(c_nocenter), w4=I_of(1, False), w6=I_of(c_nocenter, False), w12=I_of(c_noext, False), w16=I_of(c_noext))
+assert W == dict(w10=10, w4=4, w6=6, w12=12, w16=16), W
+assert sorted(int(v) for v in ch if int(v) != ANS) == [4, 6, 10, 12]
+assert all(v in ch for v in IT['wrongs']) and set(IT['wrongs']) == {'4', '6', '10', '12'}
+print('오답 근거 OK: 10(m=C-11 놓침) · 4(x 잊음) · 6(둘 다) · 12(극값 m 놓침+x 잊음) · 16(극값 m 놓침, 선지 밖) — 경로 없는 선지 0개')
 
 # ---------- 5) 원문 I44 직접 풀기: 52
 sys.path.insert(0, '/home/user/Finale/output/build/부교재_기말')
@@ -120,7 +122,9 @@ body = IT['body'] + ''.join(c for _, c in IT['cond'])
 assert 'int_1^{-a}' not in body and "f'(-1)=0" not in body and '미분가능' not in body
 # 원문 설정 줄(f'(-1)=0 → f=x^3-3x^2-9x+C)을 f 에 그대로 쓰면 (가)와 모순
 assert sp.diff(x**3 - 3 * x**2 - 9 * x, x).subs(x, -1) != 1
-# 원문 원리 줄('극값이 0')만 쓰면 m 두 개(C-27, C+5)만 → 합 2C-22, 답 26 (오답)
+# 원문 원리 줄('극값이 0')만 쓰면 m 두 개(C-27, C+5)만 → 합 2C-22, 답 10 (오답)
+# 원문 구하는 값 ∫_{-1}^{1} 과 다름: 원점 대칭 지름길이 아니라 중심 x=1 대칭, +x 가 4 를 더함
+assert 'int_{-1}^{3}' in IT['body'] and sp.integrate(x, (x, -1, 1)) == 0
 print('핵심 한 줄: 설정 줄(적분 점대칭·f\'(-1)=0) 불통, 원리 줄(극값 높이)만으로는 중심 m 을 놓침')
 
 # ===== 조건 빼 보기 (ABLATION) =====
@@ -139,8 +143,8 @@ for bv in (-3, 0):
     Fv = Fb.subs({b: bv, C: 0})
     cv = crit_vals(Fv); assert len(cv) == 2
     s = sum(cv) + (cv[0] + cv[1]) / 2                              # 세 m 의 합(C=0) — 중심 높이는 두 극값의 평균
-    cc = sp.solve(sp.Eq(3 * C + s, 6), C)[0]
-    vals.add(sp.integrate((Fv + C + x).subs(C, cc), (x, -1, 1)))
+    cc = sp.solve(sp.Eq(3 * C + s, 3), C)[0]
+    vals.add(sp.integrate((Fv + C + x).subs(C, cc), (x, -1, 3)))
 assert len(vals) == 2
 ablation("(가)의 점 (3, f(3)) 기울기", f'정해지지 않음({sorted(vals)})', 'b 가 남음')
 # (가) 중 x=-1 빼기도 같은 이유
@@ -149,36 +153,36 @@ assert sp.diff(Fb3, x).subs(x, 3) == 0
 vals3 = set()
 for bv in (-3, 0):
     Fv = Fb3.subs({b: bv, C: 0}); cv = crit_vals(Fv); assert len(cv) == 2
-    cc = sp.solve(sp.Eq(3 * C + sum(cv) + (cv[0] + cv[1]) / 2, 6), C)[0]
-    vals3.add(sp.nsimplify(sp.integrate((Fv + C + x).subs(C, cc), (x, -1, 1))))
+    cc = sp.solve(sp.Eq(3 * C + sum(cv) + (cv[0] + cv[1]) / 2, 3), C)[0]
+    vals3.add(sp.nsimplify(sp.integrate((Fv + C + x).subs(C, cc), (x, -1, 3))))
 assert len(vals3) == 2
 ablation("(가)의 점 (-1, f(-1)) 기울기", f'정해지지 않음({sorted(vals3)})', 'b 가 남음')
 # (가)의 기울기 1 → 0 (원문처럼 기준선을 y=m 으로 본 경우): f'(-1)=f'(3)=0 → f=x^3-3x^2-9x+C, 기준선 y=x+m 이면 F=f-x 극점 무리수
 F_alt = x**3 - 3 * x**2 - 10 * x
 cps = sp.solve(sp.diff(F_alt, x), x); assert all(not c.is_rational for c in cps)
 cv = crit_vals(F_alt); s = sum(cv) + (cv[0] + cv[1]) / 2
-c_alt = sp.solve(sp.Eq(3 * C + s, 6), C)[0]
-v_alt = sp.nsimplify(sp.integrate(F_alt + x + c_alt, (x, -1, 1)))
+c_alt = sp.solve(sp.Eq(3 * C + s, 3), C)[0]
+v_alt = sp.nsimplify(sp.integrate(F_alt + x + c_alt, (x, -1, 3)))
 assert v_alt != ANS
 ablation('(가)의 기울기 1(→ 0)', v_alt, '기준선 y=x+m 과 짝이 맞아야 F 의 극점이 -1, 3')
 # (나) 합 6 빼기: C 가 정해지지 않음
-ablation('(나)의 합 6', '정해지지 않음(C 자유)', '∫=2C-2')
+ablation('(나)의 합 3', '정해지지 않음(C 자유)', '∫=4(C-11)+4')
 # (나) '개수가 2' → '개수가 3': m 이 무수히 많아 합이 정의되지 않음
 assert len(discont(F0, 0)) == 3 and len(discont(F0, 1)) == 3
 ablation("(나)의 '개수가 2'(→ 3)", '정해지지 않음(m 무수히 많음)', '')
 # 기준선의 -x 빼기: y=|f(x)-m| 이면 f 의 극점이 무리수, 답이 달라짐
 F_nox = x**3 - 3 * x**2 - 8 * x
 cv = crit_vals(F_nox); s = sum(cv) + (cv[0] + cv[1]) / 2
-c_nox = sp.solve(sp.Eq(3 * C + s, 6), C)[0]
-v_nox = sp.nsimplify(sp.integrate(F_nox + c_nox, (x, -1, 1)))
+c_nox = sp.solve(sp.Eq(3 * C + s, 3), C)[0]
+v_nox = sp.nsimplify(sp.integrate(F_nox + c_nox, (x, -1, 3)))
 assert v_nox != ANS
 ablation('기준선의 -x(→ y=|f(x)-m|)', v_nox, '')
 # '최고차항의 계수가 1' 빼기: F=a(x^3-3x^2-9x)+C → ∫ 은 a 에 따라 달라짐
 aa = sp.Symbol('aa', positive=True)
 Fa = aa * (x**3 - 3 * x**2 - 9 * x) + C                           # 극댓값 5aa+C, 극솟값 -27aa+C, 중심 -11aa+C → 합 3C-33aa
-ca = sp.solve(sp.Eq(3 * C - 33 * aa, 6), C)[0]
-Ia = sp.simplify(sp.integrate(Fa.subs(C, ca) + x, (x, -1, 1)))
-assert Ia.subs(aa, 1) == 24 and Ia.subs(aa, 2) != 24
+ca = sp.solve(sp.Eq(3 * C - 33 * aa, 3), C)[0]
+Ia = sp.simplify(sp.integrate(Fa.subs(C, ca) + x, (x, -1, 3)))
+assert Ia.subs(aa, 1) == 8 and Ia.subs(aa, 2) != 8
 ablation("'최고차항의 계수가 1'", f'정해지지 않음({Ia})', '')
 assert all(r_.startswith('필요') for r_ in out), out
 

@@ -125,7 +125,7 @@ print('D66 원문 OK: f=p(x+1)(x-1)(x-3), a=2, g(8)/(f(0)f(8))=105 (원문 정�
 assert sp.Abs(fo.subs(x, 4) * fo.subs(x, 2 - 4)) / (fo.subs(x, 0) * fo.subs(x, 8)) == R(5, 21)
 
 # --- S2: (가) f(2)=f(3)=0, (나) {x<=3, f'=0} 1개
-assert r"f(2)=f(3)=0" in S2['cond'][0][1] and r"\(3\) 이하인 것은 오직 하나" in S2['cond'][0][1] and '미분가능' in S2['cond'][1][1]
+assert r"f(2)=f(3)=0" in S2['cond'][0][1] and r"\(3\) 이하인 것의 개수는 \(1\)이다" in S2['cond'][0][1] and '미분가능' in S2['cond'][1][1]
 assert r"g(x)=|f(x)f(a-x)|" in S2["body"] and not S2.get("after")
 def survivors(r_list, a_list, need_nab=True, ab_cond=None):
     out = []
@@ -219,6 +219,6 @@ for rv in r_grid:
     if count_crit(fx, 'le', 3) != 2: continue
     se += [(rv, av) for av in a_grid if g_diffable(fx, av)]
 assert se and (4, 6) not in se
-abl2('(가)의 오직 하나', '필요(2로 바꾸면 (r, a)=' + ', '.join(f'({u}, {v})' for u, v in se) + ')')
+abl2("(가)의 개수 1", '필요(2로 바꾸면 (r, a)=' + ', '.join(f'({u}, {v})' for u, v in se) + ')')
 
 print('ALL OK')
