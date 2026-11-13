@@ -116,18 +116,10 @@ x1 = t**3 - 2*t**2 - 2*t; x2 = 3*t**2 - 8*t
 dd4 = expand(x1 - x2)
 assert sp.factor(dd4) == t*(t - 2)*(t - 3)
 meet = sorted(z for z in solve(dd4, t) if z > 0)
-assert meet == [2, 3]                                              # t>0에서 만나는 시각 정확히 두 개
-v1_, v2_ = diff(x1, t), diff(x2, t)
-p4, q4 = v1_.subs(t, meet[1]), v2_.subs(t, meet[1])
-assert (p4, q4) == (13, 10)
-v4 = p4 - q4
-assert v4 == 3
-w4_first = (v1_ - v2_).subs(t, meet[0])                            # 오답: 처음 만나는 순간
-w4_p = p4                                                          # 오답: p만
-assert (w4_first, w4_p) == (-2, 13)
-assert arith(4)[1] == 5
-chk(4, v4, [w4_first, w4_p])
-
+assert meet == [2, 3]                                              # t>0에서 만나는 시각 전부
+v4 = meet[0]
+w4_second = meet[1]                                                # 오답: 두 번째 만남
+chk(4, v4, [w4_second])
 # ===== 조건 빼 보기 =====
 print('--- 조건 빼 보기 ---')
 # 1번
@@ -156,7 +148,8 @@ assert [z for z in solve(integrate(3*x**2 + 11, (x, -a, a)) - 60, a) if z.is_rea
 print(f'ABLATION 3 일차항 4x: 장치(빼도 답 그대로 — 원문 I56의 2x와 같은 자리, 대칭 구간에서 홀수 차수 항이 지워짐을 보는 판단)')
 
 # 4번
-print(f'ABLATION 4 두 번째로: 필요(빼면 만나는 순간이 t={meet} 둘이라 p-q가 {w4_first}, {v4}로 정해지지 않음)')
-print(f'ABLATION 4 t>0: 필요(t=0도 넣으면 t=0이 처음, t=2가 두 번째 → p-q={w4_first} ≠ {v4})'); assert (v1_ - v2_).subs(t, 0) != v4
+print(f'ABLATION 4 처음으로: 필요(빼면 만나는 시각이 t={meet} 둘이라 정해지지 않음)'); assert len(meet) == 2
+m0 = sorted(z for z in solve(dd4, t) if z >= 0)
+print(f'ABLATION 4 t>0: 필요(t=0도 넣으면 처음 만나는 시각이 {m0[0]} ≠ {v4})'); assert m0[0] != v4
 print('정답 위치:', [IT[k]['ans'] for k in sorted(IT)])
 print('ALL OK')

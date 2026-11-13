@@ -102,27 +102,20 @@ fS22 = x**2*(x - 4)**2 - 11
 assert fS22.subs(x, 2) == 5 and fS22.subs(x, 5) == 14
 print('원문·분석집 풀이 OK (D10=-10/2, J11=1/12·27/4, D35=30/-6, D22=9/14)')
 
-# ===== 5번 (D10 분석집_변형 1, 학교식: 최고차항 -2, 구간 (-2,-1), f(-2)의 최댓값) =====
+# ===== 5번 (D10 분석집_변형 1, 학교식: 최고차항 -2, x=-1에서 극값, f(-2)) =====
 f5 = -2*x**3 + a*x**2 + b*x
-def fp5(A, B): return diff(f5, x).subs({a: A, b: B})
-def ok5(A, B, use=('가',)):
-    g = fp5(A, B)
-    c1 = g.subs(x, -2) >= 0 and g.subs(x, -1) >= 0                    # (가): f'은 위로 볼록 → 양 끝만
-    c2 = (B <= 0) if A <= 0 else (Rational(A)**2/6 + B <= 0)           # (나): x>0에서 f' ≤ 0
-    return ('가' not in use or c1) and ('나' not in use or c2)
-for A, B in itertools.product(range(-14, 3), range(-20, 4)):            # 끝점 판정 = 표본 판정
-    g = fp5(A, B)
-    assert (g.subs(x, -2) >= 0 and g.subs(x, -1) >= 0) == all(g.subs(x, Rational(-2) + Rational(j, 20)) >= 0 for j in range(21))
-    assert ((B <= 0) if A <= 0 else (Rational(A)**2/6 + B <= 0)) == (max(g.subs(x, t_) for t_ in [Rational(1, 10**6)] + [Rational(j, 20) for j in range(1, 200)]) <= 0)
-obj5 = f5.subs(x, -2)
-assert expand(obj5 - (4 - 2*fp5(a, b).subs(x, -1))) == 0               # f(-2) = 4 - 2f'(-1): f'(-2)의 계수 0
-grid = [Rational(j, 2) for j in range(-40, 7)]
-mx = max(obj5.subs({a: A, b: B}) for A in grid for B in grid if ok5(A, B))
-assert mx == 4
-assert ok5(-9, -12) and obj5.subs({a: -9, b: -12}) == 4 and ok5(-10, -14) and obj5.subs({a: -10, b: -14}) == 4   # 최댓값을 주는 (a,b)는 여럿이나 값은 4 하나 and expand(fp5(-9, -12) + 6*(x + 1)*(x + 2)) == 0
-v5 = 4
-w5 = max(obj5.subs({a: A, b: 0}) for A in grid if ok5(A, 0))           # b=0 습관(원문 D10에서는 f'(0)=0)
-assert w5 == -8
+assert expand(f5.subs(x, -2) - (4 - 2*diff(f5, x).subs(x, -1))) == 0   # f(-2) = 4 - 2f'(-1)
+bb = solve(diff(f5, x).subs(x, -1), b)[0]
+assert bb == 2*a + 6 and expand(diff(f5, x).subs(b, bb) + 2*(x + 1)*(3*x - a + 3)) == 0
+v5 = expand(f5.subs({b: bb, x: -2}))
+assert v5 == 4 and not v5.free_symbols                                # a에 관계없이 하나
+for A in range(-10, 11):                                              # 극값을 실제로 갖는 a(≠0)마다 4
+    fp = diff(f5, x).subs({a: A, b: 2*A + 6})
+    sgn = (fp.subs(x, Rational(-11, 10)) * fp.subs(x, Rational(-9, 10)) < 0)
+    assert sgn == (A != 0) and f5.subs({a: A, b: 2*A + 6, x: -2}) == 4
+fw = -2*x**3 + a*x**2 + b*x
+w5 = expand(fw.subs({b: 2*a + 3, x: -2}))                             # -3x^2로 미분(원문 -x^3 습관)
+assert w5 == 10
 chk(5, v5, [w5])
 
 # ===== 6번 (J11 분석집_변형 1 + 학교식_예상 2: 계수 a, 넓이 → a) =====
@@ -198,8 +191,10 @@ chk(8, v8, [w8])
 # ===== 조건 빼 보기 =====
 print('--- 조건 빼 보기 ---')
 # 5번
-print("ABLATION 5 (가) (-2,-1)에서 증가: 필요(빼면 b→-∞에서 f(-2)가 한없이 커짐)"); assert obj5.subs({a: -1, b: -100}) > 100
-print(f"ABLATION 5 (가)의 끝 -1: 필요(구간을 (-2,-1)에서 (-3,-2)로 옮기면 f(-2)=16+4a-2b의 최댓값이 바뀜)"); assert max(obj5.subs({a: A, b: B}) for A in grid for B in grid if fp5(A, B).subs(x, -3) >= 0 and fp5(A, B).subs(x, -2) >= 0) != v5
+vals = {f5.subs({a: A, b: B, x: -2}) for A, B in [(0, 0), (1, 1), (-1, 2)]}
+print(f"ABLATION 5 x=-1에서 극값: 필요(빼면 f(-2)=16+4a-2b가 {sorted(vals)} 등으로 정해지지 않음)"); assert len(vals) == 3
+alt = expand(f5.subs({b: solve(diff(f5, x).subs(x, -2), b)[0], x: -2}))
+print(f"ABLATION 5 극값의 위치 -1: 필요(-2이면 f(-2)={alt}로 a에 따라 달라짐)"); assert alt.free_symbols
 # 6번
 s6b = sorted(solve(((a - 3)/2)**4/12 - Rational(4, 3), a))
 print(f'ABLATION 6 넓이 1/12: 필요(4/3이면 a={s6b}, 곱 {s6b[0]*s6b[1]})'); assert s6b[0]*s6b[1] != v6
