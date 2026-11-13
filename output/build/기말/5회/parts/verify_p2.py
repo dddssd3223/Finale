@@ -15,7 +15,7 @@ OPS = {f'OP{i:02d}' for i in range(1, 56)}
 for n, it in IT.items():
     assert it['db_ref'] == REF[n] and it['bunseok'] is False and it['effect'] in ('같음', '쉬워짐')
     assert it['ops'] and all(o in OPS for o in it['ops']) and it['precedent'] and 'STUDY-' in it['precedent']
-    assert COEF & set(it['ops']), n                                   # 계수·매개변수 자리 조작(5·6·7 ●, 8 ○도 넣음)
+    assert n == 5 or COEF & set(it['ops']), n                         # 계수·매개변수 자리 조작(6·7·8; 5번은 학교식으로 내려 뺌, 조정자 지시)
     assert '함정 추가' not in it['vtype'] and len(it['vtype']) <= 3 and it['level'] in ('하', '중')   # 목표 수준 중하–중
     assert len(it['wrongs']) >= 1 and all(w in it['choices'] for w in it['wrongs'])
     for f in ('var', 'sol', 'fast', 'wrong', 'note', 'src', 'body'):
@@ -102,27 +102,27 @@ fS22 = x**2*(x - 4)**2 - 11
 assert fS22.subs(x, 2) == 5 and fS22.subs(x, 5) == 14
 print('원문·분석집 풀이 OK (D10=-10/2, J11=1/12·27/4, D35=30/-6, D22=9/14)')
 
-# ===== 5번 (D10 분석집_변형 1 + 조작_보강 1: (나) f(x)+7x 감소) =====
-obj5 = f10.subs(x, -4)
-assert expand(obj5 - (64 + 16*a - 4*b)) == 0
-# 항등식: f(-4)-12 = -8 f'(-1) + 4(b+7)  → f'(-1)≥0, b≤-7 에서 ≤ 12
-assert expand(obj5 - 12 - (-8*fp_of(a, b).subs(x, -1) + 4*(b + 7))) == 0
-# a>0 가지는 불가능: f'(-1)≥0 → b ≥ 2a+3 > 0 이지만 (나)에서 b ≤ -7 - a^2/3 < 0
-# 꼭짓점 후보 전수
-cands = lp_max(obj5, -2, -1, 7)
-vals = {obj5.subs(c) for c in cands}
-v5 = max(vals)
-best = [c for c in cands if obj5.subs(c) == v5]
-assert v5 == 12 and best == [{a: -5, b: -7}]
-assert inc_on(-5, -7, -2, -1) and dec_shift(-5, -7, 7) and expand(fp_of(-5, -7) + (x + 1)*(3*x + 7)) == 0
-# 격자 전수(유리 격자): 조건을 만족하는 (a,b) 중 최댓값이 12를 넘지 않음
-mx = max(obj5.subs({a: A, b: B}) for A in [Rational(j, 4) for j in range(-80, 9)] for B in [Rational(j, 4) for j in range(-80, 9)]
-         if inc_on(A, B, -2, -1) and dec_shift(A, B, 7))
-assert mx == 12
-w5 = max(obj5.subs(c) for c in lp_max(obj5, -2, -1, 7, use=('가',)))      # 분석집 방법만(=(나) 무시) → 16
-assert w5 == 16 and expand(obj5 - 16 + 4*fp_of(a, b).subs(x, -2)) == 0   # f(-4)=16-4f'(-2)
-assert not any(inc_on(A, B, -2, -1) and dec_shift(A, B, 7) and fp_of(A, B).subs(x, -2) == 0
-               for A in [Rational(j, 4) for j in range(-80, 9)] for B in [Rational(j, 4) for j in range(-80, 9)])   # f'(-2)=0은 (나)와 함께 불가능
+# ===== 5번 (D10 분석집_변형 1, 학교식: 최고차항 -2, 구간 (-2,-1), f(-2)의 최댓값) =====
+f5 = -2*x**3 + a*x**2 + b*x
+def fp5(A, B): return diff(f5, x).subs({a: A, b: B})
+def ok5(A, B, use=('가', '나')):
+    g = fp5(A, B)
+    c1 = g.subs(x, -2) >= 0 and g.subs(x, -1) >= 0                    # (가): f'은 위로 볼록 → 양 끝만
+    c2 = (B <= 0) if A <= 0 else (Rational(A)**2/6 + B <= 0)           # (나): x>0에서 f' ≤ 0
+    return ('가' not in use or c1) and ('나' not in use or c2)
+for A, B in itertools.product(range(-14, 3), range(-20, 4)):            # 끝점 판정 = 표본 판정
+    g = fp5(A, B)
+    assert (g.subs(x, -2) >= 0 and g.subs(x, -1) >= 0) == all(g.subs(x, Rational(-2) + Rational(j, 20)) >= 0 for j in range(21))
+    assert ((B <= 0) if A <= 0 else (Rational(A)**2/6 + B <= 0)) == (max(g.subs(x, t_) for t_ in [Rational(1, 10**6)] + [Rational(j, 20) for j in range(1, 200)]) <= 0)
+obj5 = f5.subs(x, -2)
+assert expand(obj5 - (4 - 2*fp5(a, b).subs(x, -1))) == 0               # f(-2) = 4 - 2f'(-1): f'(-2)의 계수 0
+grid = [Rational(j, 2) for j in range(-40, 7)]
+mx = max(obj5.subs({a: A, b: B}) for A in grid for B in grid if ok5(A, B))
+assert mx == 4
+assert ok5(-9, -12) and obj5.subs({a: -9, b: -12}) == 4 and expand(fp5(-9, -12) + 6*(x + 1)*(x + 2)) == 0
+v5 = 4
+w5 = max(obj5.subs({a: A, b: 0}) for A in grid if ok5(A, 0))           # b=0 습관(원문처럼 f'(0)=0)
+assert w5 == -8
 chk(5, v5, [w5])
 
 # ===== 6번 (J11 분석집_변형 1 + 학교식_예상 2: 계수 a, 넓이 → a) =====
@@ -183,41 +183,25 @@ w7b = w7a - 2                                                         # 부호 �
 assert (w7a, w7b) == (-6, -8)
 chk(7, v7, [w7a, w7b])
 
-# ===== 8번 (D22 분석집_변형 1 + 조작_보강 1: 직선 y=x-3에 두 점에서 접함) =====
-g8 = (x - al)**2*(x - be)**2 - 3                                      # f(x)-x
-S8 = solve([diff(g8, x).subs(x, 0), g8.subs(x, 0) - 13], [al, be], dict=True)
-S8 = [so for so in S8 if so[al].is_real and so[be].is_real and so[al] < so[be]]
-assert len(S8) == 1 and (S8[0][al], S8[0][be]) == (-2, 2)
-f8 = expand(g8.subs(S8[0]) + x)
-assert Poly(f8, x).LC() == 1 and Poly(f8, x).degree() == 4
-assert expand(f8 - (x - 3) - (x + 2)**2*(x - 2)**2) == 0             # 직선 y=x-3과 x=-2, 2에서 접함
-g8v = f8 - x
-crit = sorted(real_roots(Poly(diff(g8v, x), x)))
-assert crit == [-2, 0, 2] and diff(g8v, x, 2).subs(x, 0) < 0 and g8v.subs(x, 0) == 13   # x=0에서 극대
-# 일반 사차함수로 전수: f=x^4+...; f-(x-3)이 두 이중근, (f-x)'(1)=0, (f-x)(1)=13
-e3, e2, e1, e0 = symbols('e3 e2 e1 e0', real=True)
-F8 = x**4 + e3*x**3 + e2*x**2 + e1*x + e0
-G = expand(F8 - (x - 3) - (x - al)**2*(x - be)**2)
-eqs = Poly(G, x).all_coeffs() + [diff(F8 - x, x).subs(x, 0), (F8 - x).subs(x, 0) - 13]
-SS = [so for so in solve(eqs, [e3, e2, e1, e0, al, be], dict=True) if all(v_.is_real for v_ in so.values()) and so[al] != so[be]]
-vals8 = {F8.subs(so).subs(x, 1) for so in SS}
-assert vals8 == {7}
-v8 = f8.subs(x, 1)
-w8 = g8v.subs(x, 1)
+# ===== 8번 (D22 분석집_변형 1 + 조작_보강 1: 직선 y=x-3에 두 점에서 접함, 한 접점 x=2) =====
+g8 = (x - al)**2*(x - 2)**2 - 3                                       # f(x)-x
+cand = solve(diff(g8, x).subs(x, 0), al)
+assert sorted(cand) == [-2, 0]
+good = [c_ for c_ in cand if c_ != 2 and diff(g8.subs(al, c_), x, 2).subs(x, 0) < 0]   # x=0에서 극대
+assert good == [-2]                                                   # al=0이면 x=0은 극소(접점)
+f8 = expand(g8.subs(al, -2) + x)
+assert Poly(f8, x).LC() == 1 and expand(f8 - (x - 3) - (x + 2)**2*(x - 2)**2) == 0
+v8 = f8.subs(x, 1); w8 = (f8 - x).subs(x, 1)
 assert (v8, w8) == (7, 6)
 chk(8, v8, [w8])
 
 # ===== 조건 빼 보기 =====
 print('--- 조건 빼 보기 ---')
 # 5번
-print(f'ABLATION 5 (나) f(x)+7x 감소: 필요(빼면 최댓값 {w5})'); assert w5 != v5
-alt = max(obj5.subs(c) for c in lp_max(obj5, -2, -1, 0))
-print(f'ABLATION 5 (나)의 7x: 필요(f(x)의 감소로만 두면 최댓값 {alt})'); assert alt == 16
-alt9 = max(obj5.subs(c) for c in lp_max(obj5, -2, -1, 9))
-print(f'ABLATION 5 (나)의 계수 7: 필요(9이면 최댓값 {alt9})'); assert alt9 == 4
-print(f'ABLATION 5 (가) (-2,-1)에서 증가: 필요(빼면 a=-5, b=-k(k→∞)에서 f(-4)=64-80+4k가 한없이 커져 최댓값 없음)'); assert obj5.subs({a: -5, b: -100}) > 300
-alt3 = max(obj5.subs(c) for c in lp_max(obj5, -3, -1, 7))
-print(f'ABLATION 5 (가)의 왼쪽 끝 -2: 필요(-3이면 f\'(-3)≥0이 걸려 최댓값 {alt3})'); assert alt3 != v5
+print("ABLATION 5 (가) (-2,-1)에서 증가: 필요(빼면 b→-∞에서 f(-2)가 한없이 커짐)"); assert ok5(-1, -100, use=('나',)) and obj5.subs({a: -1, b: -100}) > 100
+mx3 = max(obj5.subs({a: A, b: B}) for A in grid for B in grid if ok5(A, B) and fp5(A, B).subs(x, -3) >= 0)
+print(f"ABLATION 5 (가)의 끝 -1: 필요(구간을 (-2,-1)에서 (-3,-2)로 옮기면 f(-2)=16+4a-2b의 최댓값이 바뀜)"); assert max(obj5.subs({a: A, b: B}) for A in grid for B in grid if ok5(A, B, use=('나',)) and fp5(A, B).subs(x, -3) >= 0 and fp5(A, B).subs(x, -2) >= 0) != v5
+print("ABLATION 5 (나) (0,∞)에서 감소: 군더더기(답 그대로) — 분석집 문항과 같이 b=0 습관(오답 -8)을 부르는 원문 조건으로 둠"); assert max(obj5.subs({a: A, b: B}) for A in grid for B in grid if ok5(A, B, use=('가',))) == v5
 # 6번
 s6b = sorted(solve(((a - 3)/2)**4/12 - Rational(4, 3), a))
 print(f'ABLATION 6 넓이 1/12: 필요(4/3이면 a={s6b}, 곱 {s6b[0]*s6b[1]})'); assert s6b[0]*s6b[1] != v6
@@ -234,16 +218,9 @@ print(f'ABLATION 7 극댓값 6·극솟값 -10: 필요(차가 32이면 p={pS1}, �
 pS2 = solve(integrate(3*p*(x + 3)*(x - 3), (x, 3, -3)) - 16, p)[0]
 print(f'ABLATION 7 b의 최댓값 1: 필요(3이면 p={pS2}, 답 {(3*pS2*(x + 3)*(x - 3)).subs(x, -1) + 2})'); assert (3*pS2*(x + 3)*(x - 3)).subs(x, -1) + 2 != v7
 # 8번
-g8b = (x - al)**2*(x - be)**2 - 3
-S8b = [so for so in solve([diff(g8b, x).subs(x, 0), g8b.subs(x, 0) - 13], [al, be], dict=True) if so[al].is_real and so[al] < so[be]]
-alt8 = (g8b.subs(S8b[0]) + 0*x).subs(x, 1)
-print(f'ABLATION 8 직선의 기울기 1(y=x-3, f(x)-x): 필요(y=-3, f(x)로 두면 f(1)={alt8})'); assert alt8 != v8
-S8c = [so for so in solve([diff(g8, x).subs(x, 0), g8.subs(x, 0) - 78], [al, be], dict=True) if so[al].is_real and so[al] < so[be]]
-alt8c = (g8.subs(S8c[0]) + x).subs(x, 1)
-print(f'ABLATION 8 극댓값 13: 필요(78이면 f(1)={alt8c})'); assert alt8c != v8
-print('ABLATION 8 서로 다른 두 점에서 접함: 필요(빼면 x=0에서의 두 조건만 남아 f(1)가 계수 e3, e2에 따라 달라짐)')
-fa_ = x**4 + e3*x**3 + e2*x**2 + e1*x + e0
-free = solve([diff(fa_ - x, x).subs(x, 0), (fa_ - x).subs(x, 0) - 13], [e1, e0], dict=True)[0]
-assert (fa_.subs(free)).subs(x, 1).free_symbols
+alt8 = expand((x - al)**2*(x - 2)**2 - 3 + x)
+print("ABLATION 8 x=0에서 극대: 필요(극소로 읽으면 al=0, f(1)={})".format(alt8.subs({al: 0, x: 1}))); assert alt8.subs({al: 0, x: 1}) != v8
+print("ABLATION 8 한 접점의 x좌표 2: 필요(3이면 다른 접점 -3, f(1)={})".format(((x + 3)**2*(x - 3)**2 - 3 + x).subs(x, 1))); assert ((x + 3)**2*(x - 3)**2 - 3 + x).subs(x, 1) != v8
+print("ABLATION 8 직선 y=x-3(기울기 1): 필요(y=-3, f(x)로 두면 f(1)={})".format(w8)); assert w8 != v8
 
 print('ALL OK')

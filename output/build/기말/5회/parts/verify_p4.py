@@ -128,42 +128,47 @@ check(13, ok_pa == [-2, 0], f'(가): p∈{ok_pa}')
 mins_p0 = [v for _, ty, v in crit_types(sp.expand(x**3 * (x - 2))) if ty == '극소']
 mins_p2 = [v for _, ty, v in crit_types(sp.expand(x**2 * (x - 2)**2)) if ty == '극소']
 check(13, mins_p0 == [-R(27, 16)] and mins_p2 == [0, 0], f'k=1: p=0 극솟값 {mins_p0}, p=-2 극솟값 {mins_p2}(0이라 (나) 불만족)')
-k13 = sp.solve(sp.Eq(-R(27, 16) * k, -R(9, 2)), k)
-check(13, k13 == [R(8, 3)], f'-27k/16=-9/2 → k={k13}')
-f13 = R(8, 3) * x**2; g13 = sp.expand((x**2 - 2 * x) * f13)
+k13 = sp.solve(sp.Eq(-R(27, 16) * k, -27), k)
+check(13, k13 == [16], f'-27k/16=-27 → k={k13}')
+f13 = 16 * x**2; g13 = sp.expand((x**2 - 2 * x) * f13)
 _, nz, nt, mins = cond13(f13)
-check(13, nz == 2 and mins == [-R(9, 2)], f'f=8x^2/3: 영점 {nz}개, 극솟값 {mins}')
-m13 = sp.expand(sp.diff(f13, x).subs(x, -1) * (x + 1) + f13.subs(x, -1)); n13 = sp.expand(sp.diff(g13, x).subs(x, -1) * (x + 1) + g13.subs(x, -1))
-check(13, m13 == -R(16, 3) * x - R(8, 3) and n13 == -R(80, 3) * x - R(56, 3) and sp.solve(m13 - n13, x) == [-R(3, 4)], f'm: y={m13}, n: y={n13}, 교점 x=-3/4')
-ans13 = area13(f13, g13)
-check(13, ans13 == 6, f'넓이 1/2*16*3/4 = {ans13}')
+check(13, nz == 2 and mins == [-27], f'f=16x^2: 영점 {nz}개, 극솟값 {mins}')
+
+
+def area13b(g):
+    tl = sp.expand(sp.diff(g, x).subs(x, 1) * (x - 1) + g.subs(x, 1))
+    if sp.diff(tl, x) == 0 or tl.subs(x, 0) == 0: return None
+    return sp.nsimplify(abs(tl.subs(x, 0) * sp.solve(tl, x)[0]) / 2), tl
+
+
+ans13, tl13 = area13b(g13)
+check(13, tl13 == -32 * x + 16 and ans13 == 4, f'접선 y={tl13}, 넓이 1/2*1/2*16 = {ans13}')
 cands = []
 for p in (0, -2):
     gg = sp.expand((x**2 - 2 * x) * x * (x + p))
     mn = sorted({v for _, ty, v in crit_types(gg) if ty == '극소'})
-    if len(mn) == 1 and mn[0] < 0: cands.append((p, -R(9, 2) / mn[0]))
-check(13, cands == [(0, R(8, 3))], f'k>0에서 (가)(나)를 만족시키는 (p, k) 전수: {cands}')
-check(13, '접하는' not in IT[13]['body'] + str(IT[13]['cond']) and len(IT[13]['cond']) == 2, '조건 상자 2개, 접점 개수(삼중근 해석) 조건 없음')
+    if len(mn) == 1 and mn[0] < 0: cands.append((p, -27 / mn[0]))
+check(13, cands == [(0, 16)], f'k>0에서 (가)(나)를 만족시키는 (p, k) 전수: {cands}')
+check(13, '접하는' not in IT[13]['body'] + str(IT[13]['cond']) and len(IT[13]['cond']) == 2, '조건 상자 2개, 접점 개수(삼중근 해석) 조건 없음, 접선 하나')
 ans_ok(13, ans13)
-w_h1 = R(1, 2) * 16 * 1; w_nohalf = 16 * R(3, 4)
-check(13, (w_h1, w_nohalf) == (8, 12), f'오답: 높이를 접점 x좌표 -1로 {w_h1}, 1/2 빠뜨림 {w_nohalf}')
-wrong_in(13, [w_h1, w_nohalf], '높이 1 / 1/2 빠뜨림')
+w_nohalf = R(1, 2) * 16
+w_slip = area13b(sp.expand((x**2 - 2 * x) * 8 * x**2))[0]     # 극솟값을 -27k/8로 잘못 → k=8
+check(13, (w_nohalf, w_slip) == (8, 2), f'오답: 1/2 빠뜨림 {w_nohalf}, 극솟값 -27k/8로 실수(k=8) {w_slip}')
+wrong_in(13, [w_nohalf, w_slip], '1/2 빠뜨림 / 극솟값 계산 실수')
 o13 = [v for _, ty, v in crit_types(sp.expand(x**3 * (x - 2))) if ty == '극소']
 check('D46', o13 == [-R(27, 16)] and orig_ans('D46') == r'-\dfrac{27}{16}', f'D46 원문: g=x^3(x-2), 극솟값 {o13} = 원문 정답 {orig_ans("D46")}')
 print('--- 13번 조건 빼 보기 ---')
-f_a = R(9, 8) * x * (x + 2); g_a = sp.expand((x**2 - 2 * x) * f_a)     # p=2: g=k(x^4-4x^2), 두 극솟값이 모두 -4k
-_, nz_a, _, mn_a = cond13(f_a)
-check(13, nz_a == 3 and set(mn_a) == {-R(9, 2)}, f'(가) 없이: p=2, k=9/8이면 극솟값 {set(mn_a)}(영점 {nz_a}개)')
-ablation(13, '(가) 집합의 원소의 개수', [ans13, area13(f_a, g_a)], ans13, 'p=2, k=9/8')
-ablation(13, '(나) 극솟값 -9/2', [area13(kv * x**2, sp.expand((x**2 - 2 * x) * kv * x**2)) for kv in (1, 2, R(8, 3))], ans13, '넓이 9k/4')
-f_b = -R(9, 2) * x * (x - 2); g_b = sp.expand((x**2 - 2 * x) * f_b)
-_, nz_b, _, mn_b = cond13(f_b)
-check(13, nz_b == 2 and mn_b == [-R(9, 2)], f'계수 양수 없이: p=-2, k=-9/2도 (가)(나) 만족, 넓이 {area13(f_b, g_b)}')
-ablation(13, '최고차항의 계수가 양수', [ans13, area13(f_b, g_b)], ans13)
-f_c = R(8, 3) * (x - 2)**2; g_c = sp.expand((x**2 - 2 * x) * f_c)
-_, nz_c, _, mn_c = cond13(f_c)
-check(13, nz_c == 2 and mn_c == [-R(9, 2)], f'f(0)=0 없이: f=8(x-2)^2/3도 (가)(나) 만족, 넓이 {area13(f_c, g_c)}')
-ablation(13, 'f(0)=0', [ans13, area13(f_c, g_c)], ans13)
+g_a = sp.expand(R(27, 4) * (x**4 - 4 * x**2))     # p=2, k=27/4: 두 극솟값이 모두 -27
+_, nz_a, _, mn_a = cond13(R(27, 4) * x * (x + 2))
+check(13, nz_a == 3 and set(mn_a) == {-27}, f'(가) 없이: p=2, k=27/4이면 극솟값 {set(mn_a)}(영점 {nz_a}개)')
+ablation(13, '(가) 집합의 원소의 개수', [ans13, area13b(g_a)[0]], ans13, 'p=2, k=27/4')
+ablation(13, '(나) 극솟값 -27', [area13b(sp.expand((x**2 - 2 * x) * kv * x**2))[0] for kv in (1, 8, 16)], ans13, '넓이 k/4')
+g_c = sp.expand((x**2 - 2 * x) * 16 * (x - 2)**2)
+_, nz_c, _, mn_c = cond13(16 * (x - 2)**2)
+check(13, nz_c == 2 and mn_c == [-27], f'f(0)=0 없이: f=16(x-2)^2도 (가)(나) 만족, 넓이 {area13b(g_c)[0]}')
+ablation(13, 'f(0)=0', [ans13, area13b(g_c)[0]], ans13)
+g_b = sp.expand(-27 * x**2 * (x - 2)**2)
+check(13, cond13(-27 * x * (x - 2))[3] == [-27] and area13b(g_b) is None, "'최고차항의 계수가 양수' 없이: p=-2, k=-27도 (가)(나)를 만족하지만 접선 y=-27이 x축과 평행해 넓이가 생기지 않음(함수 소개 문구로 처음부터 막음)")
 
 # ================= 14번 (D32 예상밖 1: g(t)=∫_t^{t+1} f, f=x^2-a|x| 우함수, t=3/2에서 극소 → 극댓값-극솟값) =================
 a = sp.symbols('a', positive=True)
