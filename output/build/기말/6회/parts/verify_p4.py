@@ -185,8 +185,8 @@ ko = [k for k in (0, 5, 32) if kink_sum(fo + k)[0] == 2]
 check(14, ko == [0, 5] and sum(ko) == 5 and orig_ans('D31') == 'T:ㄱ, ㄷ', f'원문 D31: k={ko}, 합 5, 원문 답 {orig_ans("D31")}')
 # 빼 보기
 ablation(14, "'x=1에서 극소'", set().union(*[solve14(pv) for pv in (0, 12, -12, 30)]), -6, 'p를 바꾸면 꺾인 점의 합이 달라짐(극점이 유리수인 p=0, 12, −12, 30 확인)')
-ablation(14, "'극댓값은 양수'(k>0)", solve14(12, kpos=False), -6, 'k=0(극댓값 0)도 꺾인 점이 2개')
-ablation(14, "'x축에 접한다'", {kink_sum(f0 + k)[1] for k in (10, 20, 100) if kink_sum(f0 + k)[0] == 2}, -6, '9<k<384인 k에서도 꺾인 점이 2개')
+ablation(14, "'극댓값은 0보다 크다'(k>0)", solve14(12, kpos=False), -6, 'k=0(극댓값 0)도 꺾인 점이 2개')
+ablation(14, "'x축에 접한다'", {sp.Float(sp.N(kink_sum(f0 + k)[1], 8), 5) for k in (10, 20, 100) if kink_sum(f0 + k)[0] == 2}, -6, '9<k<384인 k에서도 꺾인 점이 2개')
 r_ = solve14(12, need_n2=False)
 ablation(14, "'개수가 2'", None, -6, undef=f'k=384도 남고 그때는 꺾인 점이 없어 합이 정해지지 않음(남는 경우의 합 {r_})')
 
@@ -212,10 +212,10 @@ mo = sp.solve(sp.Eq(sp.integrate(fo - (m * x + 2), (x, 0, 2)), R(2, 3)), m)
 check(15, mo == [orig_ans('J62')], f'원문 J62: m={mo}, 원문 답 {orig_ans("J62")}')
 # 빼 보기
 abl = set()
-for mm in (2, 3, 5):   # '접할 때'를 빼면 m이 자유: 0<x<2에서 한 점에서 교차하는 m이면 B−A=∫₀²(곡선−직선)
+for mm in (7, 8, 10):   # '접할 때'를 빼면 m이 자유: 0<x<2에서 한 점에서 교차하는 m이면 B−A=∫₀²(곡선−직선)
     rr = [r for r in sp.Poly(F15 - (mm * x + 2), x).real_roots() if 0 < r < 2]
     if len(rr) == 1: abl.add(sp.integrate(F15 - (mm * x + 2), (x, 0, 2)))
-ablation(15, "'직선 y=mx+2가 곡선에 접할 때'", abl, 2, 'm=2, 3, 5(한 점에서 교차)마다 B−A가 다름')
+ablation(15, "'직선 y=mx+2가 곡선에 접할 때'", abl, 2, 'm=7, 8, 10(0<x<2에서 한 점에서 교차)마다 B−A가 다름')
 A2 = sp.integrate(F15 - T15, (x, -R(1, 2), 1))
 ablation(15, "'y축'", {B15 - A2}, 2, f'A가 곡선과 직선만으로 둘러싸인 부분(−1/2≤x≤1, 넓이 {A2})이 됨')
 ablation(15, "'x=2'", None, 2, undef='x>1에서 곡선이 계속 직선 위에 있어 B가 닫힌 부분이 되지 않음')
