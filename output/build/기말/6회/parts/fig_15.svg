@@ -6,7 +6,7 @@
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-11-16T09:00:05.153325</dc:date>
+    <dc:date>2026-11-16T09:00:25.006537</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -39,7 +39,7 @@ z
    </g>
    <g id="FillBetweenPolyCollection_1">
     <defs>
-     <path id="m44cbf90aad" d="M 17.687647 -49.8057 
+     <path id="m80361ab116" d="M 17.687647 -49.8057 
 L 17.687647 -33.04477 
 L 17.929158 -33.100827 
 L 18.170669 -33.156883 
@@ -644,8 +644,8 @@ L 17.687647 -49.8057
 z
 "/>
     </defs>
-    <g clip-path="url(#p35a2552359)">
-     <use xlink:href="#m44cbf90aad" x="0" y="157.577042" style="fill: #dbdbdb"/>
+    <g clip-path="url(#p8a08ab6478)">
+     <use xlink:href="#m80361ab116" x="0" y="157.577042" style="fill: #dbdbdb"/>
     </g>
    </g>
    <g id="matplotlib.axis_1"/>
@@ -703,18 +703,18 @@ L 89.383613 26.929026
 L 91.772574 12.6866 
 L 93.51 1.473522 
 L 93.51 1.473522 
-" clip-path="url(#p35a2552359)" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: square"/>
+" clip-path="url(#p8a08ab6478)" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: square"/>
    </g>
    <g id="line2d_4">
     <path d="M 3.245294 127.884458 
 L 111.562941 102.743062 
 L 111.562941 102.743062 
-" clip-path="url(#p35a2552359)" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: square"/>
+" clip-path="url(#p8a08ab6478)" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: square"/>
    </g>
    <g id="line2d_5">
     <path d="M 89.899412 146.321481 
 L 89.899412 13.910132 
-" clip-path="url(#p35a2552359)" style="fill: none; stroke: #000000; stroke-width: 0.7; stroke-linecap: square"/>
+" clip-path="url(#p8a08ab6478)" style="fill: none; stroke: #000000; stroke-width: 0.7; stroke-linecap: square"/>
    </g>
    <g id="patch_3">
     <path d="M 129.1104 141.293202 
@@ -974,7 +974,7 @@ L 25.132284 115.871299
 L 27.002677 112.629112 
 L 27.377597 115.871299 
 z
-" clip-path="url(#p35a2552359)"/>
+" clip-path="url(#p8a08ab6478)"/>
    </g>
    <g id="patch_6">
     <path d="M 82.783939 89.239475 
@@ -1049,7 +1049,7 @@ Q 81.55835 87.901975 81.699308 88.184788
 Q 81.807941 88.391038 81.830149 88.67385 
 Q 81.854521 88.947288 81.789228 89.2301 
 z
-" clip-path="url(#p35a2552359)"/>
+" clip-path="url(#p8a08ab6478)"/>
    </g>
    <g id="text_4">
     <!--  -->
@@ -1273,7 +1273,7 @@ z
    </g>
    <g id="text_7">
     <!--  -->
-    <g transform="translate(20.914085 21.079036) scale(0.09 -0.09)">
+    <g transform="translate(17.303496 21.079036) scale(0.09 -0.09)">
      <defs>
       <path id="HyhwpEQ-d1" d="M 3019 1069 
 L 3019 1269 
@@ -1319,7 +1319,7 @@ z
    </g>
    <g id="text_8">
     <!--  -->
-    <g transform="translate(41.945335 17.745286) scale(0.0612 -0.0612)">
+    <g transform="translate(38.334746 17.745286) scale(0.0612 -0.0612)">
      <defs>
       <path id="HyhwpEQ-d0" d="M 2925 1106 
 Q 2925 1200 2900 1306 
@@ -1397,7 +1397,7 @@ z
    </g>
    <g id="text_9">
     <!--  -->
-    <g transform="translate(45.007835 21.079036) scale(0.09 -0.09)">
+    <g transform="translate(41.397246 21.079036) scale(0.09 -0.09)">
      <defs>
       <path id="HyhwpEQ-e0" d="M 4488 1794 
 Q 4488 1881 4413 1913 
@@ -1478,13 +1478,13 @@ z
    </g>
    <g id="text_10">
     <!--  -->
-    <g transform="translate(61.445335 17.745286) scale(0.0612 -0.0612)">
+    <g transform="translate(57.834746 17.745286) scale(0.0612 -0.0612)">
      <use xlink:href="#HyhwpEQ-cf"/>
     </g>
    </g>
    <g id="text_11">
     <!--  -->
-    <g transform="translate(64.507835 21.079036) scale(0.09 -0.09)">
+    <g transform="translate(60.897246 21.079036) scale(0.09 -0.09)">
      <use xlink:href="#HyhwpEQ-e2"/>
      <use xlink:href="#HyhwpEQ-196" transform="translate(77.640625 0)"/>
      <use xlink:href="#HyhwpEQ-e2" transform="translate(134.765625 0)"/>
@@ -1494,7 +1494,7 @@ z
   </g>
  </g>
  <defs>
-  <clipPath id="p35a2552359">
+  <clipPath id="p8a08ab6478">
    <rect x="1.44" y="7.20576" width="122.76" height="144.144"/>
   </clipPath>
  </defs>

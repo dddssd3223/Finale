@@ -83,7 +83,8 @@ def orig_ans(key):
     o = F.I[key]
     if o[1] is None:
         return sp.Rational(o[2])
-    return o[1]['①②③④⑤'.index(o[2])]
+    c = o[1]['①②③④⑤'.index(o[2])]
+    return c if c.startswith('T:') else choice_val(c)
 
 
 # ================= 13번 (D47 거울상 + 폭 b, f가 오직 하나) =================
@@ -184,37 +185,40 @@ ko = [k for k in (0, 5, 32) if kink_sum(fo + k)[0] == 2]
 check(14, ko == [0, 5] and sum(ko) == 5 and orig_ans('D31') == 'T:ㄱ, ㄷ', f'원문 D31: k={ko}, 합 5, 원문 답 {orig_ans("D31")}')
 # 빼 보기
 ablation(14, "'x=1에서 극소'", set().union(*[solve14(pv) for pv in (0, 12, -12, 30)]), -6, 'p를 바꾸면 꺾인 점의 합이 달라짐(극점이 유리수인 p=0, 12, −12, 30 확인)')
-ablation(14, '단서 k>0', solve14(12, kpos=False), -6, 'k=0(극댓값 0)도 꺾인 점이 2개')
+ablation(14, "'극댓값은 양수'(k>0)", solve14(12, kpos=False), -6, 'k=0(극댓값 0)도 꺾인 점이 2개')
 ablation(14, "'x축에 접한다'", {kink_sum(f0 + k)[1] for k in (10, 20, 100) if kink_sum(f0 + k)[0] == 2}, -6, '9<k<384인 k에서도 꺾인 점이 2개')
 r_ = solve14(12, need_n2=False)
 ablation(14, "'개수가 2'", None, -6, undef=f'k=384도 남고 그때는 꺾인 점이 없어 합이 정해지지 않음(남는 경우의 합 {r_})')
 
 
-# ================= 15번 (J62 + 접선) =================
-F15 = 4 * x**3 - 6 * x**2 + x + 3
-T15 = sp.expand(sp.diff(F15, x).subs(x, 1) * (x - 1) + F15.subs(x, 1))
+# ================= 15번 (J62 + 접하는 직선 y=mx+2) =================
+F15 = 4 * x**3 - 6 * x**2 + x + 4
+m, s_ = sp.symbols('m s', real=True)
+tan = sp.solve([sp.diff(F15, x).subs(x, s_) - m, F15.subs(x, s_) - (m * s_ + 2)], [s_, m], dict=True)
+tan_r = [d for d in tan if d[s_].is_real]
+check(15, tan_r == [{s_: 1, m: 1}], f'점 (0, 2)를 지나 곡선에 접하는 직선: 접점·기울기 {tan_r} (실수해 하나)')
+T15 = x + 2
 H = sp.factor(F15 - T15)
-check(15, F15.subs(x, 1) == 2 and T15 == x + 1 and H == 2 * (x - 1)**2 * (2 * x + 1), f'접선 y={T15}, 곡선−접선={H}')
+check(15, H == 2 * (x - 1)**2 * (2 * x + 1), f'곡선−직선={H}')
 check(15, all((F15 - T15).subs(x, R(i, 20)) >= 0 for i in range(41)) and sp.solve(F15 - T15, x) == [-R(1, 2), 1],
-      '0≤x≤2에서 곡선이 접선 위(교점 −1/2, 1뿐) → A·B 모두 곡선이 위')
+      '0≤x≤2에서 곡선이 직선 위(교점 −1/2, 1뿐) → A·B 모두 곡선이 위')
 A15 = sp.integrate(F15 - T15, (x, 0, 1)); B15 = sp.integrate(F15 - T15, (x, 1, 2))
 check(15, (A15, B15) == (1, 3), f'A={A15}, B={B15}')
 ans_ok(15, B15 - A15)
 wrong_in(15, [sp.integrate(F15 - T15, (x, 0, 2)), sp.integrate(H / 2, (x, 1, 2)) - sp.integrate(H / 2, (x, 0, 1))], '원문 습관 ∫₀²(곡선−직선)=A+B=4 · 인수 2 누락 1')
 # 원문 J62: B−A=∫₀²(f−(mx+2))=2/3 → m=−4/3
-m = sp.Symbol('m')
 fo = x**3 / 4 + x / 2
 mo = sp.solve(sp.Eq(sp.integrate(fo - (m * x + 2), (x, 0, 2)), R(2, 3)), m)
-check(15, mo == [orig_ans('J62') if not isinstance(orig_ans('J62'), str) else choice_val(orig_ans('J62'))], f'원문 J62: m={mo}, 원문 답 {orig_ans("J62")}')
+check(15, mo == [orig_ans('J62')], f'원문 J62: m={mo}, 원문 답 {orig_ans("J62")}')
 # 빼 보기
 abl = set()
-for mm in (2, 3, 5):   # '접선' 대신 점 (1, 2)를 지나는 직선 y=m(x−1)+2 (0<x<2에서 한 점에서 교차)
-    L = mm * (x - 1) + 2
-    abl.add(sp.integrate(F15 - L, (x, 0, 2)))   # 교차하면 B−A=∫₀²(곡선−직선)
-ablation(15, "'접선'(점 (1, 2)를 지나는 직선)", abl, 2, '기울기에 따라 B−A가 달라짐')
+for mm in (2, 3, 5):   # '접할 때'를 빼면 m이 자유: 0<x<2에서 한 점에서 교차하는 m이면 B−A=∫₀²(곡선−직선)
+    rr = [r for r in sp.Poly(F15 - (mm * x + 2), x).real_roots() if 0 < r < 2]
+    if len(rr) == 1: abl.add(sp.integrate(F15 - (mm * x + 2), (x, 0, 2)))
+ablation(15, "'직선 y=mx+2가 곡선에 접할 때'", abl, 2, 'm=2, 3, 5(한 점에서 교차)마다 B−A가 다름')
 A2 = sp.integrate(F15 - T15, (x, -R(1, 2), 1))
-ablation(15, "'y축'", {B15 - A2}, 2, f'A가 곡선과 접선만으로 둘러싸인 부분(−1/2≤x≤1, 넓이 {A2})이 됨')
-ablation(15, "'x=2'", None, 2, undef='x>1에서 곡선이 계속 접선 위에 있어 B가 닫힌 부분이 되지 않음')
+ablation(15, "'y축'", {B15 - A2}, 2, f'A가 곡선과 직선만으로 둘러싸인 부분(−1/2≤x≤1, 넓이 {A2})이 됨')
+ablation(15, "'x=2'", None, 2, undef='x>1에서 곡선이 계속 직선 위에 있어 B가 닫힌 부분이 되지 않음')
 
 
 # ================= 16번 (D72 + GEN1-01-172 뒤집기 + 폭 b, 순서쌍 개수) =================
