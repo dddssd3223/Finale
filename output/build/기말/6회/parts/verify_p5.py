@@ -1,94 +1,111 @@
 # -*- coding: utf-8 -*-
-# 17번 후보 A17 수정본 (J39 킬러 설계A: 누적 최댓값 M(T), 위치 차가 두 번 부호를 바꿈, 거리 < M(T) 인 T 의 범위 α<T<β, α+β) 검증 · author='claude'
+# 17번 후보 A17 (M31 킬러 설계A 변형: h(t)=g(t)+g(c-2t), p(c)=불연속점 개수, m=min p, n=#{c: p(c)=m}, mn) 검증 · author='claude'
 import sympy as sp, os, sys
-t, a = sp.symbols('t a', real=True)
-R = sp.Rational
+from fractions import Fraction as Fr
+x = sp.symbols('x', real=True)
 ns = {}; exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'p5.py')).read(), ns)
 IT = ns['ITEMS'][17]
+f = x**3 - 3 * x**2 - 9 * x + 10
 
 
-def pos_diff(av, c1=4, c2=-36, k=3, x20=0):
-    """x1-x2, v1 = k t^2 + c1, v2 = av t + c2, P 는 원점·Q 는 x20 에서 출발"""
-    s = sp.Symbol('s')
-    return sp.expand(sp.integrate(k * s**2 + c1 - (av * s + c2), (s, 0, t)) - x20)
+# ---------- 1) g(t) 를 근 개수로 직접 계산해 표 확인
+def g_exact(tv, F=f):
+    tv = sp.nsimplify(tv)
+    if tv < 0: return 0
+    rs = set(sp.real_roots(sp.Poly(F - tv, x))) | set(sp.real_roots(sp.Poly(F + tv, x)))
+    return len(rs)
+
+assert sp.solve(sp.diff(f, x), x) == [-1, 3] and f.subs(x, -1) == 15 and f.subs(x, 3) == -17
+tbl = {Fr(-1): 0, Fr(0): 3, Fr(1): 6, Fr(14): 6, Fr(15): 5, Fr(16): 4, Fr(17): 3, Fr(18): 2, Fr(40): 2}
+for tv, v in tbl.items(): assert g_exact(tv) == v, (tv, g_exact(tv))
+print('g(t): 0 (t<0), 3 (t=0), 6 (0<t<15), 5 (t=15), 4 (15<t<17), 3 (t=17), 2 (t>17) — 근 개수 직접 계산 확인')
 
 
-def region(D, Tmax=30.0, n=30000):
-    """|D(T)| < M(T) 인 T 들(격자) → 연결 구간 목록 [(왼끝, 오른끝)]"""
-    f = sp.lambdify(t, sp.Abs(D))
-    run, segs, cur = -1.0, [], None
-    h = Tmax / n
-    for i in range(n + 1):
-        x = i * h; v = float(f(x)); run = max(run, v)
-        inside = v < run - 1e-9
-        if inside and cur is None: cur = [x - h, x]
-        elif inside: cur[1] = x
-        elif cur is not None: cur[1] = x; segs.append(tuple(round(c, 2) for c in cur)); cur = None
-    if cur is not None: segs.append((round(cur[0], 2), None))
-    return segs
+def g(t, P=15, Q=17):
+    if t < 0: return 0
+    if t == 0: return 3
+    if t < P: return 6
+    if t == P: return 5
+    if t < Q: return 4
+    if t == Q: return 3
+    return 2
 
 
-# ---------- 1) '시각 5에서 만남' → a = 26 (일차식, 유일)
-Da = pos_diff(a)
-assert sp.expand(Da - t * (t**2 - a / 2 * t + 40)) == 0
-asol = sp.solve(Da.subs(t, 5), a); assert asol == [26]
-D = sp.expand(Da.subs(a, 26)); assert sp.expand(D - t * (t - 5) * (t - 8)) == 0
-assert sorted({r for r in sp.real_roots(sp.Poly(D, t)) if r > 0}) == [5, 8]
-print('t=5 에서 만남 → a=26 (유일), D = t(t-5)(t-8): 두 점은 t=5, 8 에서 만나고 5<t<8 에서 Q 가 앞섬')
+def disc_pts(c, k=2, sign=1, gf=g):
+    """h(t)=g(t)+g(c-k t) (sign=1) 의 불연속점. 후보는 g 와 g(c-kt) 의 불연속점뿐."""
+    h = lambda t: gf(t) + sign * gf(c - k * t)
+    cands = {Fr(0), Fr(15), Fr(17)} | {(c - Fr(v)) / k for v in (0, 15, 17)}
+    e = Fr(1, 10**6)
+    return sorted(t for t in cands if not (h(t - e) == h(t) == h(t + e)))
 
-# ---------- 2) 극값·접힌 봉우리·경계 9 (정확)
-assert sp.factor(sp.diff(D, t)) == sp.factor((t - 2) * (3 * t - 20))
-h1, h2 = D.subs(t, 2), D.subs(t, R(20, 3))
-assert h1 == 36 and h2 == R(-400, 27) and abs(h2) < h1
-assert sp.expand(D - 36 - (t - 2)**2 * (t - 9)) == 0
-# 0≤t≤9 에서 |D|≤36, 등호는 t=2, 9 뿐
-assert sp.solve_univariate_inequality(D <= 36, t, relational=False).contains(R(85, 10))
-assert sp.solve(sp.Eq(D, 36), t) == [2, 9]
-eq_neg = [r for r in sp.real_roots(sp.Poly(D + 36, t)) if 0 <= r <= 9]
-assert eq_neg == [], eq_neg                                   # 접힌 쪽(-D=36)은 [0,9] 안에서 안 생김
-segs = region(D)
-assert len(segs) == 1 and abs(segs[0][0] - 2) < 0.01 and abs(segs[0][1] - 9) < 0.01, segs
-alpha, beta = 2, 9
-ANS = alpha + beta
-print(f'극댓값 D(2)=36, 접힌 봉우리 |D(20/3)|=400/27<36, D-36=(t-2)^2(t-9); 격자 {segs} → α=2, β=9, α+β={ANS}')
-# M(T) 세 갈래 (정확값 표본)
-def M_exact(Tv):
-    cands = [0, Tv] + [c for c in (2, R(20, 3)) if c <= Tv]
-    return max(abs(D.subs(t, c)) for c in cands)
-assert [M_exact(Tv) for Tv in (1, 3, 6, 7, 9, 10)] == [D.subs(t, 1), 36, 36, 36, 36, D.subs(t, 10)]
-assert M_exact(10) == 100 and abs(D.subs(t, 7)) == 14
+
+def scan(k=2, gf=g):
+    """c 전수: 개수가 바뀔 수 있는 c 는 두 불연속점이 겹치는 값뿐 → 그 값들 + 그 사이·바깥 표본"""
+    special = sorted({Fr(u) + k * Fr(v) for u in (0, 15, 17) for v in (0, 15, 17)})
+    samples = set(special)
+    for i in range(len(special) - 1): samples.add((special[i] + special[i + 1]) / 2)
+    samples |= {special[0] - 7, special[-1] + 7}
+    samples |= {Fr(n, 4) for n in range(-200, 400)}
+    return {c: len(disc_pts(c, k, gf=gf)) for c in samples}
+
+
+# ---------- 2) k=2 전수
+P2 = scan(2)
+m = min(P2.values()); C = sorted(c for c, v in P2.items() if v == m); n = len(C)
+assert m == 4 and C == [0, 45, 47, 49, 51], (m, C)
+assert sorted(c for c, v in P2.items() if v == 5) == [15, 17, 30, 34]
+assert set(P2.values()) == {4, 5, 6}
+ANS = m * n
+assert ANS == 20
+# 각 겹침의 좌극한·함숫값·우극한 합 (해설 표)
+def lvr(c, t0):
+    e = Fr(1, 10**6); return tuple(g(t) + g(c - 2 * t) for t in (t0 - e, t0, t0 + e))
+assert lvr(0, 0) == (6, 6, 6) and lvr(45, 15) == (10, 10, 10) and lvr(51, 17) == (6, 6, 6)
+assert lvr(47, 15) == (8, 8, 8) and lvr(49, 17) == (8, 8, 8) and lvr(15, 0) == (4, 8, 12)
+print(f'k=2: p(c) ∈ {{4,5,6}}, 최솟값 m=4 ⇔ c ∈ {[str(c) for c in C]} (n=5), p=5 ⇔ c ∈ {{15,17,30,34}} → mn = {ANS}')
 
 ch = IT['choices']
 assert ch[IT['ans'] - 1] == str(ANS) and IT['ans'] == 2
-assert len(set(ch)) == 5 and {int(ch[i + 1]) - int(ch[i]) for i in range(4)} == {-1}
-print('정답 11 = 선지 ②, 선지 12..8 공차 1 내림차순')
+assert len(set(ch)) == 5 and {int(ch[i + 1]) - int(ch[i]) for i in range(4)} == {-4}
+print('정답 20 = 선지 ②, 선지 24..8 공차 4 내림차순')
 
 # ---------- 3) 오답 근거
-w10 = 2 + 8      # 두 번째 만남(8) 뒤 거리 증가를 최댓값 갱신으로 봄: 2<T<8
-w9 = 0 + 9       # M(T)=36 을 처음부터: 0<T<9
-w8 = 0 + 8       # 둘 다
-assert all(abs(D.subs(t, x)) < 36 for x in (R(17, 2), R(9, 1) - R(1, 10)))        # 8<T<9 에서 실제로 거리 < 36 → 10 은 틀림
-assert all(sp.diff(D, t).subs(t, x) > 0 for x in (R(1, 2), 1, R(3, 2)))            # T<2 에서 거리 증가 → 거리 = M(T) → 9 는 틀림
-assert {str(w10), str(w9), str(w8)} == set(IT['wrongs']) and all(w in ch for w in IT['wrongs'])
-for v in (2 + 5, 9 - 2, 6):   # 다른 흔한 값(첫 만남 5까지·β-α·a/만남 관련)이 정답과 겹치지 않음
-    assert v != ANS
-assert ANS not in (5, 8, 26, 2, 9)
-print('오답 근거 OK: 10(8 뒤 갱신으로 봄) · 9(T≤2 끝값 누락) · 8(둘 다); 정답 11 은 만남 시각·극점·a 와 다름')
+w16 = 4 * len([c for c in C if c != 0])                     # c=0 놓침
+same_level = [0, 45, 51]                                    # 같은 높이끼리만 상쇄로 봄(엇갈린 47, 49 놓침)
+assert all(c in C for c in same_level)
+w12 = 4 * len(same_level)
+w8 = 4 * len([c for c in same_level if c != 0])             # 둘 다
+assert (w16, w12, w8) == (16, 12, 8)
+assert {str(w16), str(w12), str(w8)} == set(IT['wrongs']) and all(w in ch for w in IT['wrongs'])
+print('오답 근거 OK: 16(c=0 놓침) · 12(엇갈린 겹침 47·49 놓침) · 8(둘 다)')
+# 정답이 문제 속 다른 수·원문 답과 겹치지 않음
+assert ANS not in (3, 9, 10, 15, 17, 2, 36, 4, 5)
 
-# ---------- 4) 원문 J39 직접 풀기: 20/3
+# ---------- 4) 원문 M31 직접 풀기: 36
 sys.path.insert(0, '/home/user/Finale/output/build/부교재_기말')
 import items_final as Fm
-o = Fm.I['J39']
-assert o[2] == '③' and o[1][2] == r'\dfrac{20}3'
-d0 = sp.integrate(2 * t**3 - 2 * t - (t**2 + 4 * t), (t, 0, t))
-cands = [0, 3] + [r for r in sp.solve(sp.diff(d0, t), t) if 0 <= r <= 3]
-assert max(abs(d0.subs(t, c)) for c in cands) == R(20, 3)
-print('원문 J39 OK: |d(2)|=20/3 > |d(3)|=9/2 → 20/3 (원문 ③), 변형 답 11 과 다름')
+o = Fm.I['M31']
+assert o[2] == '⑤' and o[1][4] == '36'
+ho = lambda t: g(t) - g(t - 2)
+cands = {Fr(v) for v in (0, 15, 17, 2, 17, 19)}
+e = Fr(1, 10**6)
+dpo = sorted(t for t in cands if not (ho(t - e) == ho(t) == ho(t + e)))
+assert dpo == [0, 2, 15, 19] and sum(dpo) == 36
+print('원문 M31 OK: h=g(t)-g(t-2) 불연속 0, 2, 15, 19 (17 상쇄) → 36 (원문 ⑤)')
 
-# ---------- 5) 핵심 한 줄 (②형: 원문 설정 줄 불통, 원리 줄은 T 마다·절댓값 비교로 다시 씀)
-body = IT['body']
-assert '2t^3' not in body and 'M(T)' in body and 't=5' in body
-print('핵심: 원문 설정 줄(사차 위치 차·[0,3]) 불통, 원리 줄(극값·끝값 절댓값 비교)은 T 마다 세 갈래 + 접힌 봉우리 비교')
+# ---------- 5) 핵심 한 줄 (①형: 원문 원리 '같은 방향·크기 점프 겹치면 상쇄' 불통)
+# 원문 원리를 그대로 적용(같은 방향 점프가 겹칠 때 지움)하면 합 h=g(t)+g(c-2t) 에서는 지워지는 점이 없다고 판정 → 틀림
+same_dir_cancel = False
+for c in C:
+    for t0 in disc_pts(c, 2) + [Fr(0), Fr(15), Fr(17)]:
+        pass
+# 실제로 지워지는 겹침은 모두 '반대 방향' 점프
+def jump(fun, t0):
+    e = Fr(1, 10**6); return (fun(t0) - fun(t0 - e), fun(t0 + e) - fun(t0))
+for c, t0 in ((0, 0), (45, 15), (47, 15), (49, 17), (51, 17)):
+    j1 = jump(g, Fr(t0)); j2 = jump(lambda t: g(c - 2 * t), Fr(t0))
+    assert j1[0] == -j2[0] and j1[1] == -j2[1] and j1[0] != 0
+print('핵심: 지워지는 겹침 다섯 모두 반대 방향·같은 크기 점프 → 원문 원리 줄(같은 방향이 지워짐) 불통')
 
 # ===== 조건 빼 보기 (ABLATION) =====
 print('--- 조건 빼 보기 ---')
@@ -96,27 +113,32 @@ def ablation(cname, res, why=''):
     print(f'ABLATION 17 {cname}: 필요({res}{"; " + why if why else ""})')
     assert res != ANS
 
-# (1) 't=5 에서 만남' 빼기: a 가 남음
-outs = {}
-for av in (24, 26, 28):
-    sg = region(pos_diff(av)); outs[av] = sg
-assert len({str(v) for v in outs.values()}) == 3
-ablation("'시각 t=5에서 만남'", f'정해지지 않음({outs})', 'a 가 남음')
-# (2) '동시에 원점에서 출발' 빼기: Q 가 원점이 아닌 곳(예: 10)에서 출발하면 a 와 범위가 바뀜
-D2a = pos_diff(a, x20=10); a2 = sp.solve(D2a.subs(t, 5), a)[0]
-sg2 = region(D2a.subs(a, a2))
-assert a2 != 26 and sg2 != segs
-ablation("'원점에서 동시에 출발'(Q 가 10 에서 출발)", f'a={a2}, 범위 {sg2}', '')
-# (3) v2 의 상수 -36 → 0: a 와 범위가 바뀜(계수 자리 확인)
-D3a = pos_diff(a, c2=0); a3 = sp.solve(D3a.subs(t, 5), a)[0]; sg3 = region(D3a.subs(a, a3))
-assert sg3 != segs
-ablation('v2 의 상수 -36 (→0)', f'a={a3}, 범위 {sg3}', '')
-# (4) 거리(|x1-x2|) 대신 위치 차 x1-x2 로 보면? 여기서는 접힌 봉우리가 36 보다 작아 범위는 같음 → 절댓값 비교가 답을 바꾸지 않는지 확인
-#     (절댓값 판단은 'M(T) 를 바꾸지 않는다'는 확인 단계: 접힌 봉우리 400/27 < 36 이 성립해야 β=9)
-Dbig = t * (t - 3) * (t - 8)      # 접힌 봉우리가 극댓값보다 큰 경우(대조): 범위가 둘로 갈라짐
-sgb = region(Dbig)
-assert len(sgb) == 2
-print(f'대조(접힌 봉우리 36 > 극댓값 400/27 인 t(t-3)(t-8)): 범위 {sgb} 둘로 갈라짐 → 절댓값 비교가 β 를 정하는 판단임')
-# (5) 'M(T)보다 작은' 을 '전체 극댓값과 비교'로 바꾸면 0<T<9 → 9 (오답 ④)
-ablation("'M(T)보다 작은' (→ 극댓값 36 과 비교)", 9, '끝값 구간이 빠짐')
+# (1) 계수 2 빼기 (g(c-t)): c=32 에서 15·17 동시 상쇄 → m=2, n=1
+P1 = scan(1); m1 = min(P1.values()); C1 = [c for c, v in P1.items() if v == m1]
+assert m1 == 2 and C1 == [32]
+ablation('g(c-2t)의 계수 2 (→ g(c-t))', m1 * len(C1), 'c=32 에서 두 점 동시 상쇄')
+# (2) 반사 빼기 (g(t-c) 꼴, 원문처럼 같은 쪽 이동, 계수 2: g(2t-c))
+def scan_shift(k=2):
+    out = {}
+    for n_ in range(-200, 400):
+        c = Fr(n_, 4)
+        h = lambda t: g(t) + g(k * t - c)
+        cands = {Fr(0), Fr(15), Fr(17)} | {(c + Fr(v)) / k for v in (0, 15, 17)}
+        out[c] = len([t for t in cands if not (h(t - e) == h(t) == h(t + e))])
+    return out
+PS = scan_shift(); ms = min(PS.values()); ns_ = len([c for c, v in PS.items() if v == ms])
+ablation("반사 c-2t (→ 2t-c)", f'm={ms}, c 가 {ns_}개 이상 → {ms * ns_}', '같은 방향 점프는 합에서 안 지워짐')
+# (3) '+' 를 원문처럼 '-' 로: h=g(t)-g(c-2t)
+def scan_minus():
+    out = {}
+    for n_ in range(-200, 400):
+        c = Fr(n_, 4)
+        h = lambda t: g(t) - g(c - 2 * t)
+        cands = {Fr(0), Fr(15), Fr(17)} | {(c - Fr(v)) / 2 for v in (0, 15, 17)}
+        out[c] = len([t for t in cands if not (h(t - e) == h(t) == h(t + e))])
+    return out
+PM = scan_minus(); mm = min(PM.values()); nm = len([c for c, v in PM.items() if v == mm])
+ablation("합 + (→ 차 -)", f'm={mm}, c {nm}개 → {mm * nm}', '')
+# (4) 'p(c)=m 을 만족시키는 c 의 개수'를 빼고 m 만 물으면 4 (선지 밖) — 묻는 식이 일함
+ablation("n (c 의 개수)", m, 'm 만으로는 4')
 print('ALL OK')
