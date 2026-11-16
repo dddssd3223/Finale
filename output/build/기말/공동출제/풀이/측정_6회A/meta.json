@@ -1,0 +1,66 @@
+{
+ "round": "6회",
+ "base": "기준프로필",
+ "anchors": [
+  3,
+  6,
+  8,
+  10,
+  12,
+  15,
+  17,
+  18
+ ],
+ "items": {
+  "6회-1": {
+   "hash": "3971f093efc6",
+   "bunseok": false,
+   "key": "J5"
+  },
+  "6회-3": {
+   "hash": "6fdc86bd4e14",
+   "bunseok": false,
+   "key": "I26"
+  },
+  "6회-5": {
+   "hash": "6db07925dda2",
+   "bunseok": false,
+   "key": "D20"
+  },
+  "6회-7": {
+   "hash": "b0537d441bdb",
+   "bunseok": false,
+   "key": "D42"
+  },
+  "6회-9": {
+   "hash": "22f4df1bb5c1",
+   "bunseok": false,
+   "key": "D60"
+  },
+  "6회-11": {
+   "hash": "62c428322e37",
+   "bunseok": false,
+   "key": "D41"
+  },
+  "6회-13": {
+   "hash": "e9523d7b977c",
+   "bunseok": false,
+   "key": "D47"
+  },
+  "6회-15": {
+   "hash": "6bcbdbca496e",
+   "bunseok": false,
+   "key": "J62"
+  },
+  "6회-17": {
+   "hash": "853c87e67c5e",
+   "bunseok": false,
+   "key": "M31"
+  },
+  "6회-S1": {
+   "hash": "408c11e9cd51",
+   "bunseok": false,
+   "key": "D24"
+  }
+ }
+}
