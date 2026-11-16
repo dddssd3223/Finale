@@ -128,19 +128,17 @@ okc, kv = const_on(fpo.subs(x, x), 1, [-3 + R(i, 8) for i in range(17)]) if Fals
 gmin = {min(fpo.subs(x, c) for c in [tt - 1, tt + 1] + ([-2] if tt - 1 <= -2 <= tt + 1 else [])) for tt in [-3 + R(i, 8) for i in range(17)]}
 check(13, fo.subs(x, -1) == 2 and gmin == {-3} and fo.subs(x, 1) + (-3) == orig_ans('D47'), f'원문 D47: g=-3 일정, f(1)+k={fo.subs(x, 1) - 3} = 원문 답 {orig_ans("D47")}')
 # 빼 보기
-ablation(13, "'f가 오직 하나'", [1 + (-x**3 + 0).subs(x, 0) * 0 + v_ for v_ in []] or None, 10,
-         undef='b>1이면 꼭짓점 v가 [3−b, 1+b]의 무수히 많은 값이 되어 b·f·k가 정해지지 않음' if len(fam[R(3, 2)]) >= 2 else None)
-ab_b = set()
-for v in fam[R(3, 2)][:4]:
-    fp = -3 * (x - 1) * (x - (2 * v - 1)); ff = sp.integrate(fp, (x, 1, x)) + 2
-    ab_b.add(sp.nsimplify(R(3, 2) + ff.subs(x, 3) + g13(fp, 2, R(3, 2))))
-ablation(13, "'오직 하나' 대신 b=3/2로 고정(확인)", ab_b, 10, 'b를 정하는 조건이 없으면 같은 b에서도 답이 여럿')
-ab_min = set()
-for v in VS:     # 'x=1에서 극솟값 2' 대신 '극값 2'(x=1에서 극대도 허용): x=1이 극대이면 f'=-3(x-1)(x-c), c<1
-    pass
-fp_mx = -3 * (x - 1) * (x + 1)    # x=1에서 극대인 경우의 예: 꼭짓점 0, t∈[1,3]이면 구간 [t-1,t+1]이 0을 포함하지 않음
-c_, vals = const_on(fp_mx, 1, T13)
-ablation(13, "'극솟값'(x=1에서 극소)", [] if c_ is False else [None], 10, 'x=1에서 극대(c<1)이면 꼭짓점 v<1이 [t−b, t+b](1≤t≤3)에 항상 들지 않아 b=1에서 g가 일정하지 않음 — 극소 조건이 v>1 쪽만 남김')
+ablation(13, "'f가 오직 하나'", None, 10,
+         undef=f'b>1이면 꼭짓점 v가 [3−b, 1+b]∩(1, ∞)의 무수히 많은 값(b=3/2에서 격자로 {len(fam[R(3, 2)])}개)이 되어 b·f·k가 정해지지 않음')
+ab13 = set()
+for r_ in (1, 2, 3):      # 'x=1에서 극솟값 2'를 빼면 b=1, 꼭짓점 2만 남음: f'=-3{(x-2)^2-r^2}, f의 상수항도 자유
+    fp = -3 * ((x - 2)**2 - r_**2)
+    for C in (0, 2):
+        ff = sp.integrate(fp, (x, 0, x)) + C
+        ab13.add(1 + ff.subs(x, 3) + g13(fp, 2, 1))
+ablation(13, "'x=1에서 극솟값 2'", ab13, 10, '꼭짓점 x=2만 정해지고 꼭짓점 높이·상수항이 자유')
+mn_const = [v for v in VS for b_ in (R(1, 2), 1, 2) if len({min(sp.expand(-3 * (x - 1) * (x - (2 * v - 1))).subs(x, c) for c in (tt - b_, tt + b_)) for tt in T13}) == 1]
+ablation(13, "'최댓값'(→ 최솟값)", [] if not mn_const else [0, 1], 10, '위로 볼록한 f′의 최솟값은 늘 구간 끝값이라 [1, 3]에서 일정한 f가 없음')
 
 
 # ================= 14번 (D31: LIVE058 뼈대 + p 역산 + 꺾인 점 x좌표의 합) =================
@@ -185,7 +183,7 @@ fo = 3 * x**4 - 4 * x**3 - 12 * x**2
 ko = [k for k in (0, 5, 32) if kink_sum(fo + k)[0] == 2]
 check(14, ko == [0, 5] and sum(ko) == 5 and orig_ans('D31') == 'T:ㄱ, ㄷ', f'원문 D31: k={ko}, 합 5, 원문 답 {orig_ans("D31")}')
 # 빼 보기
-ablation(14, "'x=1에서 극소'", set().union(*[solve14(pv) for pv in (8, 12, 16, 20)]), -6, 'p를 바꾸면 꺾인 점의 합이 달라짐(p=8, 12, 16, 20 확인)')
+ablation(14, "'x=1에서 극소'", set().union(*[solve14(pv) for pv in (0, 12, -12, 30)]), -6, 'p를 바꾸면 꺾인 점의 합이 달라짐(극점이 유리수인 p=0, 12, −12, 30 확인)')
 ablation(14, '단서 k>0', solve14(12, kpos=False), -6, 'k=0(극댓값 0)도 꺾인 점이 2개')
 ablation(14, "'x축에 접한다'", {kink_sum(f0 + k)[1] for k in (10, 20, 100) if kink_sum(f0 + k)[0] == 2}, -6, '9<k<384인 k에서도 꺾인 점이 2개')
 r_ = solve14(12, need_n2=False)
@@ -274,8 +272,6 @@ check(16, Po == [(3, 6), (12, 4), (48, 3)] and max(a + b for a, b in Po) == orig
 Pg = pairs16(lambda a, b: -a * (x - 2) * (x - b) - 11, 8, A=70, B=12)
 check(16, Pg == [(1, 10), (4, 6), (16, 4), (64, 3)] and sum(a + b for a, b in Pg) == 108, f'GEN1-01-172 원식: {Pg}, 합 108 (본 문항은 폭 b·개수로 바꿈)')
 # 빼 보기
-ablation(16, "'k의 개수가 1'(→ 합이 8인 k가 존재)", [len(pairs16(par16, 8, cond=lambda K: K is None or len(K) >= 1, A=70, B=10))], 4,
-         '개수 조건을 존재로만 바꾸면(합 8인 높이 구간 없음) 같은 4쌍 — 개수 1은 k가 하나뿐임을 말할 뿐이므로 a 범위를 넓혀 다시 확인') if False else None
 ablation(16, "'a는 자연수'", None, 4, undef='a가 양의 실수이면 ab²=64를 만족시키는 (a, b)가 b마다 하나씩 무수히 많음')
 ablation(16, "'b는 자연수'", None, 4, undef='b가 양의 실수이면 a마다 b=8/√a로 무수히 많음')
 P_t9 = pairs16(par16, 9, A=40, B=6)
