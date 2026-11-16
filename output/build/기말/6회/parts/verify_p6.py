@@ -19,7 +19,7 @@ assert it['core']['axis'] == '②' and set(it['core']) == {'axis', 'setting', 'p
 assert it['level'] == '최상' and it['effect'] == '어려워짐' and it['bunseok'] is False and '함정 추가' not in it['vtype']
 assert [k for k, _ in it['cond']] == ['가', '나', '다'] and 'x^4+ax^3+bx^2' in it['body']
 full = it['body'] + COND(it['cond'])
-assert 'f(t)' not in full and '|f(t)|' not in full          # 높이를 f(t)로 움직이는 장치 없음
+assert 'f(t)' not in full and '|f(t)|' not in full and 'int' not in full          # 높이를 f(t)로 움직이는 장치 없음
 CH = [sp.Integer(v) for v in it['choices']]
 A0, B0 = -20, 20                                            # (다)의 적분 구간, 묻는 합의 범위
 
@@ -101,19 +101,23 @@ for i in range(-8, 9):
         nd = n_disc(f_)
         if (nd == 2) != typ: grid_bad += 1
 assert grid_bad == 0
-print('(가): 불연속 두 곳 ⇔ 네 유형 (인수분해 + (p,q) 격자 289개) OK, h(-1)=4는 대칭 W형(깊이>1)에서만 OK')
+print('(가): 불연속 두 곳 ⇔ 네 유형 (인수분해 + (p,q) 격자 289개) OK')
 
-# ---------- (나)(다): 대칭 W형 f=x^4-2s^2x^2, 깊이 m=s^4 ----------
-m = sp.Symbol('m', positive=True)
-# h: t<-m → 0, t=-m → 0, -m<t<0 → 4, t>=0 → 2 ; 적분 = 4·min(m,20) + 40
-assert sp.solve(sp.Eq(4*m + 2*20, 76), m) == [9] and 4*20 + 2*20 != 76
+# ---------- (나)(다): 최댓값 4 → W형·이중 접점형, f(2)=-8 → W형 ----------
+def hmax(f_, num=False):
+    V, pts, ints = profile(f_, num); return max([hv for _, hv in pts] + ints)
+for name, g in types.items():
+    for pv in (R(1, 2), 1, 2, 3, -1, -2):
+        mx = hmax(sp.expand(g.subs(p, pv)))
+        assert (mx == 4) == (name.startswith('(iii)') or name.startswith('(iv)')), (name, pv, mx)
+gD = types['(iii) 이중 접점 (p=2q)']
+assert sp.factor(gD) == sp.factor(x**2*(x - 2*p)**2)                 # f ≥ 0 → f(2)=-8 불가
+assert sp.solve(sp.Eq(gD.subs(x, 2), -8), p) == [] or all(not v.is_real for v in sp.solve(sp.Eq(gD.subs(x, 2), -8), p))
+sol_s = sp.solve(sp.Eq(types['(iv) 대칭 W (q=-p)'].subs(x, 2), -8), p)
+assert sorted(sp.expand(types['(iv) 대칭 W (q=-p)'].subs(p, v)) for v in sol_s) == [x**4 - 6*x**2]*2
 fW = x**4 - 6*x**2
-assert crit_vals(fW) == [-9, 0] and integral(fW) == 76 and h_at(fW, -1) == 4 and n_disc(fW) == 2
-for sv in (R(3, 2), 2, R(5, 2), R(7, 4)):
-    g = sp.expand(types['(iv) 대칭 W (q=-p)'].subs(p, sv))
-    assert integral(g) != 76
-assert sp.expand(types['(iv) 대칭 W (q=-p)'].subs(p, sp.sqrt(3))) == fW      # 정류점 ±√3, 깊이 9
-print('(나)(다): W형, 4m+40=76 → m=9, f(x)=x^4-6x^2 하나 (m>20이면 120) OK')
+assert crit_vals(fW) == [-9, 0] and hmax(fW) == 4 and n_disc(fW) == 2 and fW.subs(x, 2) == -8
+print('(나)(다): 최댓값 4 ⇔ W형·이중 접점형, 이중 접점형은 f≥0이라 f(2)=-8 불가 → f(x)=x^4-6x^2 하나 OK')
 
 # ---------- 정답 ----------
 vals = {n: h_at(fW, n) for n in range(A0, B0 + 1)}
@@ -131,53 +135,36 @@ w_zero = ans - vals[0] + all_roots_cnt(fW, 0)                         # h(0)=3 (
 w_all = sum(all_roots_cnt(fW, n) for n in range(A0, B0 + 1))          # h를 근의 개수로
 w_closed = ans - vals[-9] + 4                                          # -9 ≤ t < 0 에서 4
 assert (w_double, w_zero, w_all, w_closed) == (76, 75, 77, 78), (w_double, w_zero, w_all, w_closed)
-assert integral(fW) == 76                                              # 정적분 값과 같다고 본 경우도 76
+pass
 for w in it['wrongs']: assert sp.Integer(w) in CH and sp.Integer(w) != 74
-print('선지 등차(공차 -1, 내림차순), 오답 76(h(-9)=2·적분값)·75(h(0)=3)·77(근의 개수)·78(h(-9)=4) 모두 선지 안 OK')
+print('선지 등차(공차 -1, 내림차순), 오답 76(h(-9)=2)·75(h(0)=3)·77(근의 개수)·78(h(-9)=4) 모두 선지 안 OK')
 
 # ---------- 조건 빼 보기 ----------
-# (가) 없음: x=0 극대, 두 극솟값이 다른 W(-m1<-m2<0): 적분 2m1+2m2+40=76 → m1+m2=18, h(-1)=4 → 여럿, 합이 갈림
-import numpy as np
-def depths(pv, qv):
-    g = fpq.subs({p: pv, q: qv}); return -float(g.subs(x, pv)), -float(g.subs(x, qv)), sp.expand(g)
+# (가) 없음: f=x^4+ax^3+bx^2, f(2)=-8 → b=-6-2a. a≠0이면 x=0 극대, 극솟값 두 개가 달라 불연속 3곳이지만 최댓값 4
 alts = {}
-for lam in (R(1, 1), R(4, 5), R(7, 10), R(3, 5)):
-    # p=-1·u, q=lam·u 로 두고 깊이 합 18이 되는 u를 수치로 구함
-    u = sp.Symbol('u', positive=True)
-    g = fpq.subs({p: -u, q: lam*u})
-    eq = -(g.subs(x, -u)) - (g.subs(x, lam*u)) - 18
-    uv = sp.nsolve(eq, u, 2)
-    d1, d2, gg = depths(-uv, lam*uv)
-    assert d1 > 1 and d2 > 1 and abs(d1 + d2 - 18) < 1e-9
-    gg = sp.expand(fpq.subs({p: -uv, q: lam*uv}))
-    if lam != 1:
-        assert n_disc(gg, num=True) == 3
-    assert h_num(gg, -1) == 4 and abs(integral(gg, num=True) - 76) < 1e-6
-    alts[str(lam)] = (round(d1, 3), round(d2, 3), int_sum(gg, num=True))
-assert len({v[2] for v in alts.values()}) >= 2
-print(f'ABLATION 18 (가): 필요(정해지지 않음: 빼면 극솟값이 다른 W형도 (나)(다)를 만족, (깊이1, 깊이2, 합)={list(alts.values())})')
-# (나) 없음: 정류 변곡형 m=18, 이중 접점형 M=18 도 (가)(다)를 만족
-fi = types['(i) 정류 변곡 (q=0)']; fd = types['(iii) 이중 접점 (p=2q)']
-pi_ = sp.solve(sp.Eq(-fi.subs(x, p), 18), p)                       # p^4/3=18
-pd_ = sp.solve(sp.Eq(fd.subs(x, p), 18), p)                        # 이중 접점: 가운데 극댓값 f(p)=p^4=18
-gi = sp.expand(fi.subs(p, [v for v in pi_ if v.is_real][0])); gd = sp.expand(fd.subs(p, [v for v in pd_ if v.is_real][0]))
-assert n_disc(gi, num=True) == 2 and n_disc(gd, num=True) == 2
-assert abs(integral(gi, num=True) - 76) < 1e-6 and abs(integral(gd, num=True) - 76) < 1e-6
-si, sd = int_sum(gi, num=True), int_sum(gd, num=True)
-assert h_num(gi, -1) == 2 and h_num(gd, -1) == 0 and {si, sd, 74} == {74, 75}
-print(f'ABLATION 18 (나): 필요(정해지지 않음: 빼면 정류 변곡형(깊이 18)·이중 접점형(높이 18)도 (가)(다)를 만족, 합 {si}, {sd}, 74)')
-# (다) 없음: W형 깊이 m>1 이면 모두 (가)(나)를 만족
+for av in (0, R(1, 2), -R(1, 2), 1):
+    g = sp.expand(x**4 + av*x**3 + (-6 - 2*av)*x**2)
+    assert g.subs(x, 2) == -8 and hmax(g) == 4
+    alts[str(av)] = (n_disc(g), int_sum(g, num=not all(c.is_Rational for c in crit_vals(g))))
+assert len({v[1] for v in alts.values()}) >= 2
+print(f'ABLATION 18 (가): 필요(정해지지 않음: 빼면 a=0, 1/2, -1/2, 1 모두 (나)(다)를 만족, (불연속 수, 합)={list(alts.values())})')
+# (나) 없음: 정류 변곡형 x^3(x+α)에서 f(2)=-8 → α=-3
+gi = x**3*(x - 3)
+assert gi.subs(x, 2) == -8 and n_disc(gi, num=True) == 2 and hmax(gi, num=True) == 2
+si = int_sum(gi, num=True)
+assert si != 74
+print(f'ABLATION 18 (나): 필요(정해지지 않음: 빼면 정류 변곡형 x^3(x-3)도 (가)(다)를 만족, 합 {si}, 74)')
+# (다) 없음: W형 깊이 m 자유, 이중 접점형도 남음
 d_alt = {}
 for mv in (4, 9, 16):
     g = x**4 - 2*sp.sqrt(mv)*x**2
-    assert n_disc(g) == 2 and h_at(g, -1) == 4
+    assert n_disc(g) == 2 and hmax(g) == 4
     d_alt[mv] = int_sum(g)
-assert len(set(d_alt.values())) == 3
-print(f'ABLATION 18 (다): 필요(정해지지 않음: 빼면 깊이 m=4, 9, 16 모두 가능, 합 {list(d_alt.values())})')
-# (다)의 구간 끝 20: m≤20 경계 — 깊이가 20을 넘으면 적분은 120으로 일정
-g25 = x**4 - 10*x**2
-assert integral(g25) == 120
-print('ABLATION 18 m≤20 경계: 필요(깊이 25이면 적분 120 — 76이 되려면 m≤20 안의 해 m=9)')
+gd2 = x**2*(x - 4)**2
+assert n_disc(gd2) == 2 and hmax(gd2) == 4
+d_alt['D'] = int_sum(gd2)
+assert len(set(d_alt.values())) >= 3
+print(f'ABLATION 18 (다): 필요(정해지지 않음: 빼면 W형 깊이 4, 9, 16과 이중 접점형 x^2(x-4)^2이 남아 합 {list(d_alt.values())})')
 
 # ---------- 문장 길이 ----------
 def plain(t): return html.unescape(re.sub(r'<[^>]+>', '', t))
