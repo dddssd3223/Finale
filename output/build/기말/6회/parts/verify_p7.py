@@ -143,6 +143,7 @@ xg_int = sp.integrate(ANS1, x)                                            # 4x^3
 assert sp.integrate(xg_int, (x, 0, 3)) == 36
 assert sp.expand(x * ANS1) == 12 * x**3 - 12 * x**2 + 2 * x              # (1) x 로 안 나눔
 assert sp.solve(-sp.integrate(t * F2.subs(x, t), (t, 1, -1)) - (8 + k), k) == [-12]   # x=-1 대입 부호 실수
+assert sp.integrate(G2.subs(x, t), (t, -1, 1)) == R(20, 3)                     # t 빠뜨림 → k=20/3
 # 배점·형식
 assert len(S2['subs']) == 3 and len(S2['ans']) == 3 and len(S2['sol']) == 3 and [c[0] for c in S2['cond']] == ['가', '나']
 assert [q[1] for q in S2['subs']] == ['3점, 답만 적으시오.', '4점, 답만 적으시오.', '3점, 답만 적으시오.']
