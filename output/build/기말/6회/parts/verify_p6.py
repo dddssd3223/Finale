@@ -18,7 +18,7 @@ assert it['cand'] == 'A18' and it['key'] == 'M39' and it['ans'] == 5 and it['db_
 assert it['core']['axis'] == '②' and set(it['core']) == {'axis', 'setting', 'principle', 'new'}
 assert it['level'] == '최상' and it['effect'] == '어려워짐' and it['bunseok'] is False and '함정 추가' not in it['vtype']
 assert [k for k, _ in it['cond']] == ['가', '나', '다'] and 'x^4+ax^3+bx^2' in it['body']
-full = it['body'] + COND(it['cond']) + it['after']
+full = it['body'] + COND(it['cond'])
 assert 'f(t)' not in full and '|f(t)|' not in full          # 높이를 f(t)로 움직이는 장치 없음
 CH = [sp.Integer(v) for v in it['choices']]
 A0, B0 = -20, 20                                            # (다)의 적분 구간, 묻는 합의 범위
