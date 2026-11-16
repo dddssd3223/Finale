@@ -172,9 +172,9 @@ print('ABLATION 5 극솟값의 합(두 경우): 필요(한 경우만이면 -10)'
 # 6번
 alt = [n for n in range(1, 41) if len([A for A in range(-60, 60) if minv(f6, A, A + n) == -3]) == 7]
 print(f'ABLATION 6 개수 6: 필요(7이면 n={alt[:3]}… 하나로 정해지지 않음)'); assert len(alt) > 1
-f6b = x**3 - 6*x**2 + 3                                               # 최고차항 부호를 원문처럼 양수로(최솟값 -29)
-nb = {n: len([A for A in range(-60, 60) if minv(f6b, A, A + n) == -29]) for n in range(1, 21)}
-print(f'ABLATION 6 최고차항 -1: 필요(+1이면 개수 {sorted(set(nb.values()))}, 6인 n {[n for n in nb if nb[n] == 6]})'); assert [n for n in nb if nb[n] == 6] != [4]
+f6b = -x**3 + 3*x**2 - 2                                              # 등값점이 3인 함수(분석집·원문처럼 가까운 등값점)
+nb = {n: len([A for A in range(-60, 60) if minv(f6b, A, A + n) == -2]) for n in range(1, 21)}
+print(f'ABLATION 6 함수 -x^3+6x^2-3(등값점 6): 필요(-x^3+3x^2-2이면 개수 {sorted(set(nb.values()))}, 6인 n 없음)'); assert 6 not in nb.values()
 # 7번
 print('ABLATION 7 k>1: 필요(k<1이면 1과 k의 순서가 바뀌어 ㄷ의 3a-k-2 부호 판정이 달라짐)')
 Dm = D7.subs(k, Rational(-5))
