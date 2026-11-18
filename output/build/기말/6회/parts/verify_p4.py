@@ -11,7 +11,7 @@ IT = ns['ITEMS']
 WANT = {13: 5, 14: 1, 15: 3, 16: 4}          # 분담표 목표 13⑤·14①·15③·16④
 DBREF = {13: 'D47 후보_순위 3', 14: 'D31 후보_순위 2', 15: 'J62 후보_순위 3', 16: 'D72 후보_순위 3'}
 COEF = {'OP11', 'OP12', 'OP28', 'OP38', 'OP51'}
-NEED_COEF = {13: False, 14: True, 15: False, 16: True}   # 분담표 '계수' ● / ○
+NEED_COEF = {13: True, 14: True, 15: False, 16: True}   # 분담표 '계수' ● / ○
 BOX = {13: False, 14: False, 15: False, 16: False}      # 13·16 '원문대로'(원문에 상자 없음), 14·15 ×
 LEVEL = {13: '중상', 14: '중상', 15: '중상', 16: '상'}
 x, t = sp.symbols('x t', real=True)
@@ -87,45 +87,41 @@ def orig_ans(key):
     return c if c.startswith('T:') else choice_val(c)
 
 
-# ================= 13번 (D47 거울상, 원문 설정 그대로 수치·부호 교체) =================
-def g13(fp, tt, b=1):
-    """닫힌구간 [tt-b, tt+b]에서 f'(위로 볼록 이차)의 최댓값"""
+# ================= 13번 (D47 거울상, 구간 끝에 t의 계수 [t-1, 2t]) =================
+def g13(fp, lo, hi):
+    """닫힌구간 [lo, hi]에서 f'(위로 볼록 이차)의 최댓값"""
     v = sp.solve(sp.diff(fp, x), x)[0]
-    cand = [tt - b, tt + b] + ([v] if tt - b <= v <= tt + b else [])
-    return max(fp.subs(x, c) for c in cand)
+    return max(fp.subs(x, c) for c in [lo, hi] + ([v] if lo <= v <= hi else []))
 
 
-T13 = [2 + R(i, 8) for i in range(17)]                 # t∈[2, 4] 격자
+T13 = [2 + R(i, 8) for i in range(25)]                 # t∈[2, 5] 격자
 good = []
-for i in range(1, 49):                                 # f'=-3(x-2)(x-c), c∈(2, 8] 격자 (x=2에서 극소 ⇔ c>2)
-    c = 2 + R(i, 8); fp = -3 * (x - 2) * (x - c)
-    if len({g13(fp, tt) for tt in T13}) == 1: good.append(c)
-check(13, good == [4], f'c 격자 전수: g가 [2, 4]에서 일정한 c = {good}')
-fp13 = -3 * (x - 2) * (x - 4)
-f13 = sp.integrate(fp13, (x, 2, x)) + 1
-check(13, sp.expand(f13) == -x**3 + 9 * x**2 - 24 * x + 21 and sp.diff(fp13, x).subs(x, 2) > 0, f'f(x)={sp.expand(f13)}, x=2 극소, f(2)=1')
-k13 = g13(fp13, 3)
-ans13 = f13.subs(x, 4) + k13
-check(13, k13 == 3 and f13.subs(x, 4) == 5 and ans13 == 8, f'k={k13}, f(4)={f13.subs(x, 4)}, f(4)+k={ans13}')
+for i in range(1, 81):                                 # f'=-3(x-3)(x-c), c∈(3, 13] 격자 (x=3에서 극소 ⇔ c>3)
+    c = 3 + R(i, 8); fp = -3 * (x - 3) * (x - c)
+    if len({g13(fp, tt - 1, 2 * tt) for tt in T13}) == 1: good.append(c)
+check(13, good == [5], f'c 격자 전수: g가 [2, 5]에서 일정한 c = {good} (꼭짓점 4)')
+fp13 = -3 * (x - 3) * (x - 5)
+f13 = sp.integrate(fp13, (x, 3, x))
+check(13, sp.diff(fp13, x).subs(x, 3) > 0 and f13.subs(x, 3) == 0, f'f(x)={sp.expand(f13)}, x=3 극소, f(3)=0')
+k13 = fp13.subs(x, 4)
+ans13 = f13.subs(x, 5) + k13
+check(13, k13 == 3 and f13.subs(x, 5) == 4 and ans13 == 7, f'k={k13}, f(5)={f13.subs(x, 5)}, f(5)+k={ans13}')
 ans_ok(13, ans13)
-fp_w = -(x - 2) * (x - 4)
-wrong_in(13, [f13.subs(x, 4) + fp13.subs(x, 2), f13.subs(x, 4) + g13(fp_w, 3)], 'k를 f′(2)=0으로 5 · 계수 3 누락 k=1로 6')
+wrong_in(13, [f13.subs(x, 5) + fp13.subs(x, 3), f13.subs(x, 5) + (-(x - 3) * (x - 5)).subs(x, 4)], 'k를 f′(3)=0으로 4 · 계수 3 누락 k=1로 5')
+mid = [c for c in good if (3 + c) / 2 == R(7, 2)]
+check(13, mid == [], '원문 습관(공통점 = t 범위 가운데 3.5)으로는 g가 일정하지 않음')
 fo = x**3 + 6 * x**2 + 9 * x + 6
 fpo = sp.diff(fo, x)
 gmin = {min(fpo.subs(x, cc) for cc in [tt - 1, tt + 1] + ([-2] if tt - 1 <= -2 <= tt + 1 else [])) for tt in [-3 + R(i, 8) for i in range(17)]}
 check(13, fo.subs(x, -1) == 2 and gmin == {-3} and fo.subs(x, 1) - 3 == orig_ans('D47'), f'원문 D47: g=-3 일정, f(1)+k={fo.subs(x, 1) - 3} = 원문 답 {orig_ans("D47")}')
 # 빼 보기
 ab = set()
-for c in (3, 5, 6):
-    fp = -3 * (x - 2) * (x - c); ff = sp.integrate(fp, (x, 2, x)) + 1
-    ab.add(ff.subs(x, 4) + fp.subs(x, (2 + c) / sp.Integer(2)))
-ablation(13, "'[2, 4]에서 g(t)가 일정'", ab, 8, '꼭짓점 위치(c)가 정해지지 않음')
-ab2 = set()
-for C in (0, 5):
-    ff = sp.integrate(fp13, (x, 2, x)) + C
-    ab2.add(ff.subs(x, 4) + 3)
-ablation(13, "'극솟값 1'", ab2, 8, '적분상수가 정해지지 않음')
-ablation(13, "'최댓값'(→ 최솟값)", [] if all(len({min(fp13.subs(x, cc) for cc in (tt - 1, tt + 1)) for tt in T13}) > 1 for _ in [0]) else [8], 8, '위로 볼록한 f′의 최솟값은 늘 구간 끝값이라 [2, 4]에서 일정하지 않음')
+for c in (4, 6, 7):
+    fp = -3 * (x - 3) * (x - c); ab.add(sp.integrate(fp, (x, 3, 5)) + fp.subs(x, (3 + c) / sp.Integer(2)))
+ablation(13, "'[2, 5]에서 g(t)가 일정'", ab, 7, '꼭짓점 위치(c)가 정해지지 않음')
+ablation(13, "'극솟값 0'", {sp.integrate(fp13, (x, 3, 5)) + C + 3 for C in (0, 2)}, 7, '적분상수가 정해지지 않음')
+okmin = [c for c in good if len({min(fp13.subs(x, cc) for cc in (tt - 1, 2 * tt)) for tt in T13}) == 1]
+ablation(13, "'최댓값'(→ 최솟값)", [] if not okmin else [7], 7, '위로 볼록한 f′의 최솟값은 늘 구간 끝값이라 [2, 5]에서 일정하지 않음')
 
 
 # ================= 14번 (D31: LIVE058 뼈대 + p 역산 + 꺾인 점 x좌표의 합) =================
