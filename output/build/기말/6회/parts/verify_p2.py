@@ -153,12 +153,12 @@ chk(7, v7, [w7])
 def m8(t):                                                            # 이론식: 3r 홀수, r<=-t 중 최대 → (23-9r)/2
     s_ = -3*t if (3*t) % 2 == 1 else -3*t - 1
     return Rational(23 - 3*s_, 2)
-v8 = m16(4, 3)                                                        # 정수 계수 전수
-assert v8 == m8(4) == 31
-fbad = x**3 - Rational(3, 2)*(1 + Rational(-11, 3))*x**2 + 3*Rational(-11, 3)*x   # 3r=-11: (-4,1)에서 감소 위반
-assert diff(fbad, x).subs(x, -4) > 0
-w8 = Rational(23 + 33, 2)
-assert w8 == 28
+v8 = m16(8, 3)                                                        # 정수 계수 전수
+assert v8 == m8(8) == 49
+fbad = x**3 - Rational(3, 2)*(1 + Rational(-23, 3))*x**2 + 3*Rational(-23, 3)*x   # 3r=-23: (-8,1)에서 감소 위반
+assert diff(fbad, x).subs(x, -8) > 0
+w8 = Rational(23 + 69, 2)
+assert w8 == 46
 chk(8, v8, [w8])
 
 # ===== 조건 빼 보기 =====
@@ -181,12 +181,12 @@ assert any(Dm.subs(x, t_) < 0 for t_ in [Rational(-5) + Rational(j, 10) for j in
 print('ABLATION 7 ㄴ의 오른쪽 끝 (k+1)/2: 필요((k+2)/3이면 ㄴ 참, 답 ㄴ, ㄷ)')
 assert all(D7.subs({k: 4, x: 1 + Rational(j, 100)}) > 0 for j in range(1, 100))
 # 8번
-v8b = Rational(23 + 9*4, 2)                                           # 정수 계수 조건이 없으면 r=-4
-print(f'ABLATION 8 모든 계수 정수: 필요(빼면 r=-4에서 {v8b})'); assert v8b != v8
-print(f'ABLATION 8 감소 구간 왼끝 -4: 필요(-3이면 {m16(3, 3)}, -2이면 {m16(2, 3)})'); assert m16(3, 3) != v8 and m16(2, 3) != v8
-f0 = x**3 - 48*x                                                      # (1,3) 증가 조건을 빼면: f'=3x^2-48은 [-4,1]에서 ≤0
-assert all(diff(f0, x).subs(x, Rational(j, 4)) <= 0 for j in range(-16, 5)) and f0.subs(x, 3) - f0.subs(x, 2) == -29
-print("ABLATION 8 (1,3)에서 증가: 필요(빼면 f'(1)=0이 없어 f=x^3+cx (c≤-48)처럼 f(3)-f(2)=19+c가 한없이 작아짐)")
-assert -29 < v8
+v8b = Rational(23 + 9*8, 2)                                           # 정수 계수 조건이 없으면 r=-8
+print(f'ABLATION 8 모든 계수 정수: 필요(빼면 r=-8에서 {v8b})'); assert v8b != v8
+print(f'ABLATION 8 감소 구간 왼끝 -8: 필요(-7이면 {m16(7, 3)}, -4이면 {m16(4, 3)})'); assert m16(7, 3) != v8 and m16(4, 3) != v8
+f0 = x**3 - 192*x                                                     # (1,3) 증가 조건을 빼면: f'=3x^2-192는 [-8,1]에서 ≤0
+assert all(diff(f0, x).subs(x, Rational(j, 4)) <= 0 for j in range(-32, 5)) and f0.subs(x, 3) - f0.subs(x, 2) == -173
+print("ABLATION 8 (1,3)에서 증가: 필요(빼면 f'(1)=0이 없어 f=x^3+cx (c≤-192)처럼 f(3)-f(2)=19+c가 한없이 작아짐)")
+assert -173 < v8
 
 print('ALL OK')
