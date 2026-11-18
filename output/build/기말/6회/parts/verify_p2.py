@@ -86,13 +86,13 @@ assert factor(f42 - diff(f42, x)*(x - 3)) == factor(-(x - 1)*(x - 3)**2*(3*x - 7
 fS = (x - 1)**2*(x - 4)**2
 assert factor(diff(fS, x)*(x - 1) - fS) == factor((x - 1)**2*(x - 4)*(3*x - 6))
 # D16: f'=3(x-1)(x-r), r<=-2, 3r 홀수 → 최솟값 22
-def m16(t):                                                          # 정수 계수 (b, c)를 전수: f=x^3+bx^2+cx
+def m16(t, R=2):                                                     # 정수 계수 (b, c)를 전수: f=x^3+bx^2+cx, (-t,1) 감소·(1,R) 증가
     vals = []
     for b in range(-60, 61):
         for c in range(-200, 201):
             fp = 3*x**2 + 2*b*x + c
             if fp.subs(x, 1) > 0 or fp.subs(x, Rational(1, 10**6) + 1) < 0: continue   # 감소·증가 경계(빠른 거르기, 아래 표본으로 확인)
-            ok = all(fp.subs(x, Rational(j, 8)) <= 0 for j in range(-8*t, 8)) and all(fp.subs(x, 1 + Rational(j, 8)) >= 0 for j in range(1, 8))
+            ok = all(fp.subs(x, Rational(j, 8)) <= 0 for j in range(-8*t, 8)) and all(fp.subs(x, 1 + Rational(j, 8)) >= 0 for j in range(1, 8*(R - 1)))
             ok = ok and fp.subs(x, -t) <= 0
             if ok: vals.append((27 + 9*b + 3*c) - (8 + 4*b + 2*c))
     return min(vals)
@@ -149,17 +149,16 @@ v7 = 'T:ㄷ'
 w7 = 'T:ㄴ, ㄷ'                                                        # ㄴ을 극대점까지 성립한다고 보면
 chk(7, v7, [w7])
 
-# ===== 8번 =====
+# ===== 8번 (D16 분석집_변형 1: (-4,1) 감소, (1,3) 증가, f(3)-f(2)의 최솟값) =====
 def m8(t):                                                            # 이론식: 3r 홀수, r<=-t 중 최대 → (23-9r)/2
-    s = -3*t if (3*t) % 2 == 1 else -3*t - 1
-    return Rational(23 - 3*s, 2)
-assert (m8(3), m8(4)) == (25, 31)
-assert m16(3) == 25 and m16(4) == 31                                  # 정수 계수 전수와 일치
-for t in range(1, 7): assert m8(t) == m16(t), t
-v8 = m16(3) + m16(4); w8 = 25 + Rational(23 + 33, 2)
-assert v8 == 56 and w8 == 53
-fbad = x**3 - Rational(3, 2)*(1 + Rational(-11, 3))*x**2 + 3*Rational(-11, 3)*x   # 3r=-11은 t=4에서 위반
+    s_ = -3*t if (3*t) % 2 == 1 else -3*t - 1
+    return Rational(23 - 3*s_, 2)
+v8 = m16(4, 3)                                                        # 정수 계수 전수
+assert v8 == m8(4) == 31
+fbad = x**3 - Rational(3, 2)*(1 + Rational(-11, 3))*x**2 + 3*Rational(-11, 3)*x   # 3r=-11: (-4,1)에서 감소 위반
 assert diff(fbad, x).subs(x, -4) > 0
+w8 = Rational(23 + 33, 2)
+assert w8 == 28
 chk(8, v8, [w8])
 
 # ===== 조건 빼 보기 =====
@@ -182,11 +181,12 @@ assert any(Dm.subs(x, t_) < 0 for t_ in [Rational(-5) + Rational(j, 10) for j in
 print('ABLATION 7 ㄴ의 오른쪽 끝 (k+1)/2: 필요((k+2)/3이면 ㄴ 참, 답 ㄴ, ㄷ)')
 assert all(D7.subs({k: 4, x: 1 + Rational(j, 100)}) > 0 for j in range(1, 100))
 # 8번
-def m8_noint(t): return Rational(23 + 9*t, 2)                          # 정수 계수 조건이 없으면 r=-t
-v8b = m8_noint(3) + m8_noint(4)
-print(f'ABLATION 8 모든 계수 정수: 필요(빼면 m(3)+m(4)={v8b})'); assert v8b != v8
-print('ABLATION 8 (1,2)에서 증가: 필요(빼면 f\'(1)=0이 없어 f(3)-f(2)=19+5b+c가 아래로 한없이 작아짐: b=0, c=-3-N)')
-assert all((19 + 5*0 + c) < -N for N, c in [(10, -40), (100, -130)])
-print(f'ABLATION 8 t=3·4(홀짝 하나씩): 필요(m(3)+m(5)={m8(3) + m8(5)}, m(2)+m(4)={m8(2) + m8(4)})'); assert m8(3) + m8(5) != v8 and m8(2) + m8(4) != v8
+v8b = Rational(23 + 9*4, 2)                                           # 정수 계수 조건이 없으면 r=-4
+print(f'ABLATION 8 모든 계수 정수: 필요(빼면 r=-4에서 {v8b})'); assert v8b != v8
+print(f'ABLATION 8 감소 구간 왼끝 -4: 필요(-3이면 {m16(3, 3)}, -2이면 {m16(2, 3)})'); assert m16(3, 3) != v8 and m16(2, 3) != v8
+f0 = x**3 - 48*x                                                      # (1,3) 증가 조건을 빼면: f'=3x^2-48은 [-4,1]에서 ≤0
+assert all(diff(f0, x).subs(x, Rational(j, 4)) <= 0 for j in range(-16, 5)) and f0.subs(x, 3) - f0.subs(x, 2) == -29
+print("ABLATION 8 (1,3)에서 증가: 필요(빼면 f'(1)=0이 없어 f=x^3+cx (c≤-48)처럼 f(3)-f(2)=19+c가 한없이 작아짐)")
+assert -29 < v8
 
 print('ALL OK')
