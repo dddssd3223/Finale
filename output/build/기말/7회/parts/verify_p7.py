@@ -155,9 +155,9 @@ assert b2[0][1] - b2[0][0] == 26 and b2[1][1] - b2[1][0] == 28 and 26 + 28 == 54
 for w in (r'\(2\)', r'\(-10\)', r'\(-24\)', r'=26\)', r'=28\)', r'=54\)'): assert w in S2['wrong'], w
 # 배점·형식
 assert len(S2['subs']) == 3 and len(S2['ans']) == 3 and len(S2['sol']) == 3
-assert [q[1] for q in S2['subs']] == ['3점, 답만 적으시오.', '3점, 답만 적으시오.', '4점, 답만 적으시오.']
+assert [q[1] for q in S2['subs']] == ['2점, 답만 적으시오.', '3점, 답만 적으시오.', '5점, 답만 적으시오.']
 pts2 = [[int(v) for v in re.findall(r'\[(\d)점\]', line)] for line in S2['rubric'][:3]]
-assert pts2 == [[3], [3], [4]] and sum(map(sum, pts2)) == 10, pts2
+assert pts2 == [[2], [3], [5]] and sum(map(sum, pts2)) == 10, pts2
 assert not re.findall(r'\[(\d)점\]', ''.join(S2['rubric'][3:]))
 assert all('채점자 참고용' in line for line in S2['rubric'][:3])
 assert S2['db_ref'] == 'M54 후보_순위 2' and S2['cand'] == 'S2' and set(S2['core']) == {'axis', 'setting', 'principle', 'new'} and S2['level'] == '중상'
