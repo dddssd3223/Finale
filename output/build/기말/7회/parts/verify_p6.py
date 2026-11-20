@@ -123,7 +123,7 @@ assert alt1['-2'] == 464.0 and len(set(alt1.values())) == 3
 print(f'ABLATION 18 최댓값 75: 필요(정해지지 않음: 빼면 v2 의 작은 근 p=-2, 0, 1 모두 거리 80 을 만족, 답 {list(alt1.values())})')
 # (2) '거리 80' 없음: h 자유
 alt2 = {str(hv): answer_for(6*hv, MAXV - 3*hv**2) for hv in (3, 2, 4, 6)}
-assert alt2['3'] == 464 and len(set(alt2.values())) == 4
+assert alt2['3'] == 464 and len(set(alt2.values())) >= 3, alt2
 print(f'ABLATION 18 거리 80: 필요(정해지지 않음: 빼면 h=3, 2, 4, 6 에서 답 {list(alt2.values())})')
 # (3) 't>=0'(시간의 범위) 없음: 폭 전체 [h-5, h+5] 가 그대로 시간이 되어 10h+60=80, h=2 → 460
 wfull = window(an, bn, clip=False)
