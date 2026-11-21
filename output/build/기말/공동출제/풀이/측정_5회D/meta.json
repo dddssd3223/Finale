@@ -1,0 +1,41 @@
+{
+ "round": "5회",
+ "base": "기준프로필",
+ "anchors": [
+  3,
+  6,
+  8,
+  10,
+  12,
+  15,
+  17,
+  18
+ ],
+ "items": {
+  "5회-1": {
+   "hash": "ccfa4406b5b1",
+   "bunseok": false,
+   "key": "J52"
+  },
+  "5회-5": {
+   "hash": "5b31786afad8",
+   "bunseok": false,
+   "key": "D10"
+  },
+  "5회-8": {
+   "hash": "76162e1f536b",
+   "bunseok": false,
+   "key": "D22"
+  },
+  "5회-11": {
+   "hash": "1757cd88b167",
+   "bunseok": false,
+   "key": "D33"
+  },
+  "5회-13": {
+   "hash": "c3e2d0003017",
+   "bunseok": false,
+   "key": "D46"
+  }
+ }
+}

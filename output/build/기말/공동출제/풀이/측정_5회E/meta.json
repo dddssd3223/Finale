@@ -1,0 +1,26 @@
+{
+ "round": "5회",
+ "base": "기준프로필",
+ "anchors": [
+  3,
+  6,
+  8,
+  10,
+  12,
+  15,
+  17,
+  18
+ ],
+ "items": {
+  "5회-3": {
+   "hash": "40606fd3febf",
+   "bunseok": false,
+   "key": "M23"
+  },
+  "5회-5": {
+   "hash": "eb830e3d4118",
+   "bunseok": false,
+   "key": "D10"
+  }
+ }
+}
