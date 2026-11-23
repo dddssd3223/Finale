@@ -1,0 +1,66 @@
+{
+ "round": "8회",
+ "base": "기준프로필",
+ "anchors": [
+  3,
+  6,
+  8,
+  10,
+  12,
+  15,
+  17,
+  18
+ ],
+ "items": {
+  "8회-2": {
+   "hash": "4ecc40e699fb",
+   "bunseok": false,
+   "key": "I51"
+  },
+  "8회-4": {
+   "hash": "3842ccddf2cb",
+   "bunseok": false,
+   "key": "M44"
+  },
+  "8회-6": {
+   "hash": "d775e1c02dfb",
+   "bunseok": false,
+   "key": "M5"
+  },
+  "8회-8": {
+   "hash": "d331eabde549",
+   "bunseok": false,
+   "key": "D13"
+  },
+  "8회-10": {
+   "hash": "996bc3a7580a",
+   "bunseok": false,
+   "key": "M7"
+  },
+  "8회-12": {
+   "hash": "1bbd8d48aef2",
+   "bunseok": false,
+   "key": "M63"
+  },
+  "8회-14": {
+   "hash": "0dbd86441fdb",
+   "bunseok": false,
+   "key": "M16"
+  },
+  "8회-16": {
+   "hash": "77ecf0aec47c",
+   "bunseok": false,
+   "key": "M57"
+  },
+  "8회-18": {
+   "hash": "60866429cdac",
+   "bunseok": false,
+   "key": "M40"
+  },
+  "8회-S2": {
+   "hash": "518a41f563c6",
+   "bunseok": false,
+   "key": "I63"
+  }
+ }
+}
