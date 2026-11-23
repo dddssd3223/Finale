@@ -240,6 +240,26 @@ def stylecheck(D, front):
     print('문체 검사:', len(bad), '곳'); [print('  ', b) for b in bad[:40]]
     return bad
 
+def cover(name, css):
+    """표지(흰 배경) + 빈 쪽 하나 (사용자 2026-11-23)"""
+    no = re.sub(r'\D', '', name).zfill(2)
+    rings = ('<svg width="794" height="400" viewBox="0 0 595 300" style="position:absolute;left:0;top:330pt">'
+             '<circle cx="110" cy="150" r="62" fill="none" stroke="#5f8fd8" stroke-width="26"/>'
+             '<circle cx="300" cy="150" r="62" fill="none" stroke="#8fb2e6" stroke-width="26"/><circle cx="300" cy="150" r="16" fill="#8fb2e6"/>'
+             '<circle cx="490" cy="150" r="62" fill="#5f8fd8"/>'
+             '<path d="M40 150 C 160 60, 240 240, 360 150 S 520 60, 595 150" fill="none" stroke="#c9d6ea" stroke-width="2" stroke-dasharray="3 5"/></svg>')
+    pg = 'width:210mm;height:297mm;position:relative;overflow:hidden;background:#fff;page-break-after:always'
+    return (f'<!doctype html><html><head><meta charset="utf-8"><style>{css}</style></head><body style="margin:0">'
+            f'<div style="{pg}">'
+            '<div style="position:absolute;left:24mm;top:28mm;font-family:NSq;font-size:9pt;letter-spacing:4pt;color:#8fb2e6">2026&nbsp;&nbsp;2학년 2학기</div>'
+            '<div style="position:absolute;left:24mm;top:40mm;font-family:NSq;font-weight:800;font-size:38pt;line-height:1.25;color:#2f5fae;letter-spacing:-1pt">미적분Ⅰ<br>기말 모의고사</div>'
+            f'<div style="position:absolute;right:24mm;top:40mm;font-family:NSq;font-weight:800;font-size:72pt;color:#5f8fd8;letter-spacing:4pt">{no}</div>'
+            f'{rings}'
+            '<div style="position:absolute;left:24mm;top:230mm;font-family:NSq;font-weight:700;font-size:13pt;letter-spacing:6pt;color:#5f8fd8">정 답 및 해 설</div>'
+            f'<div style="position:absolute;left:24mm;top:240mm;font-family:NSq;font-size:9pt;color:#8a8f98">기말 {name}  ·  해설  변형 포인트  출제자의 총평</div>'
+            '<div style="position:absolute;left:0;right:0;bottom:16mm;text-align:center;font-family:NSq;font-size:9pt;color:#5f8fd8">양정고 미적분Ⅰ 기말 대비</div>'
+            f'</div><div style="{pg.replace("page-break-after:always", "")}">&nbsp;</div></body></html>').replace('  ·  ', '&nbsp;&nbsp;&nbsp;')
+
 def build(rdir, out):
     rdir = os.path.abspath(rdir); name = os.path.basename(rdir); c = load(rdir)
     D = {}
@@ -305,7 +325,13 @@ def build(rdir, out):
     H.append('</div></body></html>')
     src = os.path.join(rdir, 'haeseol', 'book_src.html')
     open(src, 'w').write(fx(nodot(''.join(H))))
-    subprocess.run(['node', os.path.join(HERE, 'haeseol2.js'), src, out, f'기말 모의고사 {name}'], check=True)
+    body_pdf = os.path.join(rdir, 'haeseol', 'book_body.pdf'); cover_pdf = os.path.join(rdir, 'haeseol', 'cover.pdf')
+    subprocess.run(['node', os.path.join(HERE, 'haeseol2.js'), src, body_pdf, f'기말 모의고사 {name}'], check=True)
+    csrc = os.path.join(rdir, 'haeseol', 'cover_src.html'); open(csrc, 'w').write(cover(name, css))
+    subprocess.run(['node', os.path.join(HERE, 'haeseol2.js'), csrc, cover_pdf, '-', 'plain'], check=True)
+    import pymupdf
+    doc = pymupdf.open(cover_pdf); doc.insert_pdf(pymupdf.open(body_pdf)); doc.save(out, garbage=4, deflate=True)
+    os.remove(body_pdf); os.remove(cover_pdf)
 
 if __name__ == '__main__':
     build(sys.argv[1], sys.argv[2])

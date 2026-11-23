@@ -4,7 +4,7 @@ const NM = path.join(__dirname, '..', 'node_modules');
 const katex = require(path.join(NM, 'katex'));
 const { chromium } = require(path.join(NM, 'playwright-core'));
 (async () => {
-  const [inp, out, title] = process.argv.slice(2);
+  const [inp, out, title, mode] = process.argv.slice(2);   // mode 'plain': 표지처럼 머리말·쪽 번호 없이 여백 0
   let h = fs.readFileSync(inp, 'utf8');
   const r = (s, d) => katex.renderToString(s, { displayMode: d, throwOnError: true, strict: false, trust: true });
   h = h.replace(/\\\[([\s\S]+?)\\\]/g, (m, s) => r(s, true)).replace(/\\\(([\s\S]+?)\\\)/g, (m, s) => r(s, false));
@@ -31,6 +31,7 @@ const { chromium } = require(path.join(NM, 'playwright-core'));
   const head = `<div style="width:100%;margin:0 16mm;font-family:'NanumSquare',sans-serif;font-size:7.6pt;border-bottom:.8pt dotted #8fb2e6;padding-bottom:2pt;display:flex;justify-content:space-between">
     <span><span style="color:#5f8fd8">${a1}</span> <span style="color:#8fb2e6">〉</span> <b style="color:#222">${a2}</b></span><span style="color:#8fb2e6">양정고 미적분Ⅰ</span></div>`;
   const foot = `<div style="width:100%;text-align:center;font-family:'NanumMyeongjo',serif;font-size:9pt;color:#444"><span class="pageNumber"></span></div>`;
+  if (mode === 'plain') { await p.pdf({ path: out, format: 'A4', printBackground: true, margin: { top: 0, bottom: 0, left: 0, right: 0 } }); await b.close(); return; }
   await p.pdf({ path: out, format: 'A4', printBackground: true, displayHeaderFooter: true, headerTemplate: head, footerTemplate: foot,
     margin: { top: '20mm', bottom: '17mm', left: '16mm', right: '16mm' } });
   await b.close();
