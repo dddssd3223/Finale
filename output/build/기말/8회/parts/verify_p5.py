@@ -84,7 +84,7 @@ def kmax_for(Dx, H=8, w=2, step=100, top=1600):
 # '만나는 순간 속도가 같다' 삭제: a 가 정해지지 않음 (a=7, 9 등에서 답이 다름/없음)
 res = {av: kmax_for(posdiff(v1, v2.subs(a, av))) for av in (7, 9, 10)}
 assert all(v != ANS for v in res.values())   # None: 최댓값 8 인 k 가 표본에 없음(극댓값 높이가 a 에 따라 바뀜)
-ablation("'만나는 순간 두 점의 속도가 서로 같다'", '정해지지 않음', f'a 에 따라 {res}')
+ablation("'만나고, 만나는 순간 두 점의 속도가 서로 같다'", '정해지지 않음', f'a 에 따라 {res}')
 
 # '만나는 순간' → '출발 후 만난다'만: a 의 범위만 남음 (q(t)=t^2-12t+4(a+1) 이 양근을 가지면 됨 → a≤8 무수히 많음)
 qa = t**2 - 12 * t + 4 * (a + 1)
