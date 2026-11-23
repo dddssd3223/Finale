@@ -6,7 +6,7 @@
 - 번호: --to/--from 또는 환경 변수 SOLAPI_TO, SOLAPI_FROM (발신번호는 솔라피 콘솔에 사전 등록 필수)
 - 이미지: MMS 제한(JPG 200KB 이하)에 맞춰 폭 640px로 줄이고, 세로로 길면 여러 장으로 나눠 각각 MMS로 보냄
 - --single: 나누지 않고 한 장으로 보냄(두 단으로 나란히 붙여 1500x1440px·200KB 안에 맞춤)
-- --text2: 첫 MMS 뒤에 이미지 없는 LMS를 하나 더 보냄(개인 코멘트용)
+- --text2/--subject2: 첫 MMS 뒤에 이미지 없는 LMS를 보냄. 여러 번 쓰면 순서대로 여러 통(코멘트·독려 글)
 - 본문은 LMS·MMS 한도 2,000바이트(EUC-KR 기준) 안이어야 함
 - --dry: 이미지 변환·서명만 하고 실제 발송은 하지 않음
 """
@@ -61,6 +61,8 @@ MAX_W, MAX_HH = 1500, 1440  # 솔라피 MMS 해상도 한도
 def to_one_jpg(png):
     """나누지 않은 한 장. 세로가 1440px을 넘으면 카드 사이 빈 줄에서 반으로 잘라 두 단으로 나란히 붙임."""
     im0 = Image.open(png).convert('RGB')
+    if im0.width <= MAX_W and im0.height <= MAX_HH:  # 정사각형 성적표(shot_square.js)는 그대로
+        return fit([im0], '한 장')
     g = im0.convert('L'); px = g.load(); bg = px[2, 2]
     W0, H0 = im0.size
     blank = [all(abs(px[x, y] - bg) < 6 for x in range(0, W0, 8)) for y in range(H0)]
@@ -70,6 +72,10 @@ def to_one_jpg(png):
     gap = W0 // 30
     sheet = Image.new('RGB', (2 * W0 + gap, max(cut, H0 - cut)), im0.getpixel((2, 2)))
     sheet.paste(cols[0], (0, 0)); sheet.paste(cols[1], (W0 + gap, 0))
+    return fit([sheet], '한 장(두 단)')
+
+def fit(ims, label):
+    sheet = ims[0]
     k = min(MAX_W / sheet.width, MAX_HH / sheet.height, 1)
     for f in (1, 0.92, 0.85, 0.78):
         w, h = round(sheet.width * k * f), round(sheet.height * k * f)
@@ -77,7 +83,7 @@ def to_one_jpg(png):
         for q in range(88, 50, -4):
             buf = io.BytesIO(); im.save(buf, 'JPEG', quality=q, optimize=True, progressive=False)
             if buf.tell() <= MAX_BYTES:
-                print(f'한 장(두 단): {w}x{h}px, 화질 {q}')
+                print(f'{label}: {w}x{h}px, 화질 {q}')
                 return [buf.getvalue()]
     raise SystemExit('한 장으로 200KB 안에 맞출 수 없어요. --single 없이 나눠 보내세요.')
 
@@ -92,10 +98,10 @@ def main():
     ap.add_argument('--subject', default='성적표')
     ap.add_argument('--dry', action='store_true')
     ap.add_argument('--single', action='store_true')
-    ap.add_argument('--text2')
-    ap.add_argument('--subject2', default='코멘트')
+    ap.add_argument('--text2', action='append', default=[])
+    ap.add_argument('--subject2', action='append', default=[])
     a = ap.parse_args()
-    for name, t in (('본문', a.text), ('둘째 문자', a.text2)):
+    for name, t in [('본문', a.text)] + [(f'{i}번째 문자', t) for i, t in enumerate(a.text2, 2)]:
         if t is not None:
             n = nbytes(t)
             print(f'{name} {n}바이트')
@@ -116,10 +122,11 @@ def main():
                'subject': a.subject if len(parts) == 1 else f'{a.subject} {i}/{len(parts)}', 'imageId': fid}
         r = call('/messages/v4/send', {'message': msg})
         print(f'{i}/{len(parts)} 발송: {r.get("statusCode")} {r.get("statusMessage")}')
-    if a.text2:
-        msg = {'to': a.to.replace('-', ''), 'from': a.frm.replace('-', ''), 'text': a.text2, 'subject': a.subject2}
+    for i, t in enumerate(a.text2, 2):
+        sub = a.subject2[i - 2] if i - 2 < len(a.subject2) else '코멘트'
+        msg = {'to': a.to.replace('-', ''), 'from': a.frm.replace('-', ''), 'text': t, 'subject': sub}
         r = call('/messages/v4/send', {'message': msg})
-        print(f'둘째 문자 발송: {r.get("statusCode")} {r.get("statusMessage")}')
+        print(f'{i}번째 문자 발송: {r.get("statusCode")} {r.get("statusMessage")}')
 
 if __name__ == '__main__':
     main()

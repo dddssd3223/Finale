@@ -65,6 +65,7 @@ h2 small{font-weight:400;color:var(--muted);font-size:12px}
 .notes p{margin:2px 0 0;color:var(--muted)}
 .good{font-size:13.5px;color:var(--ok)}
 svg text{font-family:var(--body);fill:var(--muted);font-size:10.5px}
+section.rank .rk{display:flex;align-items:baseline;gap:8px;margin:2px 0 6px}section.rank .rk b{font-size:24px;color:var(--ink)}section.rank .rk span{font-size:13px;color:var(--muted)}section.rank svg text{font-size:8.5px;fill:var(--muted)}section.rank .rknote{margin:4px 0 0;font-size:11px;color:var(--muted)}
 footer{text-align:center;color:var(--muted);font-size:11.5px}
 </style>
 
@@ -112,6 +113,26 @@ if(D.history.length>1){
   H.forEach((x,i)=>{const last=i===H.length-1;g+=`<circle cx="${xs(i)}" cy="${ys(x.total)}" r="${last?4.5:2.6}" fill="${last?'var(--navy)':'var(--card)'}" stroke="var(--navy)" stroke-width="2"/><text x="${xs(i)}" y="${Hh-6}" text-anchor="middle">${x.r}</text>`});
   const li=H.length-1;g+=`<text x="${xs(li)}" y="${ys(H[li].total)-9}" text-anchor="end" style="fill:var(--ink);font-weight:600">${fmt(H[li].total)}</text>`;
   h+=`<section class="card"><h2>회차별 점수 <small>점선: 회차별 예상 1컷</small></h2><svg viewBox="0 0 ${W} ${Hh}" width="100%" role="img" aria-label="회차별 점수 추이">${g}</svg></section>`;
+}
+if(D.rank){
+  // 컷 사이를 직선으로 이은 누적 분포 → 2점 간격 밀도 → 부드럽게 → 곡선. 등급별로 색 농도를 달리함.
+  const R=D.rank,c=R.cuts,P=[[100,0],[c[0],10],[c[1],34],[c[2],66],[Math.max(c[3],1),90],[0,100]];
+  const cdf=v=>{for(let i=0;i<P.length-1;i++){const[s0,p0]=P[i],[s1,p1]=P[i+1];if(v<=s0&&v>=s1)return p0+(s0-v)/(s0-s1)*(p1-p0)}return v>100?0:100};
+  let den=[];for(let v=0;v<=100;v+=2)den.push(Math.max(0,cdf(v-1)-cdf(v+1)));
+  for(let t=0;t<3;t++)den=den.map((x,i)=>(den[Math.max(0,i-1)]+2*x+den[Math.min(den.length-1,i+1)])/4);
+  const W=320,Hh=150,L=8,Rm=8,T=30,B=30,mx=Math.max(...den),X=v=>L+(W-L-Rm)*v/100,Y=d=>T+(Hh-T-B)*(1-d/mx);
+  const pts=den.map((d,i)=>[X(i*2),Y(d)]);
+  const seg=(a,b,op)=>{const q=pts.filter((p,i)=>i*2>=a&&i*2<=b);if(q.length<2)return'';return`<path d="M${q[0][0]},${Y(0)} ${q.map(p=>'L'+p[0]+','+p[1]).join(' ')} L${q[q.length-1][0]},${Y(0)}Z" fill="var(--navy)" opacity="${op}"/>`};
+  const ed=[0,c[3],c[2],c[1],c[0],100].map(v=>Math.round(v/2)*2);let g='';
+  [0.10,0.18,0.28,0.42,0.60].forEach((op,i)=>{g+=seg(ed[i],ed[i+1],op)});
+  g+=`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="var(--navy)" stroke-width="1.4"/>`;
+  g+=`<line x1="${L}" x2="${W-Rm}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--line)"/>`;
+  c.forEach((v,i)=>{g+=`<line x1="${X(v)}" x2="${X(v)}" y1="${T-4}" y2="${Y(0)}" stroke="var(--muted)" stroke-dasharray="2 2" stroke-width=".8"/><text x="${X(v)}" y="${Y(0)+12}" text-anchor="middle">${i+1}컷 ${fmt(v)}</text>`});
+  ['5','4','3','2','1'].forEach((t,i)=>{g+=`<text x="${(X(ed[i])+X(ed[i+1]))/2}" y="${Y(0)+24}" text-anchor="middle" style="fill:var(--muted)">${t}등급</text>`});
+  g+=`<line x1="${X(total)}" x2="${X(total)}" y1="${T-12}" y2="${Y(0)}" stroke="var(--red)" stroke-width="2"/><circle cx="${X(total)}" cy="${T-12}" r="3" fill="var(--red)"/>`;
+  g+=`<text x="${X(total)+6}" y="${T-15}" style="fill:var(--red);font-weight:600">나 ${fmt(total)}점 · 약 ${R.pos}등</text>`;
+  const gr=R.pct<=10?1:R.pct<=34?2:R.pct<=66?3:R.pct<=90?4:5;
+  h+=`<section class="card rank"><h2>내 위치 <small>${R.n}명 환산 · 5등급제</small></h2><div class="rk"><b class="num">약 ${R.pos}등</b><span>/ ${R.n}명 · 상위 ${fmt(R.pct)}% · 예상 ${gr}등급</span></div><svg viewBox="0 0 ${W} ${Hh}" width="100%" role="img" aria-label="${R.n}명 환산 점수 분포와 내 위치">${g}</svg><p class="rknote">1·2컷은 이번 회 예상 컷, 3·4컷은 1학기 기말 실제 컷 간격으로 추정</p></section>`;
 }
 h+=`<footer>${D.footer}</footer>`;
 document.getElementById('app').innerHTML=h;
