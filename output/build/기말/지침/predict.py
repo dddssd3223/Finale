@@ -55,6 +55,7 @@ PHASES = [(5, 14, '1 단원 집중', ('11-12', '11-22'), (22, 26)),
 FINAL_IDX = {57: (24, 28), 58: (24, 28), 59: (32, 36), 60: None}       # 60회 = 전 회차 오답 모음
 FOCUS = {5: 'D', 6: 'D', 7: 'M', 8: 'M', 9: 'I', 10: 'I', 11: 'J', 12: 'J'}   # 부교재 재풀이 순서(04→05→06→07)를 따라감
 WRONG_ROUNDS = (14, 34, 46, 56, 60)                                       # 단계 끝: 그 단계 오답 원문을 다른 변형으로 다시
+EXCLUDE = {f'D{n}' for n in (33, 34, 37, 39, 41, 49, 50, 51, 52, 57, 58, 60, 63, 65, 68)}   # 2026-11-23 사용자: 도함수의 활용(1) 시험 범위에서 빠짐 → 8회부터 출제 안 함
 RESERVE_FROM = 47                                                         # 원문마다 학교식 1순위 후보는 4·5단계(실전 동형·파이널)용으로 남김
 def phase(r):
     for p in PHASES:
@@ -130,7 +131,7 @@ def plan(rno, used=(), recent=()):
     def cands(no, sv, rng, need_fig=None, loose=False, anyunit=False):
         out = []
         for k in F.I:
-            if k in used or k in pick.values(): continue
+            if k in EXCLUDE or k in used or k in pick.values(): continue
             u = k[0]
             if quota[u] <= 0 and not anyunit: continue
             if isinstance(no, int) and no <= 4 and sum(1 for n2, v in pick.items() if isinstance(n2, int) and n2 <= 4 and v[0] == u) >= 2: continue   # 1–4번 같은 단원 2개까지
@@ -297,7 +298,7 @@ if __name__ == '__main__' and sys.argv[1] == 'schedule':
     CUR = {r: dict(단계=phase(int(r))[2], 날짜=round_date(int(r)), 난도_지수=idx_range(int(r)), 단원_집중=FOCUS.get(int(r)), 오답_재출제=int(r) in WRONG_ROUNDS) for r in S}
     json.dump(CUR, open(os.path.join(HERE, 'curriculum.json'), 'w'), ensure_ascii=False, indent=1)
     C = collections.Counter(used + [v['key'] for row in S.values() for v in row.values()])
-    print('회차', len(S), '자리', sum(len(r) for r in S.values()), '원문 노출 횟수 분포', dict(sorted(collections.Counter(C[k] for k in F.I).items())), '미노출', sorted(set(F.I) - set(C)))
+    print('회차', len(S), '자리', sum(len(r) for r in S.values()), '원문 노출 횟수 분포', dict(sorted(collections.Counter(C[k] for k in F.I).items())), '미노출', sorted(set(F.I) - set(C) - EXCLUDE), '범위 밖', sorted(EXCLUDE, key=lambda k: int(k[1:])))
     print('db_ref 종류', dict(collections.Counter(v['db_ref'].split()[1] for row in S.values() for v in row.values())), '(다시)', sum('(다시)' in v['db_ref'] for row in S.values() for v in row.values()))
     sys.exit(0)
 
