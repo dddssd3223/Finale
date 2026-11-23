@@ -205,6 +205,14 @@ def canon(ref):
             return f'{k} id ' + ','.join(sorted(ids)) if ids else ref
     return ref
 
+def _printed_nje():
+    """인쇄된 N제에 실린 DB 변형(2026-11-23): nje_pool 가운데 다시 쓰기에서 버리지 않은 것 + 분석집_변형. 모고에 다시 내지 않는다."""
+    pp, rp = os.path.join(HERE, 'nje_pool.json'), os.path.join(HERE, 'db', 'nje_rewrite.json')
+    if not os.path.exists(pp): return set()
+    rw = json.load(open(rp)) if os.path.exists(rp) else {}
+    return {r for v in json.load(open(pp)).values() for r in v if r.split()[1] == '분석집_변형' or (r in rw and not rw[r].get('drop'))}
+NJE = _printed_nje()
+
 def next_ref(k, mode, taken, rno=0, band='mid'):
     """원문 k에서 아직 안 쓴 DB 후보 하나. 학교식: 후보_순위 차례, 예상밖: 예상밖 → v3_추가 → 결합, 킬러: 설계A → 설계B."""
     e = DB.get(k, {})
@@ -241,7 +249,11 @@ def next_ref(k, mode, taken, rno=0, band='mid'):
         opts = [o for o in ranked if o in rot] + [o for o in rot if o not in ranked and o not in flagged] + [o for o in rot if o in flagged and o not in ranked]
     for o in opts:
         if o not in taken and canon(o) not in taken: return o
-    return opts[0] + ' (다시)' if opts else f'{k} 자체'
+    fresh = [o for o in opts if o not in NJE]                           # 다 썼으면 모고에서 쓴 것을 다시(N제에 실린 것은 안 씀)
+    if fresh: return fresh[0] + ' (다시)'
+    alt = [f"{k} 후보_순위 {c.get('순위', i + 1)}" for i, c in enumerate(e.get('후보_순위', []))]
+    alt = [o for o in alt if o not in taken and o not in NJE]
+    return alt[0] if alt else f'{k} 자체'
 
 def schedule(r0, r1, used=(), taken0=()):
     """r0–r1회 회차표: 회차마다 자리·원문·mode·db_ref. 같은 원문은 3회 안에 다시 안 씀. 원문 재사용은 cap()까지, 매번 다른 후보."""
@@ -293,6 +305,7 @@ if __name__ == '__main__' and sys.argv[1] == 'schedule':
             except Exception as ex: print('건너뜀', rd, ex)
             finally: os.chdir(cwd); sys.path.pop(0)
         print('이미 만든 회차 원문', len(used), '개')
+    taken0 += sorted(NJE)   # 인쇄된 N제 변형은 회차표에 안 넣음
     S = schedule(int(a[0]), int(a[1]), used, taken0)
     json.dump(S, open(os.path.join(HERE, 'schedule.json'), 'w'), ensure_ascii=False, indent=1)
     CUR = {r: dict(단계=phase(int(r))[2], 날짜=round_date(int(r)), 난도_지수=idx_range(int(r)), 단원_집중=FOCUS.get(int(r)), 오답_재출제=int(r) in WRONG_ROUNDS) for r in S}
