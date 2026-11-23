@@ -53,13 +53,14 @@ CSS = r"""
 @font-face{font-family:'NSq';src:url('file://@N@NanumSquareEB.ttf');font-weight:800}
 @font-face{font-family:'NBG';src:url('file://@N@NanumBarunGothic.ttf')}
 @font-face{font-family:'NBG';src:url('file://@N@NanumBarunGothicBold.ttf');font-weight:700}
+@font-face{font-family:'SJ';src:url('file://@F@/shinjung.ttf')}
 @font-face{font-family:'HB';src:url('file://@F@/hbatang_web.ttf')}
 @font-face{font-family:'NMJ';src:url('file://@N@NanumMyeongjo.ttf')}
 @font-face{font-family:'NMJ';src:url('file://@N@NanumMyeongjoBold.ttf');font-weight:700}
 :root{--b:#5f8fd8;--bl:#8fb2e6;--bp:#e9f0fb;--bd:#2f5fae;--g:#8a8f98;--gl:#e9eaec;--ink:#222}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{font-family:'HB','NMJ',serif;font-size:8.7pt;line-height:2.25;color:var(--ink);word-break:keep-all}
+body{font-family:'SJ','HB','NMJ',serif;font-size:8.7pt;line-height:2.25;color:var(--ink);word-break:keep-all}
 .katex{font-size:1.04em}
 .katex-display{margin:.8em 0}
 p{margin:.35em 0 .8em}
