@@ -59,10 +59,10 @@ CSS = r"""
 :root{--b:#5f8fd8;--bl:#8fb2e6;--bp:#e9f0fb;--bd:#2f5fae;--g:#8a8f98;--gl:#e9eaec;--ink:#222}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{font-family:'HB','NMJ',serif;font-size:9.6pt;line-height:1.85;color:var(--ink);word-break:keep-all}
-.katex{font-size:1.06em}
-.katex-display{margin:.55em 0}
-p{margin:.25em 0 .55em}
+body{font-family:'HB','NMJ',serif;font-size:8.7pt;line-height:2.25;color:var(--ink);word-break:keep-all}
+.katex{font-size:1.04em}
+.katex-display{margin:.8em 0}
+p{margin:.35em 0 .8em}
 b{font-weight:700}
 /* 1쪽 */
 .p1{display:flex;gap:9mm;break-after:page}
@@ -91,25 +91,25 @@ table.cut td.h{font-weight:700;text-align:left;padding-left:0}
 .p2{display:flex;gap:9mm;break-after:page}
 .p2 .l{flex:1}.p2 .r{flex:1}
 .ctag{display:inline-block;background:var(--b);color:#fff;font-family:'NSq';font-weight:800;font-size:8.6pt;padding:2pt 8pt;margin-bottom:6pt}
-.cm{background:#f4f6f9;border-radius:3pt;padding:8pt 10pt;margin-bottom:9pt;font-family:'NBG';font-size:8.4pt;line-height:1.75}
+.cm{background:#f4f6f9;border-radius:3pt;padding:9pt 11pt;margin-bottom:10pt;font-family:'NBG';font-size:8pt;line-height:2.05}
 .cm .who{display:flex;align-items:center;gap:6pt;font-family:'NSq';font-weight:700;font-size:8.6pt;margin-bottom:4pt}
 .cm .ic{width:18pt;height:18pt;border-radius:50%;background:var(--b);color:#fff;display:flex;align-items:center;justify-content:center;font-size:8pt}
 .cm b{font-weight:700}
-.chong{font-family:'NBG';font-size:8.9pt;line-height:1.9}
+.chong{font-family:'NBG';font-size:8.3pt;line-height:2.15}
 .chong .hd{display:flex;align-items:center;gap:7pt;margin-bottom:6pt}
 .chong .hd .bub{width:32pt;height:32pt;border-radius:50%;background:var(--bp);display:flex;align-items:center;justify-content:center;font-family:'NSq';font-weight:800;color:var(--bd);font-size:8pt;text-align:center;line-height:1.15}
 .chong p{margin:0 0 7pt}
 .chong b{font-weight:700;color:#111}
 /* 본문 2단 */
 .cols{column-count:2;column-gap:11mm;column-fill:auto}
-.it{margin:0 0 16pt}
+.it{margin:0 0 22pt}
 .no{font-family:'NSq';font-weight:700;font-size:17pt;color:var(--b);line-height:1.1;margin:2pt 0 3pt;break-after:avoid}
 .no .z{color:var(--bl);opacity:.75}
 .mt{display:inline-flex;font-family:'NSq';font-size:7.6pt;font-weight:700;margin-bottom:5pt;break-after:avoid}
 .mt span{padding:0 5pt;line-height:1.75}
 .mt .a{background:#8c9097;color:#fff}.mt .b{background:#e3e5e8;color:#5e636b}
 .mt.sj .a{background:#8c9097}
-.cb{border:1pt solid var(--bl);border-radius:2pt;margin:4pt 0 8pt;break-inside:avoid;font-size:9pt}
+.cb{border:1pt solid var(--bl);border-radius:2pt;margin:4pt 0 10pt;break-inside:avoid;font-size:8.3pt;line-height:2}
 .cb .h{display:flex;justify-content:space-between;align-items:center;padding:2pt 7pt;border-bottom:.6pt solid var(--bl);font-family:'NSq';font-size:8.2pt;color:var(--b);font-weight:700}
 .cb .h .k{font-size:7pt;color:var(--b);font-weight:400}
 .cb .bd{padding:3pt 8pt}
@@ -128,14 +128,14 @@ table.cut td.h{font-weight:700;text-align:left;padding-left:0}
 .st .sh{display:flex;align-items:center;gap:6pt;border:.6pt dashed var(--bl);border-radius:2pt;padding:1pt 6pt;margin-left:-11pt;background:#fff;position:relative;font-family:'NBG';font-size:8.4pt;font-weight:700}
 .st .sh .s{font-family:'NSq';font-size:6.5pt;color:var(--bl);line-height:1;text-align:center}
 .st .sh .s b{display:block;font-size:10pt;color:var(--b)}
-.st ul{margin:3pt 0 0;padding-left:12pt;font-size:8.8pt}
+.st ul{margin:3pt 0 0;padding-left:12pt;font-size:8.2pt;line-height:2}
 .jt{margin-top:6pt}
 .ck{background:#f4f6f9;border-radius:2pt;padding:5pt 9pt;margin:6pt 0;font-size:8.6pt;break-inside:avoid}
 .ck .h{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:.6pt solid #555;padding-bottom:1pt;margin-bottom:3pt;font-family:'NSq';font-weight:700;font-size:8pt}
 .ck .h .c{color:var(--b);font-weight:800;font-size:9pt}
 .ck .h .r{font-weight:400;font-size:7.4pt}
 .ck ol{margin:0;padding-left:13pt}
-.og{border:.6pt solid #c8cdd4;border-radius:2pt;margin:8pt 0 4pt;break-inside:avoid;font-size:8.7pt}
+.og{border:.6pt solid #c8cdd4;border-radius:2pt;margin:10pt 0 4pt;break-inside:avoid;font-size:8.1pt;line-height:2}
 .og .h{display:flex;justify-content:space-between;padding:1.5pt 7pt;font-family:'NSq';font-size:7.4pt;font-weight:700;border-bottom:.5pt dotted #c8cdd4}
 .og .h .r{color:var(--bl);font-weight:400}
 .og .bd{padding:4pt 8pt}
@@ -164,9 +164,9 @@ def item_html(n, d, c, sitem=None):
     if d.get('flow'):
         st = ''.join(f'<div class="st"><div class="sh"><span class="s">STEP<b>{i + 1:02d}</b></span>{s.get("title", "")}</div><ul>' + ''.join(f'<li>{p}</li>' for p in s.get('points') or []) + '</ul></div>' for i, s in enumerate(d['flow']))
         h.append(f'<div class="flow"><div class="fh"><span class="a">흐름</span><span class="b">정리</span></div>{st}</div>')
-    h.append(cref(d.get('body') or ''))
+    h.append(re.sub(r'<sup>[^<]*</sup>', '', cref(d.get('body') or '')))
     if d.get('justify'): h.append('<div class="jt">' + tag('논리적', '정당화') + cref(d['justify']) + '</div>')
-    if d.get('notes'):
+    if False and d.get('notes'):   # 사용자 2026-11-23: 각주 뺌
         h.append('<div class="ck"><div class="h"><span><span class="c">✓ CHECK</span>&nbsp; 각주</span><span class="r">해설 본문의 각주</span></div><ol>' + ''.join(f'<li>{x}</li>' for x in d['notes']) + '</ol></div>')
     v = d.get('variation') or {}
     key = (sitem if sitem is not None else c.ITEMS[int(n)]).get('key', '')
@@ -183,12 +183,39 @@ def item_html(n, d, c, sitem=None):
     h.append('</div>')
     return ''.join(h)
 
+def stylecheck(D, front):
+    """사용자 규칙(2026-11-23): 모든 문장 '-다.'로 끝, 글 속 괄호 금지, 각주 없음. 어긴 곳을 출력한다."""
+    bad = []
+    MATH = re.compile(r'\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)')
+    def txt(x): return html.unescape(re.sub(r'<[^>]+>', ' ', MATH.sub(' M ', str(x or ''))))
+    def chk(where, x):
+        t = txt(x)
+        i = t.find('(') if '(' in t else t.find(')')
+        if i >= 0: bad.append(f'{where}: 괄호 — ' + t[max(0, i - 20):i + 25].strip())
+        for sen in re.split(r'(?<=[.!?])\s+', t.strip()):
+            sen = sen.strip()
+            if len(sen) > 8 and not re.search(r'다\.?$|M\s*\.?$|[:]$', sen): bad.append(f'{where}: 끝맺음 — …' + sen[-25:])
+    for n, d in D.items():
+        for k in ('body', 'think', 'justify'): chk(f'{n}.{k}', d.get(k))
+        for cb in d.get('concepts') or []: chk(f'{n}.개념', cb.get('body'))
+        for st in d.get('flow') or []:
+            for pt in st.get('points') or []: chk(f'{n}.STEP', pt)
+        v = d.get('variation') or {}
+        for k in ('origin', 'point'): chk(f'{n}.변형', v.get(k))
+        for x in v.get('changes') or []: chk(f'{n}.변형', x)
+        if d.get('notes'): bad.append(f'{n}: 각주 남음')
+    for x in front.get('chongpyeong', []): chk('총평', x)
+    for x in front.get('comments', []): chk('코멘트', x['text'])
+    print('문체 검사:', len(bad), '곳'); [print('  ', b) for b in bad[:40]]
+    return bad
+
 def build(rdir, out):
     rdir = os.path.abspath(rdir); name = os.path.basename(rdir); c = load(rdir)
     D = {}
     for f in sorted(glob.glob(os.path.join(rdir, 'haeseol', 'items_*.json'))):
         for d in json.load(open(f)): D[str(d['n'])] = d
     front = json.load(open(os.path.join(rdir, 'haeseol', 'front.json'))) if os.path.exists(os.path.join(rdir, 'haeseol', 'front.json')) else {}
+    stylecheck(D, front)
     css = CSS.replace('@N@', NAN).replace('@F@', FONTS)
     H = [f'<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="file://{KATEX_CSS}"><style>{css}</style></head><body>']
     # 1쪽 — 정답표
@@ -227,9 +254,9 @@ def build(rdir, out):
              f'<table class="ans">{rows}</table><div class="sa">{sa}</div>'
              f'<h3 style="margin-top:16pt">기말 {name} &nbsp;<b>예상 등급컷</b></h3>'
              f'<table class="cut"><tr><td></td><th>원점수</th></tr><tr><td class="h">1등급컷</td><td>{round(c1)}</td></tr><tr><td class="h">2등급컷</td><td>{round(c2)}</td></tr></table>'
-             f'<div class="fine">난도 지수 {idx:.1f}(상·최상 배점 + 중상 배점의 절반)로 2026 2학기 중간고사 성적에 맞춰 환산한 값입니다.</div></div>'
+             f'<div class="fine">난도 지수 {idx:.1f}을 2026 2학기 중간고사 성적에 맞춰 환산한 값이다. 난도 지수는 상·최상 문항 배점에 중상 문항 배점의 절반을 더한 값이다.</div></div>'
              f'<div class="r"><h3>기말 {name} VS 2026-2 중간 &nbsp;난도 비교</h3>{cmp}'
-             f'<div class="fine">*번호대별 평균 체감 난도(10점 만점). 2026 2학기 중간고사 같은 번호를 기준으로 맞춘 블라인드 풀이 측정값입니다.</div></div></div>')
+             f'<div class="fine">번호대별 평균 체감 난도를 10점 만점으로 나타냈다. 2026 2학기 중간고사 같은 번호를 기준으로 맞춘 블라인드 풀이 측정값이다.</div></div></div>')
     # 2쪽 — 검수 코멘트 · 총평
     if front:
         cm = ''.join(f'<div class="cm"><div class="who"><span class="ic">✎</span>{x["who"]}</div>{x["text"]}</div>' for x in front.get('comments', []))
