@@ -10,7 +10,7 @@ with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'p1.py'), enc
 IT = ns['ITEMS']
 WANT = {1: 4, 2: 5, 3: 2, 4: 3}            # 분담표 ③ ⑤ ② ④ → 1·4번 맞바꿈(1번 ④, 4번 ③), 1–4번 정답 분포는 그대로
 KEY = {1: ('J12', 'J12 분석집_변형 1'), 2: ('I51', 'I51 후보_순위 2'), 3: ('I3', 'I3 후보_순위 2'), 4: ('M44', '자체 (가장 가까운 M44)')}
-STEP = {1: 3, 2: Rational(1, 2), 3: 1, 4: 1}
+STEP = {1: 3, 2: Rational(1, 2), 3: 2, 4: 1}
 assert sorted(IT) == [1, 2, 3, 4]
 assert sorted(WANT.values()) == [2, 3, 4, 5]
 for no, it in IT.items():
@@ -75,29 +75,24 @@ for kk in kM:
 print('원문·뼈대 풀이 OK (J12=4/3, STUDY-J12-변형①=27/4, I51=2, I3=2, M44=3)')
 
 # ===== 1번 =====
-f1 = 4*x**3 + a*x**2 + b*x + c
-a1 = solve(diff(f1, x).subs(x, 0) - diff(f1, x).subs(x, 2), a)
-assert a1 == [-12]                                                                   # a 하나로 정해짐, b·c는 자유
-F1 = f1.subs(a, -12)
-l1 = diff(F1, x).subs(x, 0)*x + F1.subs(x, 0)
-g1 = expand(F1 - l1)
-assert g1 == 4*x**3 - 12*x**2 and factor(g1) == 4*x**2*(x - 3)                       # b, c와 무관
+f1 = 4*x**3 - 12*x**2 + a*x + b
+l1 = diff(f1, x).subs(x, 0)*x + f1.subs(x, 0)
+g1 = expand(f1 - l1)
+assert g1 == 4*x**3 - 12*x**2 and factor(g1) == 4*x**2*(x - 3)                       # a, b와 무관
 v1 = integrate(-g1, (x, 0, 3))
 assert v1 == 27
 import random
-for _ in range(20):                                                                  # b, c를 바꿔도 넓이 같음(전수 대신 임의 표본 + 기호 확인)
-    bb, cc = random.randint(-9, 9), random.randint(-9, 9)
-    assert area_tangent(F1.subs({b: bb, c: cc}), 0)[0] == 27
+for _ in range(20):                                                                  # a, b를 바꿔도 넓이 같음(교점 전수)
+    aa, bb = random.randint(-9, 9), random.randint(-9, 9)
+    assert area_tangent(f1.subs({a: aa, b: bb}), 0)[0] == 27
 w1 = Rational(4, 6)*3**3                                                             # 이차함수 공식 오적용
 assert w1 == 18
 assert v1 != AS                                                                      # 분석집 변형 답(27/4)과 다름
 chk(1, v1, [w1])
-# 빼 보기
-A_free = {area_tangent(4*x**3 + aa*x**2 + 2*x + 1, 0)[0] for aa in (-4, -8, -12)}
-assert len(A_free) == 3
-print('ABLATION 1 두 접선 평행: 필요(없으면 이차항 계수 a가 정해지지 않아 넓이가 a에 따라 바뀜)')
 assert area_tangent(x**3 - 3*x**2 + 2*x + 1, 0)[0] == Rational(27, 4)
 print('ABLATION 1 최고차항의 계수 4: 필요(계수 1이면 27/4로 답이 바뀜)')
+assert area_tangent(4*x**3 - 8*x**2 + 2*x + 1, 0)[0] != 27
+print('ABLATION 1 이차항 -12x^2: 필요(바꾸면 다른 교점이 옮겨 넓이가 바뀜)')
 
 # ===== 2번 =====
 G2 = integrate(3*x**2 - 4*x - 8, (x, 0, a))
@@ -111,29 +106,23 @@ assert -min(r2) == 2 and sI == [2]
 print('ABLATION 2 양수: 필요(없으면 a=0, -2, 4로 정해지지 않음)')
 
 # ===== 3번 =====
-# f의 차수를 4까지 열어 전수: f - f' = 6x^2 - 18x를 만족시키는 다항식은 하나뿐
+# f의 차수를 4까지 열어 전수: f - f' = 6x^2 - 16x를 만족시키는 다항식은 하나뿐(이차)
 cs = symbols('d0:5')
 fg = sum(cs[i]*x**i for i in range(5))
-s3 = solve(Poly(expand(fg - diff(fg, x) - (6*x**2 - 18*x)), x).all_coeffs(), cs, dict=True)
+s3 = solve(Poly(expand(fg - diff(fg, x) - (6*x**2 - 16*x)), x).all_coeffs(), cs, dict=True)
 assert len(s3) == 1
 f3 = expand(fg.subs(s3[0]))
-assert f3 == 6*x**2 - 6*x - 6
-F3 = f3 + 2*x**3 - 9*x**2
+assert f3 == 6*x**2 - 4*x - 4 and Poly(f3, x).degree() == 2                         # 본문 '이차함수'와 맞음
+F3 = f3 + 2*x**3 - 8*x**2
 assert expand(diff(F3, x) - f3) == 0                                                 # F는 실제로 f의 부정적분
-eq3 = expand(f3 - 4*x**2)
-assert eq3 == 2*x**2 - 6*x - 6 and sp.discriminant(eq3, x) > 0
-r3 = solve(eq3, x)
-assert len(r3) == 2
-v3 = sp.simplify(sum(r3))
-assert v3 == 3
-# 오답 6: f'을 ax+b로(2 빠뜨림) → b=a-18
-aa = 6; bb = aa - 18
-w3 = sp.simplify(sum(solve(aa*x**2 + bb*x + bb - 4*x**2, x)))
-assert w3 == 6
-chk(3, v3, [2, w3])
+v3 = f3.subs(x, 2)
+assert v3 == 12
+w3 = (6*x**2 - 4*x).subs(x, 2)                                                       # 상수항 비교 누락(c=0)
+assert w3 == 16
+chk(3, v3, [w3])
 fo = solve(Poly(expand(fg - diff(fg, x) - (6*x**2 - 14*x)), x).all_coeffs(), cs, dict=True)
-assert sp.simplify(sum(solve(expand(fg.subs(fo[0])) - 4*x**2, x))) != 3
-print('ABLATION 3 항등식 계수 -9: 필요(원문 -7이면 f=6x^2-2x-2, 근의 합이 1로 바뀜)')
+assert expand(fg.subs(fo[0])).subs(x, 2) != 12
+print('ABLATION 3 항등식 계수 -8: 필요(원문 -7이면 f=6x^2-2x-2, f(2)=18로 바뀜)')
 
 # ===== 4번 =====
 d4 = expand((x**3 + 2*x**2 + 1) - (2*x**2 + 3*x + k))

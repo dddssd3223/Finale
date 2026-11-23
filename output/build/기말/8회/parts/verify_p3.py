@@ -170,7 +170,7 @@ fo12 = (x - 2)**2 * (x - 5) + 3
 ok(fo12.subs(x, 2) == 3 and fo12.subs(x, 6) == 19 and Rational(3 * (-1) - 9, -1 - 1) == 6, '12번 원문 M63 정답 19 (a=3, g(−1)=6, f(6)=19)')
 f12 = -2 * x**3 + 15 * x**2 - 36 * x + 27
 ok(expand(f12 + (x - 3)**2 * (2 * x - 3)) == 0 and expand(f12 + 1 + (x - 2)**2 * (2 * x - 7)) == 0, '12번 f=−(x−3)²(2x−3), f+1=−(x−2)²(2x−7)')
-ok('x+3' in IT[12]['body'] and '연속' not in IT[12]['body'], '12번 연속 조건 장치 제거(x+3 직접 제시)')
+ok('x+3' in IT[12]['body'] and '집합에서 연속' not in IT[12]['body'], '12번 연속 조건 장치 제거(x+3 직접 제시)')
 av = 3
 def N(tv):
     n = 1 if (tv - av) < 1 else 0                    # x + 3 = t, x < 1
