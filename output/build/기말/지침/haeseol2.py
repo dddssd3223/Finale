@@ -26,7 +26,7 @@ def load(rdir):
 
 def fx(s):
     s = str(s or '')
-    return re.sub(r'\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)', lambda m: m.group(0).replace('&lt;', '<').replace('&gt;', '>'), s)
+    return re.sub(r'\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)', lambda m: m.group(0).replace('&lt;', '<').replace('&gt;', '>').replace("\\'", "'"), s)
 
 def feels(rdir, c):
     """측정 결과 → 시험지 번호별 체감(마지막 측정이 이김). A·B·C는 출제 때 번호, 뒤 측정은 meta의 번호 기준."""
@@ -183,6 +183,22 @@ def item_html(n, d, c, sitem=None):
     h.append('</div>')
     return ''.join(h)
 
+MATHRE = re.compile(r'\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)')
+def outside(s, f):
+    """수식 밖 글에만 f를 적용"""
+    s = str(s or ''); out, i = [], 0
+    for m in MATHRE.finditer(s):
+        out.append(f(s[i:m.start()])); out.append(m.group(0)); i = m.end()
+    out.append(f(s[i:])); return ''.join(out)
+SUBN = lambda t: re.sub(r'\(([가나다라])\)', lambda m: '㈎㈏㈐㈑'['가나다라'.index(m.group(1))], re.sub(r'\(([1-5])\)', lambda m: '⑴⑵⑶⑷⑸'[int(m.group(1)) - 1], t))
+def tidy(d):
+    """소문항 번호 (1) → ⑴ (사용자 2026-11-23 괄호 금지)"""
+    for k in ('body', 'think', 'justify'):
+        if d.get(k): d[k] = outside(d[k], SUBN)
+    for st in d.get('flow') or []:
+        st['points'] = [outside(p, SUBN) for p in st.get('points') or []]
+    return d
+
 def stylecheck(D, front):
     """사용자 규칙(2026-11-23): 모든 문장 '-다.'로 끝, 글 속 괄호 금지, 각주 없음. 어긴 곳을 출력한다."""
     bad = []
@@ -213,7 +229,7 @@ def build(rdir, out):
     rdir = os.path.abspath(rdir); name = os.path.basename(rdir); c = load(rdir)
     D = {}
     for f in sorted(glob.glob(os.path.join(rdir, 'haeseol', 'items_*.json'))):
-        for d in json.load(open(f)): D[str(d['n'])] = d
+        for d in json.load(open(f)): D[str(d['n'])] = tidy(d)
     front = json.load(open(os.path.join(rdir, 'haeseol', 'front.json'))) if os.path.exists(os.path.join(rdir, 'haeseol', 'front.json')) else {}
     stylecheck(D, front)
     css = CSS.replace('@N@', NAN).replace('@F@', FONTS)
