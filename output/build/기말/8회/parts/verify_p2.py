@@ -125,36 +125,24 @@ def extrema(mv, A, N=4):
     return out
 assert all(fval(R(v), 2) == 0 for v in (1, 3, 4, 6, 7)) and fval(R(3), 2) == 0   # 연속(경계값 0)
 # 원문 확인: A=1, m=1/2 → α7<6≤α8, 합 18, g'(11/3)=-5/6
-E = extrema(R(1, 2), 1); assert E[6] < 6 <= E[7] and sum(E[:7]) == 18
+E = extrema(R(1, 2), 1, N=3); assert E[6] < 6 <= E[7] and sum(E[:7]) == 18
 assert diff(f0[0][0], x).subs(x, R(2, 3)) - R(1, 2) == R(-5, 6)
-# 분석집 변형① 확인(둘째 조각 -2x^2+8x-6): 합 19-3m/2 → m=2/3 (같은 m을 피했는지 대조용)
-# 7번: A=2. 0<m<1에서 극점 공식과 합
-for mv in (R(1, 10), R(1, 3), R(1, 2), R(9, 10)):
-    E = extrema(mv, 2)
-    assert E[:8] == [(1 - mv)/2, 1, 2 - mv/2, 3, R(7, 2) - mv/4, 4, 5 - mv/4, 6], (mv, E[:8])
-    assert sum(E[:7]) == 19 - R(3, 2)*mv
-# m의 전 범위 조사: 합 조건만으로 m이 하나로 정해짐(원문의 개수 조건 α7<6≤α8은 군더더기라 뺌)
-for mv in (R(1), R(5, 4), R(3, 2), R(19, 10)):                          # 1≤m<2: (0,1)에 극점 없음, 합 49/2-m
-    E = extrema(mv, 2); assert E[:7] == [1, 2 - mv/2, 3, R(7, 2) - mv/4, 4, 5 - mv/4, 6] and sum(E[:7]) == R(49, 2) - mv > R(37, 2)
-for mv in (R(2), R(21, 10), R(3), R(4), R(5), R(8), R(9)):               # m≥2: (0,4)에 극점 없음 → 합 ≥ 28
-    E = extrema(mv, 2, N=7); assert min(E) >= 4 and len(E) >= 7 and sum(E[:7]) > R(37, 2), mv
-grid = sorted({R(i, 40) for i in range(1, 400)})
-hit = [mv for mv in grid if (lambda E: len(E) >= 7 and sum(E[:7]) == R(37, 2))(extrema(mv, 2, N=5))]
-assert hit == [R(1, 3)] or hit == []                                    # 1/3은 격자 밖(1/40 단위) — 아래에서 정확히
-msol = solve(19 - R(3, 2)*m - R(37, 2), m); assert msol == [R(1, 3)] and 0 < msol[0] < 1
-E = extrema(R(1, 3), 2); assert sum(E[:7]) == R(37, 2)
-print('7번 m 갈래: 0<m<1 → 19-3m/2, 1≤m<2 → 49/2-m (>37/2), m≥2 → α1≥4 (>37/2) ⇒ m=1/3 하나')
-xq = R(13, 3); e2 = pieces(1, 2)[1][0]; assert pieces(1, 2)[1][1] < xq < pieces(1, 2)[1][2]
-ans7 = diff(e2, x).subs(x, xq) - R(1, 3); assert ans7 == R(7, 3)
-w1 = diff(f0[1][0], x).subs(x, xq - 3) - R(1, 3)                        # 주기로 착각
-w2 = 2*(diff(f0[1][0], x).subs(x, xq - 3) - R(1, 3))                    # g(x+3)=2g(x)로 착각
-chk(7, ans7, [w1, w2])
-# 빼 보기
-E1 = extrema(R(1, 4), 1)
-print('ABLATION 7 f(x+3)=2f(x) → f(x+3)=f(x): 필요(합 19-2m=37/2에서 m=1/4, g\'(13/3)=', diff(f0[1][0], x).subs(x, xq - 3) - R(1, 4), '로 바뀜)')
-assert sum(E1[:7]) == R(37, 2)
-print('ABLATION 7 원문의 α7<6≤α8: 군더더기(답 그대로) → 본문에서 뺌')
-print('ABLATION 7 합 37/2: 필요(빼면 0<m<1의 m이 정해지지 않음)')
+# 7번: A=2, x=4에서 극값을 갖지 않는 m (전수: 꺾인 점 판정을 정확한 ε로)
+def ext_at(mv, c0, A=2):
+    eps = R(1, 10**6); g = lambda v: fval(v, A) - mv*v
+    return (g(c0 - eps) - g(c0))*(g(c0 + eps) - g(c0)) > 0
+lt, rt = sp.limit(diff(pieces(1, 2)[0][0], x), x, 4, '-'), sp.limit(diff(pieces(1, 2)[1][0], x), x, 4, '+')
+assert (lt, rt) == (-2, 4)
+grid = sorted({R(i, 20) for i in range(1, 200)} | {R(4)})
+noext = [mv for mv in grid if not ext_at(mv, 4)]
+assert noext and min(noext) == 4 and all(mv >= 4 for mv in noext) and all(not ext_at(mv, 4) for mv in grid if mv >= 4)
+assert ext_at(R(399, 100), 4) and not ext_at(R(4), 4)                     # 경계 m=4는 포함(극값 없음)
+ans7 = min(noext)
+w1 = sp.limit(diff(f0[1][0], x), x, 1, '+')                              # 주기로 착각: 2-m≤0 → 2
+chk(7, ans7, [w1])
+print('ABLATION 7 f(x+3)=2f(x) → f(x+3)=f(x): 필요(답', min(mv for mv in grid if not ext_at(mv, 4, A=1)), '로 바뀜)')
+print('ABLATION 7 계수 2 → 3: 필요(답', min(mv for mv in sorted(set(grid) | {R(6)}) if not ext_at(mv, 4, A=3)), '로 바뀜)')
+print('ABLATION 7 x=4 → x=1: 필요(답', min(mv for mv in grid if not ext_at(mv, 1)), '로 바뀜)')
 
 # ===== 8번 =====
 s8 = solve([fD.subs(x, 1) - 10, fD.subs(x, 2)], [b, c], dict=True)[0]; f8 = fD.subs(s8)

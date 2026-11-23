@@ -133,8 +133,8 @@ def gmax(F, lo, hi):
 fo11 = x**3 / 7 - x**2
 go = {tv: gmax(fo11, tv, tv + 3) for tv in [Rational(j, 10) for j in range(0, 51)]}
 ok(max(go.values()) + min(go.values()) == 4 and min(go, key=go.get) == 3, '11번 원문 M35 정답 4(④), 최소 t=3')
-f11 = x**3 / 13 - x**2
-ok(expand(13 * (f11 - f11.subs(x, 4)) - (x - 4) * (x - 12) * (x + 3)) == 0 and expand(13 * f11 - x**2 * (x - 13)) == 0, '11번 13(f−f(4))=(x−4)(x−12)(x+3), 13f=x²(x−13)')
+f11 = x**3 - 13 * x**2
+ok(expand((f11 - f11.subs(x, 4)) - (x - 4) * (x - 12) * (x + 3)) == 0 and expand(f11 - x**2 * (x - 13)) == 0, '11번 f−f(4)=(x−4)(x−12)(x+3), f=x²(x−13)')
 def argmin_g(w, T=[Rational(j, 8) for j in range(0, 49)]):
     gv = {tv: gmax(f11, tv, tv + w) for tv in T}
     m = min(gv.values())
@@ -170,8 +170,7 @@ fo12 = (x - 2)**2 * (x - 5) + 3
 ok(fo12.subs(x, 2) == 3 and fo12.subs(x, 6) == 19 and Rational(3 * (-1) - 9, -1 - 1) == 6, '12번 원문 M63 정답 19 (a=3, g(−1)=6, f(6)=19)')
 f12 = -2 * x**3 + 15 * x**2 - 36 * x + 27
 ok(expand(f12 + (x - 3)**2 * (2 * x - 3)) == 0 and expand(f12 + 1 + (x - 2)**2 * (2 * x - 7)) == 0, '12번 f=−(x−3)²(2x−3), f+1=−(x−2)²(2x−7)')
-A = solve(1 + symbols('A') - f12.subs(x, 1), symbols('A'))
-ok(A == [3], '12번 연속 조건 a=3 하나')
+ok('x+3' in IT[12]['body'] and '연속' not in IT[12]['body'], '12번 연속 조건 장치 제거(x+3 직접 제시)')
 av = 3
 def N(tv):
     n = 1 if (tv - av) < 1 else 0                    # x + 3 = t, x < 1
@@ -203,8 +202,7 @@ alt = []
 for aa in (2, 5):
     dd = [tv for tv in T if not (N2(tv - e, aa) - N2(tv - 4 - e, aa) == N2(tv, aa) - N2(tv - 4, aa) == N2(tv + e, aa) - N2(tv - 4 + e, aa))]
     alt.append((aa, sum(dd)))
-print(f'ABLATION 12 연속 조건: 필요(a가 정해지지 않음. a=2이면 합 {alt[0][1]}, a=5이면 합 {alt[1][1]})')
-assert all(s != 10 for _, s in alt)
-
+print(f'ABLATION 12 일차 조각 x+3: 필요(상수항이 바뀌면 합이 달라짐: x+2이면 {alt[0][1]}, x+5이면 {alt[1][1]})')
+assert all(s_ != 10 for _, s_ in alt)
 print(f'{len(OK)} checks')
 print('ALL OK')
