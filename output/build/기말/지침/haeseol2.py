@@ -60,7 +60,7 @@ CSS = r"""
 :root{--b:#5f8fd8;--bl:#8fb2e6;--bp:#e9f0fb;--bd:#2f5fae;--g:#8a8f98;--gl:#e9eaec;--ink:#222}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{font-family:'SJ','HB','NMJ',serif;font-size:8.7pt;line-height:2.0;color:var(--ink);word-break:keep-all}
+body{font-family:'SJ','HB','NMJ',serif;font-size:8.7pt;line-height:2.0;letter-spacing:-.015em;color:var(--ink);word-break:keep-all}
 .katex{font-size:1.04em}
 .katex-display{margin:.6em 0}
 p{margin:.25em 0 .6em}
@@ -165,7 +165,8 @@ def item_html(n, d, c, sitem=None):
     if d.get('flow'):
         st = ''.join(f'<div class="st"><div class="sh"><span class="s">STEP<b>{i + 1:02d}</b></span>{s.get("title", "")}</div><ul>' + ''.join(f'<li>{p}</li>' for p in s.get('points') or []) + '</ul></div>' for i, s in enumerate(d['flow']))
         h.append(f'<div class="flow"><div class="fh"><span class="a">흐름</span><span class="b">정리</span></div>{st}</div>')
-    h.append(re.sub(r'<sup>[^<]*</sup>', '', cref(d.get('body') or '')))
+    bd = re.split(r'<p>\s*<b>\s*채점\s*기준', d.get('body') or '')[0]   # 사용자 2026-11-23: 채점 기준 뺌
+    h.append(re.sub(r'<sup>[^<]*</sup>', '', cref(bd)))
     if d.get('justify'): h.append('<div class="jt">' + tag('논리적', '정당화') + cref(d['justify']) + '</div>')
     if False and d.get('notes'):   # 사용자 2026-11-23: 각주 뺌
         h.append('<div class="ck"><div class="h"><span><span class="c">✓ CHECK</span>&nbsp; 각주</span><span class="r">해설 본문의 각주</span></div><ol>' + ''.join(f'<li>{x}</li>' for x in d['notes']) + '</ol></div>')
