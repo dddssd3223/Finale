@@ -123,24 +123,33 @@ for deg in range(0, 5):
     else: assert not ok                                                        # 일차 이하는 -8t 항이 남음
 f7 = x**2 + b*x + c
 assert expand(f7.subs(x, 2*t + 1) - f7.subs(x, 2*t - 1)) == 8*t + 2*b
-brng = Interval(-2, 2)
+P7, Q7 = -5, 4                                                          # P7 ≤ 2b ≤ Q7
 # 극소 조건: f(2)=0, 부호 - → +. f=(x-2)(x-r), r<2 (r=2면 극값 아님, r>2면 극대)
+def kind7(F):
+    e = R(1, 1000); l, rr = F.subs(x, 2 - e) - F.subs(x, 2), F.subs(x, 2 + e) - F.subs(x, 2)
+    return 'min' if (l > 0 and rr > 0) else ('max' if (l < 0 and rr < 0) else 'none')
 for rv, kind in ((R(-1), 'min'), (R(2), 'none'), (R(3), 'max')):
-    F = integrate((t - 2)*(t - rv), (t, 0, x)); e = R(1, 1000)
-    l, rr = F.subs(x, 2 - e) - F.subs(x, 2), F.subs(x, 2 + e) - F.subs(x, 2)
-    assert (kind == 'min') == (l > 0 and rr > 0)
-# b=-(2+r) ∈ [-2,2] → r∈[-4,0], r<2 자동
-assert all(-2 <= -(2 + v) <= 2 for v in (-4, 0)) and -(2 + R(-41, 10)) > 2 and -(2 + R(1, 10)) < -2
-f6v = lambda rv: (6 - 2)*(6 - rv)
-lo, hi_ = f6v(0), f6v(-4); assert (lo, hi_) == (24, 40)
-ints = [n_ for n_ in range(0, 100) if lo <= n_ <= hi_]                   # r 연속 → [24,40] 전체
-ans7 = len(ints); assert ans7 == 17
-chk(7, ans7, [hi_ - lo])
-print('ABLATION 7 위쪽 부등식 ≤8t+4: 필요(빼면 b 상한이 없어 r의 하한이 없고 f(6)의 정수가 무수히 많음)')
-# [t,t+2]이면: 4a=8 → a=2, -4 ≤ 4a+2b ≤ 4 → -6 ≤ b ≤ -2; f=2(x-2)(x-r), b=-2(2+r) → -1 ≤ r ≤ 1; f(6)=8(6-r)∈[40,56] → 17개? 확인
-fa = 2*x**2 + b*x; assert expand(fa.subs(x, t + 2) - fa.subs(x, t)) == 8*t + 8 + 2*b     # -4≤8+2b≤4 → -6≤b≤-2
-alt = sorted({2*(6 - 2)*(6 - v) for v in (-1, 1)})                   # f=2(x-2)(x-r), b=-2(2+r) → r∈[-1,1]
-print('ABLATION 7 구간 [2t-1,2t+1] → [t,t+2]: 필요(이차항 계수가 2가 되어 f(6)∈', alt, ', 정수', alt[1] - alt[0] + 1, '개 — 개수는 같지만 범위가 바뀜)')
+    assert kind7(integrate((t - 2)*(t - rv), (t, 0, x))) == kind
+# 전수: b를 [-5/2, 2] 밖·안의 촘촘한 격자에서 조건 판정 → f(6) 최대·최소
+def ok7(bv):
+    if not (P7 <= 2*bv <= Q7): return False
+    fx = (x - 2)*(x - (-2 - bv))                                        # f(2)=0, 이차항 1
+    return kind7(integrate(fx.subs(x, t), (t, 0, x))) == 'min'
+grid = [R(i, 8) for i in range(-48, 49)]
+vals = [((x - 2)*(x + 2 + bv)).subs(x, 6) for bv in grid if ok7(bv)]
+mx7, mn7 = max(vals), min(vals); assert (mx7, mn7) == (40, 22)
+assert sp.Interval(-R(5, 2), 2) == sp.Interval(R(P7, 2), R(Q7, 2)) and all(-2 - bv < 2 for bv in (-R(5, 2), 2))   # r<2 자동
+ans7 = mx7 + mn7; assert ans7 == 62
+w7 = (32 + 4*Q7) + (32 + 4*P7)                                          # 2로 나누지 않은 b 범위 [-5,4] → 48+12
+chk(7, ans7, [w7])
+print('ABLATION 7 위쪽 부등식 ≤8t+4: 필요(빼면 b 상한이 없어 f(6)의 최댓값이 없음)')
+print('ABLATION 7 아래쪽 부등식 8t-5≤: 필요(빼면 b 하한이 없어 r<2 경계에서 최솟값이 없음)')
+# [t,t+2]이면: f(t+2)-f(t)=4at+4a+2b → a=2, -5≤8+2b≤4 → -13/2≤b≤-2; f(2)=0 → f(6)=72+6b+c, c=-8-2b → 64+4b
+fa = 2*x**2 + b*x; assert expand(fa.subs(x, t + 2) - fa.subs(x, t)) == 8*t + 8 + 2*b
+alt7 = (64 + 4*(-2)) + (64 + 4*(-R(13, 2)))
+print('ABLATION 7 구간 [2t-1,2t+1] → [t,t+2]: 필요(이차항 계수가 2가 되어 답', alt7, '로 바뀜)')
+for cnt_name, fval in (('개수', lambda lo_, hi2: hi2 - lo_ + 1), ('차', lambda lo_, hi2: hi2 - lo_)):
+    print(f'   (참고: 묻는 값을 {cnt_name}로 하면 [2t-1,2t+1]·[t,t+2] 모두', fval(22, 40), fval(64 + 4*(-R(13, 2)), 64 + 4*(-2)), '→ 계수 장치가 일하지 않아 합으로 둠)')
 print('ABLATION 7 x=2에서 극소: 필요(빼면 f의 근이 정해지지 않음)')
 
 # ===== 8번 =====
