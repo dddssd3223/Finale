@@ -100,49 +100,47 @@ def orig_ans(key):
     return c if c.startswith('T:') else choice_val(c)
 
 
-# ================= 13번 (D45: h=f−x+3=(x+1)²(x−r), 3<x<5에서 f(x)−x≥f(3)−3, f(7)의 최솟값) =================
+# ================= 13번 (D45: f−2=(x+1)²(x−r), 3<x<5에서 f(x)≥f(3), f(7)의 최솟값) =================
 r_ = sp.symbols('r', real=True)
 
 
 def holds13(f, lo=3, hi=5):
-    """3<x<5인 모든 x에 대하여 f(x)−x ≥ f(3)−3 (정확: 구간 안 극값 후보 + 끝 근처 격자)"""
-    h = sp.expand(f - x)
-    base = h.subs(x, lo)
-    pts = [z for z in sp.Poly(sp.diff(h, x), x).real_roots() if lo < z < hi]
+    """3<x<5인 모든 x에 대하여 f(x) ≥ f(3) (정확: 구간 안 극값 후보 + 격자)"""
+    base = f.subs(x, lo)
+    pts = [z for z in sp.Poly(sp.diff(f, x), x).real_roots() if lo < z < hi]
     pts += [lo + R(i, 64) for i in range(1, 128)]
-    return all(h.subs(x, z) - base >= 0 for z in pts)
+    return all(f.subs(x, z) - base >= 0 for z in pts)
 
 
 def cond_ga13(f, a=-1):
-    """(가): lim_{x→a} (f−x+3)/(x−a)² 수렴 ⇔ (x−a)²이 f−x+3을 나눔"""
-    return sp.rem(sp.expand(f - x + 3), sp.expand((x - a)**2), x) == 0
+    """(가): lim_{x→a} (f−2)/(x−a)² 수렴 ⇔ (x−a)²이 f−2를 나눔"""
+    return sp.rem(sp.expand(f - 2), sp.expand((x - a)**2), x) == 0
 
 
 rgrid = [R(i, 4) for i in range(-40, 49)]          # r ∈ [−10, 12]
-okr = [rv for rv in rgrid if holds13((x + 1)**2 * (x - rv) + x - 3)]
+okr = [rv for rv in rgrid if holds13((x + 1)**2 * (x - rv) + 2)]
 check(13, okr == [rv for rv in rgrid if rv <= 5], f'r 격자(−10~12, 1/4 간격) 전수: (나) 성립 ⇔ r≤5 (최대 {max(okr)})')
-vals13 = [((x + 1)**2 * (x - rv) + x - 3).subs(x, 7) for rv in okr]
+vals13 = [((x + 1)**2 * (x - rv) + 2).subs(x, 7) for rv in okr]
 ans13 = min(vals13)
-f13 = (x + 1)**2 * (x - 5) + x - 3
-check(13, ans13 == f13.subs(x, 7) == 132 and cond_ga13(f13) and holds13(f13), f'f=(x+1)²(x−5)+x−3: (가)(나) 만족, f(7)={f13.subs(x, 7)} = 격자 최솟값 {ans13}')
-check(13, sp.diff(f13 - x, x).subs(x, 3) == 0, 'r=5에서 h′(3)=0 (극소점이 기준점 x=3과 일치하는 경계)')
+f13 = (x + 1)**2 * (x - 5) + 2
+check(13, ans13 == f13.subs(x, 7) == 130 and cond_ga13(f13) and holds13(f13), f'f=(x+1)²(x−5)+2: (가)(나) 만족, f(7)={f13.subs(x, 7)} = 격자 최솟값 {ans13}')
+check(13, sp.diff(f13, x).subs(x, 3) == 0, 'r=5에서 f′(3)=0 (극소점이 기준점 x=3과 일치하는 경계)')
 ans_ok(13, ans13)
-w13a = ((x + 1)**2 * (x - 5)).subs(x, 7)                         # x−3을 되돌리지 않음
-rw = sp.solve(sp.diff((x + 1)**2 * (x - r_) + x - 3, x).subs(x, 3), r_)[0]   # f′(3)=0으로 읽음
-w13b = ((x + 1)**2 * (x - rw) + x - 3).subs(x, 7)
-check(13, rw == R(41, 8), f"오답 경로: f′(3)=0이면 r={rw}")
-wrong_in(13, [w13a, w13b], 'x−3 누락 128 · f′(3)=0 124')
+w13a = ((x + 1)**2 * (x - 5)).subs(x, 7)                         # 2를 더하지 않음
+w13b = ((x + 1)**2 * (x - 5) - 2).subs(x, 7)                     # 이항 부호 실수
+wrong_in(13, [w13a, w13b], '상수 누락 128 · 이항 부호 실수 126')
+check(13, 102 not in ch(13), '원문 답 102와 다름')
 # 원문 D45: f−2=(x+2)²(x−r), (3,5)에서 f≥f(4) → r=7, f(8)=102
 fo = (x + 2)**2 * (x - 7) + 2
 check(13, sp.diff(fo, x).subs(x, 4) == 0 and fo.subs(x, 8) == orig_ans('D45') == 102, f'원문 D45: f(8)={fo.subs(x, 8)} = 원문 답')
 # 빼 보기
-ablation(13, "(나) '3<x<5에서 f(x)−x≥f(3)−3'", None, ans13, undef='r가 아무 실수나 되어 f(7)=64(7−r)+4의 최솟값이 없음')
-f_alt = x**3 + x - 1000                                             # (가) 위반, f−x=x³−1000 증가라 (나) 성립, f(7)이 더 작음
-check(13, not cond_ga13(f_alt) and holds13(f_alt) and f_alt.subs(x, 7) < 132, f'(가) 반례 f=x³+x−1000: (나) 성립, f(7)={f_alt.subs(x, 7)}<132')
+ablation(13, "(나) '3<x<5에서 f(x)≥f(3)'", None, ans13, undef='r가 아무 실수나 되어 f(7)=64(7−r)+2의 최솟값이 없음')
+f_alt = x**3 - 1000                                                  # (가) 위반, 증가라 (나) 성립, f(7)이 더 작음
+check(13, not cond_ga13(f_alt) and holds13(f_alt) and f_alt.subs(x, 7) < 130, f'(가) 반례 f=x³−1000: (나) 성립, f(7)={f_alt.subs(x, 7)}<130')
 ablation(13, "(가) 극한 조건", [ans13, f_alt.subs(x, 7)], ans13, '다른 삼차함수로 f(7)을 더 작게 할 수 있음(최솟값 없음)')
-fa2 = 2 * (x + 1)**2 * (x - r_) + x - 3                               # 최고차항 2: (나) ⇔ 극소점 (2r−1)/3 ≤ 3 그대로, f(7)=128(7−r)+4
+fa2 = 2 * (x + 1)**2 * (x - r_) + 2                                   # 최고차항 2: (나) ⇔ r≤5 그대로, f(7)=128(7−r)+2
 okr2 = [rv for rv in rgrid if holds13(fa2.subs(r_, rv))]
-ablation(13, "'최고차항의 계수가 1'", [ans13, min(fa2.subs({r_: rv, x: 7}) for rv in okr2)], ans13, '최고차항 2이면 최솟값 260')
+ablation(13, "'최고차항의 계수가 1'", [ans13, min(fa2.subs({r_: rv, x: 7}) for rv in okr2)], ans13, '최고차항 2이면 최솟값 258')
 
 
 # ================= 14번 (D25: (x−1)g=|(x−1)f(x−p)+q(x−1)|, 음수 p, p+q) =================
@@ -222,8 +220,8 @@ def integral15(fx, pv):
 
 def judge15(fx, pos=True):
     """보기 ㄱ·ㄴ·ㄷ 판정 (pos=False면 p를 0 아닌 실수로)"""
-    L4, R4 = g15(fx, 4)
-    T1 = sp.simplify(R4.subs(x, 1) + 5) == 0
+    L2, R2 = g15(fx, 2)
+    T1 = sp.simplify(sp.diff(R2, x).subs(x, 1) + 12) == 0
     ps = sp.symbols('ps', real=True)
     dset = [z for z in sp.solve(sp.Eq(sp.diff(fx, x).subs(x, 0), sp.diff(fx, x).subs(x, ps)), ps) if z.is_real and (z > 0 if pos else z != 0)]
     T2 = dset == [5]
@@ -234,7 +232,7 @@ def judge15(fx, pos=True):
 
 I15 = sp.factor(integral15(f15, p))
 check(15, sp.simplify(I15 - (3 * p + 2) * (p - 6) / 2) == 0, f'∫₋₁¹g = {I15} = (3p+2)(p−6)/2 (C와 무관)')
-check(15, sp.simplify(g15(f15, 4)[1].subs(x, 1)) == -5, 'ㄱ: p=4이면 g(1)=f(5)−f(4)=−5 (참)')
+check(15, sp.simplify(sp.diff(g15(f15, 2)[1], x).subs(x, 1)) == -12, "ㄱ: p=2이면 g′(1)=f′(3)=−12 (참)")
 check(15, [pv for pv in range(1, 13) if diffable15(f15, pv)] == [6], 'ㄴ: 정수 p 1~12 중 미분가능한 것은 6뿐(거짓: 값은 5가 아님), 일반해 f′(p)=f′(0) ⇔ p=6')
 L6, R6 = g15(f15, 6)
 check(15, sp.expand(R6 + L6.subs(x, -x)) == 0, 'p=6이면 g는 원점 대칭(x>0 조각 = −(x≤0 조각)(−x))')
@@ -255,7 +253,7 @@ check(15, To1 and To2 and To3 and orig_ans('I65') == 'T:ㄱ, ㄴ, ㄷ', f'원문
 judges = set()
 for aa in (R(1, 2), 2, -1):
     judges.add(judge15(aa * (x**3 - 9 * x**2 + 15 * x))[0])
-ablation(15, "'최고차항의 계수가 1'", sorted(judges | {ans15}), ans15, '계수 a이면 g(1)=−5a라 ㄱ의 참·거짓이 a에 따라 바뀜')
+ablation(15, "'최고차항의 계수가 1'", sorted(judges | {ans15}), ans15, '계수 a이면 g′(1)=−12a라 ㄱ의 참·거짓이 a에 따라 바뀜')
 judges2 = set()
 for fx in (x**3 - 3 * x**2, x**3 - 6 * x**2 + 5 * x, x**3 - 12 * x**2 + 21 * x, x**3 + 3 * x):
     judges2.add(judge15(fx)[0])

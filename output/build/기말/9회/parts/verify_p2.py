@@ -69,25 +69,21 @@ gV = 2*s**3 + 6*s**2; assert sorted(gV.subs(s, v) for v in solve(diff(gV, s), s)
 print('원문·분석집 변형 풀이 OK')
 
 # ===== 5번 =====
-f5k = x**3 - 3*x**2 + 7*x + k
-ks = solve(f5k.subs(x, 1) - (-3), k); assert ks == [-8]
-f5 = f5k.subs(k, -8)
-assert sp.discriminant(diff(f5, x), x) < 0                               # f 증가
+f5k = x**3 + k
+ks = solve(f5k.subs(x, 1) - (-5), k); assert ks == [-6]
+f5 = f5k.subs(k, -6)
 assert sp.real_roots(sp.Poly(f5 - x, x)) == [2]                            # y=x와 x=2에서만
-assert sp.real_roots(sp.Poly(f5 + 3*x, x)) == [1]                          # y=-3x와 x=1에서만
-# [1,2]에서 -3x ≤ f ≤ x (곡선이 두 직선 사이), [0,1]은 두 직선 사이 부분
-assert all(-3*v <= f5.subs(x, v) <= v for v in [1 + R(i, 20) for i in range(21)])
-assert all(f5.subs(x, v) < -3*v for v in [R(i, 20) for i in range(20)])  # [0,1)에서 곡선은 y=-3x 아래 → 경계 아님
-# 넓이: 직접 영역 적분(위 경계 y=x, 아래 경계 max(-3x, f))
-A5 = integrate(x - (-3*x), (x, 0, 1)) + integrate(x - f5, (x, 1, 2))
-A5b = integrate(x - sp.Max(-3*x, f5), (x, 0, 2))
-assert A5 == R(17, 4) and sp.nsimplify(sp.N(A5b, 30)) == R(17, 4)
-chk(5, A5, [integrate(x - f5, (x, 1, 2)), integrate(3*x - x, (x, 0, 1)) + integrate(x - f5, (x, 1, 2))])
-print('ABLATION 5 교점 조건(x=1에서 y=-3x와 만남): 필요(빼면 k가 정해지지 않아 넓이가 정해지지 않음)')
-for kv in (-7, -9):
-    fk = f5k.subs(k, kv); print('   (k =', kv, '이면 교점', [sp.N(v, 4) for v in sp.real_roots(sp.Poly(fk + 3*x, x))], [sp.N(v, 4) for v in sp.real_roots(sp.Poly(fk - x, x))], ')')
-A_alt = integrate(x - (-x), (x, 0, sp.real_roots(sp.Poly(f5 + x, x))[0])) + integrate(x - f5, (x, sp.real_roots(sp.Poly(f5 + x, x))[0], 2))
-print('ABLATION 5 직선 y=-3x → y=-x: 필요(넓이', sp.N(A_alt, 6), '로 바뀜)')
+assert sp.real_roots(sp.Poly(f5 + 5*x, x)) == [1]                          # y=-5x와 x=1에서만
+assert all(-5*v <= f5.subs(x, v) <= v for v in [1 + R(i, 20) for i in range(21)])
+assert all(f5.subs(x, v) < -5*v for v in [R(i, 20) for i in range(20)])  # [0,1)에서 곡선은 y=-5x 아래
+A5 = integrate(x - (-5*x), (x, 0, 1)) + integrate(x - f5, (x, 1, 2))
+A5b = integrate(x - sp.Max(-5*x, f5), (x, 0, 2))
+assert A5 == R(27, 4) and sp.nsimplify(sp.N(A5b, 30)) == R(27, 4)
+chk(5, A5, [integrate(5*x - x, (x, 0, 1)) + integrate(x - f5, (x, 1, 2))])
+print('ABLATION 5 교점 조건(x=1에서 y=-5x와 만남): 필요(빼면 k가 정해지지 않아 넓이가 정해지지 않음)')
+A_alt = integrate(2*x, (x, 0, sp.real_roots(sp.Poly(f5 + x, x))[0])) + integrate(x - f5, (x, sp.real_roots(sp.Poly(f5 + x, x))[0], 2))
+print('ABLATION 5 직선 y=-5x → y=-x: 필요(넓이', sp.N(A_alt, 6), '로 바뀜)')
+print('   (참고: 두 직선 사이 부분을 빠뜨리면', integrate(x - f5, (x, 1, 2)), ')')
 
 # ===== 6번 =====
 f6 = x**3 + c*x
@@ -153,32 +149,24 @@ for cnt_name, fval in (('개수', lambda lo_, hi2: hi2 - lo_ + 1), ('차', lambd
 print('ABLATION 7 x=2에서 극소: 필요(빼면 f의 근이 정해지지 않음)')
 
 # ===== 8번 =====
-def disc_t(pv):
-    """f(t)가 불연속인 t의 목록(정확): 후보는 판별식이 0인 t(접선 기울기)뿐, 좌·중·우 근 개수 비교"""
-    P = x**3 - 9*x**2 - t*x + pv
-    Dt = sp.Poly(sp.discriminant(P, x), t)
-    cand = sorted(set(sp.real_roots(Dt)), key=lambda v: sp.N(v))
+def disc_t(pv, a2=-14):
+    """f(t)가 불연속인 t 목록(정확): 후보는 판별식이 0인 t(접선 기울기)뿐, 좌·중·우 근 개수 비교"""
+    P = x**3 + a2*x**2 - t*x + pv
+    cand = sorted(set(sp.real_roots(sp.Poly(sp.discriminant(P, x), t))))
     def cnt(tv): return len(set(sp.real_roots(sp.Poly(P.subs(t, tv), x))))
     out = []
     for i, t0 in enumerate(cand):
-        lo_ = cand[i - 1] if i else t0 - 10; hi2 = cand[i + 1] if i + 1 < len(cand) else t0 + 10
-        lt = (lo_ + t0)/2 if i else t0 - 1; rt = (t0 + hi2)/2 if i + 1 < len(cand) else t0 + 1
-        lt = sp.nsimplify(sp.N(lt, 40), rational=True); rt = sp.nsimplify(sp.N(rt, 40), rational=True)
-        mid = sp.factor(P.subs(t, t0)) if t0.is_rational else None
-        c0 = cnt(t0) if t0.is_rational else 2                            # 무리 기울기: 접점 중근 + 단순근(변곡점 아님 확인은 아래)
-        if not (cnt(lt) == c0 == cnt(rt)): out.append(t0)
+        lt = (cand[i - 1] + t0)/2 if i else t0 - 1
+        rt = (t0 + cand[i + 1])/2 if i + 1 < len(cand) else t0 + 1
+        if not (cnt(lt) == cnt(t0) == cnt(rt)): out.append(t0)
     return out
-good8 = [pv for pv in range(-60, 30) if len(disc_t(pv)) == 3]
-assert good8 == list(range(-26, 0)), good8
-# 무리 기울기 경우 c0=2 가정 검증: 접점 s가 변곡점(s=3)이 아니면 중근+단순근 → 2개
-gs = 2*s**3 - 9*s**2
-assert solve(diff(x**3 - 9*x**2, x, 2), x) == [3] and gs.subs(s, 3) == -27
-assert len(disc_t(0)) == 2 and len(disc_t(-27)) == 1 and expand((x - 3)**3) == x**3 - 9*x**2 + 27*x - 27
-ans8 = len(good8)
-chk(8, ans8, [0 - (-27), len(range(-27, 1))])
-print('ABLATION 8 정수 p: 필요(실수 p면 무수히 많음)')
-print('ABLATION 8 불연속인 t의 개수 3 → 2: 필요(p∈', [pv for pv in range(-60, 30) if len(disc_t(pv)) == 2], ')')
-print('ABLATION 8 -9x^2 → -6x^2: 필요(개수', len([pv for pv in range(-40, 10) if pv > -8 and pv < 0]), '로 바뀜)')
+D8 = disc_t(-72); assert D8 == [-60, -57, 68]
+assert expand(-2*s**3 + 14*s**2 - 72 + 2*(s - 6)*(s - 3)*(s + 2)) == 0
+assert sorted(3*v**2 - 28*v for v in (-2, 3, 6)) == [-60, -57, 68]
+ans8 = min(D8)
+chk(8, ans8, [3*3**2 - 28*3])                                            # 오답 -57: s=3의 기울기
+print('ABLATION 8 상수 -72: 필요(-72 → -36이면 접점 방정식 -2s^3+14s^2-36=0의 근', [sp.N(v, 4) for v in sp.Poly(-2*s**3 + 14*s**2 - 36, s).nroots() if abs(sp.im(v)) < 1e-12], '라 기울기 최솟값이', sp.N(min(3*v**2 - 28*v for v in sp.Poly(-2*s**3 + 14*s**2 - 36, s).nroots() if abs(sp.im(v)) < 1e-12), 5), '로 바뀜)')
+print('ABLATION 8 실수 t(원문 양의 실수): 필요(양수만이면 불연속점이', [v for v in D8 if v > 0], '뿐이라 최솟값이 바뀜)')
 
 assert [IT[n]['ans'] for n in (5, 6, 7, 8)] == [3, 1, 4, 2]
 print('ALL OK')
