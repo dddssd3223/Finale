@@ -5,7 +5,7 @@
 - API 키: 환경 변수 SOLAPI_API_KEY, SOLAPI_API_SECRET (환경 설정의 Network secrets/환경 변수)
 - 번호: --to/--from 또는 환경 변수 SOLAPI_TO, SOLAPI_FROM (발신번호는 솔라피 콘솔에 사전 등록 필수)
 - 이미지: MMS 제한(JPG 200KB 이하)에 맞춰 폭 640px로 줄이고, 세로로 길면 여러 장으로 나눠 각각 MMS로 보냄
-- --single: 나누지 않고 한 장으로 보냄(200KB에 맞게 화질·폭을 낮춤)
+- --single: 나누지 않고 한 장으로 보냄(두 단으로 나란히 붙여 1500x1440px·200KB 안에 맞춤)
 - --text2: 첫 MMS 뒤에 이미지 없는 LMS를 하나 더 보냄(개인 코멘트용)
 - 본문은 LMS·MMS 한도 2,000바이트(EUC-KR 기준) 안이어야 함
 - --dry: 이미지 변환·서명만 하고 실제 발송은 하지 않음
@@ -56,15 +56,28 @@ def to_jpgs(png):
         parts.append(buf.getvalue())
     return parts
 
+MAX_W, MAX_HH = 1500, 1440  # 솔라피 MMS 해상도 한도
+
 def to_one_jpg(png):
-    """나누지 않은 한 장. 화질을 먼저 낮추고, 그래도 크면 폭을 줄임."""
+    """나누지 않은 한 장. 세로가 1440px을 넘으면 카드 사이 빈 줄에서 반으로 잘라 두 단으로 나란히 붙임."""
     im0 = Image.open(png).convert('RGB')
-    for w in (WIDTH, 600, 560, 520, 480):
-        im = im0.resize((w, round(im0.height * w / im0.width)), Image.LANCZOS)
+    g = im0.convert('L'); px = g.load(); bg = px[2, 2]
+    W0, H0 = im0.size
+    blank = [all(abs(px[x, y] - bg) < 6 for x in range(0, W0, 8)) for y in range(H0)]
+    cand = [y for y in range(H0 // 2 - H0 // 6, H0 // 2 + H0 // 6) if blank[y]]
+    cut = min(cand, key=lambda y: abs(y - H0 // 2)) if cand else H0 // 2
+    cols = [im0.crop((0, 0, W0, cut)), im0.crop((0, cut, W0, H0))]
+    gap = W0 // 30
+    sheet = Image.new('RGB', (2 * W0 + gap, max(cut, H0 - cut)), im0.getpixel((2, 2)))
+    sheet.paste(cols[0], (0, 0)); sheet.paste(cols[1], (W0 + gap, 0))
+    k = min(MAX_W / sheet.width, MAX_HH / sheet.height, 1)
+    for f in (1, 0.92, 0.85, 0.78):
+        w, h = round(sheet.width * k * f), round(sheet.height * k * f)
+        im = sheet.resize((w, h), Image.LANCZOS)
         for q in range(88, 50, -4):
             buf = io.BytesIO(); im.save(buf, 'JPEG', quality=q, optimize=True, progressive=False)
             if buf.tell() <= MAX_BYTES:
-                print(f'한 장: {w}x{im.height}px, 화질 {q}')
+                print(f'한 장(두 단): {w}x{h}px, 화질 {q}')
                 return [buf.getvalue()]
     raise SystemExit('한 장으로 200KB 안에 맞출 수 없어요. --single 없이 나눠 보내세요.')
 
