@@ -21,14 +21,14 @@ assert set(it['ops']) & {'OP11', 'OP12', 'OP28', 'OP38', 'OP51'}      # 분담�
 assert [l for l, _ in it['cond']] == ['가', '나', '다']                  # 분담표: 상자 원문대로
 full = it['body'] + ''.join(v for _, v in it['cond'])
 assert r'f(1)=f(2)=f(a)' in full and r"f'(1)\), \(f'(2)\), \(f'(a)\) 중 두 값이 서로 같다" in full
-assert '최댓값을 갖는다' in full and r'\int_{-1}^{1}f(x)\,dx=-12' in full and r'\((4,\,f(4))\)' in full and r'\((3,\,0)\)' in full
+assert '최댓값을 갖는다' in full and r'\int_{-1}^{1}f(x)\,dx=-24' in full and r'\((3,\,f(3))\)' in full and r'\((2,\,0)\)' in full
 assert r'\(f(0)\)의 값은?' in full and "f'(a)&gt;0" not in full
 assert 'g(t)' not in full and '개수' not in full and '곱' not in full and '합은' not in full and '오직' not in full
 for kk in ('sol', 'fast', 'wrong', 'note', 'var'):
     assert not re.search(r'\\\([^)]*?[<>]', it[kk]), kk
 for _, v in it['cond']: assert not re.search(r'\\\([^)]*?[<>]', v)
 CH = [sp.Integer(v) for v in it['choices']]
-INT, X0, P, ASK = (-1, 1, -12), 4, (3, 0), 0
+INT, X0, P, ASK = (-1, 1, -24), 3, (2, 0), 0
 
 def fx_of(cv, av, kv): return cv*(x - 1)*(x - 2)*(x - av) + kv
 def has_max(cv, av):          # f'(x) 가 최댓값을 가짐 ⇔ 이차함수 f' 의 최고차항 계수 < 0
@@ -60,22 +60,23 @@ for av in cands:
     rs = sorted([1, 2, av]); assert rs[1] - rs[0] == rs[2] - rs[1]
 print('(가): 짝 (1,2)·(1,a)·(2,a) → a = 3/2, 3, 0 세 갈래, 모두 등간격 OK')
 
+for av in cands: assert sp.integrate((x-1)*(x-2)*(x-av), (x, -1, 1)) == -R(2, 3)*(3 + av) - 4*av
 # ---------- 갈래마다 정적분·(다) 연립 → (c, k), (나)로 가림 ----------
 table = {}
 for av in cands:
     S = ck(av); assert len(S) == 1
     cv, kv = S[0][c], S[0][k]
     table[av] = (cv, kv, fx_of(cv, av, kv).subs(x, ASK), has_max(cv, av))
-assert table[R(3, 2)][:3] == (6, 21, 3) and table[3][:3] == (2, 10, -2) and table[0][:3] == (-6, -12, -12)
+assert table[R(3, 2)][:3] == (12, 42, 6) and table[3][:3] == (2, 4, -8) and table[0][:3] == (-3, -15, -15)
 print('갈래별 (c, k, f(0), f\'최댓값 있음):', {str(kk): tuple(str(t) for t in v) for kk, v in table.items()})
 ok = [av for av, v in table.items() if v[3]]
 assert ok == [0]                        # 세 갈래가 c·k까지 살아 있다가 (나)에서 하나만 남음
 ans = table[0][2]
-fx = fx_of(-6, 0, -12); fp = sp.diff(fx, x)
+fx = fx_of(-3, 0, -15); fp = sp.diff(fx, x)
 assert fx.subs(x, 1) == fx.subs(x, 2) == fx.subs(x, 0)
 assert fp.subs(x, 2) == fp.subs(x, 0) != fp.subs(x, 1)
-assert sp.maximum(fp, x) == 6
-assert sp.integrate(fx, (x, -1, 1)) == -12 and fx.subs(x, 4) + fp.subs(x, 4)*(3 - 4) == 0
+assert sp.maximum(fp, x) == 3
+assert sp.integrate(fx, (x, -1, 1)) == -24 and fx.subs(x, 3) + fp.subs(x, 3)*(2 - 3) == 0
 print('정답 유일: (나)를 만족하는 갈래는 a=0 하나 OK')
 
 # 격자 전수: a=-5..5 (1/40 간격, 1·2 제외), 정의대로 (가) → 연립 → (나)
@@ -86,30 +87,33 @@ for i in range(-200, 201):
     if len({gp.subs({a: av, x: t}) for t in (1, 2, av)}) == 3: continue
     S = ck(av)
     if len(S) == 1 and has_max(S[0][c], av): hits.append((av, fx_of(S[0][c], av, S[0][k]).subs(x, ASK)))
-assert hits == [(0, -12)]
+assert hits == [(0, -15)]
 print('전수: a=-5..5 (1/40 간격) 399개 중 모든 조건을 만족하는 경우는 a=0 하나 OK')
 
 # ---------- 정답 · 선지 · 오답 ----------
-assert ans == -12 and CH[it['ans'] - 1] == ans
-assert len(set(CH)) == 5 and {CH[i + 1] - CH[i] for i in range(4)} == {5}
+assert ans == -15 and CH[it['ans'] - 1] == ans
+assert len(set(CH)) == 5 and {CH[i + 1] - CH[i] for i in range(4)} == {7}
 assert [sp.Integer(w) for w in it['wrongs']] == [table[3][2], table[R(3, 2)][2]]
 for w in it['wrongs']: assert sp.Integer(w) in CH and sp.Integer(w) != ans
 assert ans != 7
-print('정답 = ①, 선지 등차(공차 5, 오름차순), 오답 -2(a=3, 원문 짝)·3(a=3/2, 가운데 근) 선지 안 OK')
+nums = {int(n) for n in re.findall(r'-?\d+', re.sub(r'\\[a-zA-Z]+', ' ', full))}
+assert ans not in nums and -ans not in nums, nums
+print('정답이 본문의 어떤 수(부호 포함)와도 같지 않음 OK')
+print('정답 = ①, 선지 등차(공차 7, 오름차순), 오답 -8(a=3, 원문 짝)·6(a=3/2, 가운데 근) 선지 안 OK')
 
 # ---------- 조건 빼 보기 ----------
 alt = sorted({v[2] for v in table.values()})
-assert alt == [-12, -2, 3]
+assert alt == [-15, -8, 6]
 print(f'ABLATION 18 (나) 최댓값을 갖는다: 필요(정해지지 않음: 빼면 세 갈래가 모두 남아 답이 {alt})')
-for nm, kw in (('정적분 -12', dict(use_int=False)), ('(다)', dict(use_tan=False))):
+for nm, kw in (('정적분 -24', dict(use_int=False)), ('(다)', dict(use_tan=False))):
     S = ck(0, **kw); assert len(S) == 1 and len(S[0]) == 1      # c, k 중 하나가 남음
     vals = set()
-    for cv in (-1, -2, -6):
+    for cv in (-1, -2, -3):
         sub = {c: cv} if c not in S[0] else {}
         kv = S[0][k].subs(sub) if k in S[0] else sp.solve(sp.Eq(S[0][c], cv), k)[0]
         vals.add(fx_of(cv, 0, kv).subs(x, ASK))
     assert len(vals) == 3
-    print(f'ABLATION 18 {nm}: 필요(정해지지 않음: 빼면 c, k 가 한 식으로만 묶여 c=-1, -2, -6 에서 답이 {sorted(vals)})')
+    print(f'ABLATION 18 {nm}: 필요(정해지지 않음: 빼면 c, k 가 한 식으로만 묶여 c=-1, -2, -3 에서 답이 {sorted(vals)})')
 # (가) 없음: a 자유
 alt3 = {}
 for av in (R(-1, 2), R(-1, 4), R(1, 4)):
@@ -120,9 +124,9 @@ print(f'ABLATION 18 (가): 필요(정해지지 않음: 빼면 a={list(alt3)} 에
 # f(1)=f(2)=f(a) 없음: f'(2)=f'(0) (변곡점 1) 꼴 f=C(x-1)^3+L(x-1)+M 에서 C<0, 정적분·(다) 두 식으로는 세 미지수가 남음
 C_, L_, M_ = sp.symbols('C_ L_ M_')
 fg = C_*(x - 1)**3 + L_*(x - 1) + M_
-eqs = [sp.Eq(sp.integrate(fg, (x, -1, 1)), -12), sp.Eq(fg.subs(x, 4) + sp.diff(fg, x).subs(x, 4)*(3 - 4), 0)]
+eqs = [sp.Eq(sp.integrate(fg, (x, -1, 1)), -24), sp.Eq(fg.subs(x, 3) + sp.diff(fg, x).subs(x, 3)*(2 - 3), 0)]
 vals = set()
-for Cv in (-6, -3):
+for Cv in (-3, -6):
     S = sp.solve([e.subs(C_, Cv) for e in eqs], [L_, M_], dict=True)
     if S: vals.add(fg.subs({C_: Cv, **S[0]}).subs(x, ASK))
 assert len(vals) == 2
