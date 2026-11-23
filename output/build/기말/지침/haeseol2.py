@@ -113,7 +113,7 @@ table.cut td.h{font-weight:700;text-align:left;padding-left:0}
 .cb .h{display:flex;justify-content:space-between;align-items:center;padding:2pt 7pt;border-bottom:.6pt solid var(--bl);font-family:'NSq';font-size:8.2pt;color:var(--b);font-weight:700}
 .cb .h .k{font-size:7pt;color:var(--b);font-weight:400}
 .cb .bd{padding:3pt 8pt}
-.cref{display:inline-flex;font-family:'NSq';font-size:7pt;font-weight:700;vertical-align:1pt;border:.6pt solid var(--bl)}
+.cref{display:inline-flex;margin:0 4pt 0 3pt;font-family:'NSq';font-size:7pt;font-weight:700;vertical-align:1pt;border:.6pt solid var(--bl)}
 .cref .a{background:#fff;color:var(--b);padding:0 3pt}.cref .b{background:var(--b);color:#fff;padding:0 4pt}
 .tg{display:inline-flex;font-family:'NSq';font-size:7.6pt;font-weight:700;margin:5pt 0 3pt;break-after:avoid}
 .tg span{padding:0 5pt;line-height:1.75}
@@ -169,14 +169,18 @@ def item_html(n, d, c, sitem=None):
     if False and d.get('notes'):   # 사용자 2026-11-23: 각주 뺌
         h.append('<div class="ck"><div class="h"><span><span class="c">✓ CHECK</span>&nbsp; 각주</span><span class="r">해설 본문의 각주</span></div><ol>' + ''.join(f'<li>{x}</li>' for x in d['notes']) + '</ol></div>')
     v = d.get('variation') or {}
+    it0 = sitem if sitem is not None else c.ITEMS[int(n)]
+    _tags = ''.join(re.findall(r'\[([^\]]+)\]', str(it0.get('var', ''))))
+    only_num = bool(_tags) and re.sub(r'숫자 변경|[\s·,]', '', _tags) == ''
+    if (str(n).isdigit() and int(n) <= 8) or str(n) in ('S1', '서답형 1') or only_num: v = {}   # 사용자 2026-11-23: 앞 번호대·숫자만 바꾼 문항은 변형 포인트 상자 뺌
     key = (sitem if sitem is not None else c.ITEMS[int(n)]).get('key', '')
     if v:
-        src = f'부교재 {key} · {F.D[key][1]}' if key in F.D else '학교 자체'
+        src = f'부교재 {key}&nbsp;&nbsp;{F.D[key][1]}' if key in F.D else '학교 자체'
         rows = ''
         if v.get('origin'): rows += f'<div class="row"><span class="k">원문</span><div>{v["origin"]}</div></div>'
         if v.get('changes'): rows += '<div class="row"><span class="k c">변형</span><ul>' + ''.join(f'<li>{x}</li>' for x in v['changes']) + '</ul></div>'
         if v.get('point'): rows += f'<div class="row"><span class="k p">포인트</span><div>{v["point"]}</div></div>'
-        h.append(f'<div class="og"><div class="h"><span>원문 연계 · 변형 포인트</span><span class="r">{src}</span></div><div class="bd">{rows}</div></div>')
+        h.append(f'<div class="og"><div class="h"><span>원문 연계&nbsp;&nbsp;변형 포인트</span><span class="r">{src}</span></div><div class="bd">{rows}</div></div>')
     if str(n).isdigit():
         a = c.ANS[int(n)]; ch = str(c.Q[int(n)][2][a - 1]); ct = ch[2:] if ch.startswith('T:') else f'\\({ch}\\)'
         h.append(f'<div class="an"><span>정답</span>{CIRC[a - 1]}</div>')
@@ -199,6 +203,17 @@ def tidy(d):
         st['points'] = [outside(p, SUBN) for p in st.get('points') or []]
     return d
 
+def nodot(doc):
+    """가운데점 없애기, 짧은 항목(STEP·변형 항목·꼬리표) 끝 온점 없애기 (사용자 2026-11-23)"""
+    body = doc.split('<body>', 1)
+    def t(x):
+        x = re.sub(r'\s*·\s*', lambda m: ' ' if m.group(0).strip() == '·' and m.group(0) != '·' else ', ', x)
+        return x
+    rest = re.sub(r'>([^<]+)<', lambda m: '>' + outside(m.group(1), t) + '<', body[1])
+    rest = re.sub(r'([다])\.(\s*</li>)', r'\1\2', rest)                       # 목록 항목 끝 온점
+    rest = re.sub(r'(<div class="row"><span class="k[^"]*">[^<]+</span><div>[^<]*?)\.(\s*</div>)', r'\1\2', rest)
+    return body[0] + '<body>' + rest
+
 def stylecheck(D, front):
     """사용자 규칙(2026-11-23): 모든 문장 '-다.'로 끝, 글 속 괄호 금지, 각주 없음. 어긴 곳을 출력한다."""
     bad = []
@@ -212,7 +227,7 @@ def stylecheck(D, front):
             sen = sen.strip()
             if len(sen) > 8 and not re.search(r'다\.?$|M\s*\.?$|[:]$', sen): bad.append(f'{where}: 끝맺음 — …' + sen[-25:])
     for n, d in D.items():
-        for k in ('body', 'think', 'justify'): chk(f'{n}.{k}', d.get(k))
+        for k in ('body', 'think'): chk(f'{n}.{k}', d.get(k))   # 괄호는 ★ 논리적 정당화에서만 허용(사용자 2026-11-23)
         for cb in d.get('concepts') or []: chk(f'{n}.개념', cb.get('body'))
         for st in d.get('flow') or []:
             for pt in st.get('points') or []: chk(f'{n}.STEP', pt)
@@ -289,7 +304,7 @@ def build(rdir, out):
         if d: H.append(item_html(lab, d, c, c.SITEMS[s]))
     H.append('</div></body></html>')
     src = os.path.join(rdir, 'haeseol', 'book_src.html')
-    open(src, 'w').write(fx(''.join(H)))
+    open(src, 'w').write(fx(nodot(''.join(H))))
     subprocess.run(['node', os.path.join(HERE, 'haeseol2.js'), src, out, f'기말 모의고사 {name}'], check=True)
 
 if __name__ == '__main__':
