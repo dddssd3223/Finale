@@ -16,6 +16,10 @@
   "output/build/기말/9회/eqfont.js": "d62edaff2f21820794090fa7ae23cc7906353a018580628b8be7cdd55561ddeb",
   "output/build/기말/9회/fig_15.svg": "8ca7c87d4e5ccce7aff33c8841ad5f5538c2e1a2c1c203672539e069a84d468a",
   "output/build/기말/9회/figs/fig15.py": "cd870bb67b49259c8a4580d92335158bc35c7b000cb02b1c0f8911428bff58b5",
+  "output/build/기말/9회/haeseol/TASK.md": "b0ad390a0849ca09f7ea5bedc712f92f3ce4894818c31864968be87c2143ed96",
+  "output/build/기말/9회/haeseol/items_a.json": "4a12462cb154659ca05baffe5fbafd2df7d86d8014edfbd73d10dec51638ae10",
+  "output/build/기말/9회/haeseol/items_c.json": "a05058e3457a4d7af3e3e153c9be36734ae879b2f72c343e8931a24a763e55d6",
+  "output/build/기말/9회/haeseol/items_d.json": "13d65b12de51973db0fc7390c54f2a3ff5932986341600f7b3e4686e9ed6b0f2",
   "output/build/기말/9회/jl.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
   "output/build/기말/9회/mk.json": "d4ad3e53cdf969f4186a0653987561b993faed74c95c9f7e0afb3ff2197ca59f",
   "output/build/기말/9회/overlay.html": "bc74dc3fe72bce3cb67be646e4199350c1b9cb0a5c2dcdb567459fc27d83d858",
@@ -71,7 +75,8 @@
   "output/미적분1_기말고사_9회_시험지.pdf": "9fd7a15859aa63329a74cd507d47a4020656d15e1e114d1c56b0967a6e982be5",
   "output/미적분1_기말고사_9회_시험지_스캔본.pdf": "c0d58fa17819638dbd2b8567727bc94a3b66f8ad55a52e9d07585f81e4f10e0a",
   "output/미적분1_기말고사_9회_원문대응분석서.pdf": "7df0329fe613a2c47f5f3305c69a174b78c805b286fa2cc0b3f9b0bf9a295d54",
-  "output/미적분1_기말고사_9회_정답및채점기준.pdf": "6d16cc7afaf395d041f73cfcb2e31abeed9be51c6dc2c184ff0fd2d356b406d2"
+  "output/미적분1_기말고사_9회_정답및채점기준.pdf": "6d16cc7afaf395d041f73cfcb2e31abeed9be51c6dc2c184ff0fd2d356b406d2",
+  "output/미적분1_기말고사_9회_정답및해설.pdf": "0b1335d99a357ea1ccabf6b1f9ce96d2e3d3ac25f16a0412c0d1c3b74d1d66c9"
  },
  "external": {
   "fonts/9Btx3DZF0dXLMZlywRbVRNhxy1Lr.ttf": "d3109373f86b59a4b36c542b38d0c095cd45167c1aa51540f4b409e257b42e6f",

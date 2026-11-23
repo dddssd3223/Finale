@@ -33,7 +33,7 @@ def feels(rdir, c):
     name = os.path.basename(rdir); inv = {}
     ren = getattr(c, 'RENUM', {}) or {}
     out = {}
-    for f in sorted(glob.glob(os.path.join(BASE, '공동출제', '풀이', f'측정_{name}*', 'result.json'))):
+    for f in sorted(glob.glob(os.path.join(BASE, '공동출제', '풀이', f'측정_{name}*', 'result.json')), key=os.path.getmtime):   # 나중에 잰 것이 이김
         r = json.load(open(f)); meta = json.load(open(os.path.join(os.path.dirname(f), 'meta.json')))
         post = bool(meta.get('renum')) or os.path.basename(os.path.dirname(f)) > f'측정_{name}C'   # C까지는 출제 번호, 그 뒤는 시험지 번호
         for row in r['rows']:
@@ -203,6 +203,10 @@ def tidy(d):
         if d.get(k): d[k] = outside(d[k], SUBN)
     for st in d.get('flow') or []:
         st['points'] = [outside(p, SUBN) for p in st.get('points') or []]
+    v = d.get('variation') or {}
+    for k in ('origin', 'point'):
+        if v.get(k): v[k] = outside(v[k], SUBN)
+    if v.get('changes'): v['changes'] = [outside(x, SUBN) for x in v['changes']]
     return d
 
 def nodot(doc):
