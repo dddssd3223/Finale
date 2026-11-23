@@ -20,6 +20,8 @@
   "output/build/기말/8회/haeseol/TASK.md": "726bf15a0ff46215622c00b3ebe5d66288235425daf8e92fa9668fb7732bf039",
   "output/build/기말/8회/haeseol/book.html": "6c193c2d404263b0c789e1f830bba28eb0363511abb56b1c930a39d0c9f5d829",
   "output/build/기말/8회/haeseol/book_src.html": "76eee6b9c5eaba01dbc0039bbf9ff860ea0173eeeec3afbdcfd4819556ce4a2b",
+  "output/build/기말/8회/haeseol/cover.html": "5351d22986122599de9a64926a82e441633d0983573fab0eea916deafb79897e",
+  "output/build/기말/8회/haeseol/cover_src.html": "5351d22986122599de9a64926a82e441633d0983573fab0eea916deafb79897e",
   "output/build/기말/8회/haeseol/front.json": "d1e8976a2c458ce8cf7f9a6c3c452754d32e98253c725ee01b5c084a83a841dc",
   "output/build/기말/8회/haeseol/items_a.json": "7af081d1830065487dbb5046d8fb19767810231c85333b8ac6b25119c9afdb4c",
   "output/build/기말/8회/haeseol/items_b.json": "2ac4655fb49bc38f60242ca9a8293c01b29922f83be45eee1a9b288567d973f0",
@@ -87,7 +89,7 @@
   "output/미적분1_기말고사_8회_시험지_스캔본.pdf": "33bd07b2598c64f05d31b9da5dff60e80c348cadfa61c45a8b569016f2fe149d",
   "output/미적분1_기말고사_8회_원문대응분석서.pdf": "7b0c4a271e9763b4693ef2e3e085c78615441fe17ba0e2e5e529fa6c403127d5",
   "output/미적분1_기말고사_8회_정답및채점기준.pdf": "60375a5cc48298d08e10ffc40adf8031511e29ae9599468e1d5f6cd63f14a5dd",
-  "output/미적분1_기말고사_8회_정답및해설.pdf": "a6ee6b19ee670c87832f47aca4489e56452a8534c4f27f5800c1f91f0207aa2d",
+  "output/미적분1_기말고사_8회_정답및해설.pdf": "f3287cfc094d36f1ac9f04561f36e851b612ec55bda667539d876ec1159c1c8d",
   "output/미적분1_기말고사_8회_해설.pdf": "d16ec9dd0b48b25335ba1faeb9e2df58bb078a26d619eef6872d8622c2e4f15e"
  },
  "external": {
