@@ -80,26 +80,20 @@ for a_, b_ in ((0, 3), (1, 2), (2, 3)):
 print('ABLATION 1 구간 t=1~3: 필요(구간을 바꾸면 값이 바뀜)')
 
 # ===== 2번 =====
-c2 = 4*x**3 + 2*x; l2 = -6*x + 12
-g2 = expand(c2 - l2)
-assert expand(g2 - 4*(x - 1)*(x**2 + x + 3)) == 0
-assert sorted(set(real_roots(Poly(g2, x)))) == [1]                                    # 교점 하나
-assert solve(l2, x) == [2] and solve(c2, x) == [0]
-# 전수 확인: 영역 = {0≤x≤2, 0≤y≤min(c2,l2)} (c2 증가·l2 감소), 넓이 = ∫_0^2 min
-assert all(diff(c2, x).subs(x, s) > 0 for s in (0, Rational(1, 2), 1, 2))
-val2 = integrate(c2, (x, 0, 1)) + integrate(l2, (x, 1, 2))
-assert val2 == 5
-num = sp.N(sp.Integral(sp.Min(c2, l2), (x, 0, 2)))                                    # 수치 재확인
-assert abs(num - 5) < 1e-9
-w2a = integrate(l2 - c2, (x, 0, 1))                                                   # y축 쪽 부분
-assert w2a == 7 and w2a + val2 == Rational(1, 2)*2*12
-w2b = integrate(c2, (x, 0, 1)) + Rational(1, 2)*2*6                                   # 밑변 0~2로
-assert w2b == 8
-chk(2, val2, [w2a, w2b])
-print('ABLATION 2 x축: 필요(없으면 곡선과 직선만으로는 닫힌 부분이 생기지 않음 — 교점이 하나뿐)')
-c2b = x**3 + x; l2b = -2*x + 4                                                        # 분석집 변형 수치 그대로면 다른 값
-assert integrate(c2b, (x, 0, 1)) + integrate(l2b, (x, 1, 2)) == Rational(7, 4)
-print('뼈대 수치(분석집)로는 7/4 — 같은 문항 아님')
+c2 = 4*x**3 + 2*x
+assert sorted(set(real_roots(Poly(c2, x)))) == [0]                                    # x축과 원점에서만 만남
+assert all(c2.subs(x, Rational(i, 10)) >= 0 for i in range(0, 21))                  # 0~2에서 x축 위
+val2 = integrate(c2, (x, 0, 2))
+assert val2 == 20
+assert abs(sp.N(sp.Integral(sp.Abs(c2), (x, 0, 2))) - 20) < 1e-9
+w2 = (x**4 + 2*x**2).subs(x, 2)                                                      # 2x의 부정적분을 2x^2으로
+assert w2 == 24
+chk(2, val2, [w2])
+for xr in (1, 3):
+    assert integrate(c2, (x, 0, xr)) != 20
+print('ABLATION 2 직선 x=2: 필요(없으면 닫힌 부분이 생기지 않고, 경계를 바꾸면 넓이가 바뀜)')
+assert integrate(x**3 + x, (x, 0, 2)) == 6                                            # 원문·분석집 곡선 그대로면 다른 값
+print('뼈대 곡선(y=x^3+x)으로는 6 — 같은 문항 아님')
 
 # ===== 3번 =====
 x3 = t**3 + t**2 - 12*t
