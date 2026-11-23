@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 """회차 성적표 이미지를 솔라피(SOLAPI) MMS로 보냄.
 
-사용:  python3 send_solapi.py <성적표.png> "<문자 본문>" [--to 01012345678] [--from 01012345678] [--dry]
+사용:  python3 send_solapi.py <성적표.png> "<문자 본문>" [--text2 "<둘째 문자>"] [--single] [--to 01012345678] [--from 01012345678] [--dry]
 - API 키: 환경 변수 SOLAPI_API_KEY, SOLAPI_API_SECRET (환경 설정의 Network secrets/환경 변수)
 - 번호: --to/--from 또는 환경 변수 SOLAPI_TO, SOLAPI_FROM (발신번호는 솔라피 콘솔에 사전 등록 필수)
 - 이미지: MMS 제한(JPG 200KB 이하)에 맞춰 폭 640px로 줄이고, 세로로 길면 여러 장으로 나눠 각각 MMS로 보냄
+- --single: 나누지 않고 한 장으로 보냄(200KB에 맞게 화질·폭을 낮춤)
+- --text2: 첫 MMS 뒤에 이미지 없는 LMS를 하나 더 보냄(개인 코멘트용)
+- 본문은 LMS·MMS 한도 2,000바이트(EUC-KR 기준) 안이어야 함
 - --dry: 이미지 변환·서명만 하고 실제 발송은 하지 않음
 """
 import os, sys, io, json, hmac, hashlib, base64, uuid, datetime, argparse, urllib.request
@@ -53,6 +56,21 @@ def to_jpgs(png):
         parts.append(buf.getvalue())
     return parts
 
+def to_one_jpg(png):
+    """나누지 않은 한 장. 화질을 먼저 낮추고, 그래도 크면 폭을 줄임."""
+    im0 = Image.open(png).convert('RGB')
+    for w in (WIDTH, 600, 560, 520, 480):
+        im = im0.resize((w, round(im0.height * w / im0.width)), Image.LANCZOS)
+        for q in range(88, 50, -4):
+            buf = io.BytesIO(); im.save(buf, 'JPEG', quality=q, optimize=True, progressive=False)
+            if buf.tell() <= MAX_BYTES:
+                print(f'한 장: {w}x{im.height}px, 화질 {q}')
+                return [buf.getvalue()]
+    raise SystemExit('한 장으로 200KB 안에 맞출 수 없어요. --single 없이 나눠 보내세요.')
+
+def nbytes(t):
+    return len(t.encode('cp949', errors='replace'))
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('png'); ap.add_argument('text')
@@ -60,8 +78,17 @@ def main():
     ap.add_argument('--from', dest='frm', default=os.environ.get('SOLAPI_FROM'))
     ap.add_argument('--subject', default='성적표')
     ap.add_argument('--dry', action='store_true')
+    ap.add_argument('--single', action='store_true')
+    ap.add_argument('--text2')
+    ap.add_argument('--subject2', default='코멘트')
     a = ap.parse_args()
-    parts = to_jpgs(a.png)
+    for name, t in (('본문', a.text), ('둘째 문자', a.text2)):
+        if t is not None:
+            n = nbytes(t)
+            print(f'{name} {n}바이트')
+            if n > 2000:
+                raise SystemExit(f'{name}이 2,000바이트를 넘어요({n}).')
+    parts = to_one_jpg(a.png) if a.single else to_jpgs(a.png)
     print(f'이미지 {len(parts)}장: ' + ', '.join(f'{len(p) // 1024}KB' for p in parts))
     if a.dry:
         for i, p in enumerate(parts, 1):
@@ -76,6 +103,10 @@ def main():
                'subject': a.subject if len(parts) == 1 else f'{a.subject} {i}/{len(parts)}', 'imageId': fid}
         r = call('/messages/v4/send', {'message': msg})
         print(f'{i}/{len(parts)} 발송: {r.get("statusCode")} {r.get("statusMessage")}')
+    if a.text2:
+        msg = {'to': a.to.replace('-', ''), 'from': a.frm.replace('-', ''), 'text': a.text2, 'subject': a.subject2}
+        r = call('/messages/v4/send', {'message': msg})
+        print(f'둘째 문자 발송: {r.get("statusCode")} {r.get("statusMessage")}')
 
 if __name__ == '__main__':
     main()
