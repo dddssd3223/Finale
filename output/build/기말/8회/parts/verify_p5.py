@@ -94,7 +94,7 @@ ablation("'속도가 서로 같다'(만나기만)", '정해지지 않음', 'a≤
 # 원점 동시 출발 삭제: Q 가 c 에서 출발하면 위치 차가 D-c
 res = {cv: kmax_for(D - cv) for cv in (1, -1)}
 assert all(v != ANS for v in res.values())
-ablation("'동시에 원점을 출발'", '정해지지 않음', f'Q 출발점 c 에 따라 {res}')
+ablation("'원점을 동시에 출발'", '정해지지 않음', f'Q 출발점 c 에 따라 {res}')
 
 # 구간 끝 계수: 왼쪽 끝을 0 으로(원문처럼) → [0, k] 에서 최댓값 8 인 k 의 최댓값 8
 g0 = [R(j, 100) for j in range(1, 1601) if winmax(D, R(j, 100), left=0) == 8]
