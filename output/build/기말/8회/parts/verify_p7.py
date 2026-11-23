@@ -110,7 +110,7 @@ print('I63 원문 OK: a=3, 5, 합 8')
 assert r"f(x)=x^3-6x^2-15x+1" in S2['body'] and r"\{f(t)\}^2\{f(t)-f(x)\}" in S2['body'] and 'cond' not in S2
 q1, q2, q3 = [q[0] for q in S2['subs']]
 assert r"g'(x)=h(x)" in q1 and r"\{f(t)\}^2" in q1
-assert r"a=0" in q2 and '극솟값을 갖는' in q2
+assert r"a=0" in q2 and '극소가 되는' in q2
 assert '극솟값을 갖지 않도록' in q3 and '모든 \\(a\\)의 값의 합' in q3
 f2 = x**3 - 6 * x**2 - 15 * x + 1
 fp2 = sp.diff(f2, x)
@@ -156,9 +156,9 @@ assert sp.solve(sp.diff(f2, x, 2), x) == [2] and -1 + 2 + 5 == 6
 for w in (r'3x^2-12x-15', r'\(x=-1\), \(x=5\)', r'극소를 \(x=-1\)로', "'없음'", r'=6\)'): assert w in S2['wrong'], w
 # 배점·형식
 assert len(S2['subs']) == 3 and len(S2['ans']) == 3 and len(S2['sol']) == 3
-assert [q[1] for q in S2['subs']] == ['2점, 답만 적으시오.', '4점, 답만 적으시오.', '4점, 답만 적으시오.']
+assert [q[1] for q in S2['subs']] == ['2점, 답만 적으시오.', '3점, 답만 적으시오.', '5점, 답만 적으시오.']
 pts2 = [[int(v) for v in re.findall(r'\[(\d)점\]', line_)] for line_ in S2['rubric'][:3]]
-assert pts2 == [[2], [4], [4]] and sum(map(sum, pts2)) == 10, pts2
+assert pts2 == [[2], [3], [5]] and sum(map(sum, pts2)) == 10, pts2
 assert not re.findall(r'\[(\d)점\]', ''.join(S2['rubric'][3:]))
 assert all('채점자 참고용' in line_ for line_ in S2['rubric'][:3])
 assert S2['db_ref'] == 'I63 후보_순위 3' and S2['cand'] == 'S2' and set(S2['core']) == {'axis', 'setting', 'principle', 'new'} and S2['level'] == '중상'
