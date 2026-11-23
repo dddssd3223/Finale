@@ -130,7 +130,8 @@ def ablation(cname, res, why=''):
 
 
 def Aset(cond):
-    return sp.Intersection(sp.solve_univariate_inequality(cond, a, relational=False), sp.Interval.open(0, 3))
+    conds = list(cond.args) if isinstance(cond, sp.And) else [cond]
+    return sp.Intersection(*[sp.solve_univariate_inequality(c, a, relational=False) for c in conds], sp.Interval.open(0, 3))
 
 
 # (가) 삭제: f=2x(x-3), a=1/10 도 (나)를 만족 → f(3)=0 이 더해져 개수가 바뀜
