@@ -96,8 +96,6 @@ chk(6, yint, [F6.subs(x, 1) + 1*s6.subs(x, 1), F6.subs(x, 1)])         # 오답 
 assert sp.limit(s6, x, -oo) == -oo
 print('ABLATION 6 x좌표가 양수: 필요(실수 전체에서는 기울기가 한없이 작아져 최솟값이 없음)')
 print('ABLATION 6 상수 +5: 필요(빼면 답', yint - 5, '로 바뀜)')
-F6b = integrate(4*t**3 - 6*t**2 + 1, (t, 1, x)) + 5
-print('ABLATION 6 아래끝 0 → 1: 필요(답', F6b.subs(x, 1) - s6.subs(x, 1), '로 바뀜)')
 
 # ===== 7번 =====
 f0 = [(-x**2 + x, 0, 1), (-x**2 + 4*x - 3, 1, 3)]                     # (가) 한 주기 조각
@@ -135,13 +133,17 @@ for mv in (R(1, 10), R(1, 3), R(1, 2), R(9, 10)):
     E = extrema(mv, 2)
     assert E[:8] == [(1 - mv)/2, 1, 2 - mv/2, 3, R(7, 2) - mv/4, 4, 5 - mv/4, 6], (mv, E[:8])
     assert sum(E[:7]) == 19 - R(3, 2)*mv
-# m의 전 범위 조사: α7<6≤α8 이 성립하는 m (격자 + 경계값)
-grid = sorted({R(i, 20) for i in range(1, 121)} | {R(1), R(2), R(4)})
-okm = [mv for mv in grid if (lambda E: len(E) >= 8 and E[6] < 6 <= E[7])(extrema(mv, 2))]
-assert okm and max(okm) < 1 and min(okm) == R(1, 20)                     # 0<m<1에서만 성립
-assert all(not (lambda E: len(E) >= 8 and E[6] < 6 <= E[7])(extrema(mv, 2)) for mv in (R(1), R(3, 2), R(2), R(3), R(4), R(5)))
-msol = solve(19 - R(3, 2)*m - R(37, 2), m); assert msol == [R(1, 3)]
-E = extrema(R(1, 3), 2); assert E[6] < 6 <= E[7] and sum(E[:7]) == R(37, 2)
+# m의 전 범위 조사: 합 조건만으로 m이 하나로 정해짐(원문의 개수 조건 α7<6≤α8은 군더더기라 뺌)
+for mv in (R(1), R(5, 4), R(3, 2), R(19, 10)):                          # 1≤m<2: (0,1)에 극점 없음, 합 49/2-m
+    E = extrema(mv, 2); assert E[:7] == [1, 2 - mv/2, 3, R(7, 2) - mv/4, 4, 5 - mv/4, 6] and sum(E[:7]) == R(49, 2) - mv > R(37, 2)
+for mv in (R(2), R(21, 10), R(3), R(4), R(5), R(8), R(9)):               # m≥2: (0,4)에 극점 없음 → 합 ≥ 28
+    E = extrema(mv, 2, N=7); assert min(E) >= 4 and len(E) >= 7 and sum(E[:7]) > R(37, 2), mv
+grid = sorted({R(i, 40) for i in range(1, 400)})
+hit = [mv for mv in grid if (lambda E: len(E) >= 7 and sum(E[:7]) == R(37, 2))(extrema(mv, 2, N=5))]
+assert hit == [R(1, 3)] or hit == []                                    # 1/3은 격자 밖(1/40 단위) — 아래에서 정확히
+msol = solve(19 - R(3, 2)*m - R(37, 2), m); assert msol == [R(1, 3)] and 0 < msol[0] < 1
+E = extrema(R(1, 3), 2); assert sum(E[:7]) == R(37, 2)
+print('7번 m 갈래: 0<m<1 → 19-3m/2, 1≤m<2 → 49/2-m (>37/2), m≥2 → α1≥4 (>37/2) ⇒ m=1/3 하나')
 xq = R(13, 3); e2 = pieces(1, 2)[1][0]; assert pieces(1, 2)[1][1] < xq < pieces(1, 2)[1][2]
 ans7 = diff(e2, x).subs(x, xq) - R(1, 3); assert ans7 == R(7, 3)
 w1 = diff(f0[1][0], x).subs(x, xq - 3) - R(1, 3)                        # 주기로 착각
@@ -151,9 +153,7 @@ chk(7, ans7, [w1, w2])
 E1 = extrema(R(1, 4), 1)
 print('ABLATION 7 f(x+3)=2f(x) → f(x+3)=f(x): 필요(합 19-2m=37/2에서 m=1/4, g\'(13/3)=', diff(f0[1][0], x).subs(x, xq - 3) - R(1, 4), '로 바뀜)')
 assert sum(E1[:7]) == R(37, 2)
-print('ABLATION 7 α7<6≤α8: 필요(빼면 1≤m<2 쪽 합 1+(2-m/2)+3+(7/2-m/4)+4+(5-m/4)+6=', sp.simplify(sum(extrema(R(3, 2), 2)[:7])), '(m=3/2) 등 다른 갈래가 생김)')
-mm2 = solve(sum([1, 2 - m/2, 3, R(7, 2) - m/4, 4, 5 - m/4, 6]) - R(37, 2), m)
-print('   (1≤m<2 갈래 해', mm2, '— 범위', '안' if mm2 and 1 <= mm2[0] < 2 else '밖', ')')
+print('ABLATION 7 원문의 α7<6≤α8: 군더더기(답 그대로) → 본문에서 뺌')
 print('ABLATION 7 합 37/2: 필요(빼면 0<m<1의 m이 정해지지 않음)')
 
 # ===== 8번 =====
@@ -161,7 +161,6 @@ s8 = solve([fD.subs(x, 1) - 10, fD.subs(x, 2)], [b, c], dict=True)[0]; f8 = fD.s
 assert s8 == {b: -3*a - 17, c: 2*a + 26}
 h8 = f8 - x; d8 = diff(h8, x)
 # 아래로 볼록한 h'이 (-1,1)에서 ≤0 ⇔ 양 끝값 ≤0 (일반 a 전수: 꼭짓점 판정 불필요 확인)
-A8 = sp.solve_univariate_inequality(sp.And(d8.subs(x, -1) <= 0, d8.subs(x, 1) <= 0), a, relational=False) if False else None
 r1 = sp.solve_univariate_inequality(d8.subs(x, -1) <= 0, a, relational=False)
 r2 = sp.solve_univariate_inequality(d8.subs(x, 1) <= 0, a, relational=False)
 rng8 = r1.intersect(r2); assert rng8 == Interval(-3, oo)
@@ -175,7 +174,7 @@ ans8 = H.subs(x, -1); assert ans8 == 25
 chk(8, ans8, [f8.subs({a: -3, x: -1})])                                  # 오답 24: f(-1)
 s8b = solve([fD.subs(x, 1) - 10, fD.subs(x, 2)], [b, c], dict=True)[0]
 d8b = diff(fD.subs(s8b), x); ab = max(solve(d8b.subs(x, -1), a)[0], solve(d8b.subs(x, 1), a)[0])
-print('ABLATION 8 f(x)-x → f(x) 감소: 필요(a≥', ab, '가 되어 f(x)-x의 극댓값이', sp.nsimplify(sp.maximum(fD.subs(s8b).subs(a, ab) - x, x, Interval(-2, sp.Rational(-1, 2)))), '로 바뀜)')
+print('ABLATION 8 f(x)-x → f(x) 감소: 필요(a≥', ab, '가 되어 f(x)-x의 극댓값이 무리수', sp.N(sp.maximum(fD.subs(s8b).subs(a, ab) - x, x, Interval(-2, sp.Rational(-1, 2))), 6), '로 바뀜)')
 print('ABLATION 8 f(0)이 최소일 때: 필요(빼면 a≥-3의 모든 a가 가능해 극댓값이 정해지지 않음)')
 print('ABLATION 8 A(1,10): 필요(원문 A(1,5)면 a≥-2, 극댓값', (fD.subs(solve([fD.subs(x, 1) - 5, fD.subs(x, 2)], [b, c], dict=True)[0]) - x).subs({a: -2, x: -1}), '로 바뀜)')
 
