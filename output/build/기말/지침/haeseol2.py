@@ -60,10 +60,10 @@ CSS = r"""
 :root{--b:#5f8fd8;--bl:#8fb2e6;--bp:#e9f0fb;--bd:#2f5fae;--g:#8a8f98;--gl:#e9eaec;--ink:#222}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{font-family:'SJ','HB','NMJ',serif;font-size:8.7pt;line-height:2.25;color:var(--ink);word-break:keep-all}
+body{font-family:'SJ','HB','NMJ',serif;font-size:8.7pt;line-height:2.0;color:var(--ink);word-break:keep-all}
 .katex{font-size:1.04em}
-.katex-display{margin:.8em 0}
-p{margin:.35em 0 .8em}
+.katex-display{margin:.6em 0}
+p{margin:.25em 0 .6em}
 b{font-weight:700}
 /* 1쪽 */
 .p1{display:flex;gap:9mm;break-after:page}
@@ -103,7 +103,7 @@ table.cut td.h{font-weight:700;text-align:left;padding-left:0}
 .chong b{font-weight:700;color:#111}
 /* 본문 2단 */
 .cols{column-count:2;column-gap:11mm;column-fill:auto}
-.it{margin:0 0 22pt}
+.it{margin:0 0 18pt}
 .no{font-family:'NSq';font-weight:700;font-size:17pt;color:var(--b);line-height:1.1;margin:2pt 0 3pt;break-after:avoid}
 .no .z{color:var(--bl);opacity:.75}
 .mt{display:inline-flex;font-family:'NSq';font-size:7.6pt;font-weight:700;margin-bottom:5pt;break-after:avoid}
