@@ -71,27 +71,39 @@ good = [R(j, 300) for j in range(1, 900) if na_ok(f.subs(a, R(j, 300)), R(j, 300
 assert good[0] == R(5, 3) and good[-1] == R(8, 3) and len(good) == 301, (good[0], good[-1], len(good))
 print('(나) ⇔ 5/3 ≤ a ≤ 8/3 (식 풀이 + 1/300 눈금 전수)')
 
-# ---------- 3) f(3)의 최솟값
+# ---------- 3) f(3)의 값이 될 수 있는 정수의 개수
 f3 = sp.expand(f.subs(x, 3)); assert f3 == 6 * a - 18
-ANS = min(f3.subs(a, v) for v in good)
-assert ANS == -8 and f3.subs(a, R(5, 3)) == -8
-print('f(3) = 6a - 18 (증가) → 최솟값', ANS, '(a = 5/3)')
+
+
+def cnt(Sa, g3=f3):
+    """a의 집합 Sa(구간) 위에서 g3(a)(일차, 증가)가 갖는 값의 범위 안 정수 개수"""
+    assert sp.diff(g3, a) > 0
+    img = sp.Interval(g3.subs(a, Sa.inf), g3.subs(a, Sa.sup), Sa.left_open, Sa.right_open)
+    ints = sp.Intersection(img, sp.S.Integers)
+    return len(list(ints)) if ints.is_finite_set else 'inf'
+
+
+ANS = cnt(S)
+assert ANS == 7 and sp.Interval(f3.subs(a, S.inf), f3.subs(a, S.sup)) == sp.Interval(-8, -2)
+# 격자 표본과 대조: 연속이므로 -8..-2 의 정수마다 그 값을 주는 a 가 범위 안에 있음
+for v in range(-8, -1):
+    av = sp.solve(f3 - v, a)[0]; assert av in S and na_ok(f.subs(a, av), av)
+print('f(3) = 6a - 18 (연속·증가), 5/3 ≤ a ≤ 8/3 → -8 ≤ f(3) ≤ -2 → 정수', ANS, '개')
 
 # ---------- 4) 선지
 ch = IT['choices']; vals = [int(c) for c in ch]
 assert ch[IT['ans'] - 1] == str(ANS) and IT['ans'] == 4
 assert len(set(vals)) == 5 and len({vals[i + 1] - vals[i] for i in range(4)}) == 1 and vals == sorted(vals)
-print('정답 -8 = 선지 ④, 선지', vals, '공차 2 오름차순')
+assert vals[1] - vals[0] == 1
+print('정답 = 선지 ④, 선지', vals, '공차 1 오름차순')
 
 # ---------- 5) 오답
-yonly = sp.solve(3 * Y1, a)[0]                     # 오른쪽 변 ≥ 0 만: a ≥ 2/3
-naive = sp.solve(X, a)[0]                          # 원문처럼 ∫_0^3 f ≥ 0 으로 읽음: a ≥ 2 (∩ a ≤ 8/3)
-assert (yonly, naive) == (R(2, 3), 2)
-w1, w2 = f3.subs(a, yonly), f3.subs(a, naive)
-assert (w1, w2) == (-14, -6)
-assert set(IT['wrongs']) == {'-14', '-6'} and all(w in ch for w in IT['wrongs'])
-assert f3.subs(a, 1) == -12 and f3.subs(a, R(4, 3)) == -10   # ②·③ 등차 채움 값의 a
-print('오답 근거 OK: -14(오른쪽 변 ≥ 0만, a=2/3), -6(원문처럼 ∫_0^3 f ≥ 0, a=2)')
+naive = sp.solve(X, a)[0]; assert naive == 2       # 원문처럼 ∫_0^3 f ≥ 0 으로 읽음: 2 ≤ a ≤ 8/3
+w_naive = cnt(sp.Interval(2, R(8, 3)))
+w_noup = cnt(sp.Interval.Ropen(R(5, 3), 3))         # 위쪽 X ≤ Y 를 빼먹음: 5/3 ≤ a < 3
+assert (w_naive, w_noup) == (5, 8)
+assert set(IT['wrongs']) == {'5', '8'} and all(w in ch for w in IT['wrongs'])
+print('오답 근거 OK: 5(원문처럼 ∫_0^3 f ≥ 0, 2≤a≤8/3), 8(위 끝 빼먹음, 5/3≤a<3)')
 assert ANS not in (0, 2, 3, 1, -3)                  # 본문의 수 · 원문 답과 다름
 
 # ---------- 6) 원문 I37: -3 (②)
@@ -117,61 +129,49 @@ def ablation(cname, res, why=''):
     print(f'ABLATION 17 {cname}: 필요({res}{"; " + why if why else ""})'); assert res != ANS
 
 
-def fam_min(cands):
-    """(a, f) 후보들에서 f(3)의 최솟값(유리수 격자 전수)"""
-    v = [g.subs(x, 3) for av, g in cands]
-    return min(v) if v else None
+def Aset(cond):
+    return sp.Intersection(sp.solve_univariate_inequality(cond, a, relational=False), sp.Interval.open(0, 3))
 
 
-# (가) 삭제: f = -2x(x-r) 에서 r 이 자유 → 예: r=13/8, a=21/16 이 (나)를 만족하고 f(3) = -33/4 < -8
-gw = -C * x * (x - R(13, 8)); aw = R(21, 16)
-assert not ga_ok(gw, aw) and na_ok(gw, aw) and gw.subs(x, 3) == R(-33, 4)
-ablation('(가)', '정해지지 않음', 'f(x)=-2x(x-13/8), a=21/16 이 (나)를 만족하고 f(3)=-33/4 < -8')
+# (가) 삭제: f=2x(x-3), a=1/10 도 (나)를 만족 → f(3)=0 이 더해져 개수가 바뀜
+gw = C * x * (x - 3); aw = R(1, 100)
+assert not ga_ok(gw, aw) and na_ok(gw, aw) and gw.subs(x, 3) == 0
+ablation('(가)', '정해지지 않음', 'f(x)=2x(x-3), a=1/100 이 (나)를 만족해 f(3)=0 도 가능 → 7개가 아님')
 
-# f(0)=0 삭제: f = -2(x-a)(x-s), s≤0 이면 (가)를 만족 → s에 따라 답이 다름
-res = {}
-for s0 in (0, R(-1, 2), -1):
-    g = -C * (x - a) * (x - s0)
-    vals_ = [g.subs({x: 3, a: av}) for av in [R(j, 300) for j in range(1, 900)]
-             if ga_ok(g.subs(a, av), av) and na_ok(g.subs(a, av), av)]
-    res[s0] = min(vals_) if vals_ else None
-assert res[0] == ANS and any(v != ANS for k_, v in res.items() if k_ != 0)
-ablation('f(0)=0', '정해지지 않음', f'다른 근 s에 따라 최솟값 {res}')
+# f(0)=0 삭제: f=-2(x-a)(x+1) 도 (가)를 만족, (나)를 만족하는 a 에서 f(3) 이 -12 아래까지 → 개수 바뀜
+g = -C * (x - a) * (x + 1)
+vals_ = [g.subs({x: 3, a: av}) for av in [R(j, 300) for j in range(1, 900)]
+         if ga_ok(g.subs(a, av), av) and na_ok(g.subs(a, av), av)]
+assert min(vals_) < -12
+ablation('f(0)=0', '정해지지 않음', f'f(x)=-2(x-a)(x+1)이면 f(3)이 {min(vals_)}까지 → 정수 7개가 아님')
 
-# 계수의 절댓값 2 → 4: 답 -16
+# 계수의 절댓값 2 → 4: f(3)=12a-36, a 범위 같음 → 13개
 g4 = -4 * x * (x - a)
-v4 = min(g4.subs({x: 3, a: av}) for av in [R(j, 300) for j in range(1, 900)] if na_ok(g4.subs(a, av), av))
-ablation('최고차항의 계수의 절댓값 2(→4)', v4)
+S4 = Aset(sp.And(3 * I(g4, a - 1, a) - I(g4, 0, 3) >= 0, 3 * I(g4, a - 1, a) + I(g4, 0, 3) >= 0))
+ablation('최고차항의 계수의 절댓값 2(→4)', cnt(S4, sp.expand(g4.subs(x, 3))))
 
-# 절댓값 삭제(∫_0^3 f ≤ 3∫ f 만): a ≤ 8/3 이 전부 → f(3) 최솟값 없음(a→0+에서 -18로 다가감)
-gA = [R(j, 300) for j in range(1, 900) if na_ok(f.subs(a, R(j, 300)), R(j, 300), absval=False)]
-assert gA[0] == R(1, 300) and gA[-1] == R(8, 3)
-ablation('(나)의 절댓값', '최솟값 없음', 'a ≤ 8/3 전체가 남아 f(3)이 -18에 가까워지기만 함')
+# 절댓값 삭제: 0<a≤8/3 → -18<f(3)≤-2
+ablation('(나)의 절댓값', cnt(Aset(3 * Y1 - X >= 0)))
 
-# 바깥 계수 3 → 1: a ≥ 28/15, 답 -34/5
-v1 = min(f3.subs(a, av) for av in [R(j, 900) for j in range(1, 2700)] if na_ok(f.subs(a, av), av, m=1))
-assert v1 == R(-34, 5)
-ablation('(나)의 바깥 계수 3(→1)', v1)
+# 바깥 계수 3 → 1: 28/15 ≤ a ≤ 49/24
+ablation('(나)의 바깥 계수 3(→1)', cnt(Aset(sp.And(Y1 - X >= 0, Y1 + X >= 0))))
 
-# 구간 [a-1,a] → [a-3,a](원문처럼 같은 길이): 두 변이 같은 적분 → ∫_0^3 f ≥ 0, a ≥ 2, 답 -6
-v3 = min(f3.subs(a, av) for av in [R(j, 300) for j in range(1, 900)] if na_ok(f.subs(a, av), av, m=1, L=3))
-ablation('(나)의 구간 끝 a-1(→a-3)', v3)
+# 구간 [a-1,a] → [a-3,a](원문처럼 같은 길이): 두 변이 같은 적분 → 2 ≤ a < 3
+Y3 = sp.expand(I(f, a - 3, a)); assert Y3 == X
+ablation('(나)의 구간 끝 a-1(→a-3)', cnt(Aset(sp.And(Y3 - X >= 0, Y3 + X >= 0))))
 
-# ∫_0^3 → ∫_0^a (원문처럼 왼쪽 끝 a): |∫_0^a f| = (1/3)a^3 ≤ 3(a - 2/3) → 답이 바뀜
-v5 = [f3.subs(a, av) for av in [R(j, 300) for j in range(1, 900)] if na_ok(f.subs(a, av), av, up=av)]
-ablation('(나)의 ∫_0^3(→∫_0^a)', min(v5))
+# ∫_0^3 → ∫_0^a
+Xa = sp.expand(I(f, 0, a))
+ablation('(나)의 ∫_0^3(→∫_0^a)', cnt(Aset(sp.And(3 * Y1 - Xa >= 0, 3 * Y1 + Xa >= 0))))
 
-# (나) 전체 삭제: 0<a<3 → f(3)=6a-18 최솟값 없음
-ablation('(나) 전체', '최솟값 없음', '0<a<3에서 f(3)=6a-18은 -18에 다가가기만 함')
+# (나) 전체 삭제: 0<a<3 → -18<f(3)<0
+ablation('(나) 전체', cnt(sp.Interval.open(0, 3)))
 
-# 범위 선언 0<a<3(원문의 a>1 자리): 밖의 a 를 격자로 확인 — (가)·(나)를 함께 만족하는 f가 있어도 f(3) > -8
-outside = []
-for av in [R(-2), R(-1), R(-1, 2), R(0), R(3), R(7, 2), R(4), R(5)]:
-    for k in (C, -C):
-        for rv in grid_r + [R(3, 2) * av, R(2, 3) * av]:
-            g = k * x * (x - rv)
-            if ga_ok(g, av) and na_ok(g, av):
-                outside.append((av, g.subs(x, 3)))
-assert all(v > ANS for _, v in outside), outside
-print('범위 선언 0<a<3: 밖의 a 에서 가능한 f(3) =', sorted({v for _, v in outside}), '(모두 -8 보다 큼)')
+# 범위 선언 0<a<3 삭제: a ≥ 3 에서 f=2x(x-r), a=3r/2 (r ≥ 3) 가 (가)·(나)를 만족 → f(3)=6(3-r) 아래로 유계 아님
+#   (1판 검사는 a ≤ 5 만 보아 r ≤ 10/3, f(3) ≥ -2 만 나와 반대로 보였다)
+for rv in (R(10, 3), 4, 5, 10, 20):
+    g = C * x * (x - rv); av = R(3, 2) * rv
+    assert av >= 3 and ga_ok(g, av) and na_ok(g, av)
+    assert g.subs(x, 3) == 6 * (3 - rv)
+ablation('범위 선언 0<a<3', 'inf', 'a=3r/2 (r≥3), f(x)=2x(x-r)에서 f(3)=6(3-r) → r=20이면 -102, 정수가 무수히 많음')
 print('ALL OK')
