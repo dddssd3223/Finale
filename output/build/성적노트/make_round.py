@@ -13,10 +13,24 @@ def cuts(idx):
     c2 = 75.8 - 1.0 * max(0.0, idx - 25.6)
     return round(c1, 1), round(c2, 1)
 
+# 내 위치(370명 환산, 5등급제 누적 10·34·66·90%): 3·4컷은 1학기 기말 실제 컷 간격(90.1/76.1/55.8/27.7)을
+# 이번 회 1·2컷 간격에 맞춰 늘리거나 줄여 정하고, 컷 사이는 직선으로 이어 백분위를 구함.
+REAL = (90.1, 76.1, 55.8, 27.7)
+def rank(total, c1, c2, n=370):
+    k = (c1 - c2) / (REAL[0] - REAL[1])
+    c3, c4 = c2 - k * (REAL[1] - REAL[2]), c2 - k * (REAL[1] - REAL[3])
+    pts = [(100, 0), (c1, 10), (c2, 34), (c3, 66), (max(c4, 1), 90), (0, 100)]
+    for (s0, p0), (s1, p1) in zip(pts, pts[1:]):
+        if s1 <= total <= s0:
+            pct = p0 + (s0 - total) / (s0 - s1) * (p1 - p0); break
+    return dict(n=n, cuts=[round(c, 1) for c in (c1, c2, c3, c4)], pct=round(pct, 1), pos=max(1, round(pct / 100 * n)))
+
 def build(src, out, png=None):
     d = json.load(open(src))
     if 'idx' in d and 'cut1' not in d:
         d['cut1'], d['cut2'] = cuts(d['idx'])
+    tot = sum(q['p'] for q in d['mc'] if q['a'] == q['m']) + sum(i['g'] for s in d['sa'] for i in s['items'])
+    d['rank'] = rank(tot, d['cut1'], d['cut2'])
     for h in d.get('history', []):
         if 'idx' in h and 'cut1' not in h: h['cut1'] = cuts(h['idx'])[0]
     t = open(os.path.join(HERE, 'round_tpl.html')).read()
