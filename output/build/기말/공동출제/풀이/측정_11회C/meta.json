@@ -1,0 +1,36 @@
+{
+ "round": "11회",
+ "base": "기준프로필",
+ "anchors": [
+  3,
+  6,
+  8,
+  10,
+  12,
+  15,
+  17,
+  18
+ ],
+ "items": {
+  "11회-9": {
+   "hash": "55c7230ff2a5",
+   "bunseok": false,
+   "key": "D70"
+  },
+  "11회-11": {
+   "hash": "7e7003481119",
+   "bunseok": false,
+   "key": "J43"
+  },
+  "11회-16": {
+   "hash": "a4d24532b02f",
+   "bunseok": false,
+   "key": "M61"
+  },
+  "11회-17": {
+   "hash": "77fa68eb4b46",
+   "bunseok": false,
+   "key": "J41"
+  }
+ }
+}

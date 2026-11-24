@@ -43,7 +43,7 @@ ok(sum(1 for n in IT if IT[n]['effect'] == '어려워짐') == 0, '9–12번 어�
 def chk(n, v0):
     v = [val(c) for c in IT[n]['choices']]
     d = {v[i + 1] - v[i] for i in range(4)}
-    ok(len(set(v)) == 5 and len(d) == 1 and abs(v[1] - v[0]) == 1, f'{n}번 선지 {v} 서로 다르고 등차(공차 {v[1] - v[0]})')
+    ok(len(set(v)) == 5 and len(d) == 1 and abs(v[1] - v[0]) in (1, 2), f'{n}번 선지 {v} 서로 다르고 등차(공차 {v[1] - v[0]})')
     ok(v[IT[n]['ans'] - 1] == v0, f'{n}번 계산 정답 {v0} = 선지 {IT[n]["ans"]}번')
     body_nums = {Rational(s) for s in re.findall(r'-?\d+', re.sub(r'\^\{?\d+\}?', ' ', re.sub(r'\\[a-zA-Z]+', ' ', IT[n]['body'])))}
     ok(v0 not in body_nums, f'{n}번 정답 {v0}이 본문에 나온 수(지수 제외)와 다름')

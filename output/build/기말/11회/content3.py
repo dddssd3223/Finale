@@ -16,7 +16,7 @@ for _f in sorted(_os.listdir(_P)):
         _ns = {'_P': _P}; exec(open(_os.path.join(_P, _f)).read(), _ns)
         ITEMS.update(_ns.get('ITEMS', {})); SITEMS.update(_ns.get('SITEMS', {}))
 # 측정 뒤 자리 바꾸기: parts 파일의 번호(출제 때 번호) → 시험지 번호 (4회: 아직 없음)
-RENUM = {}   # 측정 뒤 체감 순 자리 맞춤(11회: 아직 없음)
+RENUM = {7: 8, 8: 7, 13: 14, 14: 13}   # 측정_11회A·B·C 체감 순 자리 맞춤(D23 5.7 → 7번, I35 4.2 → 8번, J40 6.5 → 14번, J19 4.8 → 13번)
 LEVEL_FIX = {}
 for _n, _lv in LEVEL_FIX.items(): ITEMS[_n] = {**ITEMS[_n], 'level': _lv}
 ITEMS = {RENUM.get(n, n): it for n, it in ITEMS.items()}

@@ -10,7 +10,7 @@ with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'p1.py'), enc
 IT = ns['ITEMS']
 WANT = {1: 3, 2: 5, 3: 1, 4: 4}            # 분담표 ③ ⑤ ① ④
 KEY = {1: ('M46', 'M46 후보_순위 2'), 2: ('I29', 'I29 후보_순위 2'), 3: ('I18', 'I18 후보_순위 2'), 4: ('I27', '자체 (가장 가까운 I27)')}
-STEP = {1: 1, 2: 1, 3: 1, 4: 1}
+STEP = {1: 1, 2: 1, 3: 2, 4: 1}
 assert sorted(IT) == [1, 2, 3, 4]
 for no, it in IT.items():
     assert (it['key'], it['db_ref']) == KEY[no], no
