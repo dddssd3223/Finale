@@ -1,7 +1,7 @@
 const fs=require('fs'),path=require('path');
 const katex=require('../node_modules/katex');const {chromium}=require('../node_modules/playwright-core');
 (async()=>{const [inp,out]=process.argv.slice(2);let h=fs.readFileSync(inp,'utf8');
-const r=(s,d)=>katex.renderToString(s,{displayMode:d,throwOnError:true,strict:false});
+const r=(s,d)=>katex.renderToString(s.replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&amp;/g,"&"),{displayMode:d,throwOnError:true,strict:false});
 h=h.replace(/\\\[([\s\S]+?)\\\]/g,(m,s)=>r(s,true)).replace(/\\\(([\s\S]+?)\\\)/g,(m,s)=>r(s,false));
 fs.writeFileSync(inp.replace('_src',''),h);
 const b=await chromium.launch({executablePath:(()=>{for(const c of ['/opt/pw-browsers/chromium-1243/chrome-linux64/chrome','/opt/pw-browsers/chromium-1194/chrome-linux/chrome','/opt/pw-browsers/chromium']){try{if(fs.statSync(c).isFile())return c}catch(e){}}return undefined})()});const p=await b.newPage();
