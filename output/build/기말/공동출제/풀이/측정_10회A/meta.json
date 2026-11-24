@@ -1,0 +1,66 @@
+{
+ "round": "10회",
+ "base": "기준프로필",
+ "anchors": [
+  3,
+  6,
+  8,
+  10,
+  12,
+  15,
+  17,
+  18
+ ],
+ "items": {
+  "10회-1": {
+   "hash": "73ef4a5b3422",
+   "bunseok": false,
+   "key": "J13"
+  },
+  "10회-2": {
+   "hash": "37ceae390ad6",
+   "bunseok": false,
+   "key": "J26"
+  },
+  "10회-3": {
+   "hash": "53cd004f71fe",
+   "bunseok": false,
+   "key": "I25"
+  },
+  "10회-4": {
+   "hash": "7078f2f25054",
+   "bunseok": false,
+   "key": "I55"
+  },
+  "10회-5": {
+   "hash": "605987e435ed",
+   "bunseok": false,
+   "key": "J7"
+  },
+  "10회-6": {
+   "hash": "837e8807dd40",
+   "bunseok": false,
+   "key": "I8"
+  },
+  "10회-7": {
+   "hash": "f6fd27ea150d",
+   "bunseok": false,
+   "key": "I38"
+  },
+  "10회-8": {
+   "hash": "df41c7b4ae71",
+   "bunseok": false,
+   "key": "I13"
+  },
+  "10회-S1": {
+   "hash": "7c1bf6b3d2a0",
+   "bunseok": false,
+   "key": "D11"
+  },
+  "10회-S2": {
+   "hash": "273b30d8a7bb",
+   "bunseok": false,
+   "key": "I71"
+  }
+ }
+}
