@@ -152,10 +152,20 @@ print('ABLATION 10 연속: 필요(없으면 c와 f(2)=0이 나오지 않아 a, b
 print('ABLATION 10 f(x−2)=f(x+2): 필요(없으면 (−2, 2] 밖의 f가 정해지지 않음)')
 
 # ---------- 11번 (J43) ----------
-I = symbols('I')
-ans11 = (integrate(x, (x, 2, 8)) - I) + (I - integrate(x, (x, 8, 10)))
-ok(sp.simplify(ans11) == 12, '11번 ∫|f−x| = (30−I)+(I−18) = 12 (I와 무관)')
-# 실제 함수로 확인: f = 2 + 6t^m (t=(x−2)/6), f = 10 − 2(1−s)^n (s=(x−8)/2) — 증가·함숫값·부호·적분 상등을 모두 만족하는 예
+def feas11(c, f2=True, f10=True, inc=True, lo=2, hi=10):
+    """∫_lo^c f = ∫_c^hi f 가 가능한지: 두 적분의 열린 범위가 겹치는지(부호 조건 + 선택한 (가) 조건)"""
+    c = Rational(c)
+    A_hi = (c**2 - lo**2) / 2                                   # f<x
+    A_lo = lo * (c - lo) if (f2 and inc) else -sp.oo            # 증가·f(2)=2 → f>2
+    B_lo = (hi**2 - c**2) / 2                                   # f>x
+    B_hi = hi * (hi - c) if (f10 and inc) else sp.oo            # 증가·f(10)=10 → f<10
+    return max(A_lo, B_lo) < min(A_hi, B_hi)
+C11 = [c for c in range(3, 10) if feas11(c)]
+ok(C11 == [8], f'11번 자연수 c(2<c<10) 전수: 적분 상등이 가능한 c = {C11}')
+I = symbols('I'); cc = symbols('cc')
+gen11 = sp.simplify((integrate(x, (x, 2, cc)) - I) + (I - integrate(x, (x, cc, 10))))
+ok(gen11 == cc**2 - 52, f'11번 ∫|f−x| = {gen11} (I와 무관)')
+# 실제 함수(c=8)로 확인: f = 2 + 6t^m (t=(x−2)/6), f = 10 − 2(1−s)^n (s=(x−8)/2)
 for m_, n_ in ((4, 4), (Rational(9, 2), Rational(7, 4))):
     f_lo = 2 + 6 * ((x - 2) / 6)**m_
     f_hi = 10 - 2 * (1 - (x - 8) / 2)**n_
@@ -163,49 +173,49 @@ for m_, n_ in ((4, 4), (Rational(9, 2), Rational(7, 4))):
     grid_lo = [2 + Rational(i, 10) for i in range(1, 60)]; grid_hi = [8 + Rational(i, 10) for i in range(1, 20)]
     ok(I1 == I2 and f_lo.subs(x, 2) == 2 and f_lo.subs(x, 8) == 8 and f_hi.subs(x, 8) == 8 and f_hi.subs(x, 10) == 10
        and all(diff(f_lo, x).subs(x, t) > 0 for t in grid_lo) and all(diff(f_hi, x).subs(x, t) > 0 for t in grid_hi)
-       and all(f_lo.subs(x, t) < t for t in grid_lo) and all(f_hi.subs(x, t) > t for t in grid_hi), f'11번 예시 함수(m={m_}, n={n_}, I={I1}): 함숫값·증가·부호·적분 상등 모두 만족')
+       and all(f_lo.subs(x, t) < t for t in grid_lo) and all(f_hi.subs(x, t) > t for t in grid_hi), f'11번 c=8 예시 함수(m={m_}, n={n_}, I={I1}): 조건 모두 만족')
     tot = sp.nsimplify(integrate(x - f_lo, (x, 2, 8)) + integrate(f_hi - x, (x, 8, 10)))
     ok(tot == 12, f'11번 예시 함수(I={I1})에서 ∫|f−x| = {tot}')
-v11 = chk(11, 12)
+v11 = chk(11, gen11.subs(cc, 8))
 ok(integrate(x, (x, 0, 8)) - integrate(x, (x, 8, 10)) == 14, '11번 오답 14: 아래끝을 원문처럼 0으로 둠(32−18)')
-ok(Rational(18) < 30, '11번 숨은 관계: ∫_8^10 x dx = 18 < ∫_2^8 x dx = 30이라 적분 상등이 가능')
+ok(not feas11(9) and feas11(9, f2=False) and feas11(9, f10=False) and feas11(9, inc=False), '11번 c=9는 f(2)=2·f(10)=10·증가가 모두 있어야 빠짐')
 # 원문 J43: 36
 ok(6**2 == 36, '11번 원문 J43 정답 36(정사각형 6², g의 대칭 이용)')
 # 빼 보기
+for nm, kw in (('f(2)=2', dict(f2=False)), ('f(10)=10', dict(f10=False)), ('증가', dict(inc=False))):
+    cs = [c for c in range(3, 10) if feas11(c, **kw)]
+    print(f'ABLATION 11 {nm}: 필요(없으면 c = {cs}, 값 {[c * c - 52 for c in cs]})'); assert cs != [8]
+print('ABLATION 11 자연수 c: 필요(실수 c이면 c²>52인 c가 여럿, 값이 정해지지 않음)')
 J = symbols('J')
-dep11 = (30 - I) + (J - 18)
-print(f'ABLATION 11 ∫_2^8 f = ∫_8^10 f: 필요(없으면 값 = {dep11}, 정해지지 않음)'); assert dep11.free_symbols
-print('ABLATION 11 2<x<8에서 f<x: 필요(없으면 |f−x|를 부호대로 나눌 수 없어 값이 정해지지 않음)')
-print('ABLATION 11 8<x<10에서 f>x: 필요(같은 이유)')
-print('ABLATION 11 원문 (가) 함숫값·증가: 군더더기(답 그대로) — 원문 문장 유지(적분 상등이 가능한 범위 18<I<20을 정하는 원문 설계, 빼면 원문 거리 0.18), note에 적음')
+print(f'ABLATION 11 ∫_2^c f = ∫_c^10 f: 필요(없으면 c=8에서 값 = {(30 - I) + (J - 18)}, 정해지지 않고 c도 하나로 안 정해짐)')
+print('ABLATION 11 2<x<c에서 f<x, c<x<10에서 f>x: 필요(없으면 |f−x|를 부호대로 나눌 수 없음)')
 
 # ---------- 12번 (D59) ----------
 a = symbols('a', real=True)
-f12 = x**3 + 3 * a * x**2 - 9 * a**2 * x + 4
-ok(expand(diff(f12, x) - 3 * (x - a) * (x + 3 * a)) == 0, "12번 f'=3(x−a)(x+3a)")
-mx, mn = f12.subs(x, a), f12.subs(x, -3 * a)
-ok(expand(mx - (4 - 5 * a**3)) == 0 and expand(mn - (27 * a**3 + 4)) == 0, '12번 a<0: 극대 f(a)=4−5a³, 극소 f(−3a)=27a³+4')
+f12 = 8 * x**3 + 12 * a * x**2 - 18 * a**2 * x + 4
+ok(expand(diff(f12, x) - 6 * (2 * x + 3 * a) * (2 * x - a)) == 0, "12번 f'=6(2x+3a)(2x−a)")
+mx, mn = f12.subs(x, a / 2), f12.subs(x, -3 * a / 2)
+ok(expand(mx - (4 - 5 * a**3)) == 0 and expand(mn - (27 * a**3 + 4)) == 0, '12번 a<0: 극대 f(a/2)=4−5a³, 극소 f(−3a/2)=27a³+4')
 cand = [r for r in solve(mx - 3, a) if r.is_real and r < 0] + [r for r in solve(mn - 3, a) if r.is_real and r < 0]
-ok(cand == [Rational(-1, 3)], f'12번 음수 a 중 y=3이 극값 높이가 되는 a = {cand} (극댓값 4−5a³>4라 극대 쪽 해 없음)')
+ok(cand == [Rational(-1, 3)], f'12번 음수 a 중 y=3이 극값 높이가 되는 a = {cand}')
 fa = f12.subs(a, Rational(-1, 3))
-ok(factor(fa - 3) == (x - 1)**2 * (x + 1), '12번 f−3 = (x−1)²(x+1)')
-S = integrate(fa - 3, (x, -1, 1))
-ok(S == Rational(4, 3) and all((fa - 3).subs(x, t) >= 0 for t in [Rational(i, 10) for i in range(-10, 11)]), '12번 [−1,1]에서 곡선이 직선 위, S = 4/3')
-v12 = chk(12, 6 * S)
-ok(IT[12]['choices'] == sorted(IT[12]['choices'], key=lambda c: -val(c)), '12번 내림차순 선지(정답 자리 ①)')
-ok(6 * 2 * integrate(fa - 3, (x, 0, 1)) == 5, '12번 오답 5: 홀수 차수 항까지 2∫_0^1로 계산(5/6)×6')
+ok(expand(fa - 3 - (2 * x - 1)**2 * (2 * x + 1)) == 0, '12번 f−3 = (2x−1)²(2x+1)')
+S = integrate(fa - 3, (x, Rational(-1, 2), Rational(1, 2)))
+ok(S == Rational(2, 3) and all((fa - 3).subs(x, t) >= 0 for t in [Rational(i, 20) for i in range(-10, 11)]), '12번 [−1/2, 1/2]에서 곡선이 직선 위, S = 2/3')
+ok(S != Rational(4, 3), '12번 넓이가 N제 380·원문 J49의 4/3과 다름')
+v12 = chk(12, 3 * S)
+ok(IT[12]['choices'] == sorted(IT[12]['choices'], key=val), '12번 오름차순 선지(정답 ①)')
+ok(3 * Rational(8, 6) * 1**3 == 4, '12번 오답 4: 이차함수 넓이 공식 |k|(β−α)³/6을 써서 4/3, ×3')
 # 원문 D59: a=1/3, f(2)=14
-fo = f12.subs(a, Rational(1, 3))
-ok(solve(27 * a**3 + 4 - 5, a)[0] == Rational(1, 3) and fo.subs(x, 2) == 14, '12번 원문 D59 정답 14(④)')
+fo = (x**3 + 3 * a * x**2 - 9 * a**2 * x + 4).subs(a, Rational(1, 3))
+ok(fo.subs(x, 2) == 14, '12번 원문 D59 정답 14(④)')
 # 빼 보기
-cand_pos = [r for r in solve(f12.subs(x, a) - 3, a) + solve(f12.subs(x, -3 * a) - 3, a) if r.is_real and r > 0]
-print(f'ABLATION 12 음수 a: 필요(양수 a이면 y=3이 극소 f(a)=4−5a³에서 접해 a = {cand_pos}, 무리수)'); assert cand_pos and cand_pos[0] != Rational(-1, 3)
-fb = f12.subs(a, symbols('t'))
+cand_pos = [r for r in solve(mx - 3, a) + solve(mn - 3, a) if r.is_real and r > 0]
+print(f'ABLATION 12 음수 a: 필요(양수 a이면 y=3이 극소 f(a/2)=4−5a³에서 접해 a = {cand_pos}, 무리수)'); assert cand_pos
 print('ABLATION 12 접할 조건: 필요(없으면 a가 정해지지 않음)')
-S5 = None
-r5 = [r for r in solve(f12.subs(x, -3 * a) - (-4), a) if r.is_real and r < 0]
-S5 = integrate(f12.subs(a, r5[0]) + 4, (x, 2 * r5[0] * 0 - 2, 2))
-print(f'ABLATION 12 직선 y=3: 필요(y=−4이면 a={r5[0]}, 6S={6 * S5})'); assert 6 * S5 != 8
-
+r5 = [r for r in solve(mn + 4, a) if r.is_real and r < 0][0]
+S5 = integrate(f12.subs(a, r5) + 4, (x, 3 * r5 / 2 * 1, -3 * r5 / 2))
+print(f'ABLATION 12 직선 y=3: 필요(y=−4이면 a={r5}, 3S={3 * S5})'); assert 3 * S5 != 2
 print(f'{len(OK)} checks')
 print('ALL OK')
+

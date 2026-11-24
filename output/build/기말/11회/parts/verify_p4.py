@@ -245,17 +245,14 @@ def roots_num(F_):
 
 
 def solve16(pos=True, order=True, cond=True):
-    """(f∘f)(x)=x의 해집합 위 대응 전수: 고정점 3개 + 짝 1개(짝 10가지). 고정점이 1개이면 짝 2개(15가지)도 본다.
+    """(f∘f)(x)=x의 해집합 위 대응 전수: 고정점 3개 + 짝 1개(짝 10가지).
+    고정점이 1개(r)이면 k>0에서 g=f−x는 x<r에서 음, x>r에서 양이라 짝 p<q(g(p)>0, g(q)<0)가 생길 수 없다(아래 check).
     조건을 만족시키는 (a, b, K, f(3)) 목록. cond=False면 자유 매개변수가 남는지 보고 'family'로 표시"""
     out = set(); fam = False
     idx = range(5)
     structs = []
     for i, j in itertools.combinations(idx, 2):                       # 짝 1개
         structs.append(([z for z in idx if z not in (i, j)], [(i, j)]))
-    for (i, j), (k2, l2) in itertools.combinations(list(itertools.combinations(idx, 2)), 2):   # 짝 2개
-        if len({i, j, k2, l2}) == 4:
-            fx = [z for z in idx if z not in (i, j, k2, l2)]
-            structs.append((fx, [(i, j), (k2, l2)]))
     for fx, prs in structs:
         if len(fx) == 3:
             ff = x + K_ * (x - LAB[fx[0]]) * (x - LAB[fx[1]]) * (x - LAB[fx[2]])
@@ -294,7 +291,8 @@ def solve16(pos=True, order=True, cond=True):
 
 
 S16, fam16 = solve16()
-check(16, len(S16) == 1, f'짝 1개 10가지 + 짝 2개 15가지 전수: 해 {S16}')
+check(16, len(S16) == 1, f'짝 1개 10가지 전수(고정점 1개 배치는 부호로 불가): 해 {S16}')
+rr_ = sp.symbols('rr_'); check(16, True, '고정점 1개 r, k>0: g(p)=q−p>0 ⇒ p>r, g(q)=p−q<0 ⇒ q<r 이므로 p<q 불가(짝 2개 배치 없음)')
 A16, B16, K16, ans16 = S16[0]
 check(16, (A16, B16, K16) == (5, 13, R(1, 16)), f'a={A16}, b={B16}, 최고차항의 계수 {K16}')
 f16 = x + K16 * (x + 1) * (x - A16) * (x - B16)
