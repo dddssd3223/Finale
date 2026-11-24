@@ -121,18 +121,18 @@ f7 = x**2 + b*x + c
 cs = solve(f7.subs(x, 1) + f7.subs(x, -1) - R(4, 3), c); assert cs == [-R(1, 3)]
 S7 = integrate(f7, (x, 0, 1)).subs(c, cs[0]); assert sp.simplify(S7 - b/2) == 0
 T7 = integrate(f7.subs(x, 2*x), (x, 0, 1)).subs(c, cs[0]); assert sp.simplify(T7 - (b + 1)) == 0
-brange = sp.Interval(-2, 2)
-assert all((-1 <= S7.subs(b, v) <= 1) == (v in brange) for v in [R(i, 4) for i in range(-16, 17)])
-mx7, mn7 = T7.subs(b, 2), T7.subs(b, -2); assert (mx7, mn7) == (3, -1)
+brange = sp.Interval(0, 4)
+assert all((0 <= S7.subs(b, v) <= 2) == (v in brange) for v in [R(i, 4) for i in range(-16, 33)])
+mx7, mn7 = T7.subs(b, 4), T7.subs(b, 0); assert (mx7, mn7) == (5, 1)
 ans7 = mx7 + mn7
-w7a = -1 + 1                                                           # ∫f(2x)=∫f로 봄
-I_orig = integrate(f7, (x, -1, 2)).subs(c, cs[0]); w7b = I_orig.subs(b, 2) + I_orig.subs(b, -2)
+w7a = 0 + 2                                                           # ∫f(2x)=∫f로 봄
+I_orig = integrate(f7, (x, -1, 2)).subs(c, cs[0]); w7b = I_orig.subs(b, 4) + I_orig.subs(b, 0)
 chk(7, ans7, [w7a, w7b])
 # 일반 c에서 T = 2S - c + 2/3 → (가) 필요
 assert sp.simplify(integrate(f7.subs(x, 2*x), (x, 0, 1)) - (2*integrate(f7, (x, 0, 1)) - c + R(2, 3))) == 0
-print('ABLATION 7 f(1)+f(-1)=4/3: 필요(c가 정해지지 않아 합 = 4/3 - 2c 로 변함)')
-print('ABLATION 7 -1≤∫f≤1: 필요(빼면 b 범위가 없어 최댓값·최솟값 없음)')
-print('ABLATION 7 f(2x) → f(x): 필요(합', 0, '로 바뀜, 이때 (가)는 군더더기)')
+print('ABLATION 7 f(1)+f(-1)=4/3: 필요(c가 정해지지 않아 합 = 16/3 - 2c 로 변함)')
+print('ABLATION 7 0≤∫f≤2: 필요(빼면 b 범위가 없어 최댓값·최솟값 없음)')
+print('ABLATION 7 f(2x) → f(x): 필요(합', 2, '로 바뀜, 이때 (가)는 군더더기)')
 
 # ===== 8번 =====
 f8 = sp.Function('f')
