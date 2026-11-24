@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # 11회 p4 (Claude 13·14·15·16번) 정답 검증 + 유일성(전수) + 선지 등차 + 오답 실재 + 원문 풀이 + 조건 빼 보기(ABLATION)
-import os, sys, re
+import os, sys, re, itertools
 import numpy as np
 import sympy as sp
 sys.path.insert(0, '/home/user/Finale/output/build/부교재_기말')
@@ -11,7 +11,7 @@ ns = {}
 exec(open(os.path.join(HERE, 'p4.py'), encoding='utf-8').read(), ns)
 IT = ns['ITEMS']
 WANT = {13: 4, 14: 2, 15: 5, 16: 3}          # 분담표 목표 13④·14②·15⑤·16③ 그대로
-DBREF = {13: 'J40 결합 1', 14: 'J19 후보_순위 3', 15: 'J65 v3_추가 2', 16: 'M61 결합 1'}   # 분담표 그대로
+DBREF = {13: 'J40 결합 1', 14: 'J19 후보_순위 3', 15: 'J65 v3_추가 2', 16: 'M61 예상밖 2'}   # 16은 분담표 'M61 결합 1'에서 바꿈(14번과 같은 '넓이 같음' 판단, 코디네이터 지시)
 COEF = {'OP11', 'OP12', 'OP28', 'OP38', 'OP51'}
 NEED_COEF = {13: True, 14: True, 15: False, 16: True}   # 분담표 계수 13●·14●·15○·16●
 BOX = {13: False, 14: False, 15: False, 16: False}       # 13·16 '원문대로'(원문에 상자 없음), 14·15 ×
@@ -233,86 +233,93 @@ ablation(15, "기준선 직선 y=50(→ 원문처럼 x축)", [w15a], ans15, '장
 ablation(15, "'점 P의 x좌표는 음수'", [0], ans15, 'Q가 왼쪽 점 (−q, 50)이면 k=0일 때 B(왼쪽 절반)=A/2')
 
 
-# ================= 16번 (M61: (f∘f)(x)=x의 모든 실근 0,2,a,3,b, 두 부분 넓이 같음, f(−1)) =================
+# ================= 16번 (M61: (f∘f)(x)=x의 모든 실근 −1,1,a,7,b, f′(−1)−f′(3)=7, f(3)) =================
 a_, b_, K_ = sp.symbols('a_ b_ K_')
-LAB = [('0', sp.Integer(0)), ('2', sp.Integer(2)), ('a', a_), ('3', sp.Integer(3)), ('b', b_)]
+LAB = [sp.Integer(-1), sp.Integer(1), a_, sp.Integer(7), b_]
+COND16 = lambda ff: sp.diff(ff, x).subs(x, -1) - sp.diff(ff, x).subs(x, 3) - 7
 
 
-def solve16(pos=True, order=True, area=True, exact_set=True):
-    """짝 10가지 × (넓이 조건이면 가운데 고정점 3가지) 전수. 조건을 만족시키는 (a, b, K, f(−1)) 목록"""
-    out = set()
-    for i in range(5):
-        for j in range(i + 1, 5):
-            Fx = [LAB[z][1] for z in range(5) if z not in (i, j)]
-            p_, q_ = LAB[i][1], LAB[j][1]
-            ff = x + K_ * (x - Fx[0]) * (x - Fx[1]) * (x - Fx[2])
-            base = [sp.Eq(ff.subs(x, p_), q_), sp.Eq(ff.subs(x, q_), p_)]
-            mids = [None] if not area else [0, 1, 2]
-            for mi in mids:
-                eqs = list(base)
-                if mi is not None:
-                    o = [Fx[z] for z in range(3) if z != mi]
-                    eqs.append(sp.Eq(2 * Fx[mi], o[0] + o[1]))
-                unk = [s for s in (a_, b_, K_) if any(e.has(s) for e in eqs)]
-                if not area:
-                    continue
-                for s in sp.solve(eqs, unk, dict=True):
-                    if len(s) < len(unk) or not all(v.is_real for v in s.values()):
-                        continue
-                    A, B, KK = s.get(a_, a_), s.get(b_, b_), s[K_]
-                    if A.free_symbols or B.free_symbols or KK == 0:
-                        continue
-                    vals = [0, 2, A, 3, B]
-                    if len(set(vals)) != 5:
-                        continue
-                    if pos and not KK > 0:
-                        continue
-                    if order and not (2 < A < 3 < B):
-                        continue
-                    F_ = ff.subs(s)
-                    fv = sorted([sp.nsimplify(v.subs(s)) for v in Fx], key=lambda v: float(sp.N(v)))
-                    if sp.simplify(2 * fv[1] - fv[0] - fv[2]) != 0:       # 실제 가운데 고정점이 중점인지
-                        continue
-                    if exact_set:
-                        P9 = sp.Poly(sp.expand(F_.subs(x, F_) - x), x)
-                        rr = sorted({round(float(sp.re(z)), 9) for z in P9.nroots(n=30, maxsteps=200) if abs(sp.im(z)) < 1e-12})
-                        if rr != sorted(round(float(sp.N(v)), 9) for v in vals):
-                            continue
-                    out.add((A, B, KK, sp.nsimplify(F_.subs(x, -1))))
-    return sorted(out, key=str)
+def roots_num(F_):
+    P9 = sp.Poly(sp.expand(F_.subs(x, F_) - x), x)
+    return sorted({round(float(sp.re(z)), 8) for z in P9.nroots(n=30, maxsteps=300) if abs(sp.im(z)) < 1e-12})
 
 
-S16 = solve16()
-check(16, len(S16) == 1, f'짝 10가지 × 가운데 고정점 3가지 전수: 해 {S16}')
+def solve16(pos=True, order=True, cond=True):
+    """(f∘f)(x)=x의 해집합 위 대응 전수: 고정점 3개 + 짝 1개(짝 10가지). 고정점이 1개이면 짝 2개(15가지)도 본다.
+    조건을 만족시키는 (a, b, K, f(3)) 목록. cond=False면 자유 매개변수가 남는지 보고 'family'로 표시"""
+    out = set(); fam = False
+    idx = range(5)
+    structs = []
+    for i, j in itertools.combinations(idx, 2):                       # 짝 1개
+        structs.append(([z for z in idx if z not in (i, j)], [(i, j)]))
+    for (i, j), (k2, l2) in itertools.combinations(list(itertools.combinations(idx, 2)), 2):   # 짝 2개
+        if len({i, j, k2, l2}) == 4:
+            fx = [z for z in idx if z not in (i, j, k2, l2)]
+            structs.append((fx, [(i, j), (k2, l2)]))
+    for fx, prs in structs:
+        if len(fx) == 3:
+            ff = x + K_ * (x - LAB[fx[0]]) * (x - LAB[fx[1]]) * (x - LAB[fx[2]])
+            unk = [a_, b_, K_]
+        else:
+            c1, c2 = sp.symbols('c1 c2')    # f−x = K(x−r)(x²+c1x+c2) (나머지 이차식은 실근 없음)
+            ff = x + K_ * (x - LAB[fx[0]]) * (x**2 + c1 * x + c2)
+            unk = [a_, b_, K_, c1, c2]
+        eqs = []
+        for p_, q_ in prs:
+            eqs += [ff.subs(x, LAB[p_]) - LAB[q_], ff.subs(x, LAB[q_]) - LAB[p_]]
+        if cond:
+            eqs.append(COND16(ff))
+        try:
+            S = sp.solve(eqs, unk, dict=True)
+        except Exception:
+            S = []
+        for s in S:
+            if len(s) < len(unk):
+                fam = True; continue
+            if not all(v.is_real for v in s.values()) or any(v.free_symbols for v in s.values()):
+                continue
+            A, B, KK = s[a_], s[b_], s[K_]
+            vals = [-1, 1, A, 7, B]
+            if KK == 0 or len(set(vals)) != 5:
+                continue
+            if pos and not KK > 0:
+                continue
+            if order and not (1 < A < 7 < B):
+                continue
+            F_ = ff.subs(s)
+            if roots_num(F_) != sorted(round(float(sp.N(v)), 8) for v in vals):
+                continue
+            out.add((A, B, KK, sp.nsimplify(F_.subs(x, 3))))
+    return sorted(out, key=str), fam
+
+
+S16, fam16 = solve16()
+check(16, len(S16) == 1, f'짝 1개 10가지 + 짝 2개 15가지 전수: 해 {S16}')
 A16, B16, K16, ans16 = S16[0]
-check(16, (A16, B16, K16) == (R(5, 2), 5, R(1, 3)), f'a={A16}, b={B16}, 최고차항의 계수 {K16}')
-f16 = x + K16 * x * (x - A16) * (x - B16)
+check(16, (A16, B16, K16) == (5, 13, R(1, 16)), f'a={A16}, b={B16}, 최고차항의 계수 {K16}')
+f16 = x + K16 * (x + 1) * (x - A16) * (x - B16)
 rr16 = sorted(set(sp.Poly(sp.expand(f16.subs(x, f16) - x), x).real_roots()))
-check(16, rr16 == [0, 2, R(5, 2), 3, 5] and f16.subs(x, 2) == 3 and f16.subs(x, 3) == 2, f'(f∘f)(x)=x의 실근 {rr16}, f(2)=3, f(3)=2')
-I1 = sp.integrate(f16 - x, (x, 0, A16)); I2 = sp.integrate(f16 - x, (x, A16, B16))
-check(16, I1 == -I2 and I1 != 0, f'두 부분 넓이 {abs(I1)}, {abs(I2)} 같음')
+check(16, rr16 == [-1, 1, 5, 7, 13] and f16.subs(x, 1) == 7 and f16.subs(x, 7) == 1 and COND16(f16) == 0,
+      f'(f∘f)(x)=x의 실근 {rr16}, f(1)=7, f(7)=1, f′(−1)−f′(3)=7')
 ans_ok(16, ans16)
-w16a = sp.nsimplify((f16 - x).subs(x, -1))       # +x 누락
-w16b = sp.nsimplify(1 + (f16 - x).subs(x, -1))   # 앞의 x에 1을 넣음
-wrong_in(16, [w16a, w16b], '+x 누락 −7 · 앞 x 부호 실수 −6')
+# 오답 ① 원문 습관(등간격·짝 대칭): a=(1+7)/2=4, b=9, f(1)=7에서 k
+fs = x + K_ * (x + 1) * (x - 4) * (x - 9)
+ks = sp.solve(fs.subs(x, 1) - 7, K_)[0]
+fs = fs.subs(K_, ks)
+check(16, fs.subs(x, 7) == 1 and COND16(fs) != 0, f'등간격 습관 f(k={ks})는 f(1)=7, f(7)=1은 맞지만 f′(−1)−f′(3)={COND16(fs) + 7}≠7')
+w16a = fs.subs(x, 3)
+w16b = 2 * A16 - f16.subs(x, 2 * A16 - 3)         # 점 (a, a) 대칭으로 착각
+check(16, f16.subs(x, 2 * A16 - 3) == 1 and sp.simplify(f16.subs(x, 2 * A16 - x) - (2 * A16 - f16)) != 0, '곡선은 점 (5, 5)에 대하여 대칭이 아님(오답 ④ 경로가 틀린 근거)')
+wrong_in(16, [w16a, w16b], '등간격·짝 대칭 습관 → 6 · 점 (a,a) 대칭 착각 → 9')
 fo16 = x + x * (x - R(3, 2)) * (x - 3)
 check(16, fo16.subs(x, 5) == orig_ans('M61') == 40 and sp.diff(fo16, x).subs(x, 0) - sp.diff(fo16, x).subs(x, 1) == 6, '원문 M61: f=x+x(x−3/2)(x−3), f′(0)−f′(1)=6, f(5)=40 = 원문 답')
-# 두 근 a=5/2, 7/5 확인
-aa = sp.symbols('aa')
-check(16, sp.factor(sp.expand(2 * (2 - aa) * (2 - 2 * aa) + 3 * (3 - aa) * (3 - 2 * aa))) == sp.factor(10 * aa**2 - 39 * aa + 35), '1=2k(2−a)(2−2a), −1=3k(3−a)(3−2a) → 10a²−39a+35=0')
 # 빼 보기
-S_no_order = solve16(order=False)
-ablation(16, "단서 '2<a<3<b'", [s[3] for s in S_no_order], ans16, f'해 {[(str(s[0]), str(s[1]), str(s[2])) for s in S_no_order]}')
-S_no_pos = solve16(pos=False)
+S_no_order, _ = solve16(order=False)
+ablation(16, "단서 '1<a<7<b'", [s[3] for s in S_no_order], ans16, f'해 {[(str(s[0]), str(s[1]), str(s[2])) for s in S_no_order]}')
+S_no_pos, _ = solve16(pos=False)
 ablation(16, "'최고차항의 계수가 양수'", [s[3] for s in S_no_pos], ans16, f'해 {[(str(s[0]), str(s[1]), str(s[2])) for s in S_no_pos]}')
-# 넓이 조건 없이: a를 정하면 b, k가 정해지는 한 매개변수 꼴(예: 고정점 0, a, b, 짝 2↔3)
-def fam16(aval):
-    s = sp.solve([sp.Eq(2 + K_ * 2 * (2 - aval) * (2 - b_), 3), sp.Eq(3 + K_ * 3 * (3 - aval) * (3 - b_), 2)], [b_, K_], dict=True)
-    return [(sp.nsimplify(z[b_]), z[K_]) for z in s if z[K_] > 0 and z[b_] > 3]
-fa, fb = fam16(R(9, 4)), fam16(R(11, 4))
-va = [sp.nsimplify((x + K * x * (x - R(9, 4)) * (x - B)).subs(x, -1)) for B, K in fa]
-vb = [sp.nsimplify((x + K * x * (x - R(11, 4)) * (x - B)).subs(x, -1)) for B, K in fb]
-ablation(16, "'두 부분의 넓이가 서로 같다'", va + vb, ans16, f'a=9/4 → (b, k)={fa}, a=11/4 → {fb}')
+_, famc = solve16(cond=False)
+ablation(16, "f′(−1)−f′(3)=7", None, ans16, undef=f'짝 1↔7 구조에서 a, b, k가 한 매개변수로 남음(family={famc}); 예: 등간격 a=4, b=9이면 f(3)={w16a}')
 
 print()
 print('ALL OK' if ok else 'SOME FAIL')
