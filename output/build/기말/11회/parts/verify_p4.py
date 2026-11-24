@@ -337,7 +337,7 @@ for nm, mk in [('-1↔b, 1↔7', lambda bb: [(-1, bb), (bb, -1), (1, 7), (7, 1)]
         if len(fxp) == 1 and 1 < fxp[0] < 7 and len(rr) == 5:
             alt16.append((nm, round((lo + hi) / 2, 4), round(fxp[0], 4), cc[0], round(float(np.polyval(cc, 3)), 4)))
 check(16, len(alt16) >= 1 and all(z[3] < 0 for z in alt16), f'고정점 조건이 없으면 생기는 고정점 하나·짝 둘 배치(수치, 최고차항 음수): {alt16}')
-ablation(16, "'f(x)=x의 서로 다른 실근은 −1, a, b뿐'", [s[3] for s in S_no_pos] + [sp.Float(z[4], 6) for z in alt16], ans16, f'고정점 하나·짝 둘 배치 (짝, b, a, k, f(3)) {alt16}')
+ablation(16, "'f(x)=x의 모든 실근이 −1, a, b'", [s[3] for s in S_no_pos] + [sp.Float(z[4], 6) for z in alt16], ans16, f'고정점 하나·짝 둘 배치 (짝, b, a, k, f(3)) {alt16}')
 _, famc = solve16(cond=False)
 ablation(16, "f′(2)−f′(4)=2", None, ans16, undef=f'짝 1↔7 구조에서 a, b, k가 한 매개변수로 남음(family={famc}); 예: 등간격 a=4, b=9이면 f(3)={w16a}')
 

@@ -50,60 +50,36 @@ def chk(n, v0):
     return v
 
 # ---------- 9번 (D70) ----------
-def ks(crits, L=Fr(3, 2)):
-    """열린구간 (k, k+L)에 극점이 하나라도 있는 정수 k의 집합"""
+def ks(crits, L=Fr(3, 2), closed=False):
+    """열린구간 (k, k+L)에 극점이 하나라도 있는 정수 k의 집합 (closed=True면 끝점 포함으로 잘못 셈)"""
     s = set()
     for c in crits:
-        k = math.floor(c - L) + 1
-        while k < c:
-            s.add(k); k += 1
+        for k in range(math.floor(c - L) - 1, math.ceil(c) + 2):
+            if (k < c < k + L) or (closed and k <= c <= k + L): s.add(k)
     return s
-def crit9(a, base=-2, q=3):
-    f = (x - base)**2 * (x - q * a)
-    return sorted({Fr(str(r)) for r in solve(diff(f, x), x)}), f
-# 평균변화율 곱 조건 ⇔ 구간 안에 극점: 직접 확인(a=2, 몇 k에서 격자 세 점을 찾음)
 def cond_direct(f, k, L=Rational(3, 2), N=60):
     pts = [k + L * Rational(i, N) for i in range(1, N)]
     vals = [f.subs(x, p) for p in pts]
     sl = [(vals[i + 1] - vals[i]) for i in range(len(vals) - 1)]
     return any(sl[i] * sl[j] < 0 for i in range(len(sl)) for j in range(i + 1, len(sl)))
-cr, f9 = crit9(2)
-for kk in range(-6, 6):
-    ok(cond_direct(f9, kk) == (kk in ks(cr)), f'9번 a=2, k={kk}: 평균변화율 곱 조건 {"성립" if kk in ks(cr) else "불성립"} = 극점 포함 여부')
-sols = []
-for a in range(-500, 501):
-    cr, _ = crit9(a)
-    if len(cr) == 2 and sum(ks(cr)) == 2: sols.append(a)
-ok(sols == [2], f'9번 정수 a 전수(−500..500): 합 2가 되는 a = {sols}')
-ok(ks(crit9(2)[0]) == {-3, 2, 3}, '9번 a=2: k = −3, 2, 3')
-ok(sum(ks(crit9(-1)[0])) == -7, '9번 a=−1: k가 겹쳐 {−4, −3}, 합 −7(4a−6과 다름)')
-f9a = (x + 2)**2 * (x - 6)
-ok(expand(diff(f9a, x) - (x + 2) * (3 * x - 10)) == 0, "9번 f'=(x+2)(3x−10)")
-v9 = chk(9, f9a.subs(x, -1))
-# 오답: 극점 2a−2/3도 k 하나(2a−1)만 준다고 봄 → −3+2a−1=2 → a=3
-aw = solve(-3 + (2 * symbols('A') - 1) - 2, symbols('A'))[0]
-ok(aw == 3 and ((x + 2)**2 * (x - 3 * aw)).subs(x, -1) == -10, '9번 오답 −10: 극점마다 k 하나로 보아 a=3, f(−1)=−10')
-ok(sum(ks(crit9(3)[0])) != 2, '9번 a=3이면 실제 합은 2가 아님(오답 경로 확인)')
+f9 = (x + 1)**2 * (x - 7)
+ok(expand(diff(f9, x) - (x + 1) * (3 * x - 13)) == 0, "9번 f'=(x+1)(3x−13)")
+cr = sorted({Fr(str(r)) for r in solve(diff(f9, x), x)})
+ok(cr == [Fr(-1), Fr(13, 3)], f'9번 극점 {cr}')
+K9 = ks(cr)
+for kk in range(-8, 10):
+    ok(cond_direct(f9, kk) == (kk in K9), f'9번 k={kk}: 평균변화율 곱 조건 {"성립" if kk in K9 else "불성립"} = 극점 포함 여부(격자 직접 확인)')
+ok(K9 == {-2, 3, 4}, f'9번 조건을 만족시키는 정수 k = {sorted(K9)}')
+v9 = chk(9, sum(K9))
+ok(-2 + 4 == 2, '9번 오답 2: 극점 13/3도 k 하나(4)만 준다고 봄')
+ok(sum(ks(cr, closed=True)) == 4, '9번 오답 4: 끝점에 극점이 오는 k까지 셈(−1에서 k=−1 추가)')
 # 원문 D70: f=x³−2ax², 곱 −12 → a=−2, f′(10)=380
-orig = []
-for a in range(-200, 201):
-    if a == 0: continue
-    f = x**3 - 2 * a * x**2
-    c = sorted({Fr(str(r)) for r in solve(diff(f, x), x)})
-    K = ks(c)
-    if math.prod(K) == -12: orig.append(a)
+orig = [a for a in range(-200, 201) if a != 0 and math.prod(ks(sorted({Fr(str(r)) for r in solve(diff(x**3 - 2 * a * x**2, x), x)}))) == -12]
 ok(orig == [-2] and diff(x**3 + 4 * x**2, x).subs(x, 10) == 380, f'9번 원문 D70: 곱 −12인 a={orig}, f′(10)=380')
 # 빼 보기
-alt = [a for a in range(-200, 201) if len(crit9(a)[0]) == 2 and sum(ks(crit9(a)[0])) == 6]
-print(f'ABLATION 9 합 2: 필요(합 6이면 a = {alt}, f(−1) = {[((x + 2)**2 * (x - 3 * a)).subs(x, -1) for a in alt]})'); assert alt and alt != [2]
-alt2 = [a for a in range(-200, 201) if len(crit9(a)[0]) == 2 and sum(ks(crit9(a)[0], Fr(1))) == 2]
-print(f'ABLATION 9 구간 길이 3/2: 필요(길이 1이면 합 2인 a = {alt2})'); assert alt2 != [2]
-alt3 = []
-for i in range(-600, 601):                      # a를 1/6 간격 실수로 넓히면
-    av = Rational(i, 6)
-    cr3 = sorted({Fr(str(r)) for r in solve(diff((x + 2)**2 * (x - 3 * av), x), x)})
-    if len(cr3) == 2 and sum(ks(cr3)) == 2: alt3.append(av)
-print(f'ABLATION 9 정수 a: 필요(실수 a이면 합 2인 a가 {alt3[:6]}… 등 여럿)'); assert len(alt3) > 1
+print(f'ABLATION 9 열린구간: 필요(닫힌구간이면 k = {sorted(ks(cr, closed=True))}, 합 {sum(ks(cr, closed=True))})')
+print(f'ABLATION 9 구간 길이 3/2: 필요(길이 1이면 k = {sorted(ks(cr, Fr(1)))}, 합 {sum(ks(cr, Fr(1)))})'); assert sum(ks(cr, Fr(1))) != 5
+print('ABLATION 9 평균변화율 곱 조건: 필요(없으면 모든 정수 k)')
 
 # ---------- 10번 (J8) ----------
 A, B, Cc = symbols('A B Cc')
@@ -152,43 +128,30 @@ print('ABLATION 10 연속: 필요(없으면 c와 f(2)=0이 나오지 않아 a, b
 print('ABLATION 10 f(x−2)=f(x+2): 필요(없으면 (−2, 2] 밖의 f가 정해지지 않음)')
 
 # ---------- 11번 (J43) ----------
-def feas11(c, f2=True, f10=True, inc=True, lo=2, hi=10):
-    """∫_lo^c f = ∫_c^hi f 가 가능한지: 두 적분의 열린 범위가 겹치는지(부호 조건 + 선택한 (가) 조건)"""
-    c = Rational(c)
-    A_hi = (c**2 - lo**2) / 2                                   # f<x
-    A_lo = lo * (c - lo) if (f2 and inc) else -sp.oo            # 증가·f(2)=2 → f>2
-    B_lo = (hi**2 - c**2) / 2                                   # f>x
-    B_hi = hi * (hi - c) if (f10 and inc) else sp.oo            # 증가·f(10)=10 → f<10
-    return max(A_lo, B_lo) < min(A_hi, B_hi)
-C11 = [c for c in range(3, 10) if feas11(c)]
-ok(C11 == [8], f'11번 자연수 c(2<c<10) 전수: 적분 상등이 가능한 c = {C11}')
-I = symbols('I'); cc = symbols('cc')
-gen11 = sp.simplify((integrate(x, (x, 2, cc)) - I) + (I - integrate(x, (x, cc, 10))))
-ok(gen11 == cc**2 - 52, f'11번 ∫|f−x| = {gen11} (I와 무관)')
-# 실제 함수(c=8)로 확인: f = 2 + 6t^m (t=(x−2)/6), f = 10 − 2(1−s)^n (s=(x−8)/2)
-for m_, n_ in ((4, 4), (Rational(9, 2), Rational(7, 4))):
-    f_lo = 2 + 6 * ((x - 2) / 6)**m_
-    f_hi = 10 - 2 * (1 - (x - 8) / 2)**n_
-    I1, I2 = integrate(f_lo, (x, 2, 8)), sp.nsimplify(integrate(f_hi, (x, 8, 10)))
-    grid_lo = [2 + Rational(i, 10) for i in range(1, 60)]; grid_hi = [8 + Rational(i, 10) for i in range(1, 20)]
-    ok(I1 == I2 and f_lo.subs(x, 2) == 2 and f_lo.subs(x, 8) == 8 and f_hi.subs(x, 8) == 8 and f_hi.subs(x, 10) == 10
-       and all(diff(f_lo, x).subs(x, t) > 0 for t in grid_lo) and all(diff(f_hi, x).subs(x, t) > 0 for t in grid_hi)
-       and all(f_lo.subs(x, t) < t for t in grid_lo) and all(f_hi.subs(x, t) > t for t in grid_hi), f'11번 c=8 예시 함수(m={m_}, n={n_}, I={I1}): 조건 모두 만족')
-    tot = sp.nsimplify(integrate(x - f_lo, (x, 2, 8)) + integrate(f_hi - x, (x, 8, 10)))
-    ok(tot == 12, f'11번 예시 함수(I={I1})에서 ∫|f−x| = {tot}')
-v11 = chk(11, gen11.subs(cc, 8))
-ok(integrate(x, (x, 0, 8)) - integrate(x, (x, 8, 10)) == 14, '11번 오답 14: 아래끝을 원문처럼 0으로 둠(32−18)')
-ok(not feas11(9) and feas11(9, f2=False) and feas11(9, f10=False) and feas11(9, inc=False), '11번 c=9는 f(2)=2·f(10)=10·증가가 모두 있어야 빠짐')
-# 원문 J43: 36
+I = symbols('I')
+gen11 = sp.simplify((6 * 5 - I) + (I - 6 * 3))
+ok(gen11 == 12, '11번 ∫|f−6| = (30−I)+(I−18) = 12 (I와 무관)')
+# 실제 함수로 확인: 증가, f(7)=6, ∫_2^7 f = ∫_7^10 f (I∈(18,30)에서 몇 개)
+for Iv in (20, 24, Rational(57, 2)):
+    k1 = (30 - Iv) / integrate((7 - x), (x, 2, 7))          # f = 6 − k1(7−x) on [2,7]
+    k2 = (Iv - 18) / integrate((x - 7), (x, 7, 10))         # f = 6 + k2(x−7) on [7,10]
+    f_lo, f_hi = 6 - k1 * (7 - x), 6 + k2 * (x - 7)
+    ok(k1 > 0 and k2 > 0 and f_lo.subs(x, 7) == 6 == f_hi.subs(x, 7) and integrate(f_lo, (x, 2, 7)) == Iv == integrate(f_hi, (x, 7, 10)),
+       f'11번 예시 함수(I={Iv}): 증가·연속·f(7)=6·적분 상등 만족')
+    tot = integrate(sp.Abs(f_lo - 6), (x, 2, 7)) + integrate(sp.Abs(f_hi - 6), (x, 7, 10))
+    ok(sp.nsimplify(tot) == 12, f'11번 예시 함수(I={Iv})에서 ∫|f−6| = {tot}')
+v11 = chk(11, gen11)
+ok(7 * 5 - 7 * 3 == 14, '11번 오답 14: 기준값을 x좌표 7로 섞음(35−21)')
 ok(6**2 == 36, '11번 원문 J43 정답 36(정사각형 6², g의 대칭 이용)')
 # 빼 보기
-for nm, kw in (('f(2)=2', dict(f2=False)), ('f(10)=10', dict(f10=False)), ('증가', dict(inc=False))):
-    cs = [c for c in range(3, 10) if feas11(c, **kw)]
-    print(f'ABLATION 11 {nm}: 필요(없으면 c = {cs}, 값 {[c * c - 52 for c in cs]})'); assert cs != [8]
-print('ABLATION 11 자연수 c: 필요(실수 c이면 c²>52인 c가 여럿, 값이 정해지지 않음)')
 J = symbols('J')
-print(f'ABLATION 11 ∫_2^c f = ∫_c^10 f: 필요(없으면 c=8에서 값 = {(30 - I) + (J - 18)}, 정해지지 않고 c도 하나로 안 정해짐)')
-print('ABLATION 11 2<x<c에서 f<x, c<x<10에서 f>x: 필요(없으면 |f−x|를 부호대로 나눌 수 없음)')
+print(f'ABLATION 11 ∫_2^7 f = ∫_7^10 f: 필요(없으면 값 = {(30 - I) + (J - 18)}, 정해지지 않음)')
+# 증가가 없으면: f = 6 + h, [2,7]에서 h = (x−2)(x−9/2)(x−7) (적분 0, 부호가 바뀜), [7,10]에서 h = 8(x−7)/3 (적분 12)
+h_lo = (x - 2) * (x - Rational(9, 2)) * (x - 7); h_hi = Rational(8, 3) * (x - 7)
+ok(integrate(6 + h_lo, (x, 2, 7)) == integrate(6 + h_hi, (x, 7, 10)) and h_lo.subs(x, 7) == 0, '11번 (빼 보기) 증가가 아닌 예: f(7)=6·적분 상등 만족')
+val_alt = sp.nsimplify(integrate(sp.Abs(h_lo), (x, 2, 7)) + integrate(h_hi, (x, 7, 10)))
+print(f'ABLATION 11 증가: 필요(없으면 위 예에서 ∫|f−6| = {val_alt})'); assert val_alt != 12
+print('ABLATION 11 f(7)=6: 필요(없으면 f가 6을 가로지르는 점을 몰라 값이 정해지지 않음 — f(8)=6이면 6·6−6·2=24)')
 
 # ---------- 12번 (D59) ----------
 a = symbols('a', real=True)
