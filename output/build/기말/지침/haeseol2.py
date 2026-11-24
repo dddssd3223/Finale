@@ -173,7 +173,7 @@ def item_html(n, d, c, sitem=None):
         h.append(f'<div class="cb"><div class="h"><span>✎ {cb.get("title", "")}</span><span class="k">• {cb.get("kind", "실전 개념")}</span></div><div class="bd">{cb.get("body", "")}</div></div>')
     if d.get('think'): h.append(tag('생각의', '시작', 'th') + f'<p>{d["think"]}</p>')
     if d.get('flow'):
-        st = ''.join(f'<div class="st"><div class="sh"><span class="s">STEP<b>{i + 1:02d}</b></span>{s.get("title", "")}</div><ul>' + ''.join(f'<li>{p}</li>' for p in s.get('points') or []) + '</ul></div>' for i, s in enumerate(d['flow']))
+        st = ''.join(f'<div class="st"><div class="sh"><span class="s">STEP<b>{i + 1:02d}</b></span><span class="tt">{s.get("title", "")}</span></div><ul>' + ''.join(f'<li>{p}</li>' for p in s.get('points') or []) + '</ul></div>' for i, s in enumerate(d['flow']))
         h.append(f'<div class="flow"><div class="fh"><span class="a">흐름</span><span class="b">정리</span></div>{st}</div>')
     bd = re.split(r'<p>\s*<b>\s*채점\s*기준', d.get('body') or '')[0]   # 사용자 2026-11-23: 채점 기준 뺌
     h.append(re.sub(r'<sup>[^<]*</sup>', '', cref(bd)))
