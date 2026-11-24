@@ -357,12 +357,17 @@ def build(rdir, out):
                 f'<div class="bar me"><div class="t" style="width:{w(m)}">기말 {name}</div><span class="v">{m:.1f}</span></div></div>')
     lv = {n: it.get('level') for n, it in c.ITEMS.items()}
     idx = sum(PTS[k] for k, l in lv.items() if l in ('상', '최상')) + 0.5 * sum(PTS[k] for k, l in lv.items() if l == '중상') + (3 if c.SITEMS['S2'].get('level') == '중상' else 6 if c.SITEMS['S2'].get('level') in ('상', '최상') else 0)
-    c1 = 90.1 - 0.75 * max(0, idx - 25.6); c2 = 75.8 - 1.0 * max(0, idx - 25.6)
+    # 등급컷: 측정 체감이 2026-2 중간 같은 번호보다 배점 가중으로 얼마나 높은지(ex)로 낸다(2026-11-24 사용자 지적: 지수만 쓰면 7–10회 컷이 똑같음).
+    _pt = {str(k): v for k, v in PTS.items()}; _ks = [k for k in pv if k in fe]
+    ex = sum(_pt.get(k, 10) * (fe[k] - pv[k]) for k in _ks) / max(1, sum(_pt.get(k, 10) for k in _ks)) if _ks else None
+    if ex is not None: c1 = 90.1 - 2.1 * max(0, ex); c2 = 75.8 - 2.8 * max(0, ex)
+    else: c1 = 90.1 - 0.75 * max(0, idx - 25.6); c2 = 75.8 - 1.0 * max(0, idx - 25.6)
+    finecut = (f'<div class="fine">블라인드 풀이로 잰 문항별 체감 난도가 2026 2학기 중간고사 같은 번호보다 배점 가중 평균으로 {ex:.2f}만큼 높아, 그만큼 중간고사 성적에서 내려 환산한 값이다.</div></div>' if ex is not None else f'<div class="fine">난도 지수 {idx:.1f}을 2026 2학기 중간고사 성적에 맞춰 환산한 값이다.</div></div>')
     H.append(f'<div class="p1"><div class="l"><div class="ttl"><span>미적분Ⅰ 기말 모의고사 {name}</span><b>정답 및 해설</b></div>'
              f'<table class="ans">{rows}</table><div class="sa">{sa}</div>'
              f'<h3 style="margin-top:16pt">기말 {name} &nbsp;<b>예상 등급컷</b></h3>'
              f'<table class="cut"><tr><td></td><th>원점수</th></tr><tr><td class="h">1등급컷</td><td>{round(c1)}</td></tr><tr><td class="h">2등급컷</td><td>{round(c2)}</td></tr></table>'
-             f'<div class="fine">난도 지수 {idx:.1f}을 2026 2학기 중간고사 성적에 맞춰 환산한 값이다. 난도 지수는 상·최상 문항 배점에 중상 문항 배점의 절반을 더한 값이다.</div></div>'
+             f'{finecut}'
              f'<div class="r"><h3>기말 {name} VS 2026-2 중간 &nbsp;난도 비교</h3>{cmp}'
              f'<div class="fine">번호대별 평균 체감 난도를 10점 만점으로 나타냈다. 2026 2학기 중간고사 같은 번호를 기준으로 맞춘 블라인드 풀이 측정값이다.</div></div></div>')
     # 2쪽 — 검수 코멘트 · 총평
