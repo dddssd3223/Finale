@@ -16,6 +16,7 @@ const { chromium } = require(path.join(NM, 'playwright-core'));
   const p = await b.newPage({ viewport: { width: 673, height: 1000 } });   // A4 - 좌우 여백 16mm = 인쇄 본문 너비
   await p.goto('file://' + path.resolve(done), { waitUntil: 'networkidle' });
   await p.evaluate(() => document.fonts.ready);
+  await p.evaluate(require('./eqfont.js')); await p.evaluate(() => document.fonts.ready);   // 수식 글자를 한글 수식 글꼴(HyhwpEQ)로 — 시험지와 같은 느낌(2026-11-24)
   await p.emulateMedia({ media: 'print' });
   // 단 너비를 넘는 수식은 글자 크기를 줄여 맞춤
   const fixed = await p.evaluate(() => { let n = 0;

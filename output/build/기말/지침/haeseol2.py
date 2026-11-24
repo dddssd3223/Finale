@@ -56,6 +56,7 @@ CSS = r"""
 @font-face{font-family:'BD';src:url('file://@F@/busan_L.ttf');font-weight:300}
 @font-face{font-family:'BD';src:url('file://@F@/busan_M.ttf');font-weight:500}
 @font-face{font-family:'BD';src:url('file://@F@/busan_B.ttf');font-weight:700}
+@font-face{font-family:'HYEQ';src:url('file://@F@/hyhwpeq_web.ttf')}
 @font-face{font-family:'SJ';src:url('file://@F@/shinjung.ttf')}
 @font-face{font-family:'HB';src:url('file://@F@/hbatang_web.ttf')}
 @font-face{font-family:'NMJ';src:url('file://@N@NanumMyeongjo.ttf')}
@@ -64,7 +65,7 @@ CSS = r"""
 *{box-sizing:border-box}
 html,body{margin:0}
 body{font-family:'SJ','HB','NMJ',serif;font-size:8.7pt;line-height:2.0;letter-spacing:-.015em;word-spacing:-.08em;color:var(--ink);word-break:keep-all}
-.katex{font-size:1.04em}
+.katex{font-size:1.0em;margin:0 1.6pt;word-spacing:0}.katex-display>.katex{margin:0}
 .katex-display{margin:.6em 0}
 p{margin:.25em 0 .6em}
 b{font-weight:700}
