@@ -230,8 +230,20 @@ def outside(s, f):
     out.append(f(s[i:])); return ''.join(out)
 SUBN = lambda t: re.sub(r'\(([가나다라])\)', lambda m: '㈎㈏㈐㈑'['가나다라'.index(m.group(1))], re.sub(r'\(([1-5])\)', lambda m: '⑴⑵⑶⑷⑸'[int(m.group(1)) - 1], t))
 DFR = lambda t: re.sub(r'\\\(([\s\S]+?)\\\)', lambda m: '\\(' + re.sub(r'\\frac(?=\s*[{0-9])', r'\\dfrac', m.group(1)) + '\\)', t)
+def _rawcref(t, d):
+    """원고가 cref 꼬리표를 span 없이 '교과서 개념|제목' 글자로 쓴 곳을 꼬리표로 바꾼다(2026-11-24: 9·10회 해설에 글자 그대로 찍힘)."""
+    if not t: return t
+    for cc in d.get('concepts') or []:
+        k, ti = cc.get('kind', ''), cc.get('title', '')
+        raw = f'{k}|{ti}'
+        t = re.sub(r'(?<!cref">)' + re.escape(raw), f'<span class="cref">{raw}</span>', t)
+    t = re.sub(r'(?<!cref">)((?:교과서|실전) 개념)\|([^<。]+?)(?=에 의하여|에 의해|에서|에 따라|을 쓰면|를 쓰면|으로|로 )', r'<span class="cref">\1|\2</span>', t)
+    return t
+
 def tidy(d):
     """소문항 번호 (1) → ⑴ (사용자 2026-11-23 괄호 금지)"""
+    for k in ('body', 'think', 'justify'):
+        if d.get(k): d[k] = _rawcref(d[k], d)
     for k in ('body', 'think', 'justify'):
         if d.get(k): d[k] = DFR(outside(d[k], SUBN))
     for st in d.get('flow') or []:
