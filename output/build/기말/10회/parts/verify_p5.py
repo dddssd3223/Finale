@@ -83,9 +83,6 @@ assert ANS not in body_nums and ANS != -1                            # 본문의
 sys.path.insert(0, '/home/user/Finale/output/build/부교재_기말')
 import items_final as Fm
 o = Fm.I['I40']; assert o[2] == '②' and o[1][1] == '-1'
-sols = []
-for k in range(-600, 1200):          # b 눈금 1/200 + 근 직접 풀이로 전수
-    pass
 # 원문: f(2)-f(0) 을 b 위치로 나눠 식으로 풀기
 a_o = -3 * b**2 + b
 cand = []
@@ -109,12 +106,12 @@ ablation('역함수 존재', '정해지지 않음', f'b=3, -2/3 → {vals_}')
 
 # 미분가능(x=b에서 a=-3b^2+8b) 삭제: a, b 자유 → 2a-3b^2+5b+3=-15, b>8/3, a<0 인 (a,b)가 여럿
 outs = set()
-for bv_ in (3, R(10, 3), 4):
+for bv_ in (3, R(10, 3), R(13, 4)):
     av_ = sp.solve(2 * A_ + (-3 * bv_**2 + 5 * bv_ + 3) + 15, A_)[0]
     assert av_ < 0 and bv_ > R(8, 3)
-    outs.add(diff(4, 2, av_, bv_, 8) if bv_ < 4 else diff(4, 2, av_, bv_, 8))
+    outs.add(diff(4, 2, av_, bv_, 8))
 assert len(outs) > 1
-ablation('미분가능(a=-3b^2+8b)', '정해지지 않음', f'b=3, 10/3, 4 → f(4)-f(2) = {sorted(outs)}')
+ablation('미분가능(a=-3b^2+8b)', '정해지지 않음', f'b=3, 10/3, 13/4 → f(4)-f(2) = {sorted(outs)}')
 
 # 값 -15 → -14: 근이 무리수, 답 바뀜
 _, r14 = solve_all(V=-14)
