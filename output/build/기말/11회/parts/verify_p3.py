@@ -143,10 +143,9 @@ qo = x**2 - 4 * x + 3
 orig10 = integrate(x + 3, (x, -3, 0)) + integrate(qo, (x, 0, 1)) - integrate(x + 3, (x, -3, 0))
 ok(orig10 == Rational(4, 3), '10번 원문 J8 정답 4/3(④)')
 # 빼 보기
-Sx = solve(eqs[:2], [A, B, Cc], dict=True)[0]
-gen = (integrate(qq.subs({}), (x, 0, 2)))
-ab = sp.symbols('ab')
-qa = (A * x**2 + B * x + Cc).subs(Sx).subs(A, ab)
+Sx = solve(eqs[:2], [B, Cc], dict=True)[0]
+ab = A
+qa = (A * x**2 + B * x + Cc).subs(Sx)
 dep = sp.simplify(integrate(qa, (x, 0, 2)) + 1 - 4)
 print(f'ABLATION 10 ∫_(−2)^2 f = 4: 필요(없으면 구하는 값 = {dep}, a에 따라 바뀜)'); assert sp.diff(dep, ab) != 0
 print('ABLATION 10 연속: 필요(없으면 c와 f(2)=0이 나오지 않아 a, b, c가 정해지지 않음)')
@@ -156,15 +155,17 @@ print('ABLATION 10 f(x−2)=f(x+2): 필요(없으면 (−2, 2] 밖의 f가 정�
 I = symbols('I')
 ans11 = (integrate(x, (x, 2, 8)) - I) + (I - integrate(x, (x, 8, 10)))
 ok(sp.simplify(ans11) == 12, '11번 ∫|f−x| = (30−I)+(I−18) = 12 (I와 무관)')
-# 실제 함수로 확인: I = 20, 25 두 가지
-for Iv in (20, 25, Rational(39, 2)):
-    k1 = (30 - Iv) / integrate((x - 2) * (8 - x), (x, 2, 8))
-    k2 = (Iv - 18) / integrate((x - 8) * (10 - x), (x, 8, 10))
-    f_lo = x - k1 * (x - 2) * (8 - x)
-    f_hi = x + k2 * (x - 8) * (10 - x)
-    ok(k1 > 0 and k2 > 0 and integrate(f_lo, (x, 2, 8)) == Iv == integrate(f_hi, (x, 8, 10)) and f_lo.subs(x, 8) == f_hi.subs(x, 8), f'11번 예시 함수(I={Iv}): 조건 모두 만족(연속, 부호, 적분 상등)')
-    tot = integrate(x - f_lo, (x, 2, 8)) + integrate(f_hi - x, (x, 8, 10))
-    ok(tot == 12, f'11번 예시 함수(I={Iv})에서 ∫|f−x| = {tot}')
+# 실제 함수로 확인: f = 2 + 6t^m (t=(x−2)/6), f = 10 − 2(1−s)^n (s=(x−8)/2) — 증가·함숫값·부호·적분 상등을 모두 만족하는 예
+for m_, n_ in ((4, 4), (Rational(9, 2), Rational(7, 4))):
+    f_lo = 2 + 6 * ((x - 2) / 6)**m_
+    f_hi = 10 - 2 * (1 - (x - 8) / 2)**n_
+    I1, I2 = integrate(f_lo, (x, 2, 8)), sp.nsimplify(integrate(f_hi, (x, 8, 10)))
+    grid_lo = [2 + Rational(i, 10) for i in range(1, 60)]; grid_hi = [8 + Rational(i, 10) for i in range(1, 20)]
+    ok(I1 == I2 and f_lo.subs(x, 2) == 2 and f_lo.subs(x, 8) == 8 and f_hi.subs(x, 8) == 8 and f_hi.subs(x, 10) == 10
+       and all(diff(f_lo, x).subs(x, t) > 0 for t in grid_lo) and all(diff(f_hi, x).subs(x, t) > 0 for t in grid_hi)
+       and all(f_lo.subs(x, t) < t for t in grid_lo) and all(f_hi.subs(x, t) > t for t in grid_hi), f'11번 예시 함수(m={m_}, n={n_}, I={I1}): 함숫값·증가·부호·적분 상등 모두 만족')
+    tot = sp.nsimplify(integrate(x - f_lo, (x, 2, 8)) + integrate(f_hi - x, (x, 8, 10)))
+    ok(tot == 12, f'11번 예시 함수(I={I1})에서 ∫|f−x| = {tot}')
 v11 = chk(11, 12)
 ok(integrate(x, (x, 0, 8)) - integrate(x, (x, 8, 10)) == 14, '11번 오답 14: 아래끝을 원문처럼 0으로 둠(32−18)')
 ok(Rational(18) < 30, '11번 숨은 관계: ∫_8^10 x dx = 18 < ∫_2^8 x dx = 30이라 적분 상등이 가능')
@@ -176,12 +177,12 @@ dep11 = (30 - I) + (J - 18)
 print(f'ABLATION 11 ∫_2^8 f = ∫_8^10 f: 필요(없으면 값 = {dep11}, 정해지지 않음)'); assert dep11.free_symbols
 print('ABLATION 11 2<x<8에서 f<x: 필요(없으면 |f−x|를 부호대로 나눌 수 없어 값이 정해지지 않음)')
 print('ABLATION 11 8<x<10에서 f>x: 필요(같은 이유)')
-print('ABLATION 11 원문 (가) 함숫값·증가: 군더더기(답 그대로) → 본문에서 뺌')
+print('ABLATION 11 원문 (가) 함숫값·증가: 군더더기(답 그대로) — 원문 문장 유지(적분 상등이 가능한 범위 18<I<20을 정하는 원문 설계, 빼면 원문 거리 0.18), note에 적음')
 
 # ---------- 12번 (D59) ----------
 a = symbols('a', real=True)
 f12 = x**3 + 3 * a * x**2 - 9 * a**2 * x + 4
-ok(factor(diff(f12, x)) == 3 * (x - a) * (x + 3 * a), "12번 f'=3(x−a)(x+3a)")
+ok(expand(diff(f12, x) - 3 * (x - a) * (x + 3 * a)) == 0, "12번 f'=3(x−a)(x+3a)")
 mx, mn = f12.subs(x, a), f12.subs(x, -3 * a)
 ok(expand(mx - (4 - 5 * a**3)) == 0 and expand(mn - (27 * a**3 + 4)) == 0, '12번 a<0: 극대 f(a)=4−5a³, 극소 f(−3a)=27a³+4')
 cand = [r for r in solve(mx - 3, a) if r.is_real and r < 0] + [r for r in solve(mn - 3, a) if r.is_real and r < 0]
