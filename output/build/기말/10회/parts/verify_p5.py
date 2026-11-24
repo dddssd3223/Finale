@@ -1,82 +1,60 @@
 # -*- coding: utf-8 -*-
-# 17번 후보 A17 2판 (I40: f'=a (x<b), -3x^2+8x (x>=b), 역함수, f(5)-f(2b-2)=-25, f(4)-f(2)) 검증 · author='claude'
+# 17번 후보 A17 (M32: (x-9)f>=0, f(0)=0, 방정식 f(x)-(x-k+2)f'(k)=0의 실근 3개인 정수 k의 개수) 검증 · author='claude'
 import sympy as sp, os, sys
-x, b, A_ = sp.symbols('x b a', real=True)
+x, k, r = sp.symbols('x k r', real=True)
 R = sp.Rational
 ns = {}; exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'p5.py')).read(), ns)
 IT = ns['ITEMS'][17]
 
 
-def q(c):
-    return -3 * x**2 + c * x
+def nroots(poly):
+    """다항식(x)의 서로 다른 실근의 개수(정확)"""
+    P = sp.Poly(sp.expand(poly), x)
+    return len(set(sp.real_roots(P)))
 
 
-def diff(m, n, av, bv, c):
-    """f(m)-f(n), f'=av (x<bv), q_c (x>=bv): 조각마다 나눠 정확히 적분"""
-    def G(t):
-        return av * (t - bv) if t < bv else sp.integrate(q(c), (x, bv, t))
-    return sp.nsimplify(G(m) - G(n))
+def count_int(f, shift, want=3, lo=-60, hi=60):
+    """방정식 f(x)-(x-k+shift)f'(k)=0 의 서로 다른 실근이 want개인 정수 k 목록(범위 끝에서도 성립하면 무한으로 봄)"""
+    fp = sp.diff(f, x)
+    out = [kv for kv in range(lo, hi + 1) if nroots(f - (x - kv + shift) * fp.subs(x, kv)) == want]
+    if out and (out[0] == lo or out[-1] == hi):
+        return None
+    return out
 
 
-def inverse_ok(av, bv, c):
-    """역함수 존재 ⇔ 단조. x>=b 조각은 -∞로 가므로 감소만 가능: a<0 이고 [b,∞)에서 이차식 ≤ 0(근에서만 0)"""
-    if av >= 0:
-        return False
-    crit = [bv] + [r for r in sp.solve(q(c), x) + sp.solve(sp.diff(q(c), x), x) if r >= bv]
-    return max(q(c).subs(x, r) for r in crit) <= 0
+# ---------- 1) (가)(나) → f = x^2(x-9) 유일
+# (가)에서 f(9)=0(부호가 바뀜), (나) f(0)=0 → f = x(x-9)(x-r). (x-9)f = x(x-r)(x-9)^2 >= 0 ⇔ x(x-r) >= 0 ⇔ r=0
+for rv in [R(n, 4) for n in range(-40, 41)]:
+    g = x * (x - rv)
+    ok = all(g.subs(x, t) >= 0 for t in [R(n, 8) for n in range(-80, 81)])
+    assert ok == (rv == 0), rv
+f = x**2 * (x - 9); fp = sp.diff(f, x)
+print('f = x^2(x-9) 유일 (r 눈금 전수)')
 
-
-def all_solutions(c=8, al=2, k=2, M=5, V=-25, link=True):
-    """f(M)-f(al*b-k)=V 를 만족시키는 실수 b 전부: b 와 아래 끝·위 끝의 위치로 조각을 나눠 갈래마다 정확히 풂"""
-    a_ = -3 * b**2 + c * b
-    lo = al * b - k
-    P = lambda t: sp.integrate(q(c), (x, 0, t))          # 이차식 조각의 부정적분(0에서)
-    G = lambda t, side: a_ * (t - b) if side == 0 else P(t) - P(b)   # ∫_b^t f'
-    out = set()
-    # 갈래: 위 끝 M 이 b 왼쪽(0)/오른쪽(1), 아래 끝 lo 가 b 왼쪽/오른쪽
-    for sM in (0, 1):
-        for sL in (0, 1):
-            expr = sp.expand(G(M, sM) - G(lo, sL) - V)
-            if expr == 0:
-                continue
-            for r in sp.solve(expr, b):
-                if not r.is_real:
-                    continue
-                if (M < r) == (sM == 0) and (lo.subs(b, r) < r) == (sL == 0):
-                    out.add(sp.nsimplify(r))
-    return sorted(out, key=lambda z: float(z))
-
-
-# ---------- 1) 역함수 조건 ⇔ b > 8/3 (눈금 전수)
-for bv in [R(k, 12) for k in range(-60, 96)]:
-    assert inverse_ok(-3 * bv**2 + 8 * bv, bv, 8) == (bv > R(8, 3)), bv
-assert not inverse_ok(0, R(8, 3), 8)
-print('역함수 ⇔ b>8/3 (1/12 눈금 전수, 경계 b=8/3은 a=0이라 제외)')
-
-# ---------- 2) 조건을 만족시키는 b 전부(갈래 전수) → 역함수로 거름
-S = all_solutions()
-assert S == [0, (9 - sp.sqrt(17)) / 4, 3], S
-good = [r for r in S if inverse_ok(-3 * r**2 + 8 * r, r, 8)]
-assert good == [3]
-for r in S:   # 조각 판정 함수로 대조
-    assert diff(5, 2 * r - 2, -3 * r**2 + 8 * r, r, 8) == -25
-# 갈래 ②의 식: b>=2 이면 구간이 통째로 이차식 조각, -t^2(t-4)=0
-t = sp.symbols('t')
-assert sp.expand(sp.integrate(q(8), (x, t, 5)) + 25 - t**2 * (t - 4)) == 0
-# 갈래 ③: b>5 이면 차가 양수(감소함수) — 표본
-for bv in (R(11, 2), 6, 10):
-    assert diff(5, 2 * bv - 2, -3 * bv**2 + 8 * bv, bv, 8) > 0
-# 원문 줄(b<2, 구간 안에서 나눔)의 방정식과 근
-a_ = -3 * b**2 + 8 * b
-E1 = sp.expand(a_ * (b - (2 * b - 2)) + sp.integrate(q(8), (x, b, 5)) + 25)
-assert sp.factor(E1) == sp.factor(2 * b * (2 * b**2 - 9 * b + 8)) or sp.expand(E1 - 2 * b * (2 * b**2 - 9 * b + 8)) == 0
-print('조건의 해 b =', S, '→ 역함수로 b=3 (b=0: a=0, (9-√17)/4: a>0)')
-bv = 3; av = -3 * 9 + 24; assert av == -3
+# ---------- 2) 풀이 줄 검산
+h = f - (x - k + 2) * fp.subs(x, k)
+assert sp.factor(sp.diff(h, x)) == sp.factor(3 * (x - k) * (x + k - 6))
+hk = sp.factor(h.subs(x, k)); hs = sp.factor(sp.expand(h.subs(x, 6 - k)))
+assert sp.expand(hk - k * (k - 3) * (k - 12)) == 0
+assert sp.expand(hs - (k - 6) * (k - 3) * (5 * k - 6)) == 0
+assert sp.expand(fp.subs(x, 6 - k) - fp.subs(x, k)) == 0
+S3 = sp.solve_univariate_inequality(sp.expand(hk * hs) < 0, k, relational=False)
+assert S3 == sp.Union(sp.Interval.open(0, R(6, 5)), sp.Interval.open(6, 12)), S3
+# k=3: h' = 3(x-3)^2 → 실근 1개 (변곡점에서의 접선)
+assert nroots(h.subs(k, 3)) == 1 and sp.factor(h.subs(k, 3)) == sp.factor((x - 3)**3)
+# 끝점: 실근 2개
+for kv in (0, R(6, 5), 6, 12):
+    assert nroots(h.subs(k, kv)) == 2, kv
+# 실수 k 눈금 전수: 실근 3개 ⇔ 0<k<6/5 또는 6<k<12
+for kv in [R(n, 10) for n in range(-50, 160)]:
+    assert (nroots(h.subs(k, kv)) == 3) == bool(S3.contains(kv)), kv
+print('h(k)=k(k-3)(k-12), h(6-k)=(k-6)(k-3)(5k-6), 실근 3개 ⇔', S3, '(k=3은 실근 1개)')
 
 # ---------- 3) 답
-ANS = diff(4, 2, av, bv, 8)
-assert ANS == -12 == -3 + sp.integrate(q(8), (x, 3, 4))
-print('f(4)-f(2) =', ANS)
+ints = count_int(f, 2)
+assert ints == [1, 7, 8, 9, 10, 11], ints
+ANS = len(ints)
+print('정수 k =', ints, '→ 개수', ANS)
 
 # ---------- 4) 선지
 ch = IT['choices']; vals = [int(c) for c in ch]
@@ -85,53 +63,58 @@ assert len(set(vals)) == 5 and len({vals[i + 1] - vals[i] for i in range(4)}) ==
 print('정답 = 선지 ①, 선지', vals, '공차 1 오름차순')
 
 # ---------- 5) 오답
-w_noa = sp.integrate(q(8), (x, 3, 4))                 # ∫_2^3 a 빠뜨림
-w_b0 = diff(4, 2, 0, 0, 8)                             # 원문 줄대로 b=0 택함
-w_nosplit = sp.integrate(q(8), (x, 2, 4))
-assert (w_noa, w_b0, w_nosplit) == (-9, -8, -8)
-assert set(IT['wrongs']) == {'-9', '-8'} and all(w in ch for w in IT['wrongs'])
-print('오답 근거 OK: -9(∫_2^3 a 빠뜨림), -8(b=0 택함 / x=3에서 안 나눔)')
-assert ANS not in {8, 2, 5, 25, -25, 4, 3} and ANS != -1
+w_ge2 = [kv for kv in range(-60, 61) if nroots(h.subs(k, kv)) >= 2]        # 끝점(실근 2개)까지 셈
+assert w_ge2 == [0, 1, 6, 7, 8, 9, 10, 11, 12] and len(w_ge2) == 9
+S_le = sp.solve_univariate_inequality(sp.expand(hk * hs) <= 0, k, relational=False)
+w_le = [kv for kv in range(-60, 61) if S_le.contains(kv)]                     # 곱 <= 0 (k=3 포함)
+assert 3 in w_le and len(w_le) == 10
+assert set(IT['wrongs']) == {'9', '10'} and all(w in ch for w in IT['wrongs'])
+print('오답 근거 OK: 9(끝점 0, 6, 12 포함), 10(곱 <= 0, k=3까지)')
+assert ANS not in {1, 9, 0, 2, 3} and ANS != 19
+print('정답은 본문의 수(1, 9, 0, 2, 3)·원문 답 19와 다름')
 
-# ---------- 6) 원문 I40: -1 (②)
+# ---------- 6) 원문 M32: 19
 sys.path.insert(0, '/home/user/Finale/output/build/부교재_기말')
 import items_final as Fm
-o = Fm.I['I40']; assert o[2] == '②' and o[1][1] == '-1'
-a_o = -3 * b**2 + b
-cand = []
-cand += [r for r in sp.solve(a_o * b + sp.integrate(q(1), (x, b, 2)) + R(15, 2), b) if r.is_real and 0 < r <= 2]
-cand += [r for r in sp.solve(2 * a_o + R(15, 2), b) if r.is_real and r > 2]
-assert sp.integrate(q(1), (x, 0, 2)) != R(-15, 2)       # b<=0 갈래 해 없음
-assert cand == [1] and inverse_ok(-2, 1, 1)
-print('원문 I40 OK: b=1, a=-2, a+b=-1 (②)')
+o = Fm.I['M32']; assert o[2] == '19'
+f0 = x**2 * (x - 4); f0p = sp.diff(f0, x)
+ks = set()
+for kv in [R(n, 6) for n in range(-30, 40)]:
+    if nroots(f0 - x * f0p.subs(x, kv)) == 2:
+        ks.add(kv)
+cs = set()
+for c in (0, -4):
+    cs |= set(sp.solve(3 * k**2 - 8 * k - c, k))
+assert ks <= cs and all(nroots(f0 - x * f0p.subs(x, c)) == 2 for c in cs)
+s = sum(cs); assert s == R(16, 3) and s.p + s.q == 19
+print('원문 M32 OK: k = 0, 8/3, 2/3, 2, 합 16/3, p+q=19')
+# 원문 원리 줄 불통: 직선이 원점을 지나지 않아 x로 묶이지 않음(k≠2이고 f'(k)≠0이면 h(0)≠0)
+assert sp.factor(h.subs(x, 0)) == sp.factor((k - 2) * fp.subs(x, k))
+assert h.subs({x: 0, k: 7}) != 0
+print('원문 줄 불통: h(0)=(k-2)f\'(k)≠0 (정답 구간 안의 k)')
 
 # ===== 조건 빼 보기 (ABLATION) =====
 print('--- 조건 빼 보기 ---')
-def ablation(cname, res, why=''):
-    print(f'ABLATION 17 {cname}: 필요({res}{"; " + why if why else ""})'); assert res != ANS
+def ablation(cname, res):
+    print(f'ABLATION 17 {cname}: 필요({res})'); assert res != ANS
 
 
-def answer(**kw):
-    c = kw.get('c', 8)
-    g = [r for r in all_solutions(**kw) if inverse_ok(-3 * r**2 + c * r, r, c)]
-    if len(g) != 1:
-        return f'정해지지 않음({len(g)}개)'
-    r = g[0]
-    return sp.N(diff(4, 2, -3 * r**2 + c * r, r, c), 6)
+def ans_of(f_, shift=2, want=3):
+    L = count_int(f_, shift, want)
+    return '무한' if L is None else len(L)
 
 
-vals_ = sorted({diff(4, 2, -3 * r**2 + 8 * r, r, 8) for r in S}, key=float)
-assert len(vals_) > 1
-ablation('역함수 존재', '정해지지 않음', f'b={S} → f(4)-f(2) = {vals_}')
-
-# 미분가능(a=-3b^2+8b) 삭제: 조건에 a가 없으므로 b=3은 그대로지만 a가 정해지지 않음 → f(4)-f(2)=a-9
-for av_ in (-1, -3, -5):
-    assert inverse_ok(av_, 3, 8)
-ablation('미분가능(a=-3b^2+8b)', '정해지지 않음', 'b=3, a<0 아무 값 → f(4)-f(2)=a-9')
-
-ablation('값 -25(→-24)', answer(V=-24))
-ablation('아래 끝 2b-2(→2b-1)', answer(k=1))
-ablation('아래 끝의 계수 2(→b-2)', answer(al=1, k=2))
-ablation('위 끝 5(→6)', answer(M=6))
-ablation('이차식의 계수 8(→6)', answer(c=6))
+# (가) 삭제: f(0)=0인 최고차 1 삼차함수 여럿 → 답이 갈림
+alts = {str(g): ans_of(g) for g in (x**3, x**2 * (x - 4), x * (x - 3) * (x - 9), x**2 * (x - 9))}
+assert len(set(alts.values())) > 1
+ablation('(가) 부등식', f'정해지지 않음 {alts}')
+# (나) 삭제: (x-9)f>=0 → f=(x-9)(x-c)^2 또는 (x-9)^3
+alts = {str(g): ans_of(g) for g in ((x - 9)**3, (x - 9) * (x - 3)**2, (x - 9) * x**2)}
+assert len(set(alts.values())) > 1
+ablation('(나) f(0)=0', f'정해지지 않음 {alts}')
+ablation('(가)의 9(→4)', ans_of(x**2 * (x - 4)))
+ablation('직선의 +2(→0, 원점 대신 (k,0))', ans_of(f, 0))
+ablation('직선의 +2(→1)', ans_of(f, 1))
+ablation('직선의 +2(→3)', ans_of(f, 3))
+ablation('개수 3(→2)', ans_of(f, 2, 2))
 print('ALL OK')
