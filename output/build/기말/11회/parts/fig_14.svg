@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="148.753875pt" height="135.49248pt" viewBox="0 0 148.753875 135.49248" xmlns="http://www.w3.org/2000/svg" version="1.1">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="152.505437pt" height="135.49248pt" viewBox="0 0 152.505437 135.49248" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <metadata>
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-11-24T15:25:59.462257</dc:date>
+    <dc:date>2026-11-24T15:32:36.488860</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -22,8 +22,8 @@
  <g id="figure_1">
   <g id="patch_1">
    <path d="M 0 135.49248 
-L 148.753875 135.49248 
-L 148.753875 0 
+L 152.505437 135.49248 
+L 152.505437 0 
 L 0 0 
 z
 " style="fill: #ffffff"/>
@@ -39,7 +39,7 @@ z
    </g>
    <g id="FillBetweenPolyCollection_1">
     <defs>
-     <path id="m50697b002c" d="M 22.83 -31.1928 
+     <path id="mb9d9da0847" d="M 22.83 -31.1928 
 L 22.83 -31.1928 
 L 22.973077 -31.306523 
 L 23.116154 -31.420246 
@@ -644,13 +644,13 @@ L 22.83 -31.1928
 z
 "/>
     </defs>
-    <g clip-path="url(#p88cf7ff0b5)">
-     <use xlink:href="#m50697b002c" x="0" y="135.49248" style="fill: #dbdbdb"/>
+    <g clip-path="url(#p1d0e29df19)">
+     <use xlink:href="#mb9d9da0847" x="0" y="135.49248" style="fill: #dbdbdb"/>
     </g>
    </g>
    <g id="FillBetweenPolyCollection_2">
     <defs>
-     <path id="m8268be6771" d="M 65.61 -65.196 
+     <path id="m45eef397a6" d="M 65.61 -65.196 
 L 65.61 -65.196 
 L 65.753077 -65.309723 
 L 65.896154 -65.423446 
@@ -1255,8 +1255,8 @@ L 65.61 -65.196
 z
 "/>
     </defs>
-    <g clip-path="url(#p88cf7ff0b5)">
-     <use xlink:href="#m8268be6771" x="0" y="135.49248" style="fill: #dbdbdb"/>
+    <g clip-path="url(#p1d0e29df19)">
+     <use xlink:href="#m45eef397a6" x="0" y="135.49248" style="fill: #dbdbdb"/>
     </g>
    </g>
    <g id="matplotlib.axis_1"/>
@@ -1315,13 +1315,13 @@ L 112.688908 24.97787
 L 114.94692 18.139368 
 L 115.4487 16.531738 
 L 115.4487 16.531738 
-" clip-path="url(#p88cf7ff0b5)" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: square"/>
+" clip-path="url(#p1d0e29df19)" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: square"/>
    </g>
    <g id="line2d_4">
     <path d="M 3.579 119.60112 
 L 128.7105 20.14176 
 L 128.7105 20.14176 
-" clip-path="url(#p88cf7ff0b5)" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: square"/>
+" clip-path="url(#p1d0e29df19)" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: square"/>
    </g>
    <g id="patch_3">
     <path d="M 134.9136 87.29808 
@@ -1679,110 +1679,81 @@ z
     </g>
    </g>
    <g id="text_5">
-    <!--  -->
-    <g transform="translate(120.1545 46.001252) scale(0.1 -0.1)">
+    <!--  -->
+    <g transform="translate(120.1545 46.060627) scale(0.1 -0.1)">
      <defs>
-      <path id="HyhwpEQ-18b" d="M 5394 981 
-Q 5319 1000 5300 981 
-Q 5281 969 5256 900 
-L 5256 875 
-Q 5194 713 5150 600 
-Q 5081 438 5025 356 
-Q 4938 238 4838 169 
-Q 4725 81 4600 81 
-Q 4456 81 4444 263 
-Q 4438 388 4488 531 
-L 4531 663 
-Q 4656 1006 4725 1213 
-Q 4844 1556 4906 1831 
-Q 4963 2088 4944 2269 
-Q 4919 2513 4769 2656 
-Q 4669 2750 4531 2794 
-Q 4394 2838 4219 2838 
-Q 4031 2838 3881 2794 
-Q 3725 2750 3600 2656 
-Q 3475 2569 3369 2463 
-Q 3256 2350 3175 2219 
-Q 3150 2381 3113 2469 
-Q 3063 2594 2969 2675 
-Q 2863 2769 2719 2806 
-Q 2600 2838 2444 2838 
-Q 2250 2838 2081 2788 
-Q 1913 2731 1763 2619 
-Q 1669 2556 1588 2469 
-Q 1506 2388 1444 2288 
-Q 1425 2525 1263 2681 
-Q 1100 2838 856 2838 
-Q 719 2838 606 2769 
-Q 494 2700 431 2581 
-Q 350 2438 294 2269 
-Q 238 2113 200 1931 
-Q 181 1863 188 1831 
-Q 200 1806 238 1794 
-Q 294 1788 319 1819 
-Q 344 1844 369 1938 
-Q 406 2106 456 2250 
-Q 506 2394 563 2500 
-Q 606 2600 675 2650 
-Q 744 2700 838 2700 
-Q 1000 2700 1038 2519 
-Q 1056 2394 1019 2219 
-L 525 231 
-Q 494 119 519 44 
-Q 550 -56 681 -56 
-Q 763 -56 831 -6 
-Q 900 38 925 119 
-L 1194 1200 
-L 1381 1925 
-Q 1500 2163 1638 2319 
-Q 1800 2500 2019 2613 
-Q 2106 2656 2206 2681 
-Q 2313 2700 2425 2700 
-Q 2513 2700 2581 2669 
-Q 2650 2631 2706 2550 
-Q 2763 2456 2769 2281 
-Q 2769 2138 2738 2000 
-Q 2681 1775 2613 1488 
-Q 2569 1325 2481 975 
-L 2288 169 
-Q 2269 75 2319 13 
-Q 2369 -56 2469 -56 
-Q 2600 -56 2669 56 
-Q 2713 125 2750 288 
-L 2756 306 
-L 3138 1831 
-Q 3175 2019 3331 2213 
-Q 3456 2375 3619 2488 
-Q 3750 2600 3856 2644 
-Q 4000 2700 4200 2700 
-Q 4294 2700 4363 2669 
-Q 4438 2638 4475 2563 
-Q 4544 2425 4538 2250 
-Q 4538 2113 4494 1925 
-Q 4425 1631 4306 1288 
-Q 4231 1063 4106 719 
-Q 4000 444 4125 206 
-Q 4256 -56 4588 -56 
-Q 4700 -56 4794 -19 
-Q 4894 13 4975 81 
-Q 5113 213 5213 394 
-Q 5306 550 5381 756 
-L 5388 781 
-Q 5413 863 5419 900 
-Q 5431 981 5394 981 
+      <path id="HyhwpEQ-185" d="M 3013 2425 
+Q 3044 2556 3013 2625 
+Q 2975 2713 2850 2713 
+Q 2738 2713 2663 2631 
+Q 2594 2556 2588 2438 
+Q 2481 2625 2331 2731 
+Q 2175 2838 1988 2838 
+Q 1700 2838 1413 2675 
+Q 1163 2531 956 2281 
+Q 725 2013 600 1700 
+Q 469 1363 469 1025 
+Q 469 813 525 631 
+Q 588 425 725 281 
+Q 838 156 988 88 
+Q 1144 13 1319 13 
+Q 1519 13 1725 125 
+Q 1894 219 2056 388 
+L 2069 375 
+L 1906 -250 
+Q 1856 -444 1819 -544 
+Q 1750 -700 1638 -838 
+Q 1494 -994 1319 -1075 
+Q 1144 -1163 931 -1163 
+Q 781 -1163 675 -1144 
+Q 531 -1131 419 -1094 
+Q 538 -1056 606 -975 
+Q 681 -888 681 -763 
+Q 681 -656 606 -594 
+Q 544 -538 444 -538 
+Q 294 -538 194 -650 
+Q 94 -756 94 -906 
+Q 94 -1006 144 -1081 
+Q 194 -1150 294 -1200 
+Q 381 -1250 550 -1275 
+Q 713 -1300 950 -1300 
+Q 1206 -1300 1444 -1225 
+Q 1688 -1150 1894 -1000 
+Q 2038 -881 2144 -738 
+Q 2256 -581 2306 -413 
+L 3013 2425 
+z
+M 2506 2150 
+Q 2513 2125 2388 1644 
+Q 2325 1388 2206 938 
+L 2181 838 
+Q 2150 713 2050 588 
+Q 1981 500 1856 388 
+Q 1738 288 1613 225 
+Q 1469 150 1338 150 
+Q 1119 150 1006 344 
+Q 925 506 925 744 
+Q 925 1013 1038 1463 
+Q 1156 1906 1281 2131 
+Q 1394 2356 1569 2513 
+Q 1781 2700 1994 2700 
+Q 2194 2700 2344 2538 
+Q 2481 2388 2506 2150 
 z
 " transform="scale(0.015625)"/>
      </defs>
      <use xlink:href="#HyhwpEQ-197"/>
      <use xlink:href="#HyhwpEQ-e1" transform="translate(49.03125 0)"/>
-     <use xlink:href="#HyhwpEQ-18b" transform="translate(126.671875 0)"/>
-     <use xlink:href="#HyhwpEQ-196" transform="translate(214.46875 0)"/>
+     <use xlink:href="#HyhwpEQ-185" transform="translate(126.671875 0)"/>
+     <use xlink:href="#HyhwpEQ-de" transform="translate(174.234375 0)"/>
+     <use xlink:href="#HyhwpEQ-196" transform="translate(213.109375 0)"/>
+     <use xlink:href="#HyhwpEQ-df" transform="translate(270.234375 0)"/>
     </g>
    </g>
   </g>
  </g>
  <defs>
-  <clipPath id="p88cf7ff0b5">
+  <clipPath id="p1d0e29df19">
    <rect x="1.44" y="6.54048" width="128.34" height="127.512"/>
   </clipPath>
  </defs>
