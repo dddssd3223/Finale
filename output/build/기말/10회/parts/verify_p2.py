@@ -138,18 +138,18 @@ print('ABLATION 7 f(2x) → f(x): 필요(합', 2, '로 바뀜, 이때 (가)는 �
 f8 = sp.Function('f')
 # x=1 대입, 미분 후 x=2 대입
 s8 = solve([a + b + 7, 32*a + 4*b], [a, b]); assert s8 == {a: 1, b: -8}
-q8, r8 = sp.div(sp.Poly(4*x**3 - 16*x, x), sp.Poly(x - 2, x)); assert r8.is_zero
-F8 = q8.as_expr(); assert expand(F8) == 4*x**2 + 8*x
+q8, r8 = sp.div(sp.Poly(4*x**3 - 16*x, x), sp.Poly(2 - x, x)); assert r8.is_zero
+F8 = q8.as_expr(); assert expand(F8) == -4*x**2 - 8*x
 # 항등식 검산
-assert expand(integrate((t - 2)*F8.subs(x, t), (t, 1, x)) - (x**4 - 8*x**2 + 7)) == 0
+assert expand(integrate((2 - t)*F8.subs(x, t), (t, 1, x)) - (x**4 - 8*x**2 + 7)) == 0
 # 유일성: f가 다항함수이려면 (x-2) | 4ax^3+2bx ⇔ 32a+4b=0, 아래끝 조건과 연립하면 해 하나
 assert len(solve([a + b + 7, 32*a + 4*b], [a, b], dict=True)) == 1
-ans8 = sp.minimum(F8, x); assert ans8 == -4
-w8a = sp.minimum(sp.cancel((x*(2*x**2 - 8))/(x - 2)), x)              # 앞의 2 누락
+ans8 = F8.subs(x, 1); assert ans8 == -12
+w8a = sp.cancel((x*(2*x**2 - 8))/(2 - x)).subs(x, 1)              # 앞의 2 누락
 w8b = solve(diff(F8, x), x)[0]                                          # 최소점
-chk(8, ans8, [w8a, w8b])
-print('ABLATION 8 상수항 7: 필요(7 → 1이면 a = 1/7, 최솟값', sp.minimum(sp.cancel(R(4, 7)*x*(x**2 - 4)/(x - 2)), x), ')')
-print('ABLATION 8 인수 (t-2): 필요((t-1)이면 아래끝과 같은 점이라 a+b+7=0, 4a+2b=0 → a=7, 최솟값', sp.minimum(sp.cancel((28*x**3 - 28*x)/(x - 1)), x), ')')
+chk(8, ans8, [w8a])
+print('ABLATION 8 상수항 7: 필요(7 → 1이면 a = 1/7, f(1) =', sp.cancel(R(4, 7)*x*(x**2 - 4)/(2 - x)).subs(x, 1), ')')
+print('ABLATION 8 인수 (2-t): 필요((t-1)이면 아래끝과 같은 점이라 a+b+7=0, 4a+2b=0 → a=7, f(1) =', sp.cancel((28*x**3 - 28*x)/(x - 1)).subs(x, 1), ')')
 print('ABLATION 8 아래끝 1: 필요(빼면 a+b+7=0이 없어 a가 정해지지 않음)')
 
 assert [IT[n]['ans'] for n in (5, 6, 7, 8)] == [4, 2, 3, 1]
