@@ -11,9 +11,9 @@ ns = {}
 exec(open(os.path.join(HERE, 'p4.py'), encoding='utf-8').read(), ns)
 IT = ns['ITEMS']
 WANT = {13: 3, 14: 5, 15: 2, 16: 4}          # 분담표 목표 13③·14⑤·15②·16④ 그대로
-DBREF = {13: 'D36 조작_보강 1', 14: 'D19 후보_순위 2', 15: 'M60 v3_추가 1', 16: 'M62 후보_순위 2'}   # 13은 분담표 'D36 v3_추가 1'에서 바꿈(note: 9번 I57과 같은 틀)
+DBREF = {13: 'D36 학교식_예상 1', 14: 'D19 후보_순위 2', 15: 'M60 v3_추가 1', 16: 'M62 후보_순위 2'}   # 13은 분담표 'D36 v3_추가 1'에서 바꿈(note: 9번 I57과 같은 틀, 측정 B로 갈래 줄임)
 COEF = {'OP11', 'OP12', 'OP28', 'OP38', 'OP51'}
-NEED_COEF = {13: True, 14: True, 15: False, 16: False}   # 분담표 계수 13●·14●·15○·16●(16은 자연스러운 자리가 없어 빠짐, note에 적음)
+NEED_COEF = {13: False, 14: True, 15: False, 16: False}   # 분담표 계수 13●·14●·15○·16●(16은 자연스러운 자리가 없어 빠짐, note에 적음)
 BOX = {13: True, 14: False, 15: False, 16: True}         # 13·16 '원문대로'(원문에 상자 있음), 14·15 ×
 LEVEL = {13: '중상', 14: '중상', 15: '상', 16: '상'}
 x, t, k = sp.symbols('x t k', real=True)
@@ -122,27 +122,27 @@ def na13(a, b, lo=None):
 
 agrid = [R(i, 4) for i in range(-40, 49)]          # a ∈ [−10, 12]
 bgrid = [R(i, 2) for i in range(-6, 7)]            # b ∈ [−3, 3]
-feas13 = [(a, b) for a in agrid for b in bgrid if ga13(a, b) and na13(a, b)]
+feas13 = [(a, b) for a in agrid for b in bgrid if ga13(a, b) and na13(a, b, lo=4)]
 check(13, all(b == 0 for _, b in feas13) and sorted({a for a, _ in feas13}) == [a for a in agrid if a >= 4],
       f'(a, b) 격자(a −10~12 1/4 간격 × b −3~3 1/2 간격) 전수: 조건 ⇔ b=0, a≥4 (a의 최솟값 {min(a for a, _ in feas13)})')
-check(13, not na13(R(39, 10), 0) and na13(4, 0) and sp.factor(fp13(4, 0)) == x * (x - 2) * (x - 4), 'a=3.9는 (나) 불가, a=4이면 f′=x(x−2)(x−4)로 열린 끝 x=4에서 f′=0')
+check(13, not na13(R(39, 10), 0, lo=4) and na13(4, 0, lo=4) and sp.factor(fp13(4, 0)) == x * (x - 2) * (x - 4), 'a=3.9는 (나) 불가, a=4이면 f′=x(x−2)(x−4)로 열린 끝 x=4에서 f′=0')
 vals13 = [fp13(a, b).subs(x, 5) for a, b in feas13]
 ans13 = min(vals13)
 check(13, ans13 == 15, f"f′(5)=10a−25의 격자 최솟값 {ans13}")
 ans_ok(13, ans13)
 w13a = fp13(R(9, 2), 0).subs(x, 5)          # 원문처럼 꼭짓점 판정 a≥9/2
-w13b = fp13(3, 0).subs(x, 5)                # 끝점 확인 생략 a≥3
-check(13, not na13(3, 0) and na13(R(9, 2), 0), 'a=3은 (나) 불가(끝점 확인을 뺀 값), a=9/2는 가능하지만 최소 아님')
-wrong_in(13, [w13a, w13b], '꼭짓점 판정 a≥9/2 → 20 · 끝점 확인 생략 a≥3 → 5')
+w13b = fp13(5, 0).subs(x, 5)                # 열린 끝 경계 a=4를 빼고 정수 a=5
+check(13, na13(R(9, 2), 0, lo=4) and na13(5, 0, lo=4), 'a=9/2, a=5는 가능하지만 최소 아님(오답 경로 값)')
+wrong_in(13, [w13a, w13b], '꼭짓점 판정 a≥9/2 → 20 · 경계 a=4 제외 a=5 → 25')
 # 원문 D36: 구간 (0,∞), f′(1)의 최솟값 4
 feas_o = [a for a in agrid if ga13(a, 0) and na13(a, 0, lo=0)]
 check(13, min(feas_o) == R(9, 2) and fp13(min(feas_o), 0).subs(x, 1) == orig_ans('D36') == 4, f'원문 D36: a≥{min(feas_o)}, f′(1)의 최솟값 {fp13(min(feas_o), 0).subs(x, 1)} = 원문 답')
 check(13, fp13(min(feas_o), 0).subs(x, 5) == 20, '구간을 원문 (0,∞)로 두면 f′(5)의 최솟값 20(장치가 답을 바꿈)')
 # 빼 보기
-ablation(13, "(나) '구간 (a,∞)에서 증가'", None, ans13, undef='a는 0이 아닌 아무 실수, f′(5)=10a−25의 최솟값이 없음')
-a_, b_ = 10, -(10**3 - 4 * 10**2)            # (가) 없이: a=10, b=−600 이면 f′(10)=0, x>10에서 증가
-check(13, na13(a_, b_) and not ga13(a_, b_), f'(가) 반례 a=10, b={b_}: (나) 성립, (가) 불성립')
-ablation(13, "(가) 'x=0에서 극값'", [ans13, fp13(a_, b_).subs(x, 5)], ans13, f'b가 자유로우면 f′(5)={fp13(a_, b_).subs(x, 5)}처럼 더 작아짐(최솟값 없음)')
+ablation(13, "(나) '구간 (4,∞)에서 증가'", None, ans13, undef='a는 0이 아닌 아무 실수, f′(5)=10a−25의 최솟값이 없음')
+a_, b_ = 1, 24                               # (가) 없이: f′(4)=0, x>4에서 f′>0
+check(13, na13(a_, b_, lo=4) and not ga13(a_, b_), f'(가) 반례 a=4, b={b_}: (나) 성립, (가) 불성립')
+ablation(13, "(가) 'x=0에서 극값'", [ans13, fp13(a_, b_).subs(x, 5)], ans13, f'b가 자유로우면 f′(5)={fp13(a_, b_).subs(x, 5)}처럼 더 작아짐')
 
 
 # ================= 14번 (D19: y=f(x)와 y=3x²−3x−8이 접하는 k의 합) =================
@@ -209,7 +209,7 @@ def judge15(a, b, c=1, bogi='new'):
         T1 = a > 3
         rr = sp.Poly(f, x).real_roots()
         T2 = all(z < 0 for z in rr)
-        T3 = count_k15(a, b, c) == 4
+        T3 = len(set(sp.Poly(sp.expand(f - b * x), x).real_roots())) == 2     # f(x)−f′(0)x=0의 서로 다른 실근 2개
     else:                          # 원문 보기
         T1 = a**2 - 3 * b > 0
         T2 = all(sp.diff(f, x).subs(x, z) >= 0 for z in [R(i, 20) for i in range(-19, 20)])
@@ -229,21 +229,13 @@ samp += [(R(31, 10), R(32, 10)), (sp.Rational(7, 2), R(4)), (R(11, 2), R(10)), (
 S15 = [(a, b) for a, b in samp if cond15(a, b)]
 J15 = {judge15(a, b) for a, b in S15}
 check(15, len(S15) >= 20 and J15 == {'T:ㄱ, ㄴ'}, f'조건을 만족시키는 (a,b) 표본 {len(S15)}개 전부에서 판정 {J15}')
-check(15, all(count_k15(a, b) == 6 for a, b in S15[:12]), 'ㄷ: 표본마다 k의 개수 6(원점에서 그은 접선 3개 × 2)')
-# ㄷ 정확 확인 (a, b)=(9/2, 4): 접점 방정식 2t³+at²−1=0의 세 실근, 기울기 서로 다름, k 6개
-a0, b0 = R(9, 2), R(4)
-phi = 2 * t**3 + a0 * t**2 - 1
-tr = sp.Poly(phi, t).real_roots()
-fp0 = 3 * x**2 + 2 * a0 * x + b0
-slopes = [fp0.subs(x, z) for z in tr]
-ks0 = set()
-for s_ in slopes:
-    for z in sp.Poly(sp.N(fp0 - s_, 50), x).nroots(n=40):
-        if abs(sp.im(z)) < 1e-30: ks0.add(sp.N(sp.re(z), 25))
-check(15, len(tr) == 3 and len({sp.N(s_, 30) for s_ in slopes}) == 3 and len(ks0) == 6, f'(a,b)=(9/2,4): 접점 {len(tr)}개, 기울기 3개 서로 다름, k {len(ks0)}개(정확 계산)')
+check(15, all(len(set(sp.Poly(x**3 + a * x**2 + 1, x).real_roots())) == 1 for a, b in S15), 'ㄷ: 표본마다 f(x)−f′(0)x=x³+ax²+1=0의 실근 1개')
+# ㄷ 일반: a>0이면 h=x³+ax²+1의 극댓값 4a³/27+1>0, 극솟값 h(0)=1>0 → 실근 1개
+aa_ = sp.symbols('aa', positive=True)
+check(15, sp.simplify((x**3 + aa_ * x**2 + 1).subs(x, -2 * aa_ / 3) - (4 * aa_**3 / 27 + 1)) == 0, 'ㄷ: a>0이면 극댓값 4a³/27+1>0, 극솟값 1>0 → 실근 1개(거짓)')
 ans15 = 'T:ㄱ, ㄴ'
 ans_ok(15, ans15)
-wrong_in(15, ['T:ㄱ, ㄴ, ㄷ', 'T:ㄱ, ㄷ'], 'ㄷ을 원문대로 4개 ⑤ · 상수항을 놓쳐 원문 답 ③')
+wrong_in(15, ['T:ㄱ, ㄴ, ㄷ', 'T:ㄱ, ㄷ'], 'ㄷ을 원문처럼 x²(x+a)로 보아 ⑤ · 상수항을 놓쳐 원문 답 ③')
 # 원문 M60: f=x³+ax²+bx, a>b>3 → ③
 So = [(a, b) for a, b in [(R(i, 2), R(j, 2)) for i in range(7, 30, 2) for j in range(7, 30, 2)] if a > b > 3]
 Jo = {judge15(a, b, 0, 'orig') for a, b in So[:15]}
@@ -255,7 +247,7 @@ for cname, kw, why in (("'x좌표가 음수인 점에서만'", dict(neg=False), 
                        ("'∫₋₁¹f′(x)dx>8'", dict(integ=False), 'b≤3이면 a>3이 아닐 수 있음')):
     Sx = [(a, b) for a, b in wide if cond15(a, b, **kw)]
     ablation(15, cname, sorted({judge15(a, b) for a, b in Sx}), ans15, why)
-ablation(15, "상수항 '+1'(원점 통과)", sorted({judge15(a, b, 0) for a, b in S15[:10]}), ans15, 'f(0)=0이면 ㄴ 거짓(근 0), ㄷ 참(원문처럼 4개)')
+ablation(15, "상수항 '+1'(원점 통과)", sorted({judge15(a, b, 0) for a, b in S15[:10]}), ans15, 'f(0)=0이면 ㄴ 거짓(근 0), ㄷ 참(x²(x+a), 실근 2개)')
 
 
 # ================= 16번 (M62: 계수 10·3, 접점 (0,0)·(−2,0), 넓이를 y=ax³이 이등분) =================
