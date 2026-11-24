@@ -116,14 +116,10 @@ print('ABLATION 7 f(1) 항: 필요(빼면 k = 2*5 = 10, f(3) =', (x**3 - 30*x + 
 print('ABLATION 7 대칭 구간 [-1,1]: 필요([0,2]이면 k, c 연립이', solve([integrate(f7, (x, 0, 2)) - k, f7.subs(x, 1) - c], [k, c]), ')')
 
 # ===== 8번 =====
-f8 = 2*x**3 + a*x**2 + b*x + 11; g8 = -2*x + 3
-s8 = solve([diff(f8, x).subs(x, -1), f8.subs(x, -1) - 17], [a, b], dict=True)
-assert s8 == [{a: -2, b: -10}]
-F8 = f8.subs(s8[0]); assert F8.subs(x, -1) > g8.subs(x, -1)             # x=-1 근처 h=f
+F8 = 2*x**3 - 2*x**2 - 10*x + 11; g8 = -2*x + 3
 assert expand(F8 - g8 - 2*(x - 2)*(x - 1)*(x + 2)) == 0
-# 꺾인 점이 극대가 되는 경우 배제: 교점에서 극대이려면 왼쪽 함수 증가·오른쪽 함수 감소인데 큰 값이라 불가 → x=-1은 교점이 아님을 직접 확인
-assert (F8 - g8).subs(x, -1) != 0
-# 수치로 h의 극값 전수
+assert diff(F8, x).subs(x, -2) > 0 and diff(F8, x).subs(x, 2) > 0 and diff(F8, x).subs(x, 1) < -2   # 바깥 교점 극소, 가운데 아님
+assert set(solve(diff(F8, x), x)) == {-1, R(5, 3)} and F8.subs(x, R(5, 3)) < g8.subs(x, R(5, 3))   # f의 극소점은 g 아래
 hfun = sp.lambdify(x, sp.Max(F8, g8)); N = 60001; xs = [-6 + 12*i/(N - 1) for i in range(N)]; hv = [hfun(v) for v in xs]
 mins = [(round(xs[i], 3), round(hv[i], 4)) for i in range(1, N - 1) if hv[i] < hv[i - 1] and hv[i] < hv[i + 1]]
 maxs = [(round(xs[i], 3), round(hv[i], 4)) for i in range(1, N - 1) if hv[i] > hv[i - 1] and hv[i] > hv[i + 1]]
@@ -133,8 +129,6 @@ ans8 = g8.subs(x, -2) + g8.subs(x, 2)
 w8 = g8.subs(x, -2) + g8.subs(x, 1) + g8.subs(x, 2)                    # 가운데 교점도 극소로
 assert w8 == g8.subs(x, -2)                                              # 왼쪽 교점만 본 값과 같음
 chk(8, ans8, [w8])
-print('ABLATION 8 극댓값 17: 필요(빼면 b=2a-6 한 식뿐, a가 정해지지 않음)')
-print('ABLATION 8 x=-1에서 극대: 필요(빼면 a, b 두 미지수에 식 하나)')
 print('ABLATION 8 g 기울기 -2: 필요(원문처럼 +2이면 f-g 의 근이 바뀌고 가운데 교점이 극소 후보, 답 달라짐)')
 
 assert [IT[n]['ans'] for n in (5, 6, 7, 8)] == [2, 5, 3, 1]

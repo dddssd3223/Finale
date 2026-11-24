@@ -71,23 +71,21 @@ assert all(a1.subs(t, T) != val1 for T in (1, 3, 4))
 print('ABLATION 1 시각 t=2: 필요(시각을 바꾸면 가속도가 바뀜)')
 
 # ===== 2번 =====
-f2 = 2*x**3 - x; g2 = x**2 + 1
-assert expand(f2.subs(x, -x) + f2) == 0 and expand(g2.subs(x, -x) - g2) == 0           # 기함수·우함수(LIVE 설정 그대로)
-h2 = expand(f2*g2)
-val2 = integrate((x + 2)*diff(h2, x), (x, -1, 1))
-assert val2 == 8 and val2 == 4*h2.subs(x, 1)
-assert integrate(x*diff(h2, x), (x, -1, 1)) == 0                                        # xh'은 기함수
-w2b = integrate(20*x**4 + 6*x**2 - 2, (x, 0, 1))                                       # 짝수차항만 남긴 뒤 2배 누락
-w2c = 2*(h2.subs(x, 1) - 0)                                                             # h(-1)을 0으로
-assert w2b == 4 and w2c == 4
-chk(2, val2, [w2b])
+f2 = 10*x**3 + 3*x
+assert expand(f2.subs(x, -x) + f2) == 0                                                 # 기함수
+val2 = integrate((x + 2)*f2, (x, -1, 1))
+assert val2 == 6 and val2 == 2*integrate(x*f2, (x, 0, 1))
+assert integrate(2*f2, (x, -1, 1)) == 0
+w2 = integrate(10*x**4 + 3*x**2, (x, 0, 1))                                            # 짝수차항만 남긴 뒤 2배 누락
+assert w2 == 3
+assert val2 not in (24, 16)                                                             # 원문·N제 답과 다름
+chk(2, val2, [w2])
 for cc in (1, 3, -2):
-    assert integrate((x + cc)*diff(h2, x), (x, -1, 1)) != val2
-print('ABLATION 2 가중 (x+2): 필요(상수를 바꾸면 값이 바뀜)')
-assert integrate((x + 2)*diff(h2, x), (x, 0, 1)) != val2 and integrate((x + 2)*diff(h2, x), (x, -2, 2)) != val2
+    assert integrate((x + cc)*f2, (x, -1, 1)) == val2                                   # 상수 c는 값에 영향 없음
+assert integrate(f2, (x, -1, 1)) == 0 != val2
+print('ABLATION 2 곱하는 x: 필요(없으면 0)')
+assert integrate((x + 2)*f2, (x, 0, 1)) != val2 and integrate((x + 2)*f2, (x, -2, 2)) != val2
 print('ABLATION 2 구간 [-1,1]: 필요(구간을 바꾸면 값이 바뀜)')
-assert integrate((x + 2)*diff(f2, x), (x, -1, 1)) != val2 and integrate((x + 2)*diff(expand(f2*(x**2 + 2)), x), (x, -1, 1)) != val2
-print('ABLATION 2 g(x)=x^2+1: 필요(g를 빼거나 바꾸면 값이 바뀜)')
 
 # ===== 3번 =====
 p3, q3, d3 = x**2 + x, 3*x - 2, x**2 - 2*x + 2

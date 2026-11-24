@@ -227,7 +227,7 @@ ko15 = [r for r in sp.solve(sp.integrate(fo, (x, 0, k)), k) if r > 4]
 check(15, ko15 == [orig_ans('J65')] == [6], f'원문 J65: ∫₀^k f=0, k>4 → {ko15} = 원문 답')
 # 빼 보기: 'R이 Q보다 오른쪽' 단서가 없으면 0<k<q(R이 선분 PQ 위)도 가능: B=∫_k^q(50−f) = A/2 ⇔ k=0
 Bin = sp.integrate(c15 - fr, (x, 0, qn))
-ablation(15, "'점 R의 x좌표는 점 Q의 x좌표보다 크다'", [0, ans15], ans15, 'k=0이면 R이 선분 PQ 위에 있고 B=A/2')
+ablation(15, "'점 Q의 x좌표보다 큰 (상수 k)'", [0, ans15], ans15, 'k=0이면 R이 선분 PQ 위에 있고 B=A/2')
 check(15, abs(A15 - 2 * Bin) < 1e-25, 'k=0일 때 B(=곡선과 선분 QR, 직선 x=0으로 둘러싸인 부분)=A/2 확인')
 ablation(15, "기준선 직선 y=50(→ 원문처럼 x축)", [w15a], ans15, '장치가 답을 바꿈')
 ablation(15, "'점 P의 x좌표는 음수'", [0], ans15, 'Q가 왼쪽 점 (−q, 50)이면 k=0일 때 B(왼쪽 절반)=A/2')
