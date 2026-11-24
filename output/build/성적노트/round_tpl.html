@@ -130,7 +130,7 @@ if(D.rank){
   c.forEach((v,i)=>{g+=`<line x1="${X(v)}" x2="${X(v)}" y1="${T-4}" y2="${Y(0)}" stroke="var(--muted)" stroke-dasharray="2 2" stroke-width=".8"/><text x="${X(v)}" y="${Y(0)+12}" text-anchor="middle">${i+1}컷 ${fmt(v)}</text>`});
   ['5','4','3','2','1'].forEach((t,i)=>{g+=`<text x="${(X(ed[i])+X(ed[i+1]))/2}" y="${Y(0)+24}" text-anchor="middle" style="fill:var(--muted)">${t}등급</text>`});
   g+=`<line x1="${X(total)}" x2="${X(total)}" y1="${T-12}" y2="${Y(0)}" stroke="var(--red)" stroke-width="2"/><circle cx="${X(total)}" cy="${T-12}" r="3" fill="var(--red)"/>`;
-  g+=`<text x="${X(total)+6}" y="${T-15}" style="fill:var(--red);font-weight:600">나 ${fmt(total)}점 · 약 ${R.pos}등</text>`;
+  {const rt=X(total)>W*0.6;g+=`<text x="${X(total)+(rt?-6:6)}" y="${T-15}" text-anchor="${rt?'end':'start'}" style="fill:var(--red);font-weight:600">나 ${fmt(total)}점 · 약 ${R.pos}등</text>`;}
   const gr=R.pct<=10?1:R.pct<=34?2:R.pct<=66?3:R.pct<=90?4:5;
   h+=`<section class="card rank"><h2>내 위치 <small>${R.n}명 환산 · 5등급제</small></h2><div class="rk"><b class="num">약 ${R.pos}등</b><span>/ ${R.n}명 · 상위 ${fmt(R.pct)}% · 예상 ${gr}등급</span></div><svg viewBox="0 0 ${W} ${Hh}" width="100%" role="img" aria-label="${R.n}명 환산 점수 분포와 내 위치">${g}</svg><p class="rknote">1·2컷은 이번 회 예상 컷, 3·4컷은 1학기 기말 실제 컷 간격으로 추정</p></section>`;
 }
