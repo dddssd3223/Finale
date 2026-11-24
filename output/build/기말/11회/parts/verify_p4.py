@@ -236,7 +236,7 @@ ablation(15, "'점 P의 x좌표는 음수'", [0], ans15, 'Q가 왼쪽 점 (−q,
 # ================= 16번 (M61: (f∘f)(x)=x의 모든 실근 −1,1,a,7,b, f′(−1)−f′(3)=7, f(3)) =================
 a_, b_, K_ = sp.symbols('a_ b_ K_')
 LAB = [sp.Integer(-1), sp.Integer(1), a_, sp.Integer(7), b_]
-COND16 = lambda ff: sp.diff(ff, x).subs(x, -1) - sp.diff(ff, x).subs(x, 3) - 7
+COND16 = lambda ff: sp.diff(ff, x).subs(x, 2) - sp.diff(ff, x).subs(x, 4) - 2
 
 
 def roots_num(F_):
@@ -298,13 +298,13 @@ check(16, (A16, B16, K16) == (5, 13, R(1, 16)), f'a={A16}, b={B16}, 최고차항
 f16 = x + K16 * (x + 1) * (x - A16) * (x - B16)
 rr16 = sorted(set(sp.Poly(sp.expand(f16.subs(x, f16) - x), x).real_roots()))
 check(16, rr16 == [-1, 1, 5, 7, 13] and f16.subs(x, 1) == 7 and f16.subs(x, 7) == 1 and COND16(f16) == 0,
-      f'(f∘f)(x)=x의 실근 {rr16}, f(1)=7, f(7)=1, f′(−1)−f′(3)=7')
+      f'(f∘f)(x)=x의 실근 {rr16}, f(1)=7, f(7)=1, f′(2)−f′(4)=2')
 ans_ok(16, ans16)
 # 오답 ① 원문 습관(등간격·짝 대칭): a=(1+7)/2=4, b=9, f(1)=7에서 k
 fs = x + K_ * (x + 1) * (x - 4) * (x - 9)
 ks = sp.solve(fs.subs(x, 1) - 7, K_)[0]
 fs = fs.subs(K_, ks)
-check(16, fs.subs(x, 7) == 1 and COND16(fs) != 0, f'등간격 습관 f(k={ks})는 f(1)=7, f(7)=1은 맞지만 f′(−1)−f′(3)={COND16(fs) + 7}≠7')
+check(16, fs.subs(x, 7) == 1 and COND16(fs) != 0, f'등간격 습관 f(k={ks})는 f(1)=7, f(7)=1은 맞지만 f′(2)−f′(4)={COND16(fs) + 2}≠2')
 w16a = fs.subs(x, 3)
 w16b = 2 * A16 - f16.subs(x, 2 * A16 - 3)         # 점 (a, a) 대칭으로 착각
 check(16, f16.subs(x, 2 * A16 - 3) == 1 and sp.simplify(f16.subs(x, 2 * A16 - x) - (2 * A16 - f16)) != 0, '곡선은 점 (5, 5)에 대하여 대칭이 아님(오답 ④ 경로가 틀린 근거)')
@@ -313,11 +313,32 @@ fo16 = x + x * (x - R(3, 2)) * (x - 3)
 check(16, fo16.subs(x, 5) == orig_ans('M61') == 40 and sp.diff(fo16, x).subs(x, 0) - sp.diff(fo16, x).subs(x, 1) == 6, '원문 M61: f=x+x(x−3/2)(x−3), f′(0)−f′(1)=6, f(5)=40 = 원문 답')
 # 빼 보기
 S_no_order, _ = solve16(order=False)
-ablation(16, "단서 '1<a<7<b'", [s[3] for s in S_no_order], ans16, f'해 {[(str(s[0]), str(s[1]), str(s[2])) for s in S_no_order]}')
+check(16, sorted((s[0], s[1]) for s in S_no_order) == [(5, 13), (13, 5)], f"단서 '1<a<7<b'는 a, b의 이름만 정함(빼면 a, b를 바꾼 해만 더해짐: {[(str(s[0]), str(s[1])) for s in S_no_order]}) — 원문 단서 그대로, 빼 보기 대상 아님")
 S_no_pos, _ = solve16(pos=False)
-ablation(16, "'최고차항의 계수가 양수'", [s[3] for s in S_no_pos], ans16, f'해 {[(str(s[0]), str(s[1]), str(s[2])) for s in S_no_pos]}')
+# 최고차항의 계수가 음수이면 고정점이 하나(a)이고 짝 둘이 a를 사이에 두는 배치도 가능: 수치 탐색(b를 훑고 미분계수 조건의 부호 변화)
+def fit16(pts):
+    M = np.array([[p_**3, p_**2, p_, 1] for p_, _ in pts], float); y = np.array([q_ for _, q_ in pts], float)
+    return np.linalg.solve(M, y)
+def cnd16(c):
+    d = np.polyder(c); return np.polyval(d, 2) - np.polyval(d, 4) - 2
+alt16 = []
+for nm, mk in [('-1↔b, 1↔7', lambda bb: [(-1, bb), (bb, -1), (1, 7), (7, 1)]), ('-1↔7, 1↔b', lambda bb: [(-1, 7), (7, -1), (1, bb), (bb, 1)])]:
+    bs = np.linspace(7.001, 80, 40000); vv = np.array([cnd16(fit16(mk(bb))) for bb in bs])
+    for i0 in np.where(np.sign(vv[:-1]) != np.sign(vv[1:]))[0]:
+        lo, hi = bs[i0], bs[i0 + 1]
+        for _ in range(80):
+            m_ = (lo + hi) / 2
+            if np.sign(cnd16(fit16(mk(m_)))) == np.sign(cnd16(fit16(mk(lo)))): lo = m_
+            else: hi = m_
+        cc = fit16(mk((lo + hi) / 2))
+        fxp = [r.real for r in np.roots(np.polysub(cc, [0, 0, 1, 0])) if abs(r.imag) < 1e-7]
+        P1 = np.poly1d(cc); rr = sorted(r.real for r in np.roots(np.polysub(P1(P1).coeffs, [0] * 8 + [1, 0])) if abs(r.imag) < 1e-6)
+        if len(fxp) == 1 and 1 < fxp[0] < 7 and len(rr) == 5:
+            alt16.append((nm, round((lo + hi) / 2, 4), round(fxp[0], 4), cc[0], round(float(np.polyval(cc, 3)), 4)))
+check(16, len(alt16) >= 1 and all(z[3] < 0 for z in alt16), f'최고차항 음수·고정점 하나 배치(수치): {alt16}')
+ablation(16, "'최고차항의 계수가 양수'", [s[3] for s in S_no_pos] + [sp.Float(z[4], 6) for z in alt16], ans16, f'음수 계수 배치 (짝, b, a, k, f(3)) {alt16}')
 _, famc = solve16(cond=False)
-ablation(16, "f′(−1)−f′(3)=7", None, ans16, undef=f'짝 1↔7 구조에서 a, b, k가 한 매개변수로 남음(family={famc}); 예: 등간격 a=4, b=9이면 f(3)={w16a}')
+ablation(16, "f′(2)−f′(4)=2", None, ans16, undef=f'짝 1↔7 구조에서 a, b, k가 한 매개변수로 남음(family={famc}); 예: 등간격 a=4, b=9이면 f(3)={w16a}')
 
 print()
 print('ALL OK' if ok else 'SOME FAIL')
