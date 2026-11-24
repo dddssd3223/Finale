@@ -98,8 +98,12 @@ alt = [a for a in range(-200, 201) if len(crit9(a)[0]) == 2 and sum(ks(crit9(a)[
 print(f'ABLATION 9 합 2: 필요(합 6이면 a = {alt}, f(−1) = {[((x + 2)**2 * (x - 3 * a)).subs(x, -1) for a in alt]})'); assert alt and alt != [2]
 alt2 = [a for a in range(-200, 201) if len(crit9(a)[0]) == 2 and sum(ks(crit9(a)[0], Fr(1))) == 2]
 print(f'ABLATION 9 구간 길이 3/2: 필요(길이 1이면 합 2인 a = {alt2})'); assert alt2 != [2]
-alt3 = [a for a in range(-200, 201) if len(crit9(a, 0)[0]) == 2 and sum(ks(crit9(a, 0)[0])) == 2]
-print(f'ABLATION 9 이중근 −2: 필요(x²(x−3a)이면 합 2인 a = {alt3})'); assert alt3 != [2]
+alt3 = []
+for i in range(-600, 601):                      # a를 1/6 간격 실수로 넓히면
+    av = Rational(i, 6)
+    cr3 = sorted({Fr(str(r)) for r in solve(diff((x + 2)**2 * (x - 3 * av), x), x)})
+    if len(cr3) == 2 and sum(ks(cr3)) == 2: alt3.append(av)
+print(f'ABLATION 9 정수 a: 필요(실수 a이면 합 2인 a가 {alt3[:6]}… 등 여럿)'); assert len(alt3) > 1
 
 # ---------- 10번 (J8) ----------
 A, B, Cc = symbols('A B Cc')
