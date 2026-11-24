@@ -53,6 +53,9 @@ CSS = r"""
 @font-face{font-family:'NSq';src:url('file://@N@NanumSquareEB.ttf');font-weight:800}
 @font-face{font-family:'NBG';src:url('file://@N@NanumBarunGothic.ttf')}
 @font-face{font-family:'NBG';src:url('file://@N@NanumBarunGothicBold.ttf');font-weight:700}
+@font-face{font-family:'BD';src:url('file://@F@/busan_L.ttf');font-weight:300}
+@font-face{font-family:'BD';src:url('file://@F@/busan_M.ttf');font-weight:500}
+@font-face{font-family:'BD';src:url('file://@F@/busan_B.ttf');font-weight:700}
 @font-face{font-family:'SJ';src:url('file://@F@/shinjung.ttf')}
 @font-face{font-family:'HB';src:url('file://@F@/hbatang_web.ttf')}
 @font-face{font-family:'NMJ';src:url('file://@N@NanumMyeongjo.ttf')}
@@ -147,6 +150,11 @@ table.cut td.h{font-weight:700;text-align:left;padding-left:0}
 .an{text-align:right;font-family:'NSq';font-size:8.4pt;margin-top:4pt;break-before:avoid}
 .an span{display:inline-block;background:var(--bp);color:var(--b);font-weight:700;font-size:7.4pt;padding:0 5pt;margin-right:5pt;border-radius:1pt}
 .sec{column-span:all;font-family:'NSq';font-weight:800;font-size:10pt;color:#fff;background:var(--b);display:inline-block;padding:2pt 10pt;margin:6pt 0 8pt;position:relative}
+/* 박스 안 글꼴: 부산단디고딕 — 본문 M, 제목 B, 보조 L (사용자 2026-11-24) */
+.cb .bd,.og .bd,.st ul,.cm{font-family:'BD','NBG',sans-serif;font-weight:500}
+.cb .h,.og .h,.st .sh,.cm .who{font-family:'BD','NSq',sans-serif;font-weight:700}
+.cb .h .k,.og .h .r{font-family:'BD','NSq',sans-serif;font-weight:300}
+.cb .bd b,.og .bd b,.cm b{font-weight:700}
 """
 
 def tag(a, b, cls=''):
