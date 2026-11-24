@@ -244,7 +244,7 @@ def roots_num(F_):
     return sorted({round(float(sp.re(z)), 8) for z in P9.nroots(n=30, maxsteps=300) if abs(sp.im(z)) < 1e-12})
 
 
-def solve16(pos=True, order=True, cond=True):
+def solve16(pos=False, order=True, cond=True, fixedset=True):
     """(f∘f)(x)=x의 해집합 위 대응 전수: 고정점 3개 + 짝 1개(짝 10가지).
     고정점이 1개(r)이면 k>0에서 g=f−x는 x<r에서 음, x>r에서 양이라 짝 p<q(g(p)>0, g(q)<0)가 생길 수 없다(아래 check).
     조건을 만족시키는 (a, b, K, f(3)) 목록. cond=False면 자유 매개변수가 남는지 보고 'family'로 표시"""
@@ -281,6 +281,8 @@ def solve16(pos=True, order=True, cond=True):
                 continue
             if pos and not KK > 0:
                 continue
+            if fixedset and set(map(str, [LAB[z] for z in fx])) != {'-1', 'a_', 'b_'}:
+                continue
             if order and not (1 < A < 7 < B):
                 continue
             F_ = ff.subs(s)
@@ -290,9 +292,8 @@ def solve16(pos=True, order=True, cond=True):
     return sorted(out, key=str), fam
 
 
-S16, fam16 = solve16()
-check(16, len(S16) == 1, f'짝 1개 10가지 전수(고정점 1개 배치는 부호로 불가): 해 {S16}')
-rr_ = sp.symbols('rr_'); check(16, True, '고정점 1개 r, k>0: g(p)=q−p>0 ⇒ p>r, g(q)=p−q<0 ⇒ q<r 이므로 p<q 불가(짝 2개 배치 없음)')
+S16, fam16 = solve16()   # 본문: 최고차항 부호 조건 없음, f(x)=x의 실근이 −1, a, b
+check(16, len(S16) == 1, f'고정점 −1, a, b·짝 1↔7, 최고차항 부호 제한 없이 전수: 해 {S16}')
 A16, B16, K16, ans16 = S16[0]
 check(16, (A16, B16, K16) == (5, 13, R(1, 16)), f'a={A16}, b={B16}, 최고차항의 계수 {K16}')
 f16 = x + K16 * (x + 1) * (x - A16) * (x - B16)
@@ -314,7 +315,7 @@ check(16, fo16.subs(x, 5) == orig_ans('M61') == 40 and sp.diff(fo16, x).subs(x, 
 # 빼 보기
 S_no_order, _ = solve16(order=False)
 check(16, sorted((s[0], s[1]) for s in S_no_order) == [(5, 13), (13, 5)], f"단서 '1<a<7<b'는 a, b의 이름만 정함(빼면 a, b를 바꾼 해만 더해짐: {[(str(s[0]), str(s[1])) for s in S_no_order]}) — 원문 단서 그대로, 빼 보기 대상 아님")
-S_no_pos, _ = solve16(pos=False)
+S_no_pos, _ = solve16(fixedset=False)   # 'f(x)=x의 실근이 −1, a, b'를 뺌(부호 조건도 없음)
 # 최고차항의 계수가 음수이면 고정점이 하나(a)이고 짝 둘이 a를 사이에 두는 배치도 가능: 수치 탐색(b를 훑고 미분계수 조건의 부호 변화)
 def fit16(pts):
     M = np.array([[p_**3, p_**2, p_, 1] for p_, _ in pts], float); y = np.array([q_ for _, q_ in pts], float)
@@ -335,8 +336,8 @@ for nm, mk in [('-1↔b, 1↔7', lambda bb: [(-1, bb), (bb, -1), (1, 7), (7, 1)]
         P1 = np.poly1d(cc); rr = sorted(r.real for r in np.roots(np.polysub(P1(P1).coeffs, [0] * 8 + [1, 0])) if abs(r.imag) < 1e-6)
         if len(fxp) == 1 and 1 < fxp[0] < 7 and len(rr) == 5:
             alt16.append((nm, round((lo + hi) / 2, 4), round(fxp[0], 4), cc[0], round(float(np.polyval(cc, 3)), 4)))
-check(16, len(alt16) >= 1 and all(z[3] < 0 for z in alt16), f'최고차항 음수·고정점 하나 배치(수치): {alt16}')
-ablation(16, "'최고차항의 계수가 양수'", [s[3] for s in S_no_pos] + [sp.Float(z[4], 6) for z in alt16], ans16, f'음수 계수 배치 (짝, b, a, k, f(3)) {alt16}')
+check(16, len(alt16) >= 1 and all(z[3] < 0 for z in alt16), f'고정점 조건이 없으면 생기는 고정점 하나·짝 둘 배치(수치, 최고차항 음수): {alt16}')
+ablation(16, "'f(x)=x의 서로 다른 실근은 −1, a, b뿐'", [s[3] for s in S_no_pos] + [sp.Float(z[4], 6) for z in alt16], ans16, f'고정점 하나·짝 둘 배치 (짝, b, a, k, f(3)) {alt16}')
 _, famc = solve16(cond=False)
 ablation(16, "f′(2)−f′(4)=2", None, ans16, undef=f'짝 1↔7 구조에서 a, b, k가 한 매개변수로 남음(family={famc}); 예: 등간격 a=4, b=9이면 f(3)={w16a}')
 
