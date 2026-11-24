@@ -157,6 +157,9 @@ table.cut td.h{font-weight:700;text-align:left;padding-left:0}
 .cb .h,.og .h,.st .sh,.cm .who{font-family:'BD','NSq',sans-serif;font-weight:700}
 .cb .h .k,.og .h .r{font-family:'BD','NSq',sans-serif;font-weight:300}
 .cb .bd b,.og .bd b,.cm b{font-weight:700}
+/* 부록 빠른 정답 */
+.apqa{break-before:page}.qas{display:grid;grid-template-columns:repeat(5,1fr);gap:4pt 8pt;font-family:'NSq';font-size:9pt}
+.qa{border-bottom:.6pt solid #e1e8ef;padding:3pt 4pt;display:flex;justify-content:space-between}.qa b{color:var(--b)}
 /* 부록: 원본 문항 (사용자 2026-11-24) — 한 쪽에 위 둘·여백·아래 둘 */
 #apx-src{width:100%}
 .apxh{display:inline-flex;font-family:'NSq';font-size:9pt;font-weight:800;margin:0 0 8pt}
@@ -226,10 +229,11 @@ def outside(s, f):
         out.append(f(s[i:m.start()])); out.append(m.group(0)); i = m.end()
     out.append(f(s[i:])); return ''.join(out)
 SUBN = lambda t: re.sub(r'\(([가나다라])\)', lambda m: '㈎㈏㈐㈑'['가나다라'.index(m.group(1))], re.sub(r'\(([1-5])\)', lambda m: '⑴⑵⑶⑷⑸'[int(m.group(1)) - 1], t))
+DFR = lambda t: re.sub(r'\\\(([\s\S]+?)\\\)', lambda m: '\\(' + re.sub(r'\\frac(?=\s*[{0-9])', r'\\dfrac', m.group(1)) + '\\)', t)
 def tidy(d):
     """소문항 번호 (1) → ⑴ (사용자 2026-11-23 괄호 금지)"""
     for k in ('body', 'think', 'justify'):
-        if d.get(k): d[k] = outside(d[k], SUBN)
+        if d.get(k): d[k] = DFR(outside(d[k], SUBN))
     for st in d.get('flow') or []:
         st['points'] = [outside(p, SUBN) for p in st.get('points') or []]
     v = d.get('variation') or {}
@@ -309,6 +313,8 @@ def appendix(c):
         src = f'부교재 {k}&nbsp;&nbsp;{F.D[k][1]}'.replace(' · ', ' ')
         out.append(f'<div class="ab"><div class="abh"><span class="chip"><span class="a">원본</span><span class="b">{lab}</span></span><span class="src">{src}</span></div>{body}{chs}</div>')
     out.append('</div>')
+    qa = ''.join(f'<span class="qa"><b>{lab}</b>{F.I[it.get("key")][2] if it.get("key") in F.I else ""}</span>' for lab, it in rows)
+    out.append(f'<div class="apqa"><div class="apxh"><span class="a">부록</span><span class="b">원본 빠른 정답</span></div><div class="qas">{qa}</div></div>')
     return ''.join(out)
 
 def build(rdir, out):

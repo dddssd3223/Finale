@@ -43,13 +43,17 @@ const { chromium } = require(path.join(NM, 'playwright-core'));
       src.appendChild(d);
     });
   });
+  await p.evaluate((K) => { for (const k of document.querySelectorAll('.katex')) { if (k.closest('.katex-display')) continue; let t = 1e9, b = -1e9;
+      for (const e of k.querySelectorAll('*')) { const r = e.getBoundingClientRect(); if (r.height > 0 && r.width > 0) { t = Math.min(t, r.top); b = Math.max(b, r.bottom); } }
+      const h = b - t, fs = parseFloat(getComputedStyle(k).fontSize); if (h > 2.1 * fs) { k.style.display = 'inline-block'; k.style.padding = (K * h) + 'px 0'; } } }, 0.12);
   // 단 너비를 넘는 수식은 글자 크기를 줄여 맞춤
   const fixed = await p.evaluate(() => { let n = 0;
     const span = e => { let l = 1e9, r = -1e9; for (const q of e.querySelectorAll('.base')) { const b = q.getBoundingClientRect(); if (b.width) { l = Math.min(l, b.left); r = Math.max(r, b.right); } } return r - l; };
     for (const e of document.querySelectorAll('.katex-display > .katex')) {
       const W = (e.closest('.it') || e.parentElement).clientWidth;
       let fs = parseFloat(getComputedStyle(e).fontSize), k = 0;
-      while (span(e) > W - 4 && k < 25) { fs *= 0.95; e.style.fontSize = fs + 'px'; k++; }
+      const d = e.parentElement;
+      while ((span(e) > W - 4 || d.scrollWidth > d.clientWidth + 1 || e.getBoundingClientRect().right > (e.closest('.it') || d).getBoundingClientRect().right + 1) && k < 30) { fs *= 0.95; e.style.fontSize = fs + 'px'; k++; }
       if (k) n++; }
     return n; });
   console.log('수식 줄인 개수', fixed);
