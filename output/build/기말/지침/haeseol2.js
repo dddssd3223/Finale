@@ -18,6 +18,31 @@ const { chromium } = require(path.join(NM, 'playwright-core'));
   await p.evaluate(() => document.fonts.ready);
   await p.evaluate(require('./eqfont.js')); await p.evaluate(() => document.fonts.ready);   // 수식 글자를 한글 수식 글꼴(HyhwpEQ)로 — 시험지와 같은 느낌(2026-11-24)
   await p.emulateMedia({ media: 'print' });
+  // 부록 배치: 박스를 두 개씩 한 줄로, 한 쪽에 위 줄·아래 줄(쪽 높이의 반씩). 한 줄이 반 쪽보다 크면 그 줄만 한 쪽을 다 쓴다.
+  await p.evaluate(() => {
+    const src = document.getElementById('apx-src'); if (!src) return;
+    const boxes = [...src.querySelectorAll('.ab')];
+    const W = src.clientWidth, colW = (W - 41.6) / 2, PAGE = 968, HALF = PAGE / 2 - 8;
+    boxes.forEach(b => { b.style.width = colW + 'px'; });
+    const rows = []; for (let i = 0; i < boxes.length; i += 2) rows.push(boxes.slice(i, i + 2));
+    const hOf = r => Math.max(...r.map(b => b.getBoundingClientRect().height));
+    const pages = []; let cur = [];
+    const firstOff = (document.querySelector('.apxh') || { getBoundingClientRect: () => ({ height: 0 }) }).getBoundingClientRect().height + 12;
+    for (const r of rows) {
+      const big = hOf(r) > HALF - (pages.length === 0 && cur.length === 0 ? firstOff : 0);
+      if (big) { if (cur.length) { pages.push(cur); cur = []; } pages.push([{ r, full: true }]); continue; }
+      cur.push({ r, full: false }); if (cur.length === 2) { pages.push(cur); cur = []; }
+    }
+    if (cur.length) pages.push(cur);
+    src.innerHTML = '';
+    pages.forEach((pg, pi) => {
+      const d = document.createElement('div'); d.className = 'apg'; if (pi === 0) d.style.height = (968 - firstOff) + 'px';
+      pg.forEach(({ r, full }) => { const h = document.createElement('div'); h.className = 'ahalf' + (full ? ' full' : '');
+        r.forEach(b => { b.style.width = ''; h.appendChild(b); }); d.appendChild(h); });
+      if (pg.length === 1 && !pg[0].full) { const h = document.createElement('div'); h.className = 'ahalf'; d.appendChild(h); }
+      src.appendChild(d);
+    });
+  });
   // 단 너비를 넘는 수식은 글자 크기를 줄여 맞춤
   const fixed = await p.evaluate(() => { let n = 0;
     const span = e => { let l = 1e9, r = -1e9; for (const q of e.querySelectorAll('.base')) { const b = q.getBoundingClientRect(); if (b.width) { l = Math.min(l, b.left); r = Math.max(r, b.right); } } return r - l; };

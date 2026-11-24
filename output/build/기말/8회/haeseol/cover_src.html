@@ -104,8 +104,27 @@ table.cut td.h{font-weight:700;text-align:left;padding-left:0}
 .sec{column-span:all;font-family:'NSq';font-weight:800;font-size:10pt;color:#fff;background:var(--b);display:inline-block;padding:2pt 10pt;margin:6pt 0 8pt;position:relative}
 /* 박스 안 글꼴: 부산단디고딕 — 본문 M, 제목 B, 보조 L (사용자 2026-11-24) */
 .cb .bd,.og .bd,.st ul,.cm{font-family:'BD','NBG',sans-serif;font-weight:500}
-.cb,.og,.flow,.cm,.ck,.tg,.mt,.cref,.p1,.p2{word-spacing:normal}   /* 띄어쓰기 줄임은 본문(신중명조)만 — 박스는 원래대로(2026-11-24) */
+.cb,.og,.flow,.cm,.ck,.tg,.mt,.cref,.p1,.p2,.ab .abh{word-spacing:normal}   /* 띄어쓰기 줄임은 본문(신중명조)만 — 박스는 원래대로(2026-11-24) */
 .cb .h,.og .h,.st .sh,.cm .who{font-family:'BD','NSq',sans-serif;font-weight:700}
 .cb .h .k,.og .h .r{font-family:'BD','NSq',sans-serif;font-weight:300}
 .cb .bd b,.og .bd b,.cm b{font-weight:700}
+/* 부록: 원본 문항 (사용자 2026-11-24) — 한 쪽에 위 둘·여백·아래 둘 */
+#apx-src{width:100%}
+.apxh{display:inline-flex;font-family:'NSq';font-size:9pt;font-weight:800;margin:0 0 8pt}
+.apxh span{padding:1pt 9pt;line-height:1.7}.apxh .a{background:var(--b);color:#fff}.apxh .b{background:var(--bp);color:var(--bd)}
+.ab{border:.8pt solid #c8cdd4;border-radius:2pt;padding:6pt 8pt 7pt;font-size:8.1pt;line-height:1.9;box-sizing:border-box;width:100%}
+.ab .abh{display:flex;align-items:center;gap:6pt;margin-bottom:4pt}
+.ab .abh .chip{display:inline-flex;font-family:'NSq';font-size:7.4pt;font-weight:700}
+.ab .abh .chip span{padding:0 5pt;line-height:1.75}.ab .abh .chip .a{background:#8c9097;color:#fff}.ab .abh .chip .b{background:#e3e5e8;color:#5e636b}
+.ab .abh .src{font-family:'BD','NSq',sans-serif;font-weight:300;font-size:7pt;color:#8a8f98}
+.ab .cond{border:.6pt solid #555;padding:2pt 6pt;margin:3pt 0}
+.ab .ci{display:block;padding-left:2.4em;text-indent:-2.4em}.ab .ck{display:inline-block;width:2.4em;text-indent:0;background:none;border-radius:0;padding:0;margin:0;font-size:inherit;break-inside:auto}.ab .cond{background:none}
+.ab fieldset.bogi{border:.6pt solid #555;margin:4pt 0;padding:1pt 6pt 3pt}.ab fieldset.bogi legend{font-size:7.4pt;padding:0 4pt;margin:0 auto}
+.ab .bi{display:block;padding-left:1.6em;text-indent:-1.6em}.ab .bk{display:inline-block;width:1.6em;text-indent:0}
+.ab .fig{text-align:center;margin:3pt 0}
+.ab .chs{display:flex;flex-wrap:wrap;gap:1pt 10pt;margin-top:3pt}
+.apg{height:968px;display:flex;flex-direction:column;break-after:page;break-inside:avoid}
+.apg:last-child{break-after:auto}
+.ahalf{flex:1 1 0;display:grid;grid-template-columns:1fr 1fr;column-gap:11mm;align-items:start;min-height:0}
+.ahalf.full{flex:2 1 0;grid-template-columns:1fr}
 </style></head><body style="margin:0"><div style="width:210mm;height:297mm;position:relative;overflow:hidden;background:#fff;page-break-after:always"><div style="position:absolute;left:24mm;top:28mm;font-family:NSq;font-size:9pt;letter-spacing:4pt;color:#8fb2e6">2026&nbsp;&nbsp;2학년 2학기</div><div style="position:absolute;left:24mm;top:40mm;font-family:NSq;font-weight:800;font-size:38pt;line-height:1.25;color:#2f5fae;letter-spacing:-1pt">미적분Ⅰ<br>기말 모의고사</div><div style="position:absolute;right:24mm;top:40mm;font-family:NSq;font-weight:800;font-size:72pt;color:#5f8fd8;letter-spacing:4pt">08</div><svg width="794" height="400" viewBox="0 0 595 300" style="position:absolute;left:0;top:330pt"><circle cx="110" cy="150" r="62" fill="none" stroke="#5f8fd8" stroke-width="26"/><circle cx="300" cy="150" r="62" fill="none" stroke="#8fb2e6" stroke-width="26"/><circle cx="300" cy="150" r="16" fill="#8fb2e6"/><circle cx="490" cy="150" r="62" fill="#5f8fd8"/><path d="M40 150 C 160 60, 240 240, 360 150 S 520 60, 595 150" fill="none" stroke="#c9d6ea" stroke-width="2" stroke-dasharray="3 5"/></svg><div style="position:absolute;left:24mm;top:230mm;font-family:NSq;font-weight:700;font-size:13pt;letter-spacing:6pt;color:#5f8fd8">정 답 및 해 설</div><div style="position:absolute;left:24mm;top:240mm;font-family:NSq;font-size:9pt;color:#8a8f98">기말 8회&nbsp;&nbsp;&nbsp;해설  변형 포인트  출제자의 총평</div><div style="position:absolute;left:0;right:0;bottom:16mm;text-align:center;font-family:NSq;font-size:9pt;color:#5f8fd8">양정고 미적분Ⅰ 기말 대비</div></div><div style="width:210mm;height:297mm;position:relative;overflow:hidden;background:#fff;">&nbsp;</div></body></html>

@@ -153,10 +153,29 @@ table.cut td.h{font-weight:700;text-align:left;padding-left:0}
 .sec{column-span:all;font-family:'NSq';font-weight:800;font-size:10pt;color:#fff;background:var(--b);display:inline-block;padding:2pt 10pt;margin:6pt 0 8pt;position:relative}
 /* 박스 안 글꼴: 부산단디고딕 — 본문 M, 제목 B, 보조 L (사용자 2026-11-24) */
 .cb .bd,.og .bd,.st ul,.cm{font-family:'BD','NBG',sans-serif;font-weight:500}
-.cb,.og,.flow,.cm,.ck,.tg,.mt,.cref,.p1,.p2{word-spacing:normal}   /* 띄어쓰기 줄임은 본문(신중명조)만 — 박스는 원래대로(2026-11-24) */
+.cb,.og,.flow,.cm,.ck,.tg,.mt,.cref,.p1,.p2,.ab .abh{word-spacing:normal}   /* 띄어쓰기 줄임은 본문(신중명조)만 — 박스는 원래대로(2026-11-24) */
 .cb .h,.og .h,.st .sh,.cm .who{font-family:'BD','NSq',sans-serif;font-weight:700}
 .cb .h .k,.og .h .r{font-family:'BD','NSq',sans-serif;font-weight:300}
 .cb .bd b,.og .bd b,.cm b{font-weight:700}
+/* 부록: 원본 문항 (사용자 2026-11-24) — 한 쪽에 위 둘·여백·아래 둘 */
+#apx-src{width:100%}
+.apxh{display:inline-flex;font-family:'NSq';font-size:9pt;font-weight:800;margin:0 0 8pt}
+.apxh span{padding:1pt 9pt;line-height:1.7}.apxh .a{background:var(--b);color:#fff}.apxh .b{background:var(--bp);color:var(--bd)}
+.ab{border:.8pt solid #c8cdd4;border-radius:2pt;padding:6pt 8pt 7pt;font-size:8.1pt;line-height:1.9;box-sizing:border-box;width:100%}
+.ab .abh{display:flex;align-items:center;gap:6pt;margin-bottom:4pt}
+.ab .abh .chip{display:inline-flex;font-family:'NSq';font-size:7.4pt;font-weight:700}
+.ab .abh .chip span{padding:0 5pt;line-height:1.75}.ab .abh .chip .a{background:#8c9097;color:#fff}.ab .abh .chip .b{background:#e3e5e8;color:#5e636b}
+.ab .abh .src{font-family:'BD','NSq',sans-serif;font-weight:300;font-size:7pt;color:#8a8f98}
+.ab .cond{border:.6pt solid #555;padding:2pt 6pt;margin:3pt 0}
+.ab .ci{display:block;padding-left:2.4em;text-indent:-2.4em}.ab .ck{display:inline-block;width:2.4em;text-indent:0;background:none;border-radius:0;padding:0;margin:0;font-size:inherit;break-inside:auto}.ab .cond{background:none}
+.ab fieldset.bogi{border:.6pt solid #555;margin:4pt 0;padding:1pt 6pt 3pt}.ab fieldset.bogi legend{font-size:7.4pt;padding:0 4pt;margin:0 auto}
+.ab .bi{display:block;padding-left:1.6em;text-indent:-1.6em}.ab .bk{display:inline-block;width:1.6em;text-indent:0}
+.ab .fig{text-align:center;margin:3pt 0}
+.ab .chs{display:flex;flex-wrap:wrap;gap:1pt 10pt;margin-top:3pt}
+.apg{height:968px;display:flex;flex-direction:column;break-after:page;break-inside:avoid}
+.apg:last-child{break-after:auto}
+.ahalf{flex:1 1 0;display:grid;grid-template-columns:1fr 1fr;column-gap:11mm;align-items:start;min-height:0}
+.ahalf.full{flex:2 1 0;grid-template-columns:1fr}
 """
 
 def tag(a, b, cls=''):
@@ -276,6 +295,22 @@ def cover(name, css):
             '<div style="position:absolute;left:0;right:0;bottom:16mm;text-align:center;font-family:NSq;font-size:9pt;color:#5f8fd8">양정고 미적분Ⅰ 기말 대비</div>'
             f'</div><div style="{pg.replace("page-break-after:always", "")}">&nbsp;</div></body></html>').replace('  ·  ', '&nbsp;&nbsp;&nbsp;')
 
+def appendix(c):
+    """부록: 시험지 번호 순서로 부교재 원본 문항을 박스로. 배치는 haeseol2.js가 쪽마다 위 둘·아래 둘로 나눈다."""
+    PARTS = '/home/user/Finale/output/build/부교재_기말/parts'
+    rows = [(f'{n:02d}', c.ITEMS[n]) for n in range(1, 19)] + [('서답 1', c.SITEMS['S1']), ('서답 2', c.SITEMS['S2'])]
+    out = ['<div class="apxh"><span class="a">부록</span><span class="b">원본 문항</span></div><div id="apx-src">']
+    for lab, it in rows:
+        k = it.get('key', '')
+        if k not in F.I: continue
+        body, ch = F.I[k][0], F.I[k][1]
+        body = re.sub(r'src="(fig_[^"]+)"', lambda m: f'src="file://{PARTS}/{m.group(1)}"', body)
+        chs = ('<div class="chs">' + ''.join(f'<span>{CIRC[i]} {(x[2:] if str(x).startswith("T:") else chr(92) + "(" + str(x) + chr(92) + ")")}</span>' for i, x in enumerate(ch[:5])) + '</div>') if ch else ''
+        src = f'부교재 {k}&nbsp;&nbsp;{F.D[k][1]}'.replace(' · ', ' ')
+        out.append(f'<div class="ab"><div class="abh"><span class="chip"><span class="a">원본</span><span class="b">{lab}</span></span><span class="src">{src}</span></div>{body}{chs}</div>')
+    out.append('</div>')
+    return ''.join(out)
+
 def build(rdir, out):
     rdir = os.path.abspath(rdir); name = os.path.basename(rdir); c = load(rdir)
     D = {}
@@ -338,7 +373,9 @@ def build(rdir, out):
     for s, lab in (('S1', '서답형 1'), ('S2', '서답형 2')):
         d = D.get(s)
         if d: H.append(item_html(lab, d, c, c.SITEMS[s]))
-    H.append('</div></body></html>')
+    H.append('</div>')
+    H.append('<div style="break-before:page"></div>' + appendix(c))
+    H.append('</body></html>')
     src = os.path.join(rdir, 'haeseol', 'book_src.html')
     open(src, 'w').write(fx(nodot(''.join(H))))
     body_pdf = os.path.join(rdir, 'haeseol', 'book_body.pdf'); cover_pdf = os.path.join(rdir, 'haeseol', 'cover.pdf')
