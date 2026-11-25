@@ -63,7 +63,7 @@ body{{width:1920px;height:1080px;overflow:hidden;background:#fbfaf4}}
 .pb{{position:absolute;left:190px;right:110px;top:160px;display:flex;gap:22px;font-family:'SJ';font-size:40px;line-height:1.9;color:#111;background:#fff;border:2px solid #d8dee8;border-radius:16px;padding:40px 48px}}
 .pb .qn{{font-family:'BD';color:#1f3c74}} .pb .qt{{min-width:0;flex:1}} .pb .katex{{font-size:1.02em}}
 .cond{{border:2px solid #333;padding:12px 24px;margin:12px 0}} .cr{{display:flex;gap:16px}} .cl{{font-family:'BD'}} .bh{{text-align:center;font-family:'BD'}}
-.chs{{display:flex;gap:60px;margin-top:10px}} .sub{{margin-top:10px}} .pt{{color:#777;font-size:.8em}}
+.chs{{display:flex;flex-wrap:wrap;column-gap:46px;row-gap:4px;margin-top:10px}} .sub{{margin-top:10px}} .pt{{color:#777;font-size:.8em}}
 .pb img{{max-height:330px;display:block;margin:8px 0}}
 .title{{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;font-family:'BPEN';color:#20304f}}
 .title .a{{font-size:44px;color:#6b7a94}} .title .b{{font-size:120px}} .title .c{{font-size:52px;color:#3b5a8c}}
