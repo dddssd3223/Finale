@@ -79,7 +79,7 @@ for d in items:
             for st in pg['steps']: states.append((pid, -1, st['say'], 'problem'))
             continue
         fig = pg.get('figure'); figh = f'<div class="fig"><img src="file://{RD}/{fig}"></div>' if fig else ''
-        lines = ''.join(f'<div class="ln {st.get("mark","")}" data-i="{i}"><span class="u">{st["board"]}</span></div>' for i, st in enumerate(pg['steps']))
+        lines = ''.join(f'<div class="ln {st.get("mark","")}" data-i="{i}"><span class="u">{H.DFR(st["board"])}</span></div>' for i, st in enumerate(pg['steps']))
         pages_html.append(f'<section class="pg" id="{pid}"><div class="hd"><span class="no">{lab}</span><span class="tt">{pg.get("heading","")}</span></div>{figh}<div class="bd{" wfig" if fig else ""}">{lines}</div></section>')
         states.append((pid, -1, None, 'blank'))
         for i, st in enumerate(pg['steps']): states.append((pid, i, st['say'], 'line'))
