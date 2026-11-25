@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """시험지 PDF → 실제 학교 스캔본처럼 보정한 PDF.
-사용: python3 scanlook.py <입력.pdf> <출력.pdf> [--seed N] [--white] [--full-ink]  (기본은 잉크 절약: 잉크색 66, 획 번짐·뒷면 비침 약하게)
+사용: python3 scanlook.py <입력.pdf> <출력.pdf> [--seed N] [--white] [--save-ink]  (--save-ink: 잉크색 66, 획 번짐·뒷면 비침 약하게)
 학교 스캔본 실측(2025 2학기 중간·기말, 2026 1학기 중간 업로드본):
   쪽 1190×1683 px(약 144dpi) JPEG, 종이 RGB≈(253,251,234) 크림색(--white면 흰 종이 253), 종이 얼룩 표준편차≈7,
   잉크≈(44,44,40) 짙은 회색, 획이 조금 굵고, 뒷면 글씨가 거울상으로 희미하게 비침, 약한 기울어짐·압축 깍두기."""
@@ -13,7 +13,7 @@ W, H = 1190, 1683          # 학교 스캔 쪽 크기(px)
 PAPER = np.array([253.4, 251.0, 234.5])
 PAPER_W = np.array([253.3, 253.3, 253.3])
 INK = np.array([44.0, 44.5, 40.0])
-INK_SAVE = np.array([66.0, 66.0, 62.0])   # 잉크 절약(기본, 2026-11-25 사용자: 인쇄 때 진한 곳이 걸림 — 약간만 줄여)
+INK_SAVE = np.array([66.0, 66.0, 62.0])   # --save-ink 때만(스캔본은 기본 진하게 유지; 인쇄용 절약은 원본에 inksave.py)
 
 def gray(page, scale=2):
     pix = page.get_pixmap(matrix=pymupdf.Matrix(W * scale / page.rect.width, H * scale / page.rect.height), colorspace=pymupdf.csGRAY)
@@ -55,13 +55,13 @@ def one(page, back, rng, white, full=False):
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('src'); ap.add_argument('out')
-    ap.add_argument('--seed', type=int, default=7); ap.add_argument('--white', action='store_true'); ap.add_argument('--full-ink', action='store_true', help='예전처럼 진하게')
+    ap.add_argument('--seed', type=int, default=7); ap.add_argument('--white', action='store_true'); ap.add_argument('--save-ink', action='store_true', help='잉크 절약(옅게)')
     a = ap.parse_args()
     rng = np.random.default_rng(a.seed)
     src = pymupdf.open(a.src); out = pymupdf.open()
     for i, p in enumerate(src):
         back = src[i + 1] if i + 1 < len(src) else None      # 양면 인쇄: 다음 쪽이 뒷면
-        jpg = one(p, back, rng, a.white, a.full_ink)
+        jpg = one(p, back, rng, a.white, not a.save_ink)
         q = out.new_page(width=p.rect.width, height=p.rect.height)
         q.insert_image(q.rect, stream=jpg)
     out.set_metadata({'title': src.metadata.get('title', ''), 'author': src.metadata.get('author', '')})
