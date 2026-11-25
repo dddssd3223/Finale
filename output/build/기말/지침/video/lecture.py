@@ -11,6 +11,10 @@ F = H.FONTS; NAN = '/usr/share/fonts/truetype/nanum/'
 VOICE = os.environ.get('LEC_VOICE', 'ko-KR-InJoonNeural')
 CS = '①②③④⑤'
 
+def figs_of(n):
+    it = c.SITEMS[n] if not str(n).isdigit() else c.ITEMS[int(n)]
+    return re.findall(r'src="(fig_[^"]+)"', it['body'] + str(it.get('after') or ''))
+
 def problem_html(n):
     if n == 'S2' or n == 'S1':
         it = c.SITEMS[n]
@@ -26,7 +30,7 @@ def problem_html(n):
         bogi = '<div class="cond"><div class="bh">&lt;보 기&gt;</div>' + ''.join(f'<div class="cr"><span class="cl">{k}.</span><span>{t}</span></div>' for k, t in it['bogi']) + '</div>'
     ch = it.get('choices') or []
     chs = '<div class="chs">' + ''.join(f'<span>{CS[i]} {x[2:] if str(x).startswith("T:") else chr(92)+"("+str(x)+chr(92)+")"}</span>' for i, x in enumerate(ch)) + '</div>'
-    body = re.sub(r'src="(fig_[^"]+)"', lambda m: f'src="file://{RD}/{m.group(1)}"', it['body'])
+    body = re.sub(r'<(?:div|span)[^>]*>\s*<img[^>]*>\s*</(?:div|span)>|<img[^>]*>', '', it['body'])
     return f'<div class="pb"><div class="qn">{n}.</div><div class="qt">{body}{cond}{after}{bogi}{chs}</div></div>'
 
 CSS = f"""
@@ -42,7 +46,7 @@ body{{width:1920px;height:1080px;overflow:hidden;background:#fbfaf4}}
 .pg:before{{content:'';position:absolute;left:150px;top:0;bottom:0;border-left:3px solid #f1b8b8}}
 .hd{{position:absolute;left:190px;top:34px;right:80px;display:flex;align-items:baseline;gap:26px;font-family:'BPEN';color:#20304f}}
 .hd .no{{font-size:54px}} .hd .tt{{font-size:40px;color:#3b5a8c}}
-.bd{{position:absolute;left:190px;right:110px;top:150px;bottom:40px;font-family:'PEN';font-size:58px;line-height:1.5;color:#1d2a46}}
+.bd{{position:absolute;left:800px;right:70px;top:150px;bottom:40px;font-family:'PEN';font-size:58px;line-height:1.5;color:#1d2a46}}
 .ln{{opacity:0;margin:4px 0}} .ln.v{{opacity:1}}
 .ln .katex{{font-size:.72em;color:#1d2a46}} .ln .katex-display{{margin:.15em 0 .15em 40px;text-align:left}} .ln .katex-display>.katex{{text-align:left}}
 .ln.key{{color:#c0392b}} .ln.key .katex{{color:#c0392b}} span.u{{display:inline-block;max-width:100%}} .ln.key>span.u{{border-bottom:4px solid #e57373;padding-bottom:2px}}
@@ -50,7 +54,12 @@ body{{width:1920px;height:1080px;overflow:hidden;background:#fbfaf4}}
 .ln.answer{{color:#1f7a3f}} .ln.answer .katex{{color:#1f7a3f}} .ln.answer>span.u{{border:4px solid #4caf73;border-radius:40px;padding:0 26px}}
 .fig{{position:absolute;right:110px;top:190px;width:640px;background:#fff;border:2px solid #d8dee8;border-radius:12px;padding:10px}}
 .fig img{{width:100%}}
-.bd.wfig{{right:800px}}
+.side{{position:absolute;left:30px;top:24px;width:730px;bottom:24px;display:flex;flex-direction:column;gap:14px}}
+.side .pb{{position:static;font-size:21px;line-height:1.75;padding:18px 22px;border-radius:12px;gap:10px}}
+.side .fig{{position:static;width:100%;max-height:430px;display:flex;justify-content:center}} .side .fig img{{height:380px;width:auto;max-width:100%}} .side .chs{{gap:22px;flex-wrap:wrap}} .chs span{{white-space:nowrap}}
+.pg.board:before{{left:780px}} .pg.board .hd{{left:800px}}
+.pfig{{position:absolute;right:70px;top:170px;width:560px;background:#fff;border:2px solid #d8dee8;border-radius:12px;padding:10px}} .pfig img{{width:100%}}
+.pg.wpf .pb{{right:660px}}
 .pb{{position:absolute;left:190px;right:110px;top:160px;display:flex;gap:22px;font-family:'SJ';font-size:40px;line-height:1.9;color:#111;background:#fff;border:2px solid #d8dee8;border-radius:16px;padding:40px 48px}}
 .pb .qn{{font-family:'BD';color:#1f3c74}} .pb .katex{{font-size:1.02em}}
 .cond{{border:2px solid #333;padding:12px 24px;margin:12px 0}} .cr{{display:flex;gap:16px}} .cl{{font-family:'BD'}} .bh{{text-align:center;font-family:'BD'}}
@@ -75,12 +84,14 @@ for d in items:
     for pg in d['pages']:
         pid = f'p{len(pages_html)}'
         if pg.get('kind') == 'problem':
-            pages_html.append(f'<section class="pg" id="{pid}"><div class="hd"><span class="no">{lab}</span><span class="tt">문제 읽기</span></div>{problem_html(n)}</section>')
+            fg = figs_of(n); pf = ''.join(f'<div class="pfig"><img src="file://{RD}/{f}"></div>' for f in fg[:1])
+            pages_html.append(f'<section class="pg{" wpf" if fg else ""}" id="{pid}"><div class="hd"><span class="no">{lab}</span><span class="tt">문제 읽기</span></div>{problem_html(n)}{pf}</section>')
             for st in pg['steps']: states.append((pid, -1, st['say'], 'problem'))
             continue
-        fig = pg.get('figure'); figh = f'<div class="fig"><img src="file://{RD}/{fig}"></div>' if fig else ''
+        fg = figs_of(n) or ([pg['figure']] if pg.get('figure') else [])
+        figh = f'<div class="side">{problem_html(n)}' + ''.join(f'<div class="fig"><img src="file://{RD}/{f}"></div>' for f in fg[:1]) + '</div>'
         lines = ''.join(f'<div class="ln {st.get("mark","")}" data-i="{i}"><span class="u">{H.DFR(st["board"])}</span></div>' for i, st in enumerate(pg['steps']))
-        pages_html.append(f'<section class="pg" id="{pid}"><div class="hd"><span class="no">{lab}</span><span class="tt">{pg.get("heading","")}</span></div>{figh}<div class="bd{" wfig" if fig else ""}">{lines}</div></section>')
+        pages_html.append(f'<section class="pg board" id="{pid}"><div class="hd"><span class="no">{lab}</span><span class="tt">{pg.get("heading","")}</span></div>{figh}<div class="bd">{lines}</div></section>')
         states.append((pid, -1, None, 'blank'))
         for i, st in enumerate(pg['steps']): states.append((pid, i, st['say'], 'line'))
 
