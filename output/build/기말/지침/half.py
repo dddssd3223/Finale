@@ -66,8 +66,8 @@ doc = f'<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" 
 # 정답 및 풀이
 rows = '<tr>' + ''.join(f'<th>{n}</th>' for n in sorted(ITEMS)) + '</tr><tr>' + ''.join(f'<td>{CS[ITEMS[n]["ans"]-1]}</td>' for n in sorted(ITEMS)) + '</tr>'
 sans = ''.join(' &nbsp; '.join(a if isinstance(a, list) else it['ans']) for it in SITEMS.values() for a in [it['ans']])
-sols = ''.join(f'<div class="sol"><div class="h">{n}번 · 정답 {CS[ITEMS[n]["ans"]-1]} <span style="font-weight:400;color:#555">(원래 {MAP.get(str(n),"")})</span></div>{ITEMS[n].get("sol","")}<div style="color:#555">오답: {ITEMS[n].get("wrong","")}</div></div>' for n in sorted(ITEMS))
-sols += ''.join(f'<div class="sol"><div class="h">서답형 {k[1]} <span style="font-weight:400;color:#555">(원래 {MAP.get(k,"")})</span></div>{it.get("sol","")}</div>' for k, it in SITEMS.items())
+sols = ''.join(f'<div class="sol"><div class="h">{n}번 · 정답 {CS[ITEMS[n]["ans"]-1]} <span style="font-weight:400;color:#555">(원래 {MAP.get(str(n),"")})</span></div>{"<br>".join(ITEMS[n]["sol"]) if isinstance(ITEMS[n].get("sol"), list) else ITEMS[n].get("sol","")}<div style="color:#555">오답: {ITEMS[n].get("wrong","")}</div></div>' for n in sorted(ITEMS))
+sols += ''.join(f'<div class="sol"><div class="h">서답형 {k[1]} <span style="font-weight:400;color:#555">(원래 {MAP.get(k,"")})</span></div>{"<br>".join(it["sol"]) if isinstance(it.get("sol"), list) else it.get("sol","")}</div>' for k, it in SITEMS.items())
 adoc = (f'<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="file://{KATEX_CSS}"><style>{CSS}</style></head><body>'
         f'<div class="hd"><span class="t">{TITLE} 정답 및 풀이</span><span class="s">원래 문항과 같은 판단을 다시 확인하자</span></div>'
         f'<div class="ans"><table>{rows}</table><div>서답형: {sans}</div></div><div class="cols">{sols}</div></body></html>')

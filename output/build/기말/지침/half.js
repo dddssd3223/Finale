@@ -4,7 +4,7 @@ const NM = path.join(__dirname, '..', 'node_modules');
 const katex = require(path.join(NM, 'katex')); const { chromium } = require(path.join(NM, 'playwright-core'));
 (async () => {
   const [inp, out] = process.argv.slice(2); let h = fs.readFileSync(inp, 'utf8');
-  const r = (s, d) => katex.renderToString(s, { displayMode: d, throwOnError: true, strict: false, trust: true });
+  const r = (s, d) => katex.renderToString(s, { displayMode: d, throwOnError: false, strict: false, trust: true });
   h = h.replace(/\\\[([\s\S]+?)\\\]/g, (m, s) => r(s, true)).replace(/\\\(([\s\S]+?)\\\)/g, (m, s) => r(s, false));
   const html = inp + '.k.html'; fs.writeFileSync(html, h);
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' }).catch(() => chromium.launch());
