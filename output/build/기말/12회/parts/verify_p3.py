@@ -112,47 +112,41 @@ ok(-1 not in solve(ha0, x), '10번 (빼 보기) a=0이면 x=−1은 교점이 �
 
 # ---------- 11번 (M37) ----------
 A = symbols('A')
-left = (x + 2) * (x - 2)
-right = x**3 - 3 * x**2 - 9 * x + A
-sA = solve(left.subs(x, -2) - right.subs(x, -2), A)
-ok(sA == [2], f'11번 x=−2에서 연속 → a = {sA}')
-def extrema(Av, N=4000, lo=-8, hi=8):
-    """격자 직접 확인: 이웃보다 엄격히 크거나 작은 점(조각함수 그대로)"""
-    rv = right.subs(A, Av)
-    fl = sp.lambdify(x, left); fr = sp.lambdify(x, rv)
-    F = lambda u: fl(u) if u < -2 else fr(u)
-    found = []
-    cand = [-2, -1, 3, 0]
-    for c in cand:
-        cf = float(c); e = 1e-4
-        y0, yl, yr = F(cf), F(cf - e), F(cf + e)
-        if (y0 > yl and y0 > yr) or (y0 < yl and y0 < yr): found.append(c)
-    return found
-ex = extrema(2)
-ok(ex == [-2, -1, 3], f'11번 극값을 갖는 x = {ex} (이음점 −2 극소, 꼭짓점 0은 구간 밖)')
-ok(diff(left, x).subs(x, -2) < 0 and diff(right, x).subs(x, -2) > 0, '11번 이음점: 왼쪽 미분계수 −4 <0, 오른쪽 15 >0')
-ok(all(diff(left, x).subs(x, s) < 0 for s in [-2 - Rational(i, 4) for i in range(1, 40)]), '11번 x<−2에서 f′=2x<0 (왼쪽 조각에 극점 없음)')
-# 격자 전수: x<−2 구간, x>−2 구간에서 다른 극점 없음
-fr2 = sp.lambdify(x, right.subs(A, 2)); fl2 = sp.lambdify(x, left)
-grid = [-8 + i * 0.001 for i in range(16001)]
-Fv = [fl2(u) if u < -2 else fr2(u) for u in grid]
-loc = [round(grid[i], 2) for i in range(1, len(grid) - 1) if (Fv[i] - Fv[i - 1]) * (Fv[i + 1] - Fv[i]) < 0 or (Fv[i] < Fv[i - 1] and Fv[i] < Fv[i + 1])]
-ok(sorted(set(loc)) == [-2.0, -1.0, 3.0], f'11번 격자 전수(0.001 간격) 극점 {sorted(set(loc))}')
-s11 = sum(ex)
-c11 = chk(11, s11)
-ok(0 + (-1) + 3 == 2 and -1 + 3 == 2, '11번 오답 2: 이음점 대신 꼭짓점 0을 셈(또는 f′=0의 근만 더함)')
+J = 1                                   # 이음점
+left = (x - 1) * (x - 5)
+right = x**3 - 9 * x**2 + 24 * x + A
+sA = solve(left.subs(x, J) - right.subs(x, J), A)
+ok(sA == [-16], f'11번 x=1에서 연속 → a = {sA}')
+def Ffun(Av):
+    fl = sp.lambdify(x, left); fr = sp.lambdify(x, right.subs(A, Av))
+    return lambda u: fl(u) if u < J else fr(u)
+def extrema(Av, lo=-6, hi=10, step=0.001):
+    """격자 전수: 이웃 두 점보다 엄격히 크거나 작은 점(조각함수 그대로)"""
+    F = Ffun(Av); n = int(round((hi - lo) / step))
+    g = [lo + i * step for i in range(n + 1)]; Fv = [F(u) for u in g]
+    return sorted({round(g[i], 2) for i in range(1, n) if (Fv[i] > Fv[i - 1] and Fv[i] > Fv[i + 1]) or (Fv[i] < Fv[i - 1] and Fv[i] < Fv[i + 1])})
+ex = extrema(-16)
+ok(ex == [1.0, 2.0, 4.0], f'11번 격자 전수(0.001 간격) 극값을 갖는 x = {ex} (이음점 1 극소, 꼭짓점 3은 구간 밖)')
+ok(diff(left, x).subs(x, J) < 0 and diff(right, x).subs(x, J) > 0, '11번 이음점: 왼쪽 미분계수 −4 <0, 오른쪽 9 >0')
+ok(all(diff(left, x).subs(x, J - Rational(i, 4)) < 0 for i in range(1, 40)), '11번 x<1에서 f′=2x−6<0 (왼쪽 조각에 극점 없음)')
+ok(expand(diff(right, x) - 3 * (x - 2) * (x - 4)) == 0, "11번 x>1에서 f′=3(x−2)(x−4)")
 ok(len(ex) == 3, '11번 극점이 정확히 셋(본문 서로 다른 세 실수와 맞음)')
+s11 = sum(Rational(round(e)) for e in ex)
+c11 = chk(11, s11)
+ok(3 + 2 + 4 == 9, '11번 오답 9: 이음점 대신 꼭짓점 3을 세 번째 극점으로 셈(원문 습관)')
 # 원문 M37: a=12, b=5 → 17
 ao = solve((-x**3 - x**2 + 8 * x + A).subs(x, 3), A)[0]
 b = symbols('b')
 bo = solve(-2 + Rational(4, 3) + (3 + b) / 2 - Rational(10, 3), b)[0]
 ok(ao == 12 and bo == 5 and ao + bo == 17, '11번 원문 M37 정답 17')
-# 빼 보기: 연속 조건이 없으면 a가 자유 → a=10이면 f(−2)=8 > 왼쪽 극한 0, 오른쪽은 증가 → x=−2는 극값 아님
-ex10 = extrema(10)
-print(f'ABLATION 11 연속: 필요(a=10이면 극값을 갖는 x = {ex10}, 셋이 아님)'); assert len(ex10) != 3
-# 왼쪽 조각을 (x+2)(x−b)로 두면 b&gt;−2에서 꼭짓점이 구간 밖 → 같은 갈래; 원문처럼 b가 꼭짓점을 안으로 넣으면(b&lt;−6) 갈래가 바뀜
-lb = (x + 2) * (x + 7)   # 꼭짓점 −9/2 (구간 안), 이음점 왼쪽 미분계수 5>0
-ok(diff(lb, x).subs(x, -2) > 0, '11번 (대비) 꼭짓점이 구간 안이면 이음점 양쪽이 증가라 극값이 아님 — 수치 선택이 갈래를 정함')
+# 빼 보기: 연속 조건이 없으면 a가 자유 → a=−10이면 f(1)=6 > 왼쪽 극한 0, 오른쪽은 증가 → x=1은 극값 아님
+fl_, fr_ = left, right.subs(A, -10)
+e_ = Rational(1, 10**4)
+v0, vl, vr = fr_.subs(x, J), fl_.subs(x, J - e_), fr_.subs(x, J + e_)
+is_ext = (v0 > vl and v0 > vr) or (v0 < vl and v0 < vr)
+print(f'ABLATION 11 연속: 필요(a=−10이면 f(1)={v0}, 왼쪽 {vl}, 오른쪽 {vr} → x=1 극값 {is_ext}, 극점 2, 4 둘뿐)'); assert not is_ext
+# 분석집 M37 변형①의 삼차 조각과 다름
+ok(expand(right.subs(A, 0) - (x**3 - 3 * x**2 - 9 * x)) != 0, '11번 삼차 조각이 분석집 변형①(x³−3x²−9x+a)과 다름')
 
 # ---------- 12번 (J72) ----------
 k = symbols('k')
