@@ -225,18 +225,12 @@ check(15, a15 == 2 and sp.expand(f15) == sp.expand(3 * x**2 + 4 * x + 2 * k - 3)
 f3 = sp.symbols('d3') * x**3 + c2 * x**2 + c1 * x + c0
 eq3 = sp.Poly(sp.expand(x * f3 - (2 * x**3 + a * x**2 + k * a + sp.integrate(f3.subs(x, t), (t, 1, x)))), x).all_coeffs()
 check(15, sp.solve(eq3, [sp.Symbol('d3'), c0, c1, c2], dict=True)[0][sp.Symbol('d3')] == 0, 'f가 삼차라 두면 삼차항 계수 0(f는 이차)')
-I01 = sp.integrate(f15, (x, 0, 1))
-T = {'ㄱ': a15 == 2,
-     'ㄴ': sp.diff(I01, k) == 0,
-     'ㄷ': sp.diff(f15, x).subs(x, a15) == 16}
-check(15, T == {'ㄱ': True, 'ㄴ': False, 'ㄷ': True}, f'보기 참거짓 {T} (∫₀¹f = {sp.expand(I01)})')
-ans15 = 'T:' + ', '.join(z for z in 'ㄱㄴㄷ' if T[z])
+ans15 = sp.diff(f15, x).subs(x, a15)
+check(15, ans15 == 16 and sp.diff(ans15, k) == 0 and sp.diff(sp.integrate(f15, (x, 0, 1)), k) != 0, f"f′(a)={ans15} (k와 무관), ∫₀¹f={sp.expand(sp.integrate(f15, (x, 0, 1)))}는 k에 따라 달라짐")
 ans_ok(15, ans15)
-# 오답: ㄴ을 참으로(∫가 정해진다고 봄) → ㄱ,ㄴ,ㄷ / 원문 a=−2로 f′=6x−4, f′(−2)=−16 → ㄷ 거짓 → ㄱ
-fo = solve15(cond=False, kv=3)
-fprime_o = sp.diff(3 * x**2 - 4 * x - 5, x)
-check(15, fprime_o.subs(x, -2) != 16, f"원문 a=−2 기억: f′(x)={fprime_o}, f′(a)={fprime_o.subs(x, -2)} ≠ 16 → ㄷ 거짓")
-wrong_in(15, ['T:ㄱ, ㄴ, ㄷ', 'T:ㄱ'], 'ㄴ 함정 · 원문 a=−2로 ㄷ 거짓')
+w15a = (6 * x + a15).subs(x, a15)     # ax²의 도함수를 ax로
+w15b = (6 * x).subs(x, a15)           # 미분식에서 ax² 항을 빠뜨림
+wrong_in(15, [w15a, w15b], 'f′=6x+a → 14 · f′=6x → 12')
 # 원문 I62: k=3, f(1)=∫₀¹f → a+f(3)=8
 fo_ = sp.symbols('fo')
 f = c2 * x**2 + c1 * x + c0
@@ -247,7 +241,7 @@ check(15, so[a] + f.subs(so).subs(x, 3) == orig_ans('I62') == 8, f'원문 I62 a+
 # 빼 보기: 적분 조건 없음 → a가 정해지지 않음
 S15n = solve15(cond=False)
 free = [s for s in S15n if a not in s]
-ablation(15, "'∫₀¹{f(t)−f(1)}dt=−4'", None, ans15, undef=f'a가 정해지지 않음(해 {S15n}) → ㄱ·ㄷ 참거짓 미정' if free or not S15n else '')
+ablation(15, "'∫₀¹{f(t)−f(1)}dt=−4'", [8 * av for av in [1, 2, 3]], ans15, f'a가 정해지지 않음(해 {S15n}), f′(a)=8a')
 
 # ================= 16번 (M58: f=x³−3px²+q, (가) |f| 극점 5개, (나) [−1,1]과 [−1,2p]에서 |f| 최댓값 같음, 25 이하 자연수 쌍 개수) =================
 def fM(p, q):
