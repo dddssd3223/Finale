@@ -202,69 +202,67 @@ ablation(14, "'[−2,2]에서 감소'", [], ans14, undef=f'b를 얼마든지 작
 g_noinc = [(av, bv) for av in [R(k, 1) for k in range(-30, 3)] for bv in [R(k, 1) for k in range(0, 10)] if cond14(av, bv, inc=False)]
 ablation(14, "'(−∞,−2]·[2,∞)에서 증가'", [], ans14, undef=f'a를 얼마든지 작게 할 수 있어 최솟값 없음(표본 최소 a+b {min(av + bv for av, bv in g_noinc)})')
 
-# ================= 15번 (D69: f 최고차항 1 사차, g: [−2,1]에서 f, 밖에서 x, h=g(x+)·g((x+3)+) 미분가능, h′(0)) =================
-cs = sp.symbols('c0:4')
-f15 = x**4 + cs[3] * x**3 + cs[2] * x**2 + cs[1] * x + cs[0]
+# ================= 15번 (D69: f 최고차항 1 이차, g: [−2,1]에서 f, 밖에서 x, h=g(x+)·g((x+3)+) 연속, f(2)) =================
+cs = sp.symbols('c0:2')
+kq = sp.symbols('kq')
 
 
-def gfun(fx):
-    return lambda z: z if (z < -2 or z > 1) else fx.subs(x, z)
+def Gright(fx, lo_, hi_):
+    """lim_{t→0+} g(z+t): z<lo이면 z, lo≤z<hi이면 f(z), z≥hi이면 z"""
+    return lambda zexpr, zval: zexpr if (zval < lo_ or zval >= hi_) else fx.subs(x, zexpr)
 
 
-def Gright(fx):
-    """lim_{t→0+} g(z+t): z<−2이면 z, −2≤z<1이면 f(z), z≥1이면 z (식으로 반환)"""
-    return lambda zexpr, zval: zexpr if (zval < -2 or zval >= 1) else fx.subs(x, zexpr)
-
-
-def hpieces(fx):
-    G = Gright(fx)
-    # 구간 대표점으로 각 조각의 식
+def hpieces(fx, lo_=-2, hi_=1, sh=3):
+    G = Gright(fx, lo_, hi_)
+    cuts = sorted({lo_ - sh, hi_ - sh, lo_, hi_})
+    pts = [-sp.oo] + cuts + [sp.oo]
     pieces = []
-    for lo_, hi_ in [(-sp.oo, -5), (-5, -2), (-2, 1), (1, sp.oo)]:
-        rep = (lo_ + hi_) / 2 if lo_ != -sp.oo and hi_ != sp.oo else (hi_ - 1 if lo_ == -sp.oo else lo_ + 1)
-        pieces.append(((lo_, hi_), sp.expand(G(x, rep) * G(x + 3, rep + 3))))
-    return pieces
+    for i in range(len(pts) - 1):
+        l_, r_ = pts[i], pts[i + 1]
+        rep = r_ - R(1, 2) if l_ == -sp.oo else (l_ + R(1, 2) if r_ == sp.oo else (l_ + r_) / 2)
+        pieces.append(((l_, r_), sp.expand(G(x, rep) * G(x + sh, rep + sh))))
+    return pieces, cuts
 
 
-def hval(fx, z):
-    G = Gright(fx)
-    return G(sp.Integer(z), z) * G(sp.Integer(z) + 3, z + 3)
+def hval(fx, z, lo_=-2, hi_=1, sh=3):
+    G = Gright(fx, lo_, hi_)
+    return G(sp.Integer(z), z) * G(sp.Integer(z) + sh, z + sh)
 
 
-def joins(fx):
-    """이음점 −5, −2, 1에서 (좌극한−함숫값, 좌미분−우미분) 식"""
-    pc = hpieces(fx)
+def cont_eqs(fx, lo_=-2, hi_=1, sh=3):
+    pc, cuts = hpieces(fx, lo_, hi_, sh)
     eqs = []
-    for i, c in enumerate([-5, -2, 1]):
+    for i, c in enumerate(cuts):
         L, Rr = pc[i][1], pc[i + 1][1]
-        eqs.append((sp.expand(L.subs(x, c) - Rr.subs(x, c)), sp.expand(sp.diff(L, x).subs(x, c) - sp.diff(Rr, x).subs(x, c)), sp.expand(Rr.subs(x, c) - hval(fx, c))))
-    return eqs
+        eqs += [sp.expand(L.subs(x, c) - hval(fx, c, lo_, hi_, sh)), sp.expand(Rr.subs(x, c) - hval(fx, c, lo_, hi_, sh))]
+    return [e for e in eqs if e != 0]
 
 
-J = joins(f15)
-sol15 = sp.solve([e for trip in J for e in trip], cs, dict=True)
-check(15, len(sol15) == 1, f'연속·미분가능 조건(이음점 3곳, 6+3식)의 해 {sol15}')
+f15 = x**2 + cs[1] * x + cs[0]
+sol15 = sp.solve(cont_eqs(f15), cs, dict=True)
+check(15, len(sol15) == 1, f'이음점 x=−5, −2, 1의 연속 조건(좌극한·우극한 = 함숫값)의 해 {sol15}')
 fs15 = sp.expand(f15.subs(sol15[0]))
-check(15, sp.factor(fs15 - x) == sp.factor((x + 2)**2 * (x - 1)**2), f'f(x) = x + {sp.factor(fs15 - x)}')
-check(15, all(sp.simplify(e) == 0 for trip in joins(fs15) for e in trip), 'h는 x=−5, −2, 1에서 연속이고 좌우 미분계수가 같음')
-check(15, hpieces(fs15)[2][1] == sp.expand((x + 3) * fs15), '−2≤x<1에서 h(x)=(x+3)f(x)')
-ans15 = sp.diff(hpieces(fs15)[2][1], x).subs(x, 0)
-check(15, fs15.subs(x, 0) == 4 and sp.diff(fs15, x).subs(x, 0) == -3 and ans15 == -5, f"f(0)={fs15.subs(x, 0)}, f′(0)={sp.diff(fs15, x).subs(x, 0)}, h′(0)={ans15}")
+check(15, sp.factor(fs15 - x) == sp.factor((x + 2) * (x - 1)) and not cont_eqs(fs15), f'f(x) = {fs15} (f(x)−x = {sp.factor(fs15 - x)}), h는 세 이음점에서 연속')
+# 연속의 직접 확인(수치 좌우)
+e_ = R(1, 10**6)
+G15 = Gright(fs15, -2, 1)
+hnum = lambda z: G15(z, z) * G15(z + 3, z + 3)
+check(15, all(abs(sp.N(hnum(sp.Integer(c)) - hnum(c - e_))) < 1e-4 and abs(sp.N(hnum(sp.Integer(c)) - hnum(c + e_))) < 1e-4 for c in [-5, -2, 1]), '수치 좌우 극한으로 연속 확인')
+ans15 = fs15.subs(x, 2)
+check(15, ans15 == 6, f'f(2) = {ans15}')
 ans_ok(15, ans15)
-f0 = sp.expand((x + 2)**2 * (x - 1)**2)
-w15a = f0.subs(x, 0) + 3 * sp.diff(f0, x).subs(x, 0)        # f−x 대신 f에 중근
-w15b = 3 * sp.diff(fs15, x).subs(x, 0)                         # 곱의 미분에서 f(0) 항 누락
-wrong_in(15, [w15a, w15b], 'f=(x+2)²(x−1)² → −8 · 3f′(0)만 → −9')
+fo1 = sp.expand((x**2 + cs[1] * x + cs[0]).subs(sp.solve(cont_eqs(x**2 + cs[1] * x + cs[0], -1, 1, 2), cs, dict=True)[0]))
+w15a = fo1.subs(x, 2)                                   # 원문 구간 [−1,1]·이동량 2대로
+w15b = sp.expand((x + 2) * (x - 1)).subs(x, 2)          # f−x에서 x를 빠뜨림
+check(15, fo1 == sp.expand(x**2 + x - 1), f'원문 수치(구간 [−1,1], 이동량 2)로 풀면 f = {fo1}')
+wrong_in(15, [w15a, w15b], '원문 수치대로 f=x²+x−1 → 5 · f=(x+2)(x−1) → 4')
 # 원문 D69: g는 [−1,1]에서 f, 이동량 2, 보기 ㄱ h(1)=3 참, ㄴ 거짓(반례), ㄷ 거짓(반례) → ① ㄱ
 def H_orig(fx):
     def G(zv):
         return zv if (zv < -1 or zv >= 1) else fx.subs(x, zv)
     return lambda zv: G(zv) * G(zv + 2)
-fo = x**2 + 5            # 일반 f (반례)
-ho = H_orig(fo)
-e_ = R(1, 10**6)
-gn = H_orig(fo)
-check(15, H_orig(fo)(1) == 3 and H_orig(x**3)(1) == 3, 'ㄱ h(1)=1·3=3 (f와 무관) 참')
+gn = H_orig(x**2 + 5)
+check(15, H_orig(x**2 + 5)(1) == 3 and H_orig(x**3)(1) == 3, 'ㄱ h(1)=1·3=3 (f와 무관) 참')
 check(15, abs(sp.N(gn(-1 - e_) - gn(-1))) > R(1, 10), f'ㄴ 반례 f=x²+5: x=−1에서 좌극한 {sp.N(gn(-1 - e_), 6)} ≠ h(−1)={gn(-1)} → 거짓')
 fd = -x - 3     # [−1,1]에서 감소, g(−1)=−2
 hd = H_orig(fd)
@@ -274,15 +272,16 @@ check(15, min(vals_) > inf_ and all(hd(z) != inf_ for z in [R(k, 10) for k in ra
       f'ㄷ 반례 f=−x−3: h의 값은 3f(1)={inf_}에 가까워지나 도달하지 않음 → 최솟값 없음, 거짓')
 check(15, orig_ans('D69') == 'T:ㄱ', f'원문 D69 답 {orig_ans("D69")} = ㄱ')
 # 빼 보기
-J0 = joins(f15)
-sol_c = sp.solve([J0[0][0], J0[1][0], J0[2][0], J0[0][2], J0[1][2], J0[2][2]], cs, dict=True)
-fam = [sp.expand(f15.subs(sol_c[0]).subs({c_: v for c_, v in zip(cs, vv)})) for vv in [(0, 0, 0, 0), (1, 1, 1, 1), (2, 0, 0, 3)]]
-ablation(15, "'미분가능'(→ 연속)", [sp.diff((x + 3) * ff, x).subs(x, 0) for ff in fam], ans15, f'연속만이면 f−x=(x+2)(x−1)(x²+px+q)꼴로 두 자유도({sol_c})')
-kk = sp.symbols('k')
-fk = x + kk * (x + 2)**2 * (x - 1)**2
-ablation(15, "'최고차항의 계수가 1'", [sp.diff((x + 3) * fk, x).subs(x, 0).subs(kk, kv) for kv in [1, 2, 3]], ans15, 'f=x+k(x+2)²(x−1)²이면 h′(0)=3−8k')
+fk = kq * x**2 + cs[1] * x + cs[0]
+alt = []
+for kv in [1, 2, 3, -1]:
+    s_ = sp.solve(cont_eqs(fk.subs(kq, kv)), cs, dict=True)
+    alt.append(sp.expand(fk.subs(kq, kv).subs(s_[0])).subs(x, 2))
+ablation(15, "'최고차항의 계수가 1'", alt, ans15, 'f(x)=x+k(x+2)(x−1)이면 f(2)=2+4k')
+ablation(15, "'연속'", [], ans15, undef='h에 조건이 없으면 f의 두 계수가 정해지지 않음')
+check(15, IT[15]['effect'] == '같음', "effect '같음'(원문 수준의 연속 조건)")
 
-# ================= 16번 (I76: f 최고차항 음수, f(0)=0, g=∫(|f|−2|t|), (가) 근 4개 (나) 1, 7에서 극값, f(7)g(1)>0, g′=0의 근의 합) =================
+# ================= 16번 (I76: f 최고차항 음수, f(0)=0, g=∫(|f|−2|t|), (가) 근 4개 (나) 1, 5에서 극값, f(1)>0>f(5), g(1)<0, g′=0의 근의 합) =================
 aa = sp.symbols('aa', real=True)
 
 
@@ -323,33 +322,35 @@ def cand16(K, P1, P2, lead_sign, use_ga=True):
     return out
 
 
-C16 = cand16(2, 1, 7, -1)
+C16 = cand16(2, 1, 5, -1)
 for c_ in C16:
-    print('   후보', c_['f'], '근', c_['roots'], '극값', c_['ext'], f"f(7)={c_['fP2']}, g(1)={c_['gP1']}, 곱 부호 {c_['prod']}, 근의 합 {c_['s']}")
-sel = [c_ for c_ in C16 if c_['prod'] > 0]
-check(16, len(C16) == 4 and len(sel) == 1, f'(가)(나)를 만족시키는 후보 {len(C16)}개 중 f(7)g(1)>0은 {len(sel)}개')
-check(16, sp.expand(sel[0]['f'] - (-R(2, 3) * x * (x**2 - 7 * x + 3))) == 0 and sel[0]['roots'] == [0, 1, 6, 7], f"f = {sel[0]['f']}, g′=0의 근 {sel[0]['roots']}")
+    ff = sp.expand(c_['f'])
+    c_['f1'] = ff.subs(x, 1)
+    print('   후보', c_['f'], '근', c_['roots'], '극값', c_['ext'], f"f(1)={c_['f1']}, f(5)={c_['fP2']}, g(1)={c_['gP1']}, 근의 합 {c_['s']}")
+step1 = [c_ for c_ in C16 if c_['f1'] > 0 > c_['fP2']]
+sel = [c_ for c_ in step1 if c_['gP1'] < 0]
+check(16, len(step1) == 2 and len(sel) == 1, f'(가)(나)를 만족시키는 후보 {len(C16)}개 중 f(1)>0>f(5)는 {len(step1)}개(후보 둘), 그중 g(1)<0은 {len(sel)}개')
+check(16, sp.expand(sel[0]['f'] - (x * (-x**2 + 5 * x - 2))) == 0 and sel[0]['roots'] == [0, 1, 4, 5] and sel[0]['ext'] == [0, 1, 4, 5], f"f = {sel[0]['f']}, g′=0의 근 {sel[0]['roots']}(모두 극값)")
 ans16 = sel[0]['s']
 ans_ok(16, ans16)
-others = {tuple(c_['roots']): c_['s'] for c_ in C16 if c_ is not sel[0]}
-wrong_in(16, [others[(0, 1, 4, 7)], others[(0, 1, 7, 8)]], '접하는 후보(근 0,1,4,7) → 12 · q(1)=q(7)=2 후보(근 0,1,7,8) → 16')
+other = [c_ for c_ in step1 if c_ is not sel[0]][0]
+wrong_in(16, [other['s'], 0 + 1 + 5], f"g(1) 부호를 안 본 후보(근 {other['roots']}) → 2 · 넷째 근 빠뜨림 0+1+5 → 6")
 # 원문 I76: |t|, 양수, 2·6, f(6)g(2)<0 → f(8)=40
 Co = cand16(1, 2, 6, 1)
 so = [c_ for c_ in Co if c_['prod'] < 0]
 check(16, len(so) == 1 and sp.expand(so[0]['f']).subs(x, 8) == orig_ans('I76') == 40, f"원문 I76: 후보 {len(Co)}개, f(6)g(2)<0은 {so[0]['f']}, f(8)={sp.expand(so[0]['f']).subs(x, 8)} = 원문 답")
-# 숨은 관계: 새 후보 = 원문꼴(|t|, 양수, 1·7) 후보의 −2배
-Cp = cand16(1, 1, 7, 1)
-check(16, sorted(str(sp.expand(-2 * c_['f'])) for c_ in Cp) == sorted(str(sp.expand(c_['f'])) for c_ in C16) if len(Cp) == len(C16) else False, '새 후보 = (|t|, 양수) 후보의 −2배(근 배치 보존, 부호 조건 반전)')
 # 빼 보기
-ablation(16, "'f(7)×g(1)>0'", [c_['s'] for c_ in C16], ans16)
-ablation(16, "'f(7)×g(1)>0'의 부등호(원문처럼 <0)", [c_['s'] for c_ in C16 if c_['prod'] < 0], ans16, '후보 셋')
-ablation(16, '(가) 근 4개', [c_['s'] for c_ in cand16(2, 1, 7, -1, use_ga=False) if c_['prod'] > 0], ans16, '이차항 계수가 연속적으로 움직임')
-alt_pos = [c_['s'] for c_ in cand16(2, 1, 7, 1) if c_['prod'] > 0]
-ablation(16, "'최고차항의 계수가 음수'(→ 양수)", alt_pos, ans16, '같은 부등호에서 후보 셋')
+ablation(16, "'g(1)<0'", [c_['s'] for c_ in step1], ans16)
+ablation(16, "'f(1)>0>f(5)'", [c_['s'] for c_ in C16 if c_['gP1'] < 0], ans16, '다른 부호 조합의 후보')
+ablation(16, '(가) 근 4개', [c_['s'] for c_ in cand16(2, 1, 5, -1, use_ga=False) if sp.expand(c_['f']).subs(x, 1) > 0 > c_['fP2'] and c_['gP1'] < 0], ans16, '이차항 계수가 연속적으로 움직임')
+alt_pos = [c_['s'] for c_ in cand16(2, 1, 5, 1) if sp.expand(c_['f']).subs(x, 1) > 0 > c_['fP2'] and c_['gP1'] < 0]
+ablation(16, "'최고차항의 계수가 음수'(→ 양수)", alt_pos, ans16, '양수이면 f(1)>0>f(5)인 후보가 없음')
 alt_nb = []
-for P1_, P2_ in [(1, 5), (2, 8), (1, 7)]:
-    alt_nb += [c_['s'] for c_ in cand16(2, P1_, P2_, -1) if c_['prod'] > 0]
-ablation(16, '(나) 극값 위치 1, 7', alt_nb, ans16, '극값 위치를 (1,5), (2,8)로 두어도 (가)와 부호 조건을 만족시키는 함수가 있음')
+for P1_, P2_ in [(1, 4), (1, 6), (2, 5)]:
+    alt_nb += [c_['s'] for c_ in cand16(2, P1_, P2_, -1) if sp.expand(c_['f']).subs(x, 1) > 0 > sp.expand(c_['f']).subs(x, 5) and c_['gP1'] < 0]
+alt_nb += [ans16]
+ablation(16, '(나) 극값 위치 1, 5', alt_nb, ans16, '극값 위치를 (1,4), (1,6)으로 두어도 나머지 조건을 만족시키는 함수가 있음')
+check(16, IT[16]['effect'] == '어려워짐', "effect '어려워짐'(회차 13–16 어려워짐 1–2 기준을 이 문항이 채움)")
 
 print()
 print('ALL OK' if ok else 'SOME FAIL')
