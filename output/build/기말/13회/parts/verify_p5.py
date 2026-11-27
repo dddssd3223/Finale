@@ -1,150 +1,139 @@
 # -*- coding: utf-8 -*-
-# 17번 후보 A17 2판 (J38: 이어 붙인 함수 g의 극댓값·극솟값의 합, 수평선과 둘러싸인 넓이) 검증 · author='claude'
+# 17번 후보 A17 3판 (M32: 두 영점이 a, a-18인 삼차함수, 방정식 f(x)-xf'(k)=0의 실근이 2개인 k의 개수) 검증 · author='claude'
 import sympy as sp, os, sys, re
-x, c = sp.symbols('x c', real=True)
+x, k, t, a, p, m = sp.symbols('x k t a p m', real=True)
 R = sp.Rational
 ns = {}; exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'p5.py')).read(), ns)
 IT = ns['ITEMS'][17]
 
-# 연속 → f(x) = x + c(x-1)(x-3)
-p_, q_ = sp.symbols('p q')
-fg = c*x**2 + p_*x + q_
-s = sp.solve([fg.subs(x, 1) - 1, fg.subs(x, 3) - 3], [p_, q_], dict=True)[0]
-f = x + c*(x - 1)*(x - 3)
-assert sp.expand(fg.subs(s) - f) == 0
-pole = sp.solve(sp.diff(f, x), x)[0]
-vtx = sp.simplify(f.subs(x, pole))
-assert sp.simplify(pole - (2 - 1/(2*c))) == 0 and sp.simplify(vtx - (2 - c - 1/(4*c))) == 0
-print('연속 → f = x+c(x-1)(x-3), 극점 2-1/(2c), 그 값 2-c-1/(4c)')
+
+def nk(f, line=x):
+    """방정식 f(x)-line*f'(k)=0의 서로 다른 실근이 정확히 2개인 실수 k의 개수(정확 계산).
+    실근 2개 ⇔ x에 대한 판별식이 0이고 세 근이 모두 같지는 않음(도함수의 판별식도 0이면 세 근이 같음)."""
+    h = sp.expand(f - sp.diff(f, x).subs(x, k)*line)
+    P = sp.Poly(sp.discriminant(h, x), k)
+    T = sp.Poly(sp.discriminant(sp.diff(h, x), x), k)
+    g = sp.gcd(P, T)
+    roots = set(sp.real_roots(P, multiple=True))
+    bad = set(sp.real_roots(g, multiple=True)) if g.degree() > 0 else set()
+    return len(roots - bad)
 
 
-def extrema(cv):
-    """g의 (극댓값 목록, 극솟값 목록) — 정확 판정: x=1, 극점, x=3의 좌우 증감"""
-    fv = f.subs(c, cv); d = sp.diff(fv, x)
-    pv = pole.subs(c, cv)
-    mx, mn = [], []
-    # x=1: 왼쪽 증가. 오른쪽 f'(1+)
-    r1 = d.subs(x, 1)
-    if r1 < 0: mx.append(sp.Integer(1))
-    # x=3: 오른쪽 증가. 왼쪽 f'(3-)
-    l3 = d.subs(x, 3)
-    if l3 < 0: mn.append(sp.Integer(3))
-    if 1 < pv < 3:
-        (mn if cv > 0 else mx).append(fv.subs(x, pv))
-    return mx, mn
+def brute(f, kv):
+    """직접 세기: k=kv일 때 서로 다른 실근의 개수."""
+    h = sp.Poly(sp.expand(f - sp.diff(f, x).subs(x, kv)*x), x)
+    return len(set(sp.real_roots(h, multiple=True)))
 
 
-def extrema_brute(cv, N=6000):
-    """눈금으로 직접 찾기(검산용): [-1, 5]에서 이웃보다 큰/작은 점"""
-    fv = sp.lambdify(x, f.subs(c, cv))
-    g = lambda t: t if (t < 1 or t > 3) else fv(t)
-    xs = [-1 + 6*j/N for j in range(N + 1)]; ys = [g(t) for t in xs]
-    mx = [ys[i] for i in range(1, N) if ys[i] > ys[i - 1] and ys[i] > ys[i + 1]]
-    mn = [ys[i] for i in range(1, N) if ys[i] < ys[i - 1] and ys[i] < ys[i + 1]]
-    return mx, mn
+F = lambda av, gap=18: sp.expand((x - av)*(x - av + gap)**2)
 
+# ---------- 1) (가), (나)에서 f(x) 결정
+# (가): (x-a)f(x)≥0 ⇔ f의 부호가 x=a에서만 음→양 ⇔ f=(x-a)(x-p)^2 (p≠a이면 p에서 부호 불변, p=a이면 (x-a)^3). (나) f(a-18)=0 → p=a-18
+fp = (x - a)*(x - p)**2
+assert sp.solve(sp.Eq(fp.subs(x, a - 18), 0), p) == [a - 18]
+fa = (x - a)*(x - a + 18)**2
+assert sp.expand((x - a)*fa - (x - a)**2*(x - a + 18)**2) == 0                 # (가) 성립
+mir = (x - a)**2*(x - a + 18)                                             # 거꾸로 둔 식은 (가)에 어긋남
+assert ((x - a)*mir).subs({a: 0, x: -10}) < 0
+print('f(x)=(x-a)(x-a+18)^2 (거꾸로 둔 (x-a)^2(x-a+18)은 (가)에 어긋남)')
+assert sp.expand(sp.diff(fa, x) - 3*(x - a + 6)*(x - a + 18)) == 0
 
-for cv in [R(-3), R(-1), R(-3, 5), R(-1, 2), R(-1, 4), R(1, 10), R(1, 4), R(1, 2), R(3, 5), R(1), R(5, 4), R(2), R(4)]:
-    a1, b1 = extrema(cv); a2, b2 = extrema_brute(cv)
-    assert len(a1) == len(a2) and len(b1) == len(b2), cv
-    assert all(abs(float(u) - v) < 1e-3 for u, v in zip(a1, a2)) and all(abs(float(u) - v) < 1e-3 for u, v in zip(b1, b2)), cv
-print('극값 판정 OK: |c|≤1/2 없음 · c<-1/2 극대(조각 안)·극소 3(이음점) · c>1/2 극대 1(이음점)·극소(조각 안)')
+# ---------- 2) 접하는 점의 방정식과 판별식
+G = sp.factor(sp.expand(fa.subs(x, t) - t*sp.diff(fa, x).subs(x, t)))
+q = 2*t**2 - a*t - a*(a - 18)
+assert sp.expand(G + (t - a + 18)*q) == 0
+D = sp.factor(sp.discriminant(q, t)); assert sp.expand(D - 9*a*(a - 16)) == 0
+assert sp.expand(q.subs(t, a - 18) + 36*(a - 18)) == 0                    # t=a-18이 ㉠의 근 ⇔ a=18
+assert sp.expand(q.subs(t, a - 6)) == 72                                  # ㉠의 근에서 f'≠0
+assert sp.expand(q.subs(t, a - 12) - (288 - 18*a)) == 0                   # 세 근이 같아지는 것은 a=16뿐
+assert set(sp.solve(q.subs(a, 18), t)) == {0, 9}
+f0, f16 = F(0), F(16)
+assert sp.expand(f0 - 324*x - x**2*(x + 36)) == 0 and sp.diff(f0, x).subs(x, 0) == 324
+assert sp.expand(f16 + 108*x - (x - 4)**3) == 0 and sp.diff(f16, x).subs(x, 4) == -108
+print('접하는 점: (t-a+18){2t^2-at-a(a-18)}=0, D=9a(a-16) · a=0: x^2(x+36) · a=16: (x-4)^3')
 
-# 합 조건: 경우별 방정식
-K = R(7, 4)
-neg = [t for t in sp.solve(sp.Eq(vtx + 3, K), c) if t.is_real and t < R(-1, 2)]
-pos_all = sp.solve(sp.Eq(1 + vtx, K), c)
-pos = [t for t in pos_all if t > R(1, 2)]
-assert neg == [] and sorted(pos_all) == [R(1, 4), 1] and pos == [1]
-# c<-1/2이면 합 > 6
-u = sp.symbols('u', positive=True)
-assert sp.simplify((vtx + 3).subs(c, -u) - (5 + u + 1/(4*u))) == 0 and sp.minimum(u + 1/(4*u), u, sp.Interval.open(0, sp.oo)) == 1
-# 눈금 전수: 극댓값·극솟값을 모두 갖고 합이 7/4인 c
-grid = [R(n, 40) for n in range(-200, 201) if n != 0]
-sol = []
-for cv in grid:
-    a_, b_ = extrema(cv)
-    if len(a_) == 1 and len(b_) == 1 and a_[0] + b_[0] == K: sol.append(cv)
-    assert len(a_) <= 1 and len(b_) <= 1
-assert sol == [1]
-c0 = sp.Integer(1); f0 = sp.expand(f.subs(c, c0))
-assert f0 == x**2 - 3*x + 3
-print('조건 → c =', c0, ', f =', f0, '(c=1/4은 극값이 없어 버림, c<0은 합>6)')
+# ---------- 3) 전수: k의 개수가 2 ⇔ 0<a≤16
+ints = list(range(-60, 81))
+grid = sorted(set(ints + [R(n, 8) for n in range(-24, 170)]))
+tab = {av: nk(F(av)) for av in grid}
+assert all((tab[av] == 2) == (0 < av <= 16) for av in grid)
+assert tab[0] == 4 and tab[18] == 4 and tab[16] == 2 and tab[17] == 6 and tab[-1] == 6
+assert set(tab.values()) == {2, 4, 6}
+print('k의 개수: 0<a≤16 → 2, a=0·18 → 4, 그 밖 → 6 (정수 -60~80, 눈금 1/8로 -3~21)')
+# 범위 밖(|a|가 큰 쪽)은 식으로: D>0이면 ㉠의 근 중 a-18이 아닌 t가 있고 f'(t)≠0, 세 근이 같지 않아 k가 3개 이상(위 2)의 세 항등식)
+# 직접 세기로 다시 확인: 조건에 맞는 k는 a-18, a-6 (0<a≤16)
+for av in [1, 5, R(7, 2), 12, 16]:
+    assert brute(F(av), av - 18) == 2 and brute(F(av), av - 6) == 2
+    assert all(brute(F(av), av - 18 + R(j, 4)) != 2 for j in range(-40, 120) if j not in (0, 48))
+assert brute(F(16), 4) == 1 and brute(F(0), 0) == 2 and brute(F(18), 9) == 2 and brute(F(-2), 4) == 2 and brute(F(-2), -5) == 2
+good = [av for av in ints if tab[av] == 2]
+ANS = len(good)
+assert good == list(range(1, 17)) and ANS == 16
+print('조건을 만족시키는 정수 a: 1~16 →', ANS, '개')
 
-# 넓이: 그래프와 직선 y=1
-inter = sorted(sp.solve(sp.Eq(f0, 1), x)); assert inter == [1, 2]
-assert all(f0.subs(x, 1 + R(j, 20)) < 1 for j in range(1, 20)) and all(f0.subs(x, 2 + R(j, 20)) > 1 for j in range(1, 21))
-S = sp.integrate(1 - f0, (x, 1, 2))
-ANS = 12*S
-print('S =', S, ', 12S =', ANS)
-assert S == R(1, 6)
-
-# 선지
-ch = IT['choices']; vs = [int(t) for t in ch]
+# ---------- 4) 선지
+ch = IT['choices']; vs = [int(c) for c in ch]
 assert ch[IT['ans'] - 1] == str(ANS) and IT['ans'] == 2
 assert len(set(vs)) == 5 and len({vs[i + 1] - vs[i] for i in range(4)}) == 1 and vs == sorted(vs)
 print('정답 = 선지 ②, 선지 오름차순 등차', vs[1] - vs[0])
 
-# 오답
-fq = f.subs(c, R(1, 4)); rq = sorted(sp.solve(sp.Eq(fq, 1), x)); assert rq == [-1, 1]
-w4 = 12*R(1, 4)*(rq[1] - rq[0])**3/6                       # c=1/4을 거르지 않음 + 공식
-w4b = 12*R((2 - 1)**3, 3)                                  # c=1에서 분모 3
-w1 = 12*sp.integrate(1 - f0, (x, 1, R(3, 2)))              # 극소점까지만 적분
-assert w4 == 4 and w4b == 4 and w1 == 1 and extrema(R(1, 4)) == ([], [])
-cc = sp.solve(sp.Eq(1 + f.subs(x, 2), K), c)[0]            # 꼭짓점 x=2로 잡는 원문 습관
-assert cc == R(5, 4) and 12*cc*(2 - 1/cc)**3/6 == R(108, 25)
-assert set(IT['wrongs']) == {'1', '4'} and all(w in ch for w in IT['wrongs'])
-print('오답 근거 OK: 4(c=1/4을 거르지 않음 · 분모 3), 1(극소점까지만 적분) · 꼭짓점 습관은 108/25로 선지 밖')
-assert ANS not in {1, 3, R(7, 4), 12} and ANS != 28
-print('정답은 본문의 수·원문 답 28과 다름')
+# ---------- 5) 오답
+cnt = lambda c: len([n for n in ints if c(n)])
+w15 = cnt(lambda n: D.subs(a, n) < 0)                       # 판별식 음수만(a=16 제외)
+w17a = cnt(lambda n: D.subs(a, n) <= 0)                     # 판별식 0 이하 모두(a=0 포함)
+w17b = cnt(lambda n: 0 < n < 18)                            # 어림: 원점이 두 영점 사이
+w18 = cnt(lambda n: 0 < n <= 18)                            # 어림 + 원문 상황 a=18
+w19 = cnt(lambda n: 0 <= n <= 18)
+assert (w15, w17a, w17b, w18, w19) == (15, 17, 17, 18, 19)
+assert set(IT['wrongs']) == {'15', '17', '18'} and all(w in ch for w in IT['wrongs'])
+print('오답 근거 OK: 15(D<0만), 17(D≤0 또는 0<a<18), 18(0<a≤18), 19(0≤a≤18)')
+assert ANS not in {1, 18, 2} and ANS != 19
+print('정답은 본문의 수·원문 답 19와 다름')
 
-# 원문 J38
+# ---------- 6) 원문 M32: 19
 sys.path.insert(0, '/home/user/Finale/output/build/부교재_기말')
 import items_final as Fm
-o = Fm.I['J38']; assert o[2] == '28'
-So = sp.integrate(x, (x, 0, 4)) + sp.integrate(f - x, (x, 1, 3))
-co = sp.solve(sp.Eq(So, R(34, 3)), c)[0]
-xm = pole.subs(c, co); M = f.subs({c: co, x: xm})
-assert co == R(-5, 2) and xm == R(11, 5) and M == R(23, 5) and M.p + M.q == 28
-print('원문 J38 OK: c=-5/2, 최댓값 23/5, 28')
-# 원문 줄 불통: 원문의 자리(c<0)는 조건에서 빠지고, 묻는 넓이는 조각 넓이 4|c|/3과 다름
-assert neg == [] and S != R(4, 3)*c0
-print('원문 줄 불통: c<0은 모두 조건 밖 · 묻는 넓이 1/6 ≠ 조각 넓이 4/3')
+o = Fm.I['M32']; assert o[2] == '19'
+fo = x**2*(x - 4)
+ks = sorted(set(sp.solve(sp.diff(fo, x) - 0, x) + sp.solve(sp.diff(fo, x) + 4, x)))
+assert all(brute(fo, kv) == 2 for kv in ks) and nk(fo) == 4
+S = sum(ks); assert S == R(16, 3) and S.p + S.q == 19
+print('원문 M32 OK: k=0, 2/3, 2, 8/3, 합 16/3, p+q=19')
+# 원문 원리 줄 불통: 조건에 맞는 a에서는 f(0)≠0(x로 묶이지 않음), k는 네 개가 아니라 두 개
+assert all(F(av).subs(x, 0) != 0 and tab[av] == 2 for av in good)
+print('원문 줄 불통: 0<a≤16에서 f(0)≠0, k의 개수 2(원문 방식의 결론은 4)')
 
-# 문장 길이(원문의 90% 이상)
-pl = lambda t: re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', t.replace('&lt;', '<').replace('&gt;', '>')))
-new_len = len(pl(IT['body'])); org_len = len(pl(o[0]))
+# ---------- 7) 문장 길이(원문의 90% 이상)
+pl = lambda s: re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', s.replace('&lt;', '<').replace('&gt;', '>')))
+new_len = len(pl(IT['body'] + ' ' + ' '.join('(%s) %s' % c for c in IT['cond']))); org_len = len(pl(o[0]))      # 원문 HTML처럼 상자 라벨 포함
 print('문장 길이', new_len, '/ 원문', org_len)
-assert new_len >= 0.9*org_len
+assert new_len >= 0.9 * org_len
 
 # ===== 조건 빼 보기 (ABLATION) =====
 print('--- 조건 빼 보기 ---')
 def ablation(cname, res):
     print(f'ABLATION 17 {cname}: 필요({res})'); assert res != ANS
 
-
-def solve_K(Kv, line=1):
-    out = []
-    for t in sp.solve(sp.Eq(1 + vtx, Kv), c):
-        if t.is_real and t > R(1, 2): out.append(t)
-    for t in sp.solve(sp.Eq(vtx + 3, Kv), c):
-        if t.is_real and t < R(-1, 2): out.append(t)
-    res = []
-    for t in out:
-        ft = f.subs(c, t)
-        rs = sorted(r for r in sp.solve(sp.Eq(ft, line), x) if r.is_real and 1 <= r <= 3)
-        res.append(12*sp.Abs(sp.integrate(line - ft, (x, rs[0], rs[-1]))) if len(rs) == 2 else '둘러싸인 부분 없음')
-    return res
-
-
-assert solve_K(K) == [ANS]
-ablation('합 7/4(→3/2)', solve_K(R(3, 2))[0])
-ablation('합 7/4(→25/4, 위로 볼록한 쪽)', solve_K(R(25, 4))[0])
-ablation('직선 y=1(→y=3)', solve_K(K, line=3)[0])
-# 합 조건 전체를 빼면 c가 정해지지 않음: c=1, 2에서 넓이가 다름
-A1 = [12*sp.integrate(1 - f.subs(c, t), (x, 1, 3 - 1/sp.Integer(t))) for t in (1, 2)]
-assert A1[0] != A1[1]
-ablation('극값의 합 조건 전체', f'정해지지 않음(c=1이면 {A1[0]}, c=2이면 {A1[1]})')
-# 연속을 빼면 f가 정해지지 않음: f=x^2-3x+3+q (1<x<3에서만 바뀜)도 q가 작으면 극댓값·극솟값이 달라져 조건식이 바뀜
-ablation('연속', '정해지지 않음(f(1), f(3)이 자유여서 이음점의 값과 조각의 꼴이 정해지지 않음)')
+# (가)를 빼면 f가 정해지지 않는다: 예 f=(x-a+18)^3도 (나)를 만족시키고 이때 a≠18인 모든 a에서 k가 2개
+assert all(nk(sp.expand((x - av + 18)**3)) == 2 for av in [-30, -5, 3, 17, 40])
+ablation('(가)', 'f가 정해지지 않음: f=(x-a+18)^3이면 a≠18인 모든 정수 a가 조건에 맞아 개수가 정해지지 않음')
+# (나)를 빼면 f=(x-a)(x-p)^2에서 p가 자유
+c9 = len([n for n in ints if nk(F(n, 9)) == 2])
+ablation('(나)', f'f가 정해지지 않음: 예 f(a-9)=0이면 {c9}개')
+ablation('영점 사이의 거리 18(→9)', c9)
+c27 = len([n for n in ints if nk(F(n, 27)) == 2])
+ablation('영점 사이의 거리 18(→27)', c27)
+# 방정식의 x를 (x-a)로: 직선이 부호가 바뀌는 영점을 지나 k는 늘 4개
+cxa = len([n for n in range(-20, 41) if nk(F(n), x - n) == 2])
+ablation("방정식의 x(→x-a)", cxa)
+# k의 개수 2 → 4
+c4 = len([n for n in ints if tab[n] == 4])
+ablation('(다) k의 개수 2(→4)', c4)
+c6 = len([n for n in range(1, 21) if tab[n] == 6])
+ablation('(다) k의 개수 2(→6, 20 이하의 자연수)', c6)
+# (다)를 빼면 a에 조건이 없음
+ablation('(다) 전체', '정수 a에 조건이 없어 개수가 정해지지 않음')
+# 최고차항의 계수 1 → 2: f=2(x-a)(x-a+18)^2, 접하는 직선의 구성은 같으나 식이 달라지는지 확인(개수는 같아 계수는 f를 정하는 데만 쓰임)
+c2 = len([n for n in range(-30, 51) if nk(2*F(n)) == 2])
+print('참고: 최고차항의 계수 1 → 2이면', c2, '개(f를 하나로 정하는 조건, 원문 단서 그대로)')
 print('ALL OK')
