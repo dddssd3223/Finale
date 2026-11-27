@@ -138,51 +138,38 @@ print(f'ABLATION 11 h(0): 필요(h(0)을 빼면 {hp + hm}, 접점 판단이 답�
 
 # ---------- 12번 (D64) ----------
 A, B, Cc = symbols('A B Cc', real=True)
-fG = -x**3 + A * x**2 + B * x + Cc
-s = expand(diff(fG, x).subs(x, t) + 4 * (t - 3)**2)
-ok(sp.Poly(s, t).LC() == 1, '12번 우변 s(t)의 t² 계수 1 (아래로 볼록)')
-# 조건: s의 꼭짓점 t=4, f'(3)=0, s(4)=f(3)
-sol = solve([diff(s, t).subs(t, 4), diff(fG, x).subs(x, 3), s.subs(t, 4) - fG.subs(x, 3)], [A, B, Cc], dict=True)
-ok(sol == [{A: 8, B: -21, Cc: 17}], f'12번 a, b, c = {sol}')
+fG = x**3 + A * x**2 + B * x + Cc
+s = expand(diff(fG, x).subs(x, t) - 4 * (t - 2)**2)
+ok(sp.Poly(s, t).LC() == -1, '12번 우변 s(t)의 t² 계수 −1 (위로 볼록, 원문과 같은 방향)')
+sol = solve([diff(s, t).subs(t, 5), diff(fG, x).subs(x, 2), s.subs(t, 5) - fG.subs(x, 2)], [A, B, Cc], dict=True)
+ok(sol == [{A: -3, B: 0, Cc: 13}], f'12번 a, b, c = {sol}')
 f12 = fG.subs(sol[0]); s12 = s.subs(sol[0])
-ok(expand(f12 + 1 + (x - 3)**2 * (x - 2)) == 0 and f12.subs(x, 3) == -1, '12번 f+1 = −(x−3)²(x−2), 극댓값 −1(x=3)')
-ok(sorted(solve(diff(f12, x), x)) == [Rational(7, 3), 3] and diff(f12, x, 2).subs(x, 3) < 0, '12번 극소 x=7/3, 극대 x=3')
-ok(expand(s12 - ((t - 4)**2 - 1)) == 0, '12번 s(t) = (t−4)² − 1, 최솟값 −1 = 극댓값')
-fl = sp.lambdify(x, f12)
+ok(expand(f12 - 9 - (x - 2)**2 * (x + 1)) == 0, '12번 f−9 = (x−2)²(x+1), 극솟값 9(x=2)')
+ok(sorted(solve(diff(f12, x), x)) == [0, 2] and diff(f12, x, 2).subs(x, 2) > 0, '12번 극대 x=0, 극소 x=2')
+ok(expand(s12 - (9 - (t - 5)**2)) == 0, '12번 s(t) = 9 − (t−5)², 최댓값 9 = 극솟값')
 import numpy as np
 CO = [float(c) for c in sp.Poly(f12, x).all_coeffs()]
 def gmax(kv):
     rs = np.roots(CO[:-1] + [CO[-1] - kv])
     return max(r.real for r in rs if abs(r.imag) < 1e-5)
-def gt(tv):
-    return gmax(float(s12.subs(t, tv))) if not isinstance(tv, sp.Basic) else None
-# g(4)
-ok(max(sp.real_roots(sp.Poly(f12 + 1, x))) == 3, '12번 g(4) = 3 (높이 −1의 최대 실근 = 극댓점, 정확값)')
-# 불연속점 전수: t를 촘촘히 훑어 점프 찾기
-import numpy as np
-ts = np.linspace(-6, 14, 20001)
-gs = [gmax(float((tv - 4)**2 - 1)) for tv in ts]
+ok(max(sp.real_roots(sp.Poly(f12 - 9, x))) == 2, '12번 g(5) = 2 (높이 9의 최대 실근 = 극솟점, 정확값)')
+ts = np.linspace(-6, 16, 22001)
+gs = [gmax(9 - (tv - 5)**2) for tv in ts]
 jumps = [ts[i] for i in range(len(ts) - 1) if abs(gs[i + 1] - gs[i]) > 0.3]
-ok(len(jumps) == 2 and all(abs(j - 4) < 0.002 for j in jumps), f'12번 [−6,14] 격자(0.001)에서 점프는 t=4 근처뿐 {[round(j, 4) for j in jumps]}')
-near = [gmax(float((4 + e - 4)**2 - 1)) for e in (1e-3, -1e-3, 1e-5, -1e-5)]
-ok(all(abs(v - 2) < 1e-2 for v in near), f'12번 t→4±에서 g(t) → 2 ({[round(v, 4) for v in near]})')
-L12 = 2
-c12 = chk(12, L12)
-ok(3 in c12, '12번 오답 3: g(4) 값을 극한으로')
-# 아래에서 다가가는(원문 볼록) 경우라면 극한이 3 쪽: 높이 −1−ε의 최대 실근 → 3
-ok(abs(gmax(-1 - 1e-8) - 3) < 1e-3, '12번 (오답 근거) 높이가 극댓값 아래에서 다가가면 최대 실근 → 3')
-# 원문 D64: f = x³+3x²−9x+9, f(2)=11
+ok(len(jumps) == 2 and all(abs(j - 5) < 0.002 for j in jumps), f'12번 [−6,16] 격자(0.001)에서 점프는 t=5 근처뿐 {[round(j, 4) for j in jumps]}')
+near = [gmax(9 - e**2) for e in (1e-2, 1e-3, 1e-4)]
+ok(all(abs(v + 1) < 1e-2 for v in near), f'12번 t→5에서 g(t) → −1 ({[round(v, 4) for v in near]})')
+c12 = chk(12, -1)
+ok(0 in c12 and 0 in solve(diff(f12, x), x), '12번 오답 0: 극댓점을 극한값으로')
 fo = x**3 + 3 * x**2 - 9 * x + 9
 so = expand(diff(fo, x).subs(x, t) - 4 * t**2 + 4)
 ok(expand(so - (-(t - 3)**2 + 4)) == 0 and fo.subs(x, 1) == 4 and fo.subs(x, 2) == 11, '12번 원문 D64 정답 11')
-# 빼 보기
-print("ABLATION 12 't=4에서만 불연속': 필요(없으면 꼭짓점 조건이 없어 a가 정해지지 않음; 예: a=7(꼭짓점 t=5)·g(5)=3도 같은 꼴로 만들어져 극한값이 1)")
-sol2 = solve([diff(s, t).subs(t, 5), diff(fG, x).subs(x, 3), s.subs(t, 5) - fG.subs(x, 3)], [A, B, Cc], dict=True)[0]
-f2 = fG.subs(sol2); gam = sp.solve(sp.cancel((f2 - f2.subs(x, 3)) / (x - 3)**2), x)
-ok(sol2[A] == 7 and gam == [1], f'12번 (빼 보기 예) 꼭짓점 t=5이면 a=7, 극한값 {gam}')
-sol3 = solve([diff(s, t).subs(t, 4), diff(fG, x).subs(x, 4), s.subs(t, 4) - fG.subs(x, 4)], [A, B, Cc], dict=True)[0]
-f3 = fG.subs(sol3); gam3 = sp.solve(sp.cancel((f3 - f3.subs(x, 4)) / (x - 4)**2), x)
-print(f"ABLATION 12 'g(4)=3': 필요(극댓점이 4이면 극한값 {gam3})"); assert gam3 != [2]
+sol2 = solve([diff(s, t).subs(t, 6), diff(fG, x).subs(x, 2), s.subs(t, 6) - fG.subs(x, 2)], [A, B, Cc], dict=True)[0]
+f2 = fG.subs(sol2); gam = sp.solve(sp.cancel((f2 - f2.subs(x, 2)) / (x - 2)**2), x)
+print(f"ABLATION 12 't=5에서만 불연속': 필요(꼭짓점이 t=6이면 a={sol2[A]}, 극한값 {gam})"); assert gam != [-1]
+sol3 = solve([diff(s, t).subs(t, 5), diff(fG, x).subs(x, 3), s.subs(t, 5) - fG.subs(x, 3)], [A, B, Cc], dict=True)[0]
+f3 = fG.subs(sol3); gam3 = sp.solve(sp.cancel((f3 - f3.subs(x, 3)) / (x - 3)**2), x)
+print(f"ABLATION 12 'g(5)=2': 필요(극솟점이 3이면 극한값 {gam3})"); assert gam3 != [-1]
 
 print(f'{len(OK)} checks')
 print('ALL OK')
