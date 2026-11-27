@@ -12,13 +12,12 @@ L1 = lambda x: 3 * x
 L2 = lambda x: 7 * x - 32
 fig, ax = K.new((-1.6, 10.2), (-9.0, 33.0), size=(2.5, 2.4), dx=0.1, dy=0.1)
 K.shade(ax, F, 4, 8, L2)
-K.curve(ax, F, -1.0, 8.75)
-K.curve(ax, L1, -1.2, 9.6)
-K.curve(ax, L2, 3.3, 9.0)
+K.curve(ax, F, -1.0, 8.6)
+K.curve(ax, L1, -0.45, 9.6)
+K.curve(ax, L2, 3.6, 9.0)
 K.dot(ax, 8, 24)
 K.label(ax, 7.55, 25.6, 'A', roman=True, size=10)
-K.label(ax, -0.55, -1.7, 'O', roman=True, size=10)
-K.rich(ax, 8.85, 13.8, [('y=x', 0), ('2', 1), ('-5x', 0)], 'left', 'center', size=8)
+K.rich(ax, 4.5, -7.6, [('y=x', 0), ('2', 1), ('-5x', 0)], 'left', 'center', size=8)
 K.rich(ax, 9.7, 29.2, [('y=3x', 0)], 'left', 'center', size=8)
 K.save(fig, out)
 if len(sys.argv) <= 1:

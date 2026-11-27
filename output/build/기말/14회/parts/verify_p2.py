@@ -84,24 +84,28 @@ print('ABLATION 5 t³-3t(OP02): 일함(원문 t³-2t 그대로면 f(1)=1/2이라
 print('ABLATION 5 우변 계수 2: 일함(원문 f²-f이면 f(3)=19/2)')
 
 # ===== 6번 =====
-a6 = solve((x**4 + a - (4*x**3 + 8*x**2 - 2)).subs(x, -1), a); assert a6 == [1]
-F6p = (4*x**3 + 8*x**2 - 2) - (x**4 + 1)
-assert factor(F6p) == -(x + 1)**2*(x**2 - 6*x + 3)
-def ext_points(Fp):
-    rts = sp.roots(sp.Poly(Fp, x))
-    return [r for r, m in rts.items() if r.is_real and m % 2 == 1]
-ex = ext_points(F6p); assert len(ex) == 2
-ans6 = sp.simplify(sum(ex)); assert ans6 == 6
-h6 = 4*x**3 + 8*x**2 - 2 - x**4
-assert sorted(solve(diff(h6, x), x)) == [-1, 0, 4] and h6.subs(x, -1) == 1   # a=h(-1): 작은 극댓값에서 중근
-w6 = sp.simplify(sum(sp.roots(sp.Poly(F6p, x)).keys()))              # 서로 다른 근 모두
-assert w6 == 5
-w6b = 4                                                              # 중복도까지 근과 계수의 관계(선지 밖)
-assert sum(r*m for r, m in sp.roots(sp.Poly(F6p, x)).items()) == w6b and str(w6b) not in IT[6]['choices']
+a6 = solve((x**4 + a - (3*x**3 - 4*x - 2)).subs(x, 2), a); assert a6 == [-2]
+F6p = (3*x**3 - 4*x - 2) - (x**4 - 2)
+assert factor(F6p) == -x*(x + 1)*(x - 2)**2
+def ext(Fp):                                                         # 부호가 바뀌는 근만: (근, 극소?)
+    out = []
+    for r, m in sp.roots(sp.Poly(Fp, x)).items():
+        if r.is_real and m % 2 == 1:
+            out.append((r, Fp.subs(x, r - R(1, 100)) < 0 < Fp.subs(x, r + R(1, 100))))
+    return out
+E = ext(F6p); mins = [r for r, mn in E if mn]; assert len(E) == 2 and mins == [-1]
+ans6 = mins[0]
+h6 = 3*x**3 - 4*x - 2 - x**4
+assert diff(h6, x).subs(x, 2) == 0 and h6.subs(x, 2) == -2           # a=h(2): h의 극대점에서 중근
+rs = sorted(sp.roots(sp.Poly(F6p, x)).keys())                         # 중근에서도 부호가 바뀐다고 본 경로
+sg = [(-1)**(len(rs) - i) * (-1) for i in range(len(rs) + 1)]       # 오른쪽 끝 음에서 번갈아
+naive_min = [rs[i] for i in range(len(rs)) if sg[i] < 0 < sg[i + 1]]
+assert naive_min == [0]
+w6 = naive_min[0]
 chk(6, ans6, [w6])
-print('ABLATION 6 x=-1이 근: 필요(빼면 a가 정해지지 않음. 예: a=0이면 극값 x 넷, a=-2(극솟값)이면 근의 합이 달라짐)')
-ex0 = ext_points((4*x**3 + 8*x**2 - 2) - (x**4 - 2)); assert sp.simplify(sum(ex0)) != 6
-print('ABLATION 6 극값(부호 변화): 일함(근을 모두 세면 5)')
+print('ABLATION 6 한 실근이 2: 필요(빼면 a가 정해지지 않음. 예: a=0이면 F\'의 근 배치가 바뀜)')
+assert [r for r, mn in ext((3*x**3 - 4*x - 2) - x**4) if mn] != [-1]
+print('ABLATION 6 극소(부호 변화): 일함(중근에서 부호를 바꾸면 0)')
 
 # ===== 7번 =====
 base = -x**2 - 2*x
