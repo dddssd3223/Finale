@@ -177,7 +177,7 @@ A14 = sorted(set([R(k, 8) for k in range(-40, 41)] + [R(-17, 16), R(-15, 16), R(
 B14 = lambda av: [4 * av + 4 + d for d in (-R(1, 8), 0, R(1, 8))]
 good = [(av, bv) for av in A14 for bv in B14(av) if cond14(av, bv)]
 check(14, all(bv == 4 * av + 4 for av, bv in good), '조건을 만족시키면 b=4a+4 (f′(2)=0; b를 ±1/8 옮기면 실패)')
-check(14, sorted({av for av, _ in good}) == [av for av in A14 if av >= -1], f'a∈[−5,5] 전수: 조건을 만족시키는 a는 a≥−1 (최소 {min(av for av, _ in good)}), a=−17/16이면 x=1/8에서 f′={fp14(R(-17, 16), R(-13, 4), R(1, 8))}>0')
+check(14, sorted({av for av, _ in good}) == [av for av in A14 if av >= -1], f'a∈[−5,5] 전수: 조건을 만족시키는 a는 a≥−1 (최소 {min(av for av, _ in good)}), a=−17/16(b=−1/4)이면 x=1/16에서 f′={fp14(R(-17, 16), R(-1, 4), R(1, 16))}>0')
 ans14 = min(av + bv for av, bv in good)
 check(14, ans14 == -1 and cond14(-1, 0), f'a+b의 최솟값 {ans14} (a=−1, b=0: f′=|x|(|x|−2))')
 ans_ok(14, ans14)
