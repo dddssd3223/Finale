@@ -96,10 +96,10 @@ assert len(sols) == 1, sols
 f = sols[0]; assert sp.expand(f - (x - 5)**2 * (x + 1)) == 0
 A1 = localmax(f); assert len(A1) == 1; A1 = A1[0]
 Z = g_zeros(f, 6); assert Z == [-7, -1, 1, 5] and sum(Z) == -2
-A2 = Z[0]; A3 = gval(f, 6, -2)
+A2 = Z[0]; A3 = f.subs(x, 2)
 got = [parse(s) for s in S2['ans']]
 assert got == [A1, A2, A3], (got, A1, A2, A3)
-assert (A1, A2, A3) == (32, -7, -630)
+assert (A1, A2, A3) == (32, -7, 27)
 print('S2 답', A1, A2, A3, '· f =', sp.factor(f))
 # g의 연속성을 수치로도 확인: 단순근 -1 좌우에서 g→0, g(-1)=0
 for e in (R(1, 10**6), -R(1, 10**6)): assert abs(gval(f, 6, -1 + e)) < R(1, 10**3)
@@ -125,12 +125,10 @@ assert localmax(((x - a)**2 * (x - a + 3)).subs(a, 0)) == [4]
 assert sp.solve(sp.Eq(4 * a + 22, -2), a) == [-6]
 a2 = sp.solve(sp.Eq(4 * a - 4, -2), a)[0]; assert a2 - 6 == -R(11, 2)
 a3 = sp.solve(sp.Eq((a - 12) + (a - 6) + (a - 2) + a, -2), a)[0]; assert a3 - 12 == -R(15, 2)
-fp = sp.diff(f, x)
-assert 2 * fp.subs(x, -2) * f.subs(x, 4) == 630 and -fp.subs(x, -2) * f.subs(x, 4) == -315 and fp.subs(x, -2) * f.subs(x, 4) == 315
-assert f.subs(x, -2) == -49 and f.subs(x, -2) * (-126) == 6174
-for wv in (r'\(0\)', r'\(-32\)', r'\(4\)', r'\(-6\)', r'-\dfrac{11}{2}', r'-\dfrac{15}{2}', r'\(5\)', r'\(630\)', r'\(-315\)', r'\(315\)', r'\(6174\)'):
+assert ((x - 5) * (x + 1)**2).subs(x, 2) == -27 and ((x + 6)**2 * x).subs(x, 2) == 128 and ((x + 7)**2 * (x + 13)).subs(x, 2) == 1215
+for wv in (r'\(0\)', r'\(-32\)', r'\(4\)', r'\(-6\)', r'-\dfrac{11}{2}', r'-\dfrac{15}{2}', r'\(5\)', r'\(-27\)', r'\(128\)', r'\(1215\)'):
     assert wv in W, wv
-assert not ({0, -32, 4, -6, -R(11, 2), -R(15, 2), 5, 630, -315, 315, 6174} & {A1}) and A2 not in (-6, -R(11, 2), -R(15, 2), 5) and A3 not in (630, -315, 315, 6174)
+assert not ({0, -32, 4, -6, -R(11, 2), -R(15, 2), 5, -27, 128, 1215} & {A1}) and A2 not in (-6, -R(11, 2), -R(15, 2), 5) and A3 not in (-27, 128, 1215)
 
 # ---- 원문 M67 직접 풀이: g=f(x-3)×k, 합 7, f(5)=108
 so = solve_all(1, -3, 7)
@@ -142,8 +140,8 @@ print('원문 M67 f(5)=108, LIVE1-02-279 f(3)=50 확인')
 # ---- 조건 빼 보기
 def abl(name, msg): print(f'ABLATION S2 {name}: {msg}')
 # 최고차항의 계수 1
-s2 = solve_all(2, 6, -2); assert len(s2) == 1 and localmax(s2[0]) == [64] and gval(s2[0], 6, -2) == 4 * A3
-abl('최고차항의 계수 1', '필요(2이면 극댓값 64, g(-2)=-2520으로 바뀜; 없으면 값이 정해지지 않음)')
+s2 = solve_all(2, 6, -2); assert len(s2) == 1 and localmax(s2[0]) == [64] and s2[0].subs(x, 2) == 2 * A3
+abl('최고차항의 계수 1', '필요(2이면 극댓값 64, f(2)=54로 바뀜; 없으면 값이 정해지지 않음)')
 # 이동량 6
 s3 = solve_all(1, 3, -2); assert len(s3) == 1 and localmax(s3[0]) == [4] and g_zeros(s3[0], 3)[0] != A2
 abl('f(x+6)의 6', '필요(3이면 극댓값 4, 네 실근도 달라짐)')
@@ -160,6 +158,6 @@ assert len(s5) == 2 and any(localmax(t) == [] for t in s5)
 f5 = [t for t in s5 if localmax(t) == []][0]; assert sp.expand(f5 - (x - 2)**3) == 0 and g_zeros(f5, 6) == [-4, 2]
 abl('서로 다른 네 실근', '필요(실근 개수를 빼면 f=(x-2)^3도 연속이고 실근 -4, 2의 합이 -2라 극댓값이 없는 경우가 생김)')
 # 합 -2
-s6 = solve_all(1, 6, 2); assert len(s6) == 1 and localmax(s6[0]) == [32] and g_zeros(s6[0], 6)[0] == -6 != A2 and gval(s6[0], 6, -2) != A3
-abl('네 실근의 합 -2', '필요((2)·(3): 합이 2이면 가장 작은 실근 -6, g(-2)도 달라짐; (1)에는 쓰이지 않음)')
+s6 = solve_all(1, 6, 2); assert len(s6) == 1 and localmax(s6[0]) == [32] and g_zeros(s6[0], 6)[0] == -6 != A2 and s6[0].subs(x, 2) == 32 != A3
+abl('네 실근의 합 -2', '필요((2)·(3): 합이 2이면 가장 작은 실근 -6, f(2)=32로 달라짐; (1)에는 쓰이지 않음)')
 print('ALL OK')
