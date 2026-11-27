@@ -123,14 +123,14 @@ fo = (x - a)**2 * (x - a - 6)                                  # 원문에서 �
 assert localmax(fo.subs(a, 0)) == [0] and fo.subs(a, 0).subs(x, 4) == -32
 assert localmax(((x - a)**2 * (x - a + 3)).subs(a, 0)) == [4]
 assert sp.solve(sp.Eq(4 * a + 22, -2), a) == [-6]
-a2 = sp.solve(sp.Eq(4 * a - 4, -2), a)[0]; assert a2 - 6 == -R(13, 2)
+a2 = sp.solve(sp.Eq(4 * a - 4, -2), a)[0]; assert a2 - 6 == -R(11, 2)
 a3 = sp.solve(sp.Eq((a - 12) + (a - 6) + (a - 2) + a, -2), a)[0]; assert a3 - 12 == -R(15, 2)
 fp = sp.diff(f, x)
 assert 2 * fp.subs(x, -2) * f.subs(x, 4) == 630 and -fp.subs(x, -2) * f.subs(x, 4) == -315 and fp.subs(x, -2) * f.subs(x, 4) == 315
 assert f.subs(x, -2) == -49 and f.subs(x, -2) * (-126) == 6174
-for wv in (r'\(0\)', r'\(-32\)', r'\(4\)', r'\(-6\)', r'-\dfrac{13}{2}', r'-\dfrac{15}{2}', r'\(5\)', r'\(630\)', r'\(-315\)', r'\(315\)', r'\(6174\)'):
+for wv in (r'\(0\)', r'\(-32\)', r'\(4\)', r'\(-6\)', r'-\dfrac{11}{2}', r'-\dfrac{15}{2}', r'\(5\)', r'\(630\)', r'\(-315\)', r'\(315\)', r'\(6174\)'):
     assert wv in W, wv
-assert not ({0, -32, 4, -6, -R(13, 2), -R(15, 2), 5, 630, -315, 315, 6174} & {A1}) and A2 not in (-6, -R(13, 2), -R(15, 2), 5) and A3 not in (630, -315, 315, 6174)
+assert not ({0, -32, 4, -6, -R(11, 2), -R(15, 2), 5, 630, -315, 315, 6174} & {A1}) and A2 not in (-6, -R(11, 2), -R(15, 2), 5) and A3 not in (630, -315, 315, 6174)
 
 # ---- 원문 M67 직접 풀이: g=f(x-3)×k, 합 7, f(5)=108
 so = solve_all(1, -3, 7)
