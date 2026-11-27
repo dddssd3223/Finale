@@ -10,7 +10,7 @@ with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'p1.py'), enc
 IT = ns['ITEMS']
 WANT = {1: 2, 2: 4, 3: 1, 4: 3}            # 분담표 ② ④ ① ③ 그대로
 KEY = {1: ('M53', 'M53 후보_순위 2'), 2: ('I10', 'I10 후보_순위 2'), 3: ('J49', 'J49 후보_순위 2'), 4: ('I1', '자체 (가장 가까운 I1)')}
-STEP = {2: 1, 3: 2, 4: 2}                 # 1번은 보기형. 공차 1은 둘 이하
+STEP = {2: 1, 3: 2, 4: 1}                 # 1번은 보기형. 공차 1은 둘 이하
 assert sum(1 for v in STEP.values() if v == 1) <= 2
 assert sorted(IT) == [1, 2, 3, 4]
 for no, it in IT.items():

@@ -131,10 +131,12 @@ fz = make13(0, -6, 1)
 vals = [fz(R(j, 50)) for j in range(-200, 300)]
 check(13, all(vals[i] < vals[i + 1] for i in range(len(vals) - 1)), 'a=0,b=−6,c=1에서 표본 수열이 엄격 증가')
 ans_ok(13, ans13)
-w13a = -1 - 0 - 6 * 2                                  # x→0+에서 3c−6≥0 → c≥2
-w13b = make13(0, 0, 0)(-1)                             # c=0을 버리지 않음
-check(13, not inc13(0, 0, 0) and inc13(0, -12, 2), 'c=0은 실제로 증가하지 않음(오답 경로 확인)')
-wrong_in(13, [w13a, w13b], 'x→0+에서 판정해 c≥2 → −13 · c=0을 버리지 않음 → −1')
+w13a = -1 - 0 - 6 * 2                                  # (선지 밖) x→0+에서 판정해 c≥2
+w13b = make13(0, 0, 0)(-1)                             # (선지 밖) c=0을 버리지 않음
+check(13, not inc13(0, 0, 0) and inc13(0, -12, 2) and w13a == -13 and w13b == -1, 'c=0은 실제로 증가하지 않음, 선지 밖 경로 값 −13·−1 확인')
+w13c = max(-av + (-6 * abs(cv)) for av, cv in feas)          # −x² 항 빠뜨림: f(−1)=−a+b
+w13d = max(1 - av + (-6 * abs(cv)) for av, cv in feas)       # −(−1)²을 +1로
+wrong_in(13, [w13c, w13d], '−x² 항 빠뜨림 → −6 · −(−1)²을 +1로 → −5')
 # 원문 D43: 양수 c, x³+cx−2|x−c|, 연속 → f(−1)의 최댓값 −7/3
 Co = sorted(set([R(j, 24) for j in range(1, 97)]))
 fo = [(av, cv) for av in A13 for cv in Co if inc13(av, -2 * cv, cv, m=1, k=2, cont=True)]
