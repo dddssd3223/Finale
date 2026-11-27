@@ -1,0 +1,31 @@
+{
+ "round": "13회",
+ "base": "기준프로필",
+ "anchors": [
+  3,
+  6,
+  8,
+  10,
+  12,
+  15,
+  17,
+  18
+ ],
+ "items": {
+  "13회-12": {
+   "hash": "4519b7202c44",
+   "bunseok": false,
+   "key": "D64"
+  },
+  "13회-15": {
+   "hash": "07c96972fefe",
+   "bunseok": false,
+   "key": "D69"
+  },
+  "13회-16": {
+   "hash": "fe77a21ec82f",
+   "bunseok": false,
+   "key": "I76"
+  }
+ }
+}
