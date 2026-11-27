@@ -80,7 +80,8 @@ const total=mcScore+saParts.reduce((a,s)=>a+s.got,0);
 const prev=D.history.length>1?D.history[D.history.length-2].total:null;
 const wrong=D.mc.filter(q=>q.a!==q.m);
 const grade=total>=D.cut1?1:total>=D.cut2?2:3;
-const lvl=grade===1?['예상 1등급','ok']:grade===2?['예상 2등급','navy']:['예상 3등급 이하','warn'];
+const rg=D.rank?(D.rank.pct<=10?1:D.rank.pct<=34?2:D.rank.pct<=66?3:D.rank.pct<=90?4:5):null;
+const lvl=rg?[`예상 ${rg}등급`,rg===1?'ok':rg===2?'navy':'warn']:grade===1?['예상 1등급','ok']:grade===2?['예상 2등급','navy']:['예상 3등급 이하','warn'];
 
 function cutbar(){const lo=Math.min(60,Math.floor((Math.min(total,D.cut2)-5)/10)*10),pos=v=>((v-lo)/(100-lo)*100).toFixed(1)+'%';
   return `<div class="cutbar" aria-hidden="true"><div class="track"></div><div class="fill" style="width:${pos(total)}"></div>
