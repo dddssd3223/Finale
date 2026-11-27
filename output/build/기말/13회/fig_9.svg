@@ -6,7 +6,7 @@
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-11-27T11:47:45.654537</dc:date>
+    <dc:date>2026-11-27T11:48:10.283755</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -39,7 +39,7 @@ z
    </g>
    <g id="FillBetweenPolyCollection_1">
     <defs>
-     <path id="m9ba8337159" d="M 25.789091 -31.14176 
+     <path id="m02e8023b6f" d="M 25.789091 -31.14176 
 L 25.789091 -31.14176 
 L 25.924816 -31.243997 
 L 26.060541 -31.346005 
@@ -644,13 +644,13 @@ L 25.789091 -31.14176
 z
 "/>
     </defs>
-    <g clip-path="url(#p180a3aa2dc)">
-     <use xlink:href="#m9ba8337159" x="0" y="139.69184" style="fill: #dbdbdb"/>
+    <g clip-path="url(#p2d1b20fb61)">
+     <use xlink:href="#m02e8023b6f" x="0" y="139.69184" style="fill: #dbdbdb"/>
     </g>
    </g>
    <g id="FillBetweenPolyCollection_2">
     <defs>
-     <path id="mb909f14ef6" d="M 66.370909 -51.54368 
+     <path id="mfe7a0b2a46" d="M 66.370909 -51.54368 
 L 66.370909 -51.54368 
 L 66.506634 -51.577683 
 L 66.642359 -51.611457 
@@ -1255,8 +1255,8 @@ L 66.370909 -51.54368
 z
 "/>
     </defs>
-    <g clip-path="url(#p180a3aa2dc)">
-     <use xlink:href="#mb909f14ef6" x="0" y="139.69184" style="fill: #dbdbdb"/>
+    <g clip-path="url(#p2d1b20fb61)">
+     <use xlink:href="#mfe7a0b2a46" x="0" y="139.69184" style="fill: #dbdbdb"/>
     </g>
    </g>
    <g id="matplotlib.axis_1"/>
@@ -1306,7 +1306,7 @@ L 108.877567 23.025761
 L 113.312071 13.653135 
 L 116.083636 7.547825 
 L 116.083636 7.547825 
-" clip-path="url(#p180a3aa2dc)" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: square"/>
+" clip-path="url(#p2d1b20fb61)" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: square"/>
    </g>
    <g id="line2d_4">
     <path d="M 7.527273 124.38707 
@@ -1339,12 +1339,12 @@ L 123.856733 94.167217
 L 128.199699 96.285188 
 L 131.301818 97.941082 
 L 131.301818 97.941082 
-" clip-path="url(#p180a3aa2dc)" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: square"/>
+" clip-path="url(#p2d1b20fb61)" style="fill: none; stroke: #000000; stroke-width: 0.9; stroke-linecap: square"/>
    </g>
    <g id="line2d_5">
     <path d="M 106.952727 123.85152 
 L 106.952727 14.1912 
-" clip-path="url(#p180a3aa2dc)" style="fill: none; stroke: #000000; stroke-width: 0.7; stroke-linecap: square"/>
+" clip-path="url(#p2d1b20fb61)" style="fill: none; stroke: #000000; stroke-width: 0.7; stroke-linecap: square"/>
    </g>
    <g id="patch_3">
     <path d="M 140.7168 123.85152 
@@ -1560,9 +1560,34 @@ z
     </g>
    </g>
    <g id="text_4">
-    <!--  -->
-    <g transform="translate(104.452727 134.919621) scale(0.1 -0.1)">
+    <!--  -->
+    <g transform="translate(109.996364 113.605897) scale(0.09 -0.09)">
      <defs>
+      <path id="HyhwpEQ-e1" d="M 4613 2394 
+Q 4613 2481 4538 2506 
+Q 4494 2519 4394 2519 
+L 575 2519 
+Q 469 2519 425 2506 
+Q 356 2481 356 2394 
+Q 356 2306 419 2281 
+Q 463 2263 569 2263 
+L 4400 2263 
+Q 4506 2263 4544 2281 
+Q 4613 2313 4613 2394 
+z
+M 4613 1156 
+Q 4613 1244 4538 1269 
+Q 4494 1281 4394 1281 
+L 575 1281 
+Q 469 1281 425 1269 
+Q 356 1244 356 1156 
+Q 356 1069 419 1044 
+Q 463 1025 569 1025 
+L 4400 1025 
+Q 4506 1025 4544 1044 
+Q 4613 1075 4613 1156 
+z
+" transform="scale(0.015625)"/>
       <path id="HyhwpEQ-d1" d="M 3019 1069 
 L 3019 1269 
 L 2375 1269 
@@ -1599,39 +1624,6 @@ L 1919 1269
 z
 " transform="scale(0.015625)"/>
      </defs>
-     <use xlink:href="#HyhwpEQ-d1"/>
-    </g>
-   </g>
-   <g id="text_5">
-    <!--  -->
-    <g transform="translate(109.996364 113.605897) scale(0.09 -0.09)">
-     <defs>
-      <path id="HyhwpEQ-e1" d="M 4613 2394 
-Q 4613 2481 4538 2506 
-Q 4494 2519 4394 2519 
-L 575 2519 
-Q 469 2519 425 2506 
-Q 356 2481 356 2394 
-Q 356 2306 419 2281 
-Q 463 2263 569 2263 
-L 4400 2263 
-Q 4506 2263 4544 2281 
-Q 4613 2313 4613 2394 
-z
-M 4613 1156 
-Q 4613 1244 4538 1269 
-Q 4494 1281 4394 1281 
-L 575 1281 
-Q 469 1281 425 1269 
-Q 356 1244 356 1156 
-Q 356 1069 419 1044 
-Q 463 1025 569 1025 
-L 4400 1025 
-Q 4506 1025 4544 1044 
-Q 4613 1075 4613 1156 
-z
-" transform="scale(0.015625)"/>
-     </defs>
      <use xlink:href="#HyhwpEQ-196"/>
      <use xlink:href="#HyhwpEQ-e1" transform="translate(57.125 0)"/>
      <use xlink:href="#HyhwpEQ-d1" transform="translate(134.765625 0)"/>
@@ -1640,7 +1632,7 @@ z
   </g>
  </g>
  <defs>
-  <clipPath id="p180a3aa2dc">
+  <clipPath id="p2d1b20fb61">
    <rect x="1.44" y="6.54048" width="133.92" height="127.512"/>
   </clipPath>
  </defs>

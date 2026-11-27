@@ -14,7 +14,6 @@ K.shade(ax, F, 2, 4, G)
 K.curve(ax, F, -1.0, 4.45)
 K.curve(ax, G, -0.9, 5.2)
 K.line(ax, [4, 4], [-0.0, 21.5])
-K.label(ax, 4.0, -0.6, '4', 'center', 'top', size=10)
 K.rich(ax, 4.15, 2.6, [('x=4', 0)], 'left', 'center', size=9)
 K.save(fig, out)
 if len(sys.argv) <= 1:
