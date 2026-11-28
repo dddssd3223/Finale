@@ -191,6 +191,7 @@ def jl(h, key=''):
 
 RAG_PT = 2.5     # 공백 하나당 2.5pt 넘게 벌어질 줄은 양끝 맞춤하지 않고 오른쪽을 비움
 RAGGED = {}
+MATHPEN = 120.0  # 수식으로 시작하는 줄 벌점(공백당 약 11pt 벌어짐과 같음)
 NOBRK = {}       # 키별: 줄을 바꾸면 안 되는 공백 번호(바로 뒤가 수식)
 
 def autobreak(mk):
@@ -226,14 +227,14 @@ def autobreak(mk):
             per = adj / k
             return (per ** 2) if per >= 0 else (per ** 2) * 0.5
         nob = NOBRK.get(key, set())
-        for strict in (True, False):           # 먼저 '수식 앞에서 끊지 않기'를 지켜 보고, 불가능할 때만 풂
+        for strict in (True, False):           # 2026-11-28: '수식 앞에서 끊지 않기'를 벌점(MATHPEN)으로 바꿈 — 지키려다 앞줄이 크게 비는 일(13회 9·10번 '두 / 곡선 y=…')을 막음
             best = [(INF, INF, -1)] * (n + 1)   # (줄 수, 비용, 앞 끊는 위치)
             best[0] = (0, 0.0, -1)
             for j in range(1, n + 1):
                 for i in range(j - 1, -1, -1):
                     if en[j - 1] - st[i] > W * 2.2: break
-                    if strict and i > 0 and gaps[i - 1] in nob: continue
                     c = cost(i, j - 1, j == n)
+                    if c != INF and i > 0 and gaps[i - 1] in nob: c += MATHPEN
                     if c == INF or best[i][0] == INF: continue
                     cand = (best[i][0] + 1, best[i][1] + c, i)
                     if cand[:2] < best[j][:2]: best[j] = cand
@@ -297,9 +298,18 @@ def boxes(h, key):
         n += 1
     return ''.join(out)
 
+FIGSCALE = 0.92   # 그림 축척(모든 그림 같은 비율)
+
 def q_html(n):
     pt, body, ch = Q[n]
     body = dpad(body, f'Q{n}')
+    # 2026-11-28 사용자 '두 그림 스케일이 다르다': 그림 폭을 문항마다 따로 주지 않고 SVG 원래 크기 × FIGSCALE로 통일(글자·선 굵기가 회차 안에서 같게)
+    def _fw(m):
+        f = os.path.join(HERE, m.group(1))
+        try: w = float(re.search(r'width="([\d.]+)pt"', open(f).read(600)).group(1))
+        except Exception: return m.group(0)
+        return f'<img src="{m.group(1)}" style="width:{min(w * FIGSCALE, 235):.1f}pt">'
+    body = re.sub(r'<img src="(fig_[^"]+\.svg)" style="width:[\d.]+pt">', _fw, body)
     if n in CONDST: body = body.replace('<div class="cond">', f'<div class="cond" style="{CONDST[n]}">')
     body = body.replace('{PTR}', f'<div class="ptr">[{pt:.1f}점]</div>')
     body = body.replace('⏎{PT}', f'⏎<span class="pt">[{pt:.1f}점]</span>')
