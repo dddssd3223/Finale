@@ -198,6 +198,11 @@ def round_(d):
             if it.get('key') in _P.F.I: tc.update(_P.topics(it['key']))
         out.append(('소재 상한 (1회 지적: 수직선 운동 ≤2 등)', all(tc[t] <= _P.TOPIC_LIMIT[t] for t in tc), dict(tc)))
     except Exception as e: out.append(('소재 상한', False, f'검사 실패 {e}'))
+    try:   # 2026-11-28 사용자: 이웃 번호 같은 소재(13회 1·2 속도), 같은 쪽 그림 둘(13회 9·10 넓이) 지양
+        import adjcheck as _A
+        _, _bad = _A.check(d)
+        out.append(('이웃·같은 쪽 소재 겹침 0', not _bad, _bad or '없음'))
+    except Exception as e: out.append(('이웃·같은 쪽 소재', False, f'검사 실패 {e}'))
     flo = 1 if db else 2
     out.append((f'그림 {flo}–3개, 모두 9번 이후', flo <= len(figs) <= 3 and all(int(n) >= 9 for n in figs), figs))
     out.append(('정답 ①–⑤ 각 3–4', all(3 <= ans.get(k, 0) <= 4 for k in range(1, 6)), dict(sorted(ans.items()))))
