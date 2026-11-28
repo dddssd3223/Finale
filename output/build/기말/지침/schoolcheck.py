@@ -198,6 +198,7 @@ def round_(d):
             if it.get('key') in _P.F.I: tc.update(_P.topics(it['key']))
         out.append(('소재 상한 (1회 지적: 수직선 운동 ≤2 등)', all(tc[t] <= _P.TOPIC_LIMIT[t] for t in tc), dict(tc)))
     except Exception as e: out.append(('소재 상한', False, f'검사 실패 {e}'))
+    out.append(('1–8번 보기형 0 (2026-11-28 사용자: ㄱㄴㄷ 문제는 1–8번에 내지 않음)', not [n for n in its if int(n) <= 8 and its[n].get('bogi')], [n for n in its if int(n) <= 8 and its[n].get('bogi')]))
     try:   # 2026-11-28 사용자: 이웃 번호 같은 소재(13회 1·2 속도), 같은 쪽 그림 둘(13회 9·10 넓이) 지양
         import adjcheck as _A
         _, _bad = _A.check(d)

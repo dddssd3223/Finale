@@ -19,7 +19,7 @@ for no, it in IT.items():
     assert it['ops'] and all(re.fullmatch(r'OP(0[1-9]|[1-4]\d|5[0-5])', o) for o in it['ops'])
     assert '함정 추가' not in it['vtype']
     assert 'cond' not in it and 'class="fig"' not in it['body']   # 1–4번: 상자·그림 없음
-    assert ('bogi' in it) == (no == 1)
+    assert 'bogi' not in it   # 2026-11-28: 1–8번 보기형 금지
     txt = it['body'] + ''.join(v for _, v in it.get('bogi', []))
     assert '이러한' not in txt and '이와 같은' not in txt
     for m in re.findall(r'\\\(.*?\\\)|\\\[.*?\\\]', txt + it['sol'] + it['fast'], re.S):
@@ -70,24 +70,16 @@ print('원문·뼈대 풀이 OK (M53=ㄴ,ㄷ, 학교식1=ㄱ,ㄴ, I10=1, 학교�
 # ===== 1번 =====
 X1 = t**3 - 6*t**2 + 9*t
 V1 = diff(X1, t); A1 = diff(V1, t)
-assert expand(V1 - 3*(t - 1)*(t - 3)) == 0 and expand(A1 - (6*t - 12)) == 0
 tch = sorted(r for r in solve(V1, t) if r > 0)
 assert tch == [1, 3]
-for r in tch:                                                                          # 실제로 부호가 바뀜
-    assert V1.subs(t, r - Rational(1, 10)) * V1.subs(t, r + Rational(1, 10)) < 0
-T1 = {'ㄱ': bool(X1.subs(t, 3) == 0), 'ㄴ': bool(V1.subs(t, 3) == 0), 'ㄷ': bool(A1.subs(t, tch[0]) == 6)}
-assert T1 == {'ㄱ': True, 'ㄴ': True, 'ㄷ': False}
-ans1 = bogi_answer(T1)
-assert IT[1]['choices'].index(ans1) + 1 == IT[1]['ans'] == WANT[1]
-assert A1.subs(t, tch[0]) == -6
-Tw = {**T1, 'ㄷ': bool(A1.subs(t, tch[1]) == 6)}                                              # 두 번째 전환 시각 t=3의 가속도로 판정
-assert Tw['ㄷ'] is True
-w1 = bogi_answer(Tw)
-assert w1 == 'T:ㄱ, ㄴ, ㄷ' and IT[1]['wrongs'] == [w1] and w1 != ans1
-print(f'1번: 계산 {ans1} (위치 {IT[1]["ans"]}), 오답 {w1} OK')
-print('ABLATION 1 ㄷ의 처음으로: 필요(빼면 방향이 바뀌는 시각이 t=1, 3 둘이라 ㄷ이 정해지지 않음)')
-assert bogi_answer({**T1, 'ㄷ': bool(A1.subs(t, tch[0]) == -6)}) != ans1
-print('ABLATION 1 ㄷ의 가속도 값 6: 필요(-6이면 ㄷ 참으로 답이 바뀜)')
+for r in tch: assert V1.subs(t, r - Rational(1, 10)) * V1.subs(t, r + Rational(1, 10)) < 0
+ans1 = A1.subs(t, tch[0]); assert ans1 == -6
+assert [int(c) for c in IT[1]['choices']] == [-12, -6, 0, 6, 12]
+assert int(IT[1]['choices'][IT[1]['ans'] - 1]) == ans1 and IT[1]['ans'] == WANT[1]
+assert A1.subs(t, tch[1]) == 6 and A1.subs(t, 2) == 0 and A1.subs(t, 0) == -12
+assert IT[1]['wrongs'] == ['6', '0']
+print('1번: 계산 -6 OK, 오답 6(t=3)·0(t=2)·-12(t=0)')
+print('ABLATION 1 처음으로: 필요(빼면 t=1, 3 둘)')
 
 # ===== 2번 =====
 fd = (x - 2)**3 + a                                                                    # f(x)-f(0)
