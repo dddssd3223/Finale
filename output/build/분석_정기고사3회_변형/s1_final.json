@@ -1,0 +1,545 @@
+[
+ {
+  "no": 1,
+  "label": "1",
+  "pts": 4.0,
+  "src_page": 128,
+  "src_no": 47,
+  "src_kind": "평가원 기출",
+  "src_origin": "2020학년도 9월 모의평가 나형 7번",
+  "original": "등차수열에서 a_1=a_3+8, 2a_4-3a_6=3일 때 a_k<0을 만족시키는 자연수 k의 최솟값(답 10).",
+  "exam": "등차수열에서 a_5=6, a_4=a_2+4일 때 a_1의 값(답 -2).",
+  "change_type": [
+   "숫자 변경",
+   "조건 변경",
+   "구하는 대상 변경"
+  ],
+  "change_detail": [
+   "a_1=a_3+8 (공차 -4) → a_4=a_2+4 (공차 2)",
+   "2a_4-3a_6=3 → a_5=6",
+   "'a_k<0인 k의 최솟값' → 'a_1의 값'"
+  ],
+  "core_kept": "두 항의 차(a_i-a_j=(i-j)d)로 공차를 구하고 일반항 a_n=a_1+(n-1)d에 대입",
+  "diff_effect": "쉬워짐: 부등식 a_k<0 단계가 빠지고 첫째항만 구하면 됨",
+  "answer": "④ (-2)",
+  "confidence": "low",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_1.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/src_1.png",
+  "note": "부교재에 동일 문항 없음. p.128~129 평가원 기출(등차수열) 중 구조가 가장 가까운 문항을 후보로 기록. 교과서 수준의 기본 문항일 수 있음."
+ },
+ {
+  "no": 2,
+  "label": "2",
+  "pts": 4.0,
+  "src_page": 129,
+  "src_no": 49,
+  "src_kind": "평가원 기출",
+  "src_origin": "2014학년도 6월 모의평가 A형 12번",
+  "original": "S_n=n^2-10n일 때 a_n<0을 만족시키는 자연수 n의 개수(a_n=2n-11, 답 5).",
+  "exam": "S_n=2n^2+n일 때 일반항 a_n(답 4n-1).",
+  "change_type": [
+   "식·함수 교체",
+   "구하는 대상 변경",
+   "형식 변경(보기형/서술·단계형/선지 변경)"
+  ],
+  "change_detail": [
+   "S_n=n^2-10n → S_n=2n^2+n",
+   "'a_n<0인 n의 개수' → '일반항 a_n'(식 선지)"
+  ],
+  "core_kept": "a_n=S_n-S_{n-1}(n≥2), a_1=S_1 (상수항 0이므로 n=1에서도 성립)",
+  "diff_effect": "쉬워짐: 일반항을 구한 뒤 부등식으로 개수를 세는 단계가 빠짐",
+  "answer": "⑤ (4n-1)",
+  "confidence": "low",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_2.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/src_2.png",
+  "note": "부교재에 동일 문항 없음. p.113 개념 5(수열의 합과 일반항 사이의 관계)를 확인하는 문항이며, 문제 형태로는 p.129 #49가 가장 가깝다."
+ },
+ {
+  "no": 3,
+  "label": "3",
+  "pts": 4.0,
+  "src_page": 118,
+  "src_no": 18,
+  "src_kind": "유형 EBS",
+  "src_origin": "2025 수능특강 [25008-0127] (유형3 등비수열의 일반항)",
+  "original": "모든 항이 음수인 등비수열에서 a_2=-2, a_3a_5=36일 때 a_1(답 -2√3/3).",
+  "exam": "모든 항이 음수인 등비수열에서 a_3=-2, a_4a_6=64일 때 a_1(답 -1/2).",
+  "change_type": [
+   "숫자 변경"
+  ],
+  "change_detail": [
+   "a_2=-2 → a_3=-2",
+   "a_3a_5=36 → a_4a_6=64",
+   "선지 무리수(-k√3/3) → 유리수(-1/4,-1/2,…)"
+  ],
+  "core_kept": "등비중항 a_{n-1}a_{n+1}=a_n^2로 중간항 결정, 모든 항이 음수이므로 부호 선택 후 공비 계산",
+  "diff_effect": "같음: 첨자를 하나씩 밀고 r^2=3 → r^2=4로 수치만 정리",
+  "answer": "② (-1/2)",
+  "confidence": "high",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_3.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/src_3.png"
+ },
+ {
+  "no": 4,
+  "label": "4",
+  "pts": 4.0,
+  "src_page": 102,
+  "src_no": 37,
+  "src_kind": "평가원 기출",
+  "src_origin": "2026학년도 수능 18번",
+  "original": "AB=5, AC=6, cos∠BAC=-3/5인 삼각형 ABC의 넓이(단답, 답 12).",
+  "exam": "AB=5, AC=6, cos∠BAC=-1/5인 삼각형 ABC의 넓이(5지선다, 답 6√6).",
+  "change_type": [
+   "숫자 변경",
+   "형식 변경(보기형/서술·단계형/선지 변경)"
+  ],
+  "change_detail": [
+   "cos∠BAC=-3/5 → -1/5",
+   "sin=4/5(유리수) → sin=2√6/5(무리수)",
+   "단답형 → 5지선다"
+  ],
+  "core_kept": "sin^2+cos^2=1로 sinA를 구한 뒤 S=(1/2)bc·sinA",
+  "diff_effect": "같음: 피타고라스 수(3·4·5)가 깨져 무리수 계산이 생기지만 선지가 주어짐",
+  "answer": "④ (6√6)",
+  "confidence": "high",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_4.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/src_4.png"
+ },
+ {
+  "no": 5,
+  "label": "5",
+  "pts": 4.2,
+  "src_page": 139,
+  "src_no": 6,
+  "src_kind": "유형 후반",
+  "src_origin": "2023 수능특강 [22008-0148] (유형1 합의 기호 Σ 후속면)",
+  "original": "a_1=3, Σ_{k=1}^{15}2a_{k+1}=50, Σ_{k=1}^{15}3a_k=30일 때 a_16(인쇄 스캔상 a_15로 보임, 답 18).",
+  "exam": "a_1=2, Σ_{k=1}^{10}2a_{k+1}=80, Σ_{k=1}^{10}3a_k=90일 때 a_11(답 12).",
+  "change_type": [
+   "숫자 변경"
+  ],
+  "change_detail": [
+   "a_1=3 → a_1=2",
+   "합의 상한 15 → 10 (구하는 항 a_16 → a_11)",
+   "50, 30 → 80, 90"
+  ],
+  "core_kept": "Σa_{k+1}=S_{n+1}-a_1과 Σa_k=S_n을 빼서 a_{n+1}을 구함",
+  "diff_effect": "같음: 구조 동일, 숫자만 변경",
+  "answer": "② (12)",
+  "confidence": "high",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_5.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/src_5.png"
+ },
+ {
+  "no": 6,
+  "label": "6",
+  "pts": 4.2,
+  "src_page": 116,
+  "src_no": 10,
+  "src_kind": "유형 EBS",
+  "src_origin": "2024 수능특강 [24008-0127] (유형2 등차수열의 합)",
+  "original": "등차수열에서 a_10=8일 때 S_19(단답, 답 152).",
+  "exam": "등차수열에서 a_10=4일 때 S_19(5지선다, 답 76).",
+  "change_type": [
+   "숫자 변경",
+   "형식 변경(보기형/서술·단계형/선지 변경)"
+  ],
+  "change_detail": [
+   "a_10=8 → a_10=4",
+   "단답형 → 5지선다"
+  ],
+  "core_kept": "S_{2m-1}=(2m-1)·a_m (중앙항×항수)",
+  "diff_effect": "같음: 숫자 하나만 바뀜(선지 제공으로 체감은 약간 쉬움)",
+  "answer": "① (76)",
+  "confidence": "high",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_6.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/src_6.png"
+ },
+ {
+  "no": 7,
+  "label": "7",
+  "pts": 4.2,
+  "src_page": 142,
+  "src_no": 19,
+  "src_kind": "유형 EBS",
+  "src_origin": "2025 수능특강 [25008-0157] (유형3 일반항이 분수 꼴인 수열의 합)",
+  "original": "Σ_{k=1}^{10}((2k+1)/(k+1)+(k+1)/k)의 값(답 340/11).",
+  "exam": "Σ_{k=1}^{9}((3k+2)/(k+1)-(k-1)/k)의 값(답 189/10).",
+  "change_type": [
+   "숫자 변경",
+   "식·함수 교체"
+  ],
+  "change_detail": [
+   "(2k+1)/(k+1) → (3k+2)/(k+1)",
+   "+(k+1)/k → -(k-1)/k",
+   "상한 10 → 9"
+  ],
+  "core_kept": "각 항을 상수+분수(대분수 꼴)로 나눈 뒤 1/k-1/(k+1) 꼴의 소거(망원합)",
+  "diff_effect": "같음: 부호와 계수만 바뀌고 정리 후 2+1/k-1/(k+1) 꼴로 동일",
+  "answer": "③ (189/10)",
+  "confidence": "high",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_7.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/src_7.png"
+ },
+ {
+  "no": 8,
+  "label": "8",
+  "pts": 4.2,
+  "src_page": 94,
+  "src_no": 19,
+  "src_kind": "유형 EBS",
+  "src_origin": "2025 수능완성 [25054-0057] (유형3 삼각형의 넓이)",
+  "original": "둘레 30, sinA:sinB:sinC=4:5:6인 삼각형 ABC의 넓이(변 8,10,12, 답 15√7).",
+  "exam": "sinA:sinB:sinC=5:1:4√2, 외접원 넓이 25π(R=5)인 삼각형 ABC의 넓이(답 4).",
+  "change_type": [
+   "숫자 변경",
+   "조건 변경"
+  ],
+  "change_detail": [
+   "비 4:5:6 → 5:1:4√2(무리수 포함)",
+   "'둘레 30' → '외접원 넓이 25π'(R=5)",
+   "변 길이 직접 결정 → 코사인법칙으로 cosC=-3/5, sinC=4/5를 구한 뒤 c=2R·sinC로 배율 결정"
+  ],
+  "core_kept": "사인법칙으로 sin 비 = 변의 비로 바꾸어 변을 구한 뒤 넓이 계산",
+  "diff_effect": "어려워짐: 둘레로 변이 바로 정해지지 않아 각을 먼저 구하고 R로 배율을 정해야 함",
+  "answer": "② (4)",
+  "confidence": "high",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_8.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/src_8.png"
+ },
+ {
+  "no": 9,
+  "label": "9",
+  "pts": 4.4,
+  "src_page": 134,
+  "src_no": 65,
+  "src_kind": "평가원 기출",
+  "src_origin": "2010학년도 수능 나형 30번",
+  "original": "{S_{2n-1}}은 공차 -3, {S_{2n}}은 공차 2인 등차수열, a_2=1일 때 a_8(단답, 답 16).",
+  "exam": "{S_{2n-1}}과 {S_{2n}}이 모두 공비 2인 등비수열, a_2=2일 때 a_10(5지선다, 답 32).",
+  "change_type": [
+   "조건 변경",
+   "숫자 변경",
+   "형식 변경(보기형/서술·단계형/선지 변경)"
+  ],
+  "change_detail": [
+   "등차(공차 -3, 2) → 등비(공비 2, 2)",
+   "a_2=1 → a_2=2",
+   "a_8 → a_10",
+   "단답형 → 5지선다"
+  ],
+  "core_kept": "홀수번째·짝수번째 부분합을 따로 놓고 a_{2n}=S_{2n}-S_{2n-1} 같은 차로 항을 구함",
+  "diff_effect": "같음: 등비로 바뀌면서 a_10=S_10-S_9=16(S_2-S_1)=16a_2로 오히려 짧아짐. 평가원 30번의 발상은 그대로",
+  "answer": "⑤ (32)",
+  "confidence": "high",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_9.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/src_9.png"
+ },
+ {
+  "no": 10,
+  "label": "10",
+  "pts": 4.4,
+  "src_page": 145,
+  "src_no": 30,
+  "src_kind": "유형 후반",
+  "src_origin": "2024 수능특강 [24008-0167] (유형4 등차·등비수열의 귀납적 정의 후속면)",
+  "original": "(a_{n+1})^2=a_na_{n+2}(등비), a_3=1, a_5+a_7=20일 때 Σ_{n=1}^{9}a_n=q/p, p+q(단답, 답 515).",
+  "exam": "같은 점화식, a_4=3, a_6+a_8=60일 때 Σ_{k=1}^{5}a_k(5지선다, 답 93/8).",
+  "change_type": [
+   "숫자 변경",
+   "구하는 대상 변경",
+   "형식 변경(보기형/서술·단계형/선지 변경)"
+  ],
+  "change_detail": [
+   "a_3=1 → a_4=3",
+   "a_5+a_7=20 → a_6+a_8=60",
+   "Σ_{1}^{9}의 p+q → Σ_{1}^{5}의 값",
+   "단답 → 5지선다"
+  ],
+  "core_kept": "등비중항 꼴 점화식에서 등비수열을 판별하고 r^4+r^2=20으로 r^2=4를 구해 등비합 계산",
+  "diff_effect": "같음: 같은 공비 2가 나오도록 수치를 맞춤",
+  "answer": "① (93/8)",
+  "confidence": "high",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_10.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/src_10.png"
+ },
+ {
+  "no": 11,
+  "label": "11",
+  "pts": 4.5,
+  "src_page": 90,
+  "src_no": 4,
+  "src_kind": "유형 EBS",
+  "src_origin": "2025 수능특강 [25008-0094] (유형1 사인법칙)",
+  "original": "∠B=∠D=90°, sin∠A=5/6인 사각형 ABCD에서 AB=3, BC=4일 때 BD(답 25/6).",
+  "exam": "∠DAB=∠BCD=90°, AB=4, AC=6, AD=4√3인 사각형 ABCD에서 sin∠ABC(답 3/4).",
+  "change_type": [
+   "숫자 변경",
+   "조건 변경",
+   "구하는 대상 변경"
+  ],
+  "change_detail": [
+   "직각 위치 B,D → A,C (지름이 AC → BD)",
+   "sinA를 주고 대각선 BD를 구함 → 변(AB, AD)과 대각선 AC를 주고 sin∠ABC를 구함 (역방향)",
+   "AB=3, BC=4 → AB=4, AD=4√3, AC=6"
+  ],
+  "core_kept": "마주 보는 두 직각 → 원에 내접하고 대각선이 지름(2R)이 됨. 피타고라스로 2R을 구한 뒤 사인법칙 (현)=2R·sin(원주각)",
+  "diff_effect": "같음: 주어진 것과 구하는 것이 뒤바뀐 역방향 적용",
+  "answer": "③ (3/4)",
+  "confidence": "medium",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_11.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/src_11.png",
+  "note": "대안 후보: p.103 #41(2003학년도 수능 예체능 11번, BC를 지름으로 하는 원에 내접하는 사각형의 sinA)도 풀이 구조가 같음. 그림과 직각 배치는 p.90 #4에 더 가까움."
+ },
+ {
+  "no": 12,
+  "label": "12",
+  "pts": 4.5,
+  "src_page": 127,
+  "src_no": 44,
+  "src_kind": "Level Up",
+  "src_origin": "2025 수능특강 [25008-0150]",
+  "original": "자연수 m과 공비가 양수인 등비수열: (가) a_1=1/m, a_m=10, (나) a_p×a_q=100인 (p,q) 순서쌍이 5개일 때 a_{m-1}(답 2^{3/4}×5^{1/2}).",
+  "exam": "자연수 m과 등차수열: (가) a_3=-m, a_m=15, (나) a_p+a_q=30인 (p,q) 순서쌍이 6개일 때 a_{m+1}(답 22).",
+  "change_type": [
+   "식·함수 교체",
+   "숫자 변경",
+   "조건 변경"
+  ],
+  "change_detail": [
+   "등비수열 → 등차수열",
+   "곱 a_pa_q=100(=a_m^2) → 합 a_p+a_q=30(=2a_m)",
+   "a_1=1/m → a_3=-m",
+   "순서쌍 5개 → 6개 (m=5 → m=6)",
+   "a_{m-1} → a_{m+1}"
+  ],
+  "core_kept": "(나)는 p+q=2m과 같으므로 순서쌍 개수가 m임을 이용해 m 결정 → 일반항 계산",
+  "diff_effect": "쉬워짐: 등비의 지수 계산(2^{3/4}×5^{1/2})이 등차의 정수 계산(d=7)으로 바뀜",
+  "answer": "① (22)",
+  "confidence": "high",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_12.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/src_12.png",
+  "note": "사전 매핑은 '단원 후반 EBS'였으나, p.127은 p.126 Level Up 섹션(#41~44)의 이어지는 면이므로 Level Up으로 정정."
+ },
+ {
+  "no": 13,
+  "label": "13",
+  "pts": 4.7,
+  "src_page": 141,
+  "src_no": 15,
+  "src_kind": "유형 후반",
+  "src_origin": "2024 수능완성 [24054-0072] (유형2 자연수의 거듭제곱의 합 후속면)",
+  "original": "a_n=Σ_{k=1}^{2n}|k-n|일 때 Σ_{n=1}^{5}a_n(답 55).",
+  "exam": "a_n=Σ_{k=1}^{4n}|2n-k|일 때 Σ_{k=1}^{10}a_k(답 1540).",
+  "change_type": [
+   "숫자 변경",
+   "식·함수 교체"
+  ],
+  "change_detail": [
+   "|k-n|, 상한 2n → |2n-k|, 상한 4n",
+   "Σ_{n=1}^{5} → Σ_{k=1}^{10}"
+  ],
+  "core_kept": "절댓값을 k=2n 기준으로 나누어 a_n=4n^2(원문은 a_n=n^2)을 구한 뒤 Σk^2 공식 적용",
+  "diff_effect": "어려워짐: 구조는 같지만 a_n=4n^2, 합의 범위가 10까지로 늘어 계산량 증가",
+  "answer": "⑤ (1540)",
+  "confidence": "high",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_13.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/src_13.png"
+ },
+ {
+  "no": 14,
+  "label": "14",
+  "pts": 4.7,
+  "src_page": 95,
+  "src_no": 22,
+  "src_kind": "유형 후반",
+  "src_origin": "2025 수능특강 [25008-0100] (유형3 삼각형의 넓이 후속면)",
+  "original": "AB=4, AC=2, ∠A=120°인 삼각형에서 ∠A의 이등분선이 BC와 만나는 점 P, AP의 길이(답 4/3).",
+  "exam": "지름 AC=√13인 원에 내접하는 사각형 ABCD, AB=3, ∠ABD=∠CBD, BD와 AC의 교점 E일 때 BE(답 6√2/5).",
+  "change_type": [
+   "조건 변경",
+   "구조 변경",
+   "숫자 변경"
+  ],
+  "change_detail": [
+   "삼각형 단독 → 원에 내접하는 사각형 안에 삼각형을 넣음",
+   "∠A=120° 직접 제시 → 'AC가 지름'에서 ∠ABC=90°, BC=2를 유도해야 함",
+   "이등분각 60°+60° → 45°+45°",
+   "AP → BE"
+  ],
+  "core_kept": "각의 이등분선 길이: △ABC=△ABE+△EBC 넓이 분할(1/2·ab·sinθ)로 BE=2ab·cos(θ/2)/(a+b)",
+  "diff_effect": "어려워짐: 지름 조건에서 직각과 나머지 변을 먼저 구하는 단계 추가",
+  "answer": "① (6√2/5)",
+  "confidence": "medium",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_14.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/src_14.png",
+  "note": "'유사 변형'. 같은 원 내접 소재로 p.93 #15(BC=DC인 내접 사각형)도 있으나, 구하는 대상(이등분선 길이)은 #22와 일치."
+ },
+ {
+  "no": 15,
+  "label": "15",
+  "pts": 4.7,
+  "src_page": 179,
+  "src_no": 115,
+  "src_kind": "평가원 기출",
+  "src_origin": "2025학년도 9월 모의평가 22번",
+  "original": "a_1=k>0, (가) a_2a_3<0, (나) (a_{n+1}-a_n+(2/3)k)(a_{n+1}+k·a_n)=0일 때 a_5=0이 되는 모든 k에 대해 k^2의 합(단답, 답 8).",
+  "exam": "a_1=k>0, (가) a_2a_3<0, (나) (a_{n+1}-a_n+2k)(a_{n+1}+(2/k)a_n)=0일 때 a_5=0이 되는 모든 k에 대해 k^2의 합(5지선다, 답 13/4).",
+  "change_type": [
+   "식·함수 교체",
+   "숫자 변경",
+   "형식 변경(보기형/서술·단계형/선지 변경)"
+  ],
+  "change_detail": [
+   "차 (2/3)k → 2k",
+   "곱의 비 -k → -2/k",
+   "k 값 {2√3/3, 2, √6/3, √2} (합 8) → {1, 1/2, √2} (합 13/4)",
+   "단답 → 5지선다"
+  ],
+  "core_kept": "각 단계에서 'k만큼 감소' 또는 '-배' 두 갈래의 경우를 나누는 수형도, a_2a_3<0으로 가지치기, a_5=0 역추적",
+  "diff_effect": "같음: 경우를 나누는 구조와 단계 수는 그대로이고 계수만 교체(선지 제공으로 검산은 쉬워짐)",
+  "answer": "③ (13/4)",
+  "confidence": "high",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_15.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/src_15.png",
+  "note": "사전 매핑의 '구하는 대상 변경'은 사실이 아님. 구하는 대상(k^2의 합)은 같고 점화식 계수가 바뀜."
+ },
+ {
+  "no": 16,
+  "label": "16",
+  "pts": 4.9,
+  "src_page": 111,
+  "src_no": 58,
+  "src_kind": "평가원 기출",
+  "src_origin": "2026학년도 9월 모의평가 20번",
+  "original": "원에 내접하는 ABCD, AB:CD=1:3, BC<AD, PB:PC:BC=7:5:√14, AD=4√13일 때 △BPC 외접원의 반지름을 구하는 빈칸 (가)(나)(다) 과정, p+q+r(답 3+2+7=12).",
+  "exam": "원에 내접하는 ABCD, AB:CD=14:11, BC<AD, PB:PC:BC=7:8:3, AD=3일 때 △BPC 외접원의 넓이(답 4π/3).",
+  "change_type": [
+   "숫자 변경",
+   "형식 변경(보기형/서술·단계형/선지 변경)"
+  ],
+  "change_detail": [
+   "AB:CD=1:3 → 14:11",
+   "PB:PC:BC=7:5:√14 → 7:8:3",
+   "AD=4√13 → 3",
+   "빈칸 채우기(증명 과정 제시) → 풀이 과정 없는 5지선다",
+   "반지름 R → 외접원 넓이 πR^2"
+  ],
+  "core_kept": "할선 정리(PB·PA=PC·PD) 또는 △PBC∽△PDA로 l:k와 닮음비(2:7)를 구하고 BC 결정 → 코사인법칙으로 cosP → 사인법칙으로 R",
+  "diff_effect": "어려워짐: 단계별 빈칸 안내가 사라져 풀이 전체를 혼자 구성해야 함",
+  "answer": "② (4π/3)",
+  "confidence": "high",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_16.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/src_16.png"
+ },
+ {
+  "no": 17,
+  "label": "17",
+  "pts": 5.2,
+  "src_page": 153,
+  "src_no": 52,
+  "src_kind": "Level Up",
+  "src_origin": "2023 수능특강 [23008-0182]",
+  "original": "a_{n+1}=n+a_n (a_n<n), a_n-p (a_n≥n)이고 p≤10, a_m=0, a_{m+4}=0인 m이 존재하도록 하는 모든 p의 합(답 17: p=7,10).",
+  "exam": "같은 점화식, p≤10, (나) a_m=0, Σ_{k=0}^{4}a_{m+k}=0인 m이 존재할 때 a_8(답 4: p=7, m=1).",
+  "change_type": [
+   "조건 변경",
+   "구하는 대상 변경",
+   "형식 변경(보기형/서술·단계형/선지 변경)"
+  ],
+  "change_detail": [
+   "a_{m+4}=0 → Σ_{k=0}^{4}a_{m+k}=0 (다섯 항의 합)",
+   "'모든 p의 합' → 'a_8의 값'",
+   "p 후보 2개 → p=7, m=1로 유일하게 결정",
+   "단답 → 5지선다"
+  ],
+  "core_kept": "a_m=0부터 a_{m+1}=m, a_{m+2}=2m+1, a_{m+3}=2m+1-p … 를 m, p에 대한 식으로 차례로 전개하며 경우 나누기",
+  "diff_effect": "같음: 전개 방식은 같고, 합 조건이 조금 까다로운 대신 해가 하나로 정해짐",
+  "answer": "④ (4)",
+  "confidence": "high",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_17.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/src_17.png"
+ },
+ {
+  "no": 18,
+  "label": "18",
+  "pts": 5.2,
+  "src_page": null,
+  "src_no": null,
+  "src_kind": "학교 자체",
+  "src_origin": "자체 제작 (부교재 소재 결합형)",
+  "original": "해당 없음. 부교재 두 권(p.88~183)에서 같은 문항을 찾지 못함.",
+  "exam": "BC를 지름으로 하는 원이 AB, AC와 D, E에서 만남. AD=2, DE=√7, AE=3일 때 ∠CAB의 이등분선이 외접원과 만나는 점 F, AF(답 10√3/3).",
+  "change_type": [
+   "자체 제작"
+  ],
+  "change_detail": [
+   "△ADE에서 코사인법칙으로 A=60°",
+   "지름 BC → CD⊥AB, BE⊥AC이므로 AC=AD/cos60°=4, AB=AE/cos60°=6",
+   "이등분선과 외접원의 교점: AF·cos(A/2)=(b+c)/2 → AF=10/√3"
+  ],
+  "core_kept": "코사인법칙과 원주각(지름 → 직각), 이등분선과 외접원(톨레미 또는 사인법칙)",
+  "diff_effect": "해당 없음: 5.2점 최고 배점의 자체 킬러",
+  "answer": "⑤ (10√3/3)",
+  "confidence": "medium",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_18.png",
+  "src_img": null,
+  "note": "구조가 비슷한 부교재 문항: p.98 #30(Level Up, 두 수선의 발 D, E와 외접원), p.95 #23(이등분선이 외접원과 만나는 점). 직접적인 원 문항은 없음. 스캔에 p.107(#49, #50)이 빠져 있어 그 면은 확인하지 못함."
+ },
+ {
+  "no": 19,
+  "label": "서답형1",
+  "pts": 10,
+  "src_page": 106,
+  "src_no": 47,
+  "src_kind": "평가원 기출",
+  "src_origin": "2022학년도 9월 모의평가 12번",
+  "original": "반지름 2√7인 원에 내접하는 △ABC, ∠A=π/3, 호 BC 위의 점 D에 대해 sin∠BCD=2√7/7일 때 BD+CD(5지선다, 답 10).",
+  "exam": "중심 O인 원에 내접하는 사각형 ABDC, cosA=1/3, BC=4, △OBC=(4/5)△BDC. (1) 외접원 반지름 3√2/2 [3점] (2) △OBC 넓이 √2 [3점] (3) BD×CD=15/4 [4점].",
+  "change_type": [
+   "형식 변경(보기형/서술·단계형/선지 변경)",
+   "조건 변경",
+   "숫자 변경",
+   "구하는 대상 변경"
+  ],
+  "change_detail": [
+   "5지선다 → 3단계 서술형(10점, 부분점수)",
+   "∠A=π/3, R=2√7 제시 → cosA=1/3, BC=4에서 R을 직접 구하게 함",
+   "sin∠BCD 조건 → 넓이비 △OBC:△BDC=4:5 조건(중심각 2A 활용)",
+   "BD+CD → BD×CD"
+  ],
+  "core_kept": "내접 사각형의 대각 관계(∠D=π-A), 사인법칙(BC=2R·sinA), 넓이 S=(1/2)ab·sinθ",
+  "diff_effect": "같음: 단계형으로 쪼개 유도하지만 중심각 넓이 단계가 추가됨",
+  "answer": "(1) 3√2/2 (2) √2 (3) 15/4",
+  "confidence": "medium",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_19.png",
+  "src_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/src_19.png",
+  "note": "시험지 표기: [서답형1] 19번. 공식 모범답안과 일치함. p.107이 스캔에서 빠져 있어 그 면의 평가원 문항(#49, #50)과는 비교하지 못함."
+ },
+ {
+  "no": 20,
+  "label": "서답형2",
+  "pts": 10,
+  "src_page": null,
+  "src_no": null,
+  "src_kind": "외부",
+  "src_origin": "부교재 외 (교과서형 수학적 귀납법 증명)",
+  "original": "해당 없음. 부교재 유형6(p.148~149 #41~44)과 평가원 기출(p.170~172)의 귀납법 문항은 모두 빈칸 채우기형이고, 같은 등식은 없음.",
+  "exam": "모든 자연수 n에 대해 1/(2×4)+1/(4×6)+…+1/(2n(2n+2))=n/(4n+4)임을 수학적 귀납법으로 증명(10점).",
+  "change_type": [
+   "자체 제작",
+   "형식 변경(보기형/서술·단계형/선지 변경)"
+  ],
+  "change_detail": [
+   "부교재의 빈칸형 귀납법 증명 → 증명 전체 서술",
+   "소재: 부분분수 꼴 합(p.142 유형3)을 귀납법 등식으로 바꿈"
+  ],
+  "core_kept": "n=1 확인 → n=k 가정 → 양변에 1/((2k+2)(2k+4))를 더해 (k+1)/(4(k+1)+4)로 정리",
+  "diff_effect": "해당 없음: 정형화된 증명이라 난이도는 낮고 서술 채점 형식",
+  "answer": "증명 문항 (n=1: 좌변=우변=1/8, 귀납 단계 k/(4(k+1))+1/(4(k+1)(k+2))=(k+1)/(4(k+2)))",
+  "confidence": "medium",
+  "exam_img": "/tmp/claude-0/-home-user-Finale/12e2698e-3f00-52d2-bb21-f0ec4f5dc473/scratchpad/xam/s1f_work/crops/exam_20.png",
+  "src_img": null,
+  "note": "시험지 표기: [서답형2] 20번."
+ }
+]

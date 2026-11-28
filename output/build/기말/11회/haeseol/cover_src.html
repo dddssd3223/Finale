@@ -1,0 +1,133 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:'NSq';src:url('file:///usr/share/fonts/truetype/nanum/NanumSquareR.ttf')}
+@font-face{font-family:'NSq';src:url('file:///usr/share/fonts/truetype/nanum/NanumSquareB.ttf');font-weight:700}
+@font-face{font-family:'NSq';src:url('file:///usr/share/fonts/truetype/nanum/NanumSquareEB.ttf');font-weight:800}
+@font-face{font-family:'NBG';src:url('file:///usr/share/fonts/truetype/nanum/NanumBarunGothic.ttf')}
+@font-face{font-family:'NBG';src:url('file:///usr/share/fonts/truetype/nanum/NanumBarunGothicBold.ttf');font-weight:700}
+@font-face{font-family:'BD';src:url('file:///home/user/Finale/output/build/기말/fonts/busan_L.ttf');font-weight:300}
+@font-face{font-family:'BD';src:url('file:///home/user/Finale/output/build/기말/fonts/busan_M.ttf');font-weight:500}
+@font-face{font-family:'BD';src:url('file:///home/user/Finale/output/build/기말/fonts/busan_B.ttf');font-weight:700}
+@font-face{font-family:'HYEQ';src:url('file:///home/user/Finale/output/build/기말/fonts/hyhwpeq_web.ttf')}
+@font-face{font-family:'SJ';src:url('file:///home/user/Finale/output/build/기말/fonts/shinjung.ttf')}
+@font-face{font-family:'HB';src:url('file:///home/user/Finale/output/build/기말/fonts/hbatang_web.ttf')}
+@font-face{font-family:'NMJ';src:url('file:///usr/share/fonts/truetype/nanum/NanumMyeongjo.ttf')}
+@font-face{font-family:'NMJ';src:url('file:///usr/share/fonts/truetype/nanum/NanumMyeongjoBold.ttf');font-weight:700}
+:root{--b:#5f8fd8;--bl:#8fb2e6;--bp:#e9f0fb;--bd:#2f5fae;--g:#8a8f98;--gl:#e9eaec;--ink:#222}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:'SJ','HB','NMJ',serif;font-size:8.7pt;line-height:2.0;letter-spacing:-.015em;word-spacing:-.08em;color:var(--ink);word-break:keep-all}
+.katex{font-size:1.0em;margin:0 1.6pt;word-spacing:0}.katex-display>.katex{margin:0}
+.katex-display{margin:.6em 0}
+p{margin:.25em 0 .6em}
+b{font-weight:700}
+/* 1쪽 */
+.p1{display:flex;gap:9mm;break-after:page}
+.p1 .l{flex:1.05}.p1 .r{flex:1}
+.ttl{background:var(--bl);color:#fff;font-family:'NSq';font-weight:700;font-size:11pt;padding:3pt 10pt;display:flex;justify-content:space-between}
+.ttl b{color:#1b2a4a;font-weight:800}
+table.ans{width:100%;border-collapse:collapse;font-family:'NSq';font-size:10pt}
+table.ans td{padding:3.2pt 6pt;border-bottom:.5pt solid var(--gl);text-align:center}
+table.ans td.n{color:var(--bl);font-weight:700;text-align:left;width:14%}
+table.ans td.v{width:19%}
+.sa{font-size:8.8pt;margin-top:5pt;line-height:1.75}
+.sa .h{display:inline-block;background:var(--bp);color:var(--bd);font-family:'NSq';font-weight:700;font-size:8pt;padding:0 6pt;border-radius:2pt;margin-right:4pt}
+h3{font-family:'NSq';font-weight:700;font-size:10.5pt;margin:0 0 6pt}
+.cmp{margin-bottom:9pt}
+.cmp .k{display:inline-block;background:var(--g);color:#fff;font-family:'NSq';font-size:7.6pt;font-weight:700;padding:0 6pt;border-radius:2pt}
+.bar{display:flex;align-items:center;margin:2pt 0;font-family:'NSq';font-size:7.4pt;color:#9aa2ad}
+.bar .t{height:12pt;border-radius:0 7pt 7pt 0;background:#eef1f5;display:flex;align-items:center;justify-content:flex-end;padding-right:6pt;color:#8a93a0}
+.bar.me .t{background:var(--bp);color:var(--bd);font-weight:700}
+.bar .v{margin-left:5pt}
+table.cut{border-collapse:separate;border-spacing:3pt;font-family:'NSq';font-size:9pt;margin-top:4pt}
+table.cut th{background:var(--bl);color:#fff;padding:2pt 14pt;font-weight:700;border-radius:2pt}
+table.cut td{padding:2pt 14pt;text-align:center}
+table.cut td.h{font-weight:700;text-align:left;padding-left:0}
+.fine{font-family:'NSq';font-size:7.4pt;color:var(--g);margin-top:4pt}
+/* 2쪽 */
+.p2{display:flex;gap:9mm;break-after:page}
+.p2 .l{flex:1}.p2 .r{flex:1}
+.ctag{display:inline-block;background:var(--b);color:#fff;font-family:'NSq';font-weight:800;font-size:8.6pt;padding:2pt 8pt;margin-bottom:6pt}
+.cm{background:#f4f6f9;border-radius:3pt;padding:9pt 11pt;margin-bottom:10pt;font-family:'NBG';font-size:8pt;line-height:2.05}
+.cm .who{display:flex;align-items:center;gap:6pt;font-family:'NSq';font-weight:700;font-size:8.6pt;margin-bottom:4pt}
+.cm .ic{width:18pt;height:18pt;border-radius:50%;background:var(--b);color:#fff;display:flex;align-items:center;justify-content:center;font-size:8pt}
+.cm b{font-weight:700}
+.chong{font-family:'NBG';font-size:8.3pt;line-height:2.15}
+.chong .hd{display:flex;align-items:center;gap:7pt;margin-bottom:6pt}
+.chong .hd .bub{width:32pt;height:32pt;border-radius:50%;background:var(--bp);display:flex;align-items:center;justify-content:center;font-family:'NSq';font-weight:800;color:var(--bd);font-size:8pt;text-align:center;line-height:1.15}
+.chong p{margin:0 0 7pt}
+.chong b{font-weight:700;color:#111}
+/* 본문 2단 */
+.cols{column-count:2;column-gap:11mm;column-fill:auto}
+.it{margin:0 0 18pt}
+.no{font-family:'NSq';font-weight:700;font-size:17pt;color:var(--b);line-height:1.1;margin:2pt 0 3pt;break-after:avoid}
+.no .z{color:var(--bl);opacity:.75}
+.mt{display:inline-flex;font-family:'NSq';font-size:7.6pt;font-weight:700;margin-bottom:5pt;break-after:avoid}
+.mt span{padding:0 5pt;line-height:1.75}
+.mt .a{background:#8c9097;color:#fff}.mt .b{background:#e3e5e8;color:#5e636b}
+.mt.sj .a{background:#8c9097}
+.cb{border:1pt solid var(--bl);border-radius:2pt;margin:4pt 0 10pt;break-inside:avoid;font-size:8.3pt;line-height:2}
+.cb .h{display:flex;justify-content:space-between;align-items:center;padding:2pt 7pt;border-bottom:.6pt solid var(--bl);font-family:'NSq';font-size:8.2pt;color:var(--b);font-weight:700}
+.cb .h .k{font-size:7pt;color:var(--b);font-weight:400}
+.cb .bd{padding:3pt 8pt}
+.cref{display:inline-flex;margin:0 4pt 0 3pt;font-family:'NSq';font-size:7pt;font-weight:700;vertical-align:1pt;border:.6pt solid var(--bl)}
+.cref .a{background:#fff;color:var(--b);padding:0 3pt}.cref .b{background:var(--b);color:#fff;padding:0 4pt}
+.tg{display:inline-flex;font-family:'NSq';font-size:7.6pt;font-weight:700;margin:5pt 0 3pt;break-after:avoid}
+.tg span{padding:0 5pt;line-height:1.75}
+.tg .a{background:#8c9097;color:#fff}.tg .b{background:#e3e5e8;color:#5e636b}
+.tg.th .a{background:var(--b)}.tg.th .b{background:var(--bp);color:var(--bd)}
+.flow{margin:4pt 0 8pt;break-inside:avoid}
+.flow .fh{display:inline-flex;font-family:'NSq';font-size:7.6pt;font-weight:700;margin-bottom:4pt}
+.flow .fh span{padding:0 5pt;line-height:1.75}.flow .fh .a{background:var(--b);color:#fff}.flow .fh .b{background:var(--bp);color:var(--bd)}
+.st{position:relative;padding-left:11pt;margin-bottom:5pt}
+.st:before{content:'';position:absolute;left:3.5pt;top:13pt;bottom:-6pt;width:3pt;background:linear-gradient(var(--bl),var(--bp))}
+.st:last-child:before{bottom:2pt}
+.st .sh{display:flex;align-items:center;gap:6pt;border:.6pt dashed var(--bl);border-radius:2pt;padding:1pt 6pt;margin-left:-11pt;background:#fff;position:relative;font-family:'NBG';font-size:8.4pt;font-weight:700}
+.st .sh .s{font-family:'NSq';font-size:6.5pt;color:var(--bl);line-height:1;text-align:center}
+.st .sh .s b{display:block;font-size:10pt;color:var(--b)}
+.st ul{margin:3pt 0 0;padding-left:12pt;font-size:8.2pt;line-height:2}
+.jt{margin-top:6pt}
+.ck{background:#f4f6f9;border-radius:2pt;padding:5pt 9pt;margin:6pt 0;font-size:8.6pt;break-inside:avoid}
+.ck .h{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:.6pt solid #555;padding-bottom:1pt;margin-bottom:3pt;font-family:'NSq';font-weight:700;font-size:8pt}
+.ck .h .c{color:var(--b);font-weight:800;font-size:9pt}
+.ck .h .r{font-weight:400;font-size:7.4pt}
+.ck ol{margin:0;padding-left:13pt}
+.og{border:.6pt solid #c8cdd4;border-radius:2pt;margin:10pt 0 4pt;break-inside:avoid;font-size:8.1pt;line-height:2}
+.og .h{display:flex;justify-content:space-between;padding:1.5pt 7pt;font-family:'NSq';font-size:7.4pt;font-weight:700;border-bottom:.5pt dotted #c8cdd4}
+.og .h .r{color:var(--bl);font-weight:400}
+.og .bd{padding:4pt 8pt}
+.og .row{display:flex;gap:5pt;margin:1pt 0}
+.og .row .k{flex:none;font-family:'NSq';font-size:7pt;font-weight:700;color:#fff;background:#9aa3ae;border-radius:2pt;padding:0 4pt;height:12pt;line-height:12pt;margin-top:3pt}
+.og .row .k.c{background:var(--b)}.og .row .k.p{background:var(--bd)}
+.og ul{margin:0;padding-left:12pt}
+.an{text-align:right;font-family:'NSq';font-size:8.4pt;margin-top:4pt;break-before:avoid}
+.an span{display:inline-block;background:var(--bp);color:var(--b);font-weight:700;font-size:7.4pt;padding:0 5pt;margin-right:5pt;border-radius:1pt}
+.sec{column-span:all;font-family:'NSq';font-weight:800;font-size:10pt;color:#fff;background:var(--b);display:inline-block;padding:2pt 10pt;margin:6pt 0 8pt;position:relative}
+/* 박스 안 글꼴: 부산단디고딕 — 본문 M, 제목 B, 보조 L (사용자 2026-11-24) */
+.cb .bd,.og .bd,.st ul,.cm{font-family:'BD','NBG',sans-serif;font-weight:500}
+.cb,.og,.flow,.cm,.ck,.tg,.mt,.cref,.p1,.p2,.ab .abh{word-spacing:normal}   /* 띄어쓰기 줄임은 본문(신중명조)만 — 박스는 원래대로(2026-11-24) */
+.cb .h,.og .h,.st .sh,.cm .who{font-family:'BD','NSq',sans-serif;font-weight:700}
+.cb .h .k,.og .h .r{font-family:'BD','NSq',sans-serif;font-weight:300}
+.cb .bd b,.og .bd b,.cm b{font-weight:700}
+/* 부록 빠른 정답 */
+.apqa{break-before:page}.qas{display:grid;grid-template-columns:repeat(5,1fr);gap:4pt 8pt;font-family:'NSq';font-size:9pt}
+.qa{border-bottom:.6pt solid #e1e8ef;padding:3pt 4pt;display:flex;justify-content:space-between}.qa b{color:var(--b)}
+/* 부록: 원본 문항 (사용자 2026-11-24) — 한 쪽에 위 둘·여백·아래 둘 */
+#apx-src{width:100%}
+.apxh{display:inline-flex;font-family:'NSq';font-size:9pt;font-weight:800;margin:0 0 8pt}
+.apxh span{padding:1pt 9pt;line-height:1.7}.apxh .a{background:var(--b);color:#fff}.apxh .b{background:var(--bp);color:var(--bd)}
+.ab{border:.8pt solid #c8cdd4;border-radius:2pt;padding:6pt 8pt 7pt;font-size:8.1pt;line-height:1.9;box-sizing:border-box;width:100%}
+.ab .abh{display:flex;align-items:center;gap:6pt;margin-bottom:4pt}
+.ab .abh .chip{display:inline-flex;font-family:'NSq';font-size:7.4pt;font-weight:700}
+.ab .abh .chip span{padding:0 5pt;line-height:1.75}.ab .abh .chip .a{background:#8c9097;color:#fff}.ab .abh .chip .b{background:#e3e5e8;color:#5e636b}
+.ab .abh .src{font-family:'BD','NSq',sans-serif;font-weight:300;font-size:7pt;color:#8a8f98}
+.ab .cond{border:.6pt solid #555;padding:2pt 6pt;margin:3pt 0}
+.ab .ci{display:block;padding-left:2.4em;text-indent:-2.4em}.ab .ck{display:inline-block;width:2.4em;text-indent:0;background:none;border-radius:0;padding:0;margin:0;font-size:inherit;break-inside:auto}.ab .cond{background:none}
+.ab fieldset.bogi{border:.6pt solid #555;margin:4pt 0;padding:1pt 6pt 3pt}.ab fieldset.bogi legend{font-size:7.4pt;padding:0 4pt;margin:0 auto}
+.ab .bi{display:block;padding-left:1.6em;text-indent:-1.6em}.ab .bk{display:inline-block;width:1.6em;text-indent:0}
+.ab .fig{text-align:center;margin:3pt 0}
+.ab .chs{display:flex;flex-wrap:wrap;gap:1pt 10pt;margin-top:3pt}
+.apg{height:968px;display:flex;flex-direction:column;break-after:page;break-inside:avoid}
+.apg:last-child{break-after:auto}
+.ahalf{flex:1 1 0;display:grid;grid-template-columns:1fr 1fr;column-gap:11mm;align-items:start;min-height:0}
+.ahalf.full{flex:2 1 0;grid-template-columns:1fr}
+</style></head><body style="margin:0"><div style="width:210mm;height:297mm;position:relative;overflow:hidden;background:#fff;page-break-after:always"><div style="position:absolute;left:24mm;top:28mm;font-family:NSq;font-size:9pt;letter-spacing:4pt;color:#8fb2e6">2026&nbsp;&nbsp;2학년 2학기</div><div style="position:absolute;left:24mm;top:40mm;font-family:NSq;font-weight:800;font-size:38pt;line-height:1.25;color:#2f5fae;letter-spacing:-1pt">미적분Ⅰ<br>기말 모의고사</div><div style="position:absolute;right:24mm;top:40mm;font-family:NSq;font-weight:800;font-size:72pt;color:#5f8fd8;letter-spacing:4pt">11</div><svg width="794" height="400" viewBox="0 0 595 300" style="position:absolute;left:0;top:330pt"><circle cx="110" cy="150" r="62" fill="none" stroke="#5f8fd8" stroke-width="26"/><circle cx="300" cy="150" r="62" fill="none" stroke="#8fb2e6" stroke-width="26"/><circle cx="300" cy="150" r="16" fill="#8fb2e6"/><circle cx="490" cy="150" r="62" fill="#5f8fd8"/><path d="M40 150 C 160 60, 240 240, 360 150 S 520 60, 595 150" fill="none" stroke="#c9d6ea" stroke-width="2" stroke-dasharray="3 5"/></svg><div style="position:absolute;left:24mm;top:230mm;font-family:NSq;font-weight:700;font-size:13pt;letter-spacing:6pt;color:#5f8fd8">정 답 및 해 설</div><div style="position:absolute;left:24mm;top:240mm;font-family:NSq;font-size:9pt;color:#8a8f98">기말 11회&nbsp;&nbsp;&nbsp;해설  변형 포인트  출제자의 총평</div><div style="position:absolute;left:0;right:0;bottom:16mm;text-align:center;font-family:NSq;font-size:9pt;color:#5f8fd8">양정고 미적분Ⅰ 기말 대비</div></div><div style="width:210mm;height:297mm;position:relative;overflow:hidden;background:#fff;">&nbsp;</div></body></html>

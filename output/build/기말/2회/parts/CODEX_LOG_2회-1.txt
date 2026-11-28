@@ -1,0 +1,3032 @@
+i": 0,
+        "overlap": "none",
+        "with": "-",
+        "note": "우변을 회전 직선 mx로 바꾼 것은 분석집에 없다."
+      },
+      {
+        "i": 1,
+        "overlap": "none",
+        "with": "-",
+        "note": "실근 개수의 불연속점 합은 분석집에 없다."
+      },
+      {
+        "i": 2,
+        "overlap": "none",
+        "with": "-",
+        "note": "정적분과의 소재 결합이다."
+      }
+    ],
+    "extra_recipe": null
+  }
+}
+
+exec
+/bin/bash -lc "sed -n '60,160p' output/build/기말/2회/checkpart.py; cat output/build/기말/견본4/parts/p3.py; sed -n '1,100p' output/build/기말/견본4/parts/p4.py; sed -n '1,200p' output/build/기말/지침/patterns.py" in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+        if ax not in ('①', '②'): ok.append(f'축 {ax!r}(①·②만 허용)')
+        if float(R.get('d_step', 0)) < 0.75: ok.append(f"d_step {R.get('d_step')} < 0.75")
+        if R.get('verdict') != '통과': ok.append(f"검토 판정 {R.get('verdict')}")
+        print(f"{n}: 관문 3 {'통과' if not ok else '미통과: ' + ' / '.join(ok)} (검토 {R.get('reviewer', '?')}, 축 {ax}, d_step {R.get('d_step')})")
+        gate |= bool(ok)
+r_s = subprocess.run([sys.executable, os.path.join(G, 'schoolcheck.py'), 'item', p]).returncode   # 학교 선례(0-8)
+sys.exit(1 if r1 or bad or gate or r_s else 0)
+# -*- coding: utf-8 -*-
+# 견본4 기말 모의고사 17번 Claude 후보 (claude17, 5.2점)
+# 원본 M27 (2024 수능특강 [24009-0120], 원본 난도 6) · 축 ①(설정 유지 · 판정 원리 교체)
+# 설정 유지: 최고차항의 계수 2, 원점 대칭 삼차함수 f, 그래프 y=|f(x)|
+# 원리 교체: 수평선 높이 vs 봉우리 높이(극댓값) → 원점을 지나는 직선의 기울기 vs 원점에서 봉우리에 접하는 기울기 |f'(0)|
+ITEMS = {
+  17: dict(body=r"""최고차항의 계수가 \(2\)인 삼차함수 \(f(x)\)가 다음 조건을 만족시킬 때, \(f(3)\)의 최솟값은?""",
+           cond=[('가', r"""함수 \(y=f(x)\)의 그래프는 원점에 대하여 대칭이다."""),
+                 ('나', r"""직선 \(y=kx\)가 곡선 \(y=|f(x)|\)와 서로 다른 세 점에서 만나도록 하는 정수 \(k\)의 개수는 \(5\)이다.""")],
+           choices=['48', '45', '42', '39', '36'],
+           ans=2,
+           key='M27', src='2024년 수능특강 [24009-0120]', author='claude', cand='claude17',
+           level='상',
+           core=dict(axis='①',
+                     setting=r"(가)와 최고차항의 계수 \(2\)에서 \(f(x)=2x^3+bx\)이고, \(y=|f(x)|\)는 \(y\)축 대칭인 같은 높이의 두 봉우리를 가진다.",
+                     principle=r"\(y=|f(x)|\)와 수평선이 네 점에서 만나는 것은 높이가 봉우리 높이(극댓값)일 때뿐이므로 \(-f(1)\)이 극댓값, \(f(1)\)이 극솟값이 되어 \(x=1\)이 극소점이다.",
+                     new=r"원점을 지나는 직선 \(y=kx\)는 기울기의 절댓값이 원점에서 봉우리에 접하는 기울기 \(|f'(0)|=-b\)보다 작을 때만(\(k=0\) 포함) 봉우리를 뚫고 세 점에서 만나고, 같을 때는 원점에서 접해 두 점이므로 정수 \(k\) 5개 \(\Leftrightarrow 2&lt;-b\le3\)이다."),
+           var=r"[판정 원리 교체] 수평선 \(y=-f(1)\)과 네 점(높이 = 극댓값 → \(x=1\) 극소점) → 원점을 지나는 직선 \(y=kx\)와 세 점이 되는 정수 \(k\)가 5개(기울기 vs 원점에서의 접선 기울기 \(|f'(0)|\), 경계 \(|k|=-b\)는 접함), \(f(3)\)의 값 → 최솟값",
+           sol=r"(가)에서 \(f(-x)=-f(x)\)이므로 \(f(x)=2x^3+bx\) (\(b\)는 상수)로 놓을 수 있다. 함수 \(y=|f(x)|\)의 그래프는 \(y\)축에 대하여 대칭이고 두 직선 \(y=kx\), \(y=-kx\)도 \(y\)축에 대하여 대칭이므로, 두 직선이 곡선 \(y=|f(x)|\)와 만나는 점의 개수는 같다. 또 원점은 항상 교점이다.<br>"
+               r"(i) \(b\ge0\)일 때: \(x>0\)에서 \(|f(x)|=2x^3+bx\)이고, \(k>0\)이면 \(2x^3+bx=kx\)에서 \(2x^2=k-b\)이므로 \(x>0\)인 교점은 많아야 한 개이다. \(x&lt;0\)에서는 \(kx&lt;0\)이므로 만나지 않는다. \(k=0\)이면 교점은 원점뿐이다. 따라서 세 점에서 만나는 \(k\)는 없으므로 (나)를 만족시키지 않는다.<br>"
+               r"(ii) \(b&lt;0\)일 때: \(b=-m\) (\(m>0\))이라 하자. \(k=0\)이면 직선은 \(x\)축이고 \(|f(x)|=0\)에서 \(x=0,\ \pm\sqrt{\frac{m}{2}}\)이므로 세 점에서 만난다. \(k>0\)이면 \(x&lt;0\)에서는 만나지 않고, \(x>0\)에서 \(|2x^3-mx|=kx\), 즉 \(|2x^2-m|=k\)이므로 \(2x^2=m+k\) 또는 \(2x^2=m-k\)이다. \(2x^2=m+k\)는 항상 양수인 해를 하나 가지고, \(2x^2=m-k\)는 \(k&lt;m\)일 때만 양수인 해를 가진다. \(k=m\)이면 \(x=0\)이 되어 원점과 겹친다. 즉 직선 \(y=mx\)는 원점에서 봉우리에 접하므로 두 점에서만 만난다. 따라서 \(0&lt;k&lt;m\)일 때 세 점, \(k\ge m\)일 때 두 점에서 만나고, 대칭에 의해 \(k&lt;0\)일 때는 \(-m&lt;k&lt;0\)일 때만 세 점에서 만난다.<br>"
+               r"(i), (ii)에서 곡선 \(y=|f(x)|\)와 직선 \(y=kx\)가 세 점에서 만나는 것은 \(b&lt;0\)이고 \(-m&lt;k&lt;m\)일 때이다. 이를 만족시키는 정수 \(k\)가 \(-2,\ -1,\ 0,\ 1,\ 2\)의 \(5\)개이려면 \(2&lt;m\le3\), 즉 \(-3\le b&lt;-2\)이다. \(m=3\)일 때 \(k=\pm3\)은 원점에서 접하는 직선이므로 세지 않는다.<br>"
+               r"\(f(3)=54+3b\)는 \(b\)에 대하여 증가하므로 \(b=-3\), 즉 \(f(x)=2x^3-3x\)일 때 최솟값 \(54-9=45\)를 가진다.",
+           fast=r"\(y=|f(x)|\)의 봉우리가 원점에서 이루는 접선의 기울기는 \(\pm|f'(0)|\)이다. 원점을 지나는 직선은 기울기의 절댓값이 \(|f'(0)|\)보다 작으면(\(x\)축 포함) 봉우리를 뚫어 세 점, 같거나 크면 두 점에서 만난다. 봉우리가 있으려면 \(f'(0)=b&lt;0\)이고, \(|k|&lt;-b\)인 정수 \(k\)가 \(5\)개이므로 \(2&lt;-b\le3\). \(b=-3\)에서 \(f(3)=45\).",
+           wrong=r"① \(48\): 원점에서 접하는 직선 \(k=\pm(-b)\)도 세 점이라고 보아 \(|k|\le-b\)인 정수 \(5\)개로 세면 \(2\le-b&lt;3\)이 되고, 포함되는 끝 \(b=-2\)에서 얻는 값(경계 포함을 반대로) / "
+                 r"③ \(42\): 음수 기울기를 빠뜨리고 경계도 포함해 \(0\le k\le-b\)인 정수 \(5\)개로 세면 \(4\le-b&lt;5\), 끝 \(b=-4\)에서 얻는 값 / "
+                 r"④ \(39\): \(y\)축 대칭을 놓쳐 음수 \(k\)를 빠뜨리고 \(0\le k&lt;-b\)인 정수 \(5\)개로 세면 \(4&lt;-b\le5\), \(b=-5\)에서 얻는 값(경우 누락) / "
+                 r"⑤ \(36\): 음수 \(k\)와 \(x\)축(\(k=0\))을 모두 빠뜨려 \(1\le k&lt;-b\)인 정수 \(5\)개로 세면 \(5&lt;-b\le6\), \(b=-6\)에서 얻는 값(원문의 \(f(x)=2x^3-6x\)와 같은 함수)",
+           note=r"원본은 수평선 \(y=-f(1)\)의 높이를 봉우리 높이(극댓값)와 비교해 \(x=1\)을 극소점으로 정했다. 변형은 직선이 원점을 지나며 기울어 있어 극댓값 높이는 판정에 쓰이지 않고(교점은 많아야 세 개), 기울기를 원점에서 봉우리에 접하는 기울기 \(|f'(0)|\)와 비교한다. \(b\ge0\)(봉우리 없음)·\(x\)축·음수 기울기·접하는 경계 \(|k|=-b\)를 모두 따져야 하고, 경계 \(b=-3\)이 포함되어 최솟값이 존재한다."),
+}
+# -*- coding: utf-8 -*-
+# 서답형2 (D65, 2020학년도 수능 9월 모의평가 나형 30번 구조 변경) · author='claude'
+SITEMS = {
+'S2': dict(
+    body=r"""최고차항의 계수가 \(1\)인 사차함수 \(f(x)\)에 대하여 네 수 \(f(-3)\), \(f(-1)\), \(f(1)\), \(f(3)\)은 이 순서대로 공차가 \(4\)인 등차수열을 이룬다. 직선 \(y=2x\)는 곡선 \(y=f(x)\)에 접하고, 곡선 \(y=f(x)\)와 직선 \(y=2x\)가 만나는 점의 개수는 \(2\)이다.""",
+    after=r""" 다음 물음에 답하시오.""",
+    subs=[(r"곡선 \(y=f(x)\)에 접하는 직선 중 기울기가 \(2\)인 직선의 개수를 구하시오.", "4점, 답만 적으시오."),
+          (r"\(f(0)\)의 값을 구하시오.", "4점, 답만 적으시오."),
+          (r"방정식 \(f(x)=2x+k\)의 서로 다른 실근의 개수가 \(4\)가 되도록 하는 정수 \(k\)의 최댓값을 구하시오.", "2점, 답만 적으시오.")],
+    ans=['(1) 2', '(2) 25', '(3) 24'],
+    rubric=[r"(1) \(2\) ------ [4점]: \(h(x)=f(x)-2x\)라 하면 공차가 \(4\)이고 \(x\)좌표의 간격이 \(2\)이므로 \(h(-3)=h(-1)=h(1)=h(3)\)이다. 따라서 \(h(x)-h(1)=(x+3)(x+1)(x-1)(x-3)\), 즉 \(h(x)=x^4-10x^2+c\) (\(c=h(0)\))이다. 기울기가 \(2\)인 접선의 접점은 \(f'(x)=2\), 즉 \(h'(x)=4x(x^2-5)=0\)인 \(x=0,\ \pm\sqrt5\)이고, 접선은 \(y=2x+h(t)\) 꼴이다. \(h(0)=c\), \(h(\pm\sqrt5)=c-25\)이므로 접선은 \(y=2x+c\), \(y=2x+c-25\)의 두 개이다(\(x=\pm\sqrt5\)에서의 접선은 같은 직선)",
+            r"(2) \(25\) ------ [4점]: 직선 \(y=2x\)는 (1)의 두 직선 중 하나이므로 \(c=0\) 또는 \(c=25\)이다. \(c=0\)이면 \(h(x)=x^2(x^2-10)\)이라 교점이 \(x=0,\ \pm\sqrt{10}\)의 세 개가 되어 조건에 맞지 않고, \(c=25\)이면 \(h(x)=(x^2-5)^2\)이라 교점이 \(x=\pm\sqrt5\)의 두 개이다. 따라서 \(f(0)=h(0)=25\)",
+            r"(3) \(24\) ------ [2점]: \(f(x)=2x+k\iff(x^2-5)^2=k\)이다. 곡선 \(y=(x^2-5)^2\)은 \(x=0\)에서 극댓값 \(25\), \(x=\pm\sqrt5\)에서 극솟값 \(0\)을 가지므로 서로 다른 실근이 \(4\)개인 것은 \(0&lt;k&lt;25\)일 때이다. 정수 \(k\)의 최댓값은 \(24\)"],
+    sol=[r"(1) \(h(x)=f(x)-2x\)라 하면 \(f(-1)-f(-3)=4\)에서 \(h(-1)=h(-3)\)이고, 같은 방법으로 \(h(-3)=h(-1)=h(1)=h(3)\)이다. \(h(x)\)는 최고차항의 계수가 \(1\)인 사차함수이므로 \(h(x)-h(1)=(x^2-1)(x^2-9)\), 즉 \(h(x)=x^4-10x^2+c\) (\(c=h(0)\))이다. 곡선 \(y=f(x)\) 위의 점 \((t,\ f(t))\)에서의 접선의 기울기가 \(2\)이면 \(h'(t)=f'(t)-2=0\)이므로 \(4t(t^2-5)=0\), \(t=0\) 또는 \(t=\pm\sqrt5\)이다. 이 점에서의 접선은 \(y=2(x-t)+f(t)=2x+h(t)\)이고 \(h(0)=c\), \(h(\sqrt5)=h(-\sqrt5)=c-25\)이므로 기울기가 \(2\)인 접선은 \(y=2x+c\), \(y=2x+c-25\)의 \(2\)개이다.",
+         r"(2) 직선 \(y=2x\)가 곡선 \(y=f(x)\)에 접하므로 \(c=0\) 또는 \(c-25=0\)이다. \(c=0\)이면 \(f(x)-2x=x^2(x^2-10)\)이므로 곡선 \(y=f(x)\)와 직선 \(y=2x\)는 서로 다른 세 점에서 만난다. \(c=25\)이면 \(f(x)-2x=(x^2-5)^2\)이므로 두 점 \((\pm\sqrt5,\ \pm2\sqrt5)\)에서만 만난다. 따라서 \(c=25\), \(f(x)=(x^2-5)^2+2x\)이고 \(f(0)=25\)이다.",
+         r"(3) 방정식 \(f(x)=2x+k\)는 \((x^2-5)^2=k\)와 같다. 함수 \(y=(x^2-5)^2\)은 \(x=0\)에서 극댓값 \(25\), \(x=\pm\sqrt5\)에서 극솟값 \(0\)을 가지므로 직선 \(y=k\)와 서로 다른 네 점에서 만나는 것은 \(0&lt;k&lt;25\)일 때이다. 따라서 정수 \(k\)의 최댓값은 \(24\)이다."],
+    fast=r"\(h(x)=f(x)-2x\)로 옮기면 네 점이 한 수평선 위에 있으므로 \(h(x)\)는 \(x=0\)에 대하여 대칭인 W 모양이고 극댓값과 극솟값의 차는 \(h(0)-h(\sqrt5)=9-(-16)=25\)이다. 기울기가 \(2\)인 접선은 \(h\)의 극댓값·극솟값에서 그은 수평선 두 개에 대응하고, 직선 \(y=2x\)가 교점 \(2\)개로 접하려면 극솟값이 \(0\)이어야 한다. (3)의 직선 \(y=2x+k\)는 두 접선 \(y=2x\), \(y=2x+25\) 사이에 있을 때 네 점에서 만난다.",
+    wrong=r"(1) \(f'(x)=2\)의 근 \(x=0,\ \pm\sqrt5\)의 개수를 그대로 세어 \(3\), 주어진 직선 \(y=2x\)만 보아 \(1\) · (2) 원점에서 접하는 경우만 보고 \(0\) (교점이 \(x=0,\ \pm\sqrt{10}\)의 세 개라 제외) · (3) \(k=25\)일 때 서로 다른 실근이 \(3\)개(\(x=0,\ \pm\sqrt{10}\))임을 놓쳐 \(25\), (2)에서 \(c=0\)을 택해 \(-1\)",
+    note=r"원본은 같은 간격 네 점이 한 직선 \(y=L(x)\) 위에 있다는 것을 알아낸 뒤 '양 끝 두 점의 접선의 교점이 \((k,\ 0)\)'에서 교점의 높이로 \(L\)을 정했지만(분석집 TIP: 양 끝 접선은 대칭축 위에서 \(L\)보다 \(9d^4\) 아래), 여기서는 \(L\)의 기울기 \(2\)가 주어지고 '\(L\)과 기울기가 같은 접선 ⇔ \(h'(x)=0\)'으로 접선 후보 두 개(\(x=0\)의 접선, 두 점에서 접하는 직선)를 만든 뒤 교점의 개수로 하나를 고른다. 원본의 접선 교점 계산은 쓰이지 않는다.",
+    key='D65', src='2020학년도 대수능 9월 모의평가 나형 30번',
+    var=r"[구조 변경] 설정 유지(최고차항의 계수가 \(1\)인 사차함수, 같은 간격 네 점의 함숫값이 등차 ⇒ \(f(x)-L(x)=(x+3)(x+1)(x-1)(x-3)\)), 판정 원리 교체: '양 끝 두 점의 접선이 \((k,\ 0)\)에서 만남 ⇒ 교점 높이로 \(L\) 결정' → '\(L\)과 기울기가 같은 접선 ⇔ \(h'(x)=0\), 후보 \(y=2x+c\)·\(y=2x+c-25\) 중 교점 개수로 선택' · [조건 변경] 네 점 \(x=-1,0,1,2\) → \(x=-3,-1,1,3\)(대칭), 공차 \(4\) 제시 · [함정 추가] 원점에서 접하는 경우(교점 \(3\)개) 제외, 경계 \(k=25\)에서 실근 \(3\)개 · [구하는 대상 변경] \(f(4k)\) → (1) 기울기가 \(2\)인 접선의 개수 (2) \(f(0)\) (3) 실근이 \(4\)개인 정수 \(k\)의 최댓값 · [형식 변경] 단답 → 3단계 답만",
+    level='상', author='claude'),
+}
+# -*- coding: utf-8 -*-
+"""17·18·서답형2 흔한 패턴 점검 (지침 0-4 규칙 B)
+익스텐션·라이브에서 반복되는 변형 패턴을 문항 본문에서 찾는다. 원문에 없던 패턴을 새로 넣었으면
+'구조 변경으로 치지 않음'으로 표시한다. 원문이 이미 그 패턴이면(원리 유지형) 표시하지 않는다.
+빈도는 analysis.json(익스텐션·라이브 변형 요소 867개, 문항 id 1,123개)과 부교재 원문 280개에서 센다.
+
+사용
+  python3 patterns.py freq                 # 패턴별 빈도표
+  python3 patterns.py check <parts.py> ... # 17·18·S2 문항 점검 (checkpart가 부른다)"""
+import sys, os, re, json, collections
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, '..', '..', '부교재_기말'))
+sys.path.insert(0, '/home/user/Finale/template/db/parts')
+
+# (이름, 본문 정규식, 분석 요소 정규식, 설명)
+PATTERNS = [
+    ('t-개수함수',
+     r'실수\s*\\\(t\\\)에\s*대하여[^.?]{0,160}(개수|미분가능하지\s*않)[^.?]{0,40}\\\((g|h|N)\(t\)\\\)',
+     r'개수[^.]{0,12}\b[ghN]\(t\)|[ghN]\(t\)[^.]{0,6}(불연속|극한)|미분불가능[^.]{0,8}개수',
+     "원문의 고정 상수(높이·직선·점)를 실수 t로 바꿔 '…의 개수를 g(t)'로 만드는 것"),
+    ('절댓값-수평선',
+     r'\|f\(x\)\|[^.?]{0,60}직선\s*\\\(y=|\|f\(x\)\|\s*=\s*[a-z0-9]',
+     r'\|f\(x\)\|\s*=|\|f\|\s*=|y=\|f\(x\)\|',
+     "|f(x)|의 그래프와 수평선(또는 |f(x)|=k)의 교점 개수"),
+    ('높이만-교체',
+     r'직선\s*\\\(y=-?f\(\d\)\\\)',
+     r'직선 y=-?f\(\d\)|y=f\(√?\d\)',
+     "직선 y=f(1)을 y=f(2)·f(√3) 등 다른 점의 함숫값으로 바꾸는 것"),
+]
+
+def load_analysis():
+    return json.load(open(os.path.join(HERE, 'analysis.json')))
+
+def freq():
+    A = load_analysis(); import items_final as F
+    out = {}
+    for name, rb, ra, desc in PATTERNS:
+        keys, ids = set(), 0
+        for k, a in A.items():
+            for v in a.get('variant_elements') or []:
+                if re.search(ra, v['element']): keys.add(k); ids += len(v.get('ids', []))
+        orig = [k for k, v in F.I.items() if re.search(rb, v[0])]
+        out[name] = dict(desc=desc, ext_live_ids=ids, ext_live_keys=sorted(keys), originals=orig)
+    return out
+
+def plain(it):
+    from items_common import COND
+    return it['body'] + (COND(it['cond']) if it.get('cond') else '') + (it.get('after') or '')
+
+def check(paths):
+    import items_final as F
+    flags = 0
+    for p in paths:
+        ns = {}; exec(open(p).read(), ns)
+        for n, it in list(ns.get('ITEMS', {}).items()) + list(ns.get('SITEMS', {}).items()):
+            if str(n) not in ('17', '18', 'S2'): continue
+            k = it.get('key'); ob = F.I[k][0] if k in F.I else ''
+            b = plain(it)
+            for name, rb, ra, desc in PATTERNS:
+                if re.search(rb, b) and not re.search(rb, ob):
+                    flags += 1
+                    print(f'{n}: 흔한 패턴 [{name}] 새로 넣음 → 구조 변경으로 치지 않음 ({desc})')
+                elif re.search(rb, b):
+                    print(f'{n}: [{name}] 원문에도 있음(원리 유지형이면 허용)')
+    print('흔한 패턴 표시', flags, '개')
+    return flags
+
+if __name__ == '__main__':
+    if sys.argv[1] == 'freq':
+        for name, d in freq().items():
+            print(f"{name}: 익스텐션·라이브 {d['ext_live_ids']}문항({len(d['ext_live_keys'])}개 원문) · 부교재 원문 {len(d['originals'])}개 {d['originals']} — {d['desc']}")
+    else:
+        sys.exit(1 if check(sys.argv[2:]) else 0)
+
+codex
+담당은 17·18번 후보와 서답형2입니다. 17번은 원문의 불연속 상쇄를 합성함수의 극한 판정으로 바꾸고, 18번은 사차함수에서 극한 조건과 극소 조건이 함께 작동하도록 설계하고 있습니다.
+
+codex
+17번은 이차함수의 꼭짓점이 경계 높이에 닿는 경우까지 포함해 최솟값이 정해지도록 구성했습니다. 서답형2는 음의 구간에서 생기는 이차함수의 접점을 판정하게 하고, 마지막 근의 합은 짧게 계산되도록 구성하고 있습니다.
+
+exec
+/bin/bash -lc "sed -n '1,240p' output/build/기말/지침/schoolcheck.py; rg --files template/db/parts | head -5; sed -n '1,100p' output/build/기말/지침/dupcheck.py" in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+# -*- coding: utf-8 -*-
+"""학교 선례 검사 (지침 front.md 0-8). 학교 실제 시험 3회 60문항(school_recipes.json)과 2학기 중간 실측에서 뽑은 기준.
+  item  <parts.py>      문항별: 변형 기록(vtype·effect·bunseok·precedent), 회차 유형 규칙, 원문과의 거리, 선지 방식
+  round <회차 폴더>     회차 전체 분포: 난도 효과, 함정·분석집 문항 수, 내림차순 선지 수, 그림 위치·수, 정답 분포
+회차 유형은 <회차>/round.json {"type": "학교형"|"복습형"} (없으면 학교형)."""
+import sys, os, re, json, runpy, collections
+from fractions import Fraction
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(HERE, '..', '..', '부교재_기말'))
+sys.path.insert(0, '/home/user/Finale/template/db/parts')
+import dupcheck as DC
+
+VTYPES = ['숫자 변경', '조건 변경', '함수 교체', '구하는 대상 변경', '형식 변경', '구조 변경', '함정 추가', '소재 결합', '그래프·그림 제시', '자체 출제']
+EFFECTS = ['같음', '쉬워짐', '어려워짐']
+# 2학기 중간 실측: 원문과의 골격 유사도(shingle Jaccard). 1–16 0.29–0.71(중앙 0.46), 17·18 0.06–0.15
+DIST = {'front': (0.28, 0.72), 'top': (0.0, 0.25)}
+# 2학기 중간 실측: 숫자 선지 17개 중 오름차순 15, 공차 1이 10개, 2가 3개, 그 밖 1/2·1/5·1/20·5
+GOOD_D = {Fraction(x) for x in (1, 2, 3, 4, 5, 10)} | {Fraction(1, k) for k in (2, 3, 4, 5, 10, 20)}
+
+def rtype(d):
+    f = os.path.join(d, 'round.json')
+    return json.load(open(f)).get('type', '학교형') if os.path.exists(f) else '학교형'
+
+def band(n):
+    n = 19 if n == 'S1' else 20 if n == 'S2' else int(n)
+    return '1–4' if n <= 4 else '5–8' if n <= 8 else '9–12' if n <= 12 else '13–16' if n <= 16 else '17–18' if n <= 18 else '서답'
+
+def val(c):
+    c = re.sub(r'\\\(|\\\)|\\displaystyle|\s', '', str(c))
+    m = re.fullmatch(r'(-?)\\[dt]?frac\{?(\d+)\}?\{?(\d+)\}?', c)
+    if m: return Fraction(int(m[2]), int(m[3])) * (-1 if m[1] else 1)
+    try: return Fraction(c)
+    except Exception: return None
+
+def body(it):
+    from items_common import COND
+    return it['body'] + (COND(it['cond']) if it.get('cond') else '') + (it.get('after') or '')
+
+def odist(it):
+    try:
+        import items_final as F
+        o = F.I.get(it.get('key'))
+    except Exception: o = None
+    if not o: return None
+    A = set(DC.shingles(DC.skel(DC.norm(re.split('①', body(it))[0])))); B = set(DC.shingles(DC.skel(DC.norm(re.split('①', o[0])[0]))))
+    return len(A & B) / max(1, len(A | B))
+
+def check_item(n, it, rt):
+    msg, warn = [], []
+    vt = it.get('vtype'); ef = it.get('effect'); bs = it.get('bunseok'); pc = it.get('precedent')
+    if not vt or any(v not in VTYPES for v in vt): msg.append(f'vtype 없음/잘못({vt}) — {"·".join(VTYPES)} 중에서')
+    if ef not in EFFECTS: msg.append(f'effect 없음/잘못({ef}) — 같음·쉬워짐·어려워짐')
+    if bs not in (True, False): msg.append('bunseok(분석집 방향·TIP 사용 여부) 없음')
+    if not pc: msg.append("precedent(따른 학교 선례, 예: '2학기 중간 7번' 또는 라이브 문항 id) 없음")
+    if rt == '학교형':
+        if vt and '함정 추가' in vt: msg.append('학교형 회차에 함정 추가(학교 3회 60문항 중 0회)')
+        if bs: msg.append('학교형 회차에 분석집 방향·TIP 저격')
+    b = band(n)
+    if b in ('1–4', '5–8', '9–12') and ef == '어려워짐': warn.append('1–12번 어려워짐(학교 36문항 중 4개, 회당 1개까지)')
+    if vt and b in ('1–4', '5–8', '9–12') and len(vt) > 3: warn.append(f'변경 {len(vt)}가지(학교 1–12번 평균 2–3가지)')
+    d = None if '자체' in str(it.get('src', '')) else odist(it)   # 자체 출제는 원문 거리 제외
+    if d is not None:
+        lo, hi = DIST['top'] if b == '17–18' else DIST['front'] if b != '서답' else (0, 1)
+        if not (lo <= d <= hi): warn.append(f'원문 골격 유사도 {d:.2f} (학교 {b} 범위 {lo:.2f}–{hi:.2f})')
+    try:
+        import items_final as F
+        o = F.I.get(it.get('key'))
+    except Exception: o = None
+    if o:   # 원문에 없던 줄 바꾼 식(조각함수 제외) — 억지 들여쓰기 (1회 지적)
+        dv = [x for x in re.findall(r'\\\[(.*?)\\\]', body(it), re.S) if 'cases' not in x]
+        do = [x for x in re.findall(r'\\\[(.*?)\\\]', o[0], re.S) if 'cases' not in x]
+        nz = lambda t: re.sub(r'\\[()]|\s|<[^>]+>|&nbsp;', '', t)
+        DAN = r'\(단,([^()]*(?:\([^()]*\)[^()]*)*)\)'
+        dan_o = {nz(x) for x in re.findall(DAN, o[0])}
+        for x in re.findall(DAN, body(it)):
+            if nz(x) not in dan_o: warn.append(f'원문과 다른 단서 (단,{x.strip()[:40]}) — 원문 단서 그대로, 범위를 좁히거나 새로 붙이지 않음 (1회 16번)')
+        if len(dv) > len(do): warn.append(f'줄 바꾼 식 {len(dv)}개 (원문 {len(do)}개) — 원문에 없던 짧은 식은 문장 안에')
+    ch = it.get('choices') or []
+    if ch:   # 그럴듯한 오답이 선지 안에 (1회 지적)
+        ws = [str(w) for w in (it.get('wrongs') or [])]
+        bad = [w for w in ws if w not in [str(c) for c in ch]]
+        need = 2 if b in ('13–16', '17–18') else 1
+        if bad: warn.append(f'wrongs {bad}가 선지에 없음')
+        if len(ws) - len(bad) < need: warn.append(f'선지 안 그럴듯한 오답 {len(ws) - len(bad)}개 (기준 {need}개 이상, wrongs 필드)')
+    if ch and not str(ch[0]).startswith('T:'):
+        v = [val(c) for c in ch]
+        if None not in v and len(v) == 5:
+            dd = v[1] - v[0]
+            if abs(dd) not in GOOD_D: warn.append(f'선지 공차 {dd} (학교는 1 위주, 2·5·1/2·1/5 등 — 오답 근거를 넣으려고 공차를 키우지 않음)')
+    return msg, warn, d
+
+def item(path):
+    rt = rtype(os.path.dirname(os.path.dirname(os.path.abspath(path))))
+    ns = runpy.run_path(path); bad = 0
+    print(f'== 학교 선례 ({rt})')
+    for n, it in list(ns.get('ITEMS', {}).items()) + list(ns.get('SITEMS', {}).items()):
+        msg, warn, d = check_item(n, it, rt)
+        bad += bool(msg)
+        if msg or warn: print(f'{n}: ' + ' | '.join(['✗ ' + m for m in msg] + ['△ ' + w for w in warn]))
+    print('학교 선례 표시', bad, '개'); return bad
+
+def round_(d):
+    sys.path.insert(0, d); import content3 as C
+    rt = rtype(d); its = dict(C.ITEMS); S = dict(C.SITEMS); out = []
+    eff = collections.Counter((band(n), it.get('effect')) for n, it in its.items())
+    trap = [n for n, it in its.items() if '함정 추가' in (it.get('vtype') or [])]
+    bun = [n for n, it in its.items() if it.get('bunseok') and int(n) <= 16]
+    desc = [n for n, it in its.items() if (lambda v: None not in v and v == sorted(v, reverse=True))([val(c) for c in it.get('choices') or []])]
+    figs = [n for n, it in its.items() if 'class="fig"' in it['body'] + (it.get('after') or '')]
+    ans = collections.Counter(it['ans'] for it in its.values())
+    hard12 = sum(c for (b, e), c in eff.items() if b in ('1–4', '5–8', '9–12') and e == '어려워짐')
+    hard16 = eff.get(('13–16', '어려워짐'), 0)
+    out.append(('1–12 어려워짐 ≤1 (학교 회당 0–2)', hard12 <= 1, hard12))
+    out.append(('13–16 어려워짐 1–2', 1 <= hard16 <= 2 or hard16 == 3, hard16))
+    if rt == '학교형': out.append(('함정 추가 0 (학교형)', not trap, trap))
+    else: out.append(('분석집 문항 = 1–16의 절반(8) (복습형)', len(bun) == 8, bun))
+    if rt == '학교형': out.append(('분석집 저격 0 (학교형)', not bun, bun))
+    out.append(('내림차순 선지 ≤2 (학교 17개 중 2)', len(desc) <= 2, desc))
+    num = [(lambda v: (v[1] - v[0]) if None not in v and len(v) == 5 else None)([val(c) for c in it.get('choices') or []]) for it in its.values()]
+    d1 = sum(1 for x in num if x is not None and abs(x) == 1); nn = sum(1 for x in num if x is not None)
+    out.append((f'공차 1 선지 10–13개 (학교 17개 중 10, 숫자 선지 {nn}개)', 10 <= d1 <= 13, d1))
+    tc = collections.Counter()
+    try:
+        sys.path.insert(0, HERE); import predict as _P
+        for n, it in list(its.items()) + list(S.items()):
+            if it.get('key') in _P.F.I: tc.update(_P.topics(it['key']))
+        out.append(('소재 상한 (1회 지적: 수직선 운동 ≤2 등)', all(tc[t] <= _P.TOPIC_LIMIT[t] for t in tc), dict(tc)))
+    except Exception as e: out.append(('소재 상한', False, f'검사 실패 {e}'))
+    out.append(('그림 2–3개, 모두 9번 이후', 2 <= len(figs) <= 3 and all(int(n) >= 9 for n in figs), figs))
+    out.append(('정답 ①–⑤ 각 3–4', all(3 <= ans.get(k, 0) <= 4 for k in range(1, 6)), dict(sorted(ans.items()))))
+    print(f'== 회차 분포 ({rt})')
+    for name, ok, v in out: print(f"{'✓' if ok else '✗'} {name}: {v}")
+    return sum(not ok for _, ok, _ in out)
+
+if __name__ == '__main__':
+    sys.exit(1 if (item(sys.argv[2]) if sys.argv[1] == 'item' else round_(os.path.abspath(sys.argv[2]))) else 0)
+template/db/parts/fig_L31.svg
+template/db/parts/fig_L1.svg
+template/db/parts/fig_L40.svg
+template/db/parts/items_p5.py
+template/db/parts/fig_L2.svg
+# -*- coding: utf-8 -*-
+"""익스텐션(일반·라이브) 1,746문항과 새 문항의 겹침 검사.
+
+저장소에는 문항 원문 대신 해시 지문(ext_fp.json.gz)만 둔다.
+- 원문 지문 R: 숫자까지 포함한 6글자 조각
+- 골격 지문 K: 숫자를 #로 바꾼 6글자 조각
+- 본문 숫자 목록 nums (선지 ① 앞까지)
+판정
+- 금지(동일 문항): 골격 포함도 >= 0.85 이고 본문 숫자 목록이 같음, 또는 원문 포함도 >= 0.95 → 절대 출제 불가
+- 허용(숫자만 다름): 골격 포함도 >= 0.85 이고 숫자 목록이 다름 → 숫자만 바꾼 문항 (사용자 허용)
+- 주의(구조 유사): 골격 포함도 0.60~0.85 → 구조가 많이 닮음. 변형 정도 확인
+- 금지(구조 변경 미달): 17·18·서답형2가 익스텐션·분석집 어느 문항과든 골격 0.60 이상
+
+사용
+  python3 dupcheck.py build <corpus.json> [study.json]   # 지문 만들기 (익스텐션 + 분석집, 원문은 저장소 밖)
+  python3 dupcheck.py check <content3.py> [...]    # 시험 RAW 문항 검사
+"""
+import sys, os, re, json, gzip, base64, zlib, array, importlib.util
+HERE = os.path.dirname(os.path.abspath(__file__))
+FP = os.path.join(HERE, 'ext_fp.json.gz')
+N = 6
+
+def norm(t):
+    t = re.sub(r'!\[[^\]]*\]\([^)]*\)', '', t)
+    t = re.sub(r'<[^>]+>', '', t)
+    t = t.replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
+    t = re.sub(r'\\(?:left|right|displaystyle|textstyle|limits|quad|qquad|,|;|!| )', '', t)
+    t = re.sub(r'\\[dt]?frac', 'frac', t)
+    t = re.sub(r'\\(le|leq)q?\b', '≤', t); t = re.sub(r'\\(ge|geq)\b', '≥', t)
+    t = re.sub(r'\\(?:\(|\)|\[|\])', '', t)
+    t = re.sub(r'\\begin\{cases\}|\\end\{cases\}|&|\\\\\[?[0-9a-z]*\]?', ' ', t)
+    t = re.sub(r'[{}\s$*]', '', t)
+    t = re.sub(r'[①②③④⑤]', '|', t)
+    return t
+
+def shingles(s):
+    return sorted({zlib.crc32(s[i:i + N].encode()) for i in range(max(1, len(s) - N + 1))})
+
+def skel(s):
+    return re.sub(r'\d+', '#', s)
+
+def nums(t):
+    b = norm(t).split('|')[0]
+    return re.findall(r'\d+(?:\.\d+)?', b)
+
+def pack(v):
+    return base64.b64encode(array.array('I', v).tobytes()).decode()
+
+def unpack(b):
+    a = array.array('I'); a.frombytes(base64.b64decode(b)); return set(a)
+
+def build(corpus, study=None):
+    """corpus: 익스텐션 1,746문항(corpus.json), study: 양정고2 부교재 분석집(study.json, 원문 143 + 변형 290)"""
+    C = json.load(open(corpus))
+    out = []
+    def add(i, key, hdr, text, src):
+        r = norm(text)
+        out.append(dict(id=i, key=key, hdr=hdr, src=src, R=pack(shingles(r)), K=pack(shingles(skel(r))), nums=nums(text)))
+    for o in C:
+        add(o['id'], o['key'], o['hdr'], o['problem'], 'EXT')
+    if study:
+        for s in json.load(open(study)):
+            add(f"STUDY-{s['key']}-원문", s['key'], f"분석집 {s['key']} 원문", s['problem'], 'STUDY')
+            for v in s['variants']:
+                add(f"STUDY-{s['key']}-변형{v['no']}", s['key'], f"분석집 {s['key']} 변형{v['no']}", v['problem'], 'STUDY')
+    with gzip.open(FP, 'wt', encoding='utf-8') as f:
+        json.dump(out, f, ensure_ascii=False)
+    print('지문', len(out), '(익스텐션', sum(d['src'] == 'EXT' for d in out), '· 분석집', sum(d['src'] == 'STUDY' for d in out), ') →', FP, os.path.getsize(FP) // 1024, 'KB')
+
+def load():
+    with gzip.open(FP, 'rt', encoding='utf-8') as f:
+        D = json.load(f)
+    for d in D:
+        d['R'] = unpack(d['R']); d['K'] = unpack(d['K'])
+    return D
+
+def score(text, D, top=3):
+    r = norm(text); R = set(shingles(r)); K = set(shingles(skel(r)))
+    res = []
+    for d in D:
+        cr = len(R & d['R']) / max(1, min(len(R), len(d['R'])))
+        ck = len(K & d['K']) / max(1, min(len(K), len(d['K'])))
+        res.append((ck, cr, d, nums(text) == d['nums']))
+    res.sort(key=lambda x: (-x[0], -x[1]))
+    return res[:top]
+
+HIGH = {17, 18, 'S2', '17', '18'}   # 구조 변경 필수 자리: 익스텐션·분석집 모두 골격 0.60 미만이어야 함
+
+def verdict(ck, cr, same, no=None, src='EXT', d_id=''):
+    """회차 유형(DUP_ROUND_TYPE=학교형|복습형, checkpart가 <회차>/round.json에서 넣음)
+    - 익스텐션(일반 GEN·라이브 LIVE 모두): 그대로 가져오지 않음 → 같은 문항 금지. 숫자만 다른 것은 1–16 허용.
+      원문 숫자 변경이 아닌 독특한 변형(조건·대상·구조)은 아이디어로 참고해 다시 바꿔 쓴다.
+    - 분석집: 같은 문항은 금지. 학교형 회차는 분석집 문항과 구조가 닮은 것(골격 0.60 이상)도 금지(분석집 저격 없음)
+    - 17·18·서답형2: 어느 자료든 골격 0.60 미만(구조 변경)"""
+    rt = os.environ.get('DUP_ROUND_TYPE', '학교형')
+    if no in HIGH and ck >= 0.60: return '금지(구조 변경 미달)'
+    same_item = cr >= 0.95 or (ck >= 0.85 and same)
+    if src == 'STUDY':
+        if same_item: return '금지(분석집 동일 문항)'
+        if rt == '학교형' and ck >= 0.60: return '금지(학교형: 분석집과 유사)'
+
+apply patch
+patch: completed
+/home/runner/work/Finale/Finale/output/build/기말/2회/parts/c5.py
+/home/runner/work/Finale/Finale/output/build/기말/2회/후보/c17.py
+/home/runner/work/Finale/Finale/output/build/기말/2회/후보/c18.py
+diff --git a/output/build/기말/2회/parts/c5.py b/output/build/기말/2회/parts/c5.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..fe58b4ed872b9de5031a1a2a6b9406d586852da7
+--- /dev/null
++++ b/output/build/기말/2회/parts/c5.py
+@@ -0,0 +1,33 @@
++# -*- coding: utf-8 -*-
++SITEMS = {
++    'S2': dict(
++        body=r"""두 상수 \(a\), \(b\)에 대하여 함수 \(f(x)=\frac12x^3+ax^2+bx\), \(h(x)=f(x)+|f(x)+x|-2x^2\)가 있다. \(h(1)=4\)이고 \(h'(1)=0\)일 때, 다음 물음에 답하시오.""",
++        subs=[
++            (r"상수 \(b\)의 값을 구하시오.", '4점, 답만 적으시오.'),
++            (r"방정식 \(h(x)=k\)의 서로 다른 실근의 개수가 \(4\)가 되도록 하는 실수 \(k\)의 값을 구하시오.", '4점, 답만 적으시오.'),
++            (r"(2)의 \(k\)에 대하여 방정식 \(h(x)=k\)의 서로 다른 모든 실근의 합을 구하시오.", '2점, 답만 적으시오.'),
++        ],
++        ans=['(1) 4', r'(2) \frac18', r'(3) \frac{23}{4}'],
++        rubric=[r'(1) \(4\) [4점, 답만]', r'(2) \(\frac18\) [4점, 답만]', r'(3) \(\frac{23}{4}\) [2점, 답만]'],
++        key='M56', src='2022학년도 수능 9월 모의평가 20번',
++        author='codex', cand='codexS2', level='중상',
++        vtype=['구조 변경', '조건 변경', '형식 변경'],
++        effect='같음', bunseok=False, precedent='2학기 중간 18번·서답형2',
++        core=dict(
++            axis='②',
++            setting='원문의 절댓값 방정식은 한쪽 구간에서 일차함수, 다른 쪽에서 삼차함수와 수평선의 교점 문제이다.',
++            principle='절댓값 안의 부호를 먼저 판정하고, 각 구간의 도함수와 극값을 이용해 유효한 실근 수를 합한다.',
++            new='비교 대상을 직선에서 이차함수로 한 겹 교체한다. 음의 구간도 이차함수가 되어 그 꼭짓점에서만 양의 구간의 세 근과 합쳐 정확히 네 근이 된다.',
++        ),
++        var='[설정 교체] f+|f+x|와 직선의 교점 → 이차함수와의 교점. [조건 변경] 함숫값과 미분계수로 계수 결정. [형식 변경] 계수 → 네 근을 주는 값 → 서로 다른 근의 합의 3단계.',
++        sol=[
++            r"\(h(1)=4\)에서 \(f(1)+|f(1)+1|=6\)이다. \(f(1)+1\le0\)이면 좌변이 \(-1\)이므로 불가능하다. 따라서 \(f(1)=\frac52\)이고 \(a+b=2\)이다. \(x=1\) 근처에서는 \(h(x)=2f(x)+x-2x^2\)이므로 \(h'(1)=2f'(1)-3=0\)에서 \(2a+b=0\)이다. 두 식을 풀면 \(a=-2,b=4\)이다.",
++            r"\(f(x)+x=\frac12x(x^2-4x+10)=\frac12x\{(x-2)^2+6\}\)이므로 절댓값 안의 부호는 \(x\)의 부호와 같다. 따라서 \(x&lt;0\)이면 \(h(x)=-2x^2-x=-2(x+\frac14)^2+\frac18\), \(x\ge0\)이면 \(h(x)=x^3-6x^2+9x=x(x-3)^2\)이다. 음의 구간에서는 \(k\le0\)일 때 한 근, \(0&lt;k&lt;\frac18\)일 때 두 근, \(k=\frac18\)일 때 한 근, \(k>\frac18\)일 때 근이 없다. 양의 구간과 \(0\)에서는 도함수 \(3(x-1)(x-3)\)에 의해 \(k&lt;0\)일 때 근이 없고, \(k=0\)일 때 두 근, \(0&lt;k&lt;4\)일 때 세 근, \(k=4\)일 때 두 근, \(k>4\)일 때 한 근이다. 두 구간을 합하면 네 근인 경우는 \(k=\frac18\)뿐이다.",
++            r"\(k=\frac18\)일 때 음의 근은 꼭짓점의 \(x\)좌표인 \(-\frac14\) 하나이다. 양의 세 근은 방정식 \(x^3-6x^2+9x-\frac18=0\)의 세 근이므로 그 합은 \(6\)이다. 서로 다른 모든 실근의 합은 \(6-\frac14=\frac{23}{4}\)이다.",
++        ],
++        fast=r"\(h(1)=4,h'(1)=0\)에서 \(a+b=2,2a+b=0\). 부호 분리 후 음의 구간의 꼭짓점 높이는 \(1/8\), 양의 구간의 두 극값은 \(4,0\)이다. 네 근은 음의 구간의 접점 한 개와 양의 세 근일 때뿐이다. 접점은 한 번만 세어 근의 합은 \(6-1/4\).",
++        wrongs=[],
++        wrong=r"(1) \(b=2\): \(h'(1)\)을 계산할 때 \(-2x^2\)의 미분을 빠뜨리면 \(2a+b=-2\), \(a+b=2\)에서 실제로는 \(b=6\)이 나온다. 따라서 이 오류의 답은 \(6\)이다. (2) \(4\): 양의 구간의 극댓값만 보면 이 값을 택하지만 전체 근은 두 개이다. \(0\): 원점과 접점을 중복 계산하면 네 개로 잘못 세지만 서로 다른 근은 세 개이다. (3) \(11/2\): 음의 구간에서 접하는 근 \(-1/4\)을 두 번 세어 \(6-1/2\)로 계산한 값이다.",
++        note=r"원본은 음의 구간의 직선이 \(k>0\)에서 한 근을 보태어 네 근인 열린구간을 만든다. 변형은 음의 구간의 이차함수가 두 근·접점 한 근·근 없음으로 바뀌므로 원본의 일차함수 설정으로는 네 근을 판정할 수 없다. 실근 개수라는 단원 개념과 부호 분리·도함수 판정 원리는 유지한다. (1)은 계수를, (2)는 경우 분기를, (3)은 접점의 중복 제외를 평가한다. 독립 검토·블라인드 측정 전 문항이다.",
++    ),
++}
+diff --git a/output/build/기말/2회/후보/c17.py b/output/build/기말/2회/후보/c17.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..b2a4b1431857db8773391a4da7218aa9c375db2b
+--- /dev/null
++++ b/output/build/기말/2회/후보/c17.py
+@@ -0,0 +1,42 @@
++# -*- coding: utf-8 -*-
++ITEMS = {
++    17: dict(
++        body=r"""함수 \(f(x)=x^3-3x+7\)과 최고차항의 계수가 \(1\)인 이차함수 \(q(x)\)가 있다. 방정식 \(|f(x)|=t\)의 서로 다른 실근의 개수를 \(g(t)\)라 하자. 함수 \(q(x)\)가 다음 조건을 만족시킬 때, \(q(1)\)의 최솟값은?""",
++        cond=[
++            ('가', r"\(\displaystyle\lim_{x\to a}g(q(x))\)가 <u>존재하지 않는</u> 실수 \(a\)는 서로 다른 두 실수 \(\alpha\), \(\beta\)뿐이다."),
++            ('나', r"\(\alpha\beta=0\)이다."),
++        ],
++        choices=['2', '3', '4', '5', '6'], ans=5,
++        key='M31', src='2022년 수능특강 [22009-0122]',
++        author='codex', cand='codex17', level='상',
++        vtype=['숫자 변경', '구조 변경', '구하는 대상 변경'],
++        effect='어려워짐', bunseok=False, precedent='2학기 중간 17번',
++        core=dict(
++            axis='①',
++            setting='삼차함수 f와 방정식 |f(x)|=t의 서로 다른 실근 개수 g(t)를 유지한다.',
++            principle='원문은 g의 불연속점과 평행이동한 불연속점에서 점프의 방향과 크기가 같은지를 비교하여 차의 상쇄점을 제외한다.',
++            new='g의 점프 높이를 이차함수 q가 가로지르는 점에서만 합성함수의 양쪽 극한이 없다. 꼭짓점에서 닿는 점은 극한이 존재하므로 꼭짓점 높이 5를 포함한다.',
++        ),
++        var='[구조 변경] 이동한 개수 함수의 차에서 점프 상쇄 → 이차함수와 합성한 개수 함수에서 경계 높이 통과 여부. [숫자 변경] 극값 높이 변경. [구하는 대상 변경] 불연속점의 합 → q(1)의 최솟값.',
++        sol=(
++            r"\(f'(x)=3(x+1)(x-1)\)이므로 \(f\)는 \(x=-1\)에서 극댓값 \(9\), \(x=1\)에서 극솟값 \(5\)를 갖는다. "
++            r"따라서 \(t&lt;0\), \(t=0\), \(0&lt;t&lt;5\), \(t=5\), \(5&lt;t&lt;9\), \(t=9\), \(t>9\)에서 "
++            r"\(g(t)\)는 각각 \(0,1,2,3,4,3,2\)이다. \(g\)의 좌우극한이 다른 곳은 \(0,5,9\)뿐이다.<br>"
++            r"\(q(x)=(x-u)^2+m\)으로 놓자. \(c\in\{0,5,9\}\)에 대하여 \(m&lt;c\)이면 \(q(x)=c\)인 두 점에서 "
++            r"\(q(x)\)가 \(c\)의 양쪽 값을 가지므로 합성함수의 양쪽 극한은 존재하지 않는다. "
++            r"\(m=c\)이면 \(x\to u\)일 때 \(q(x)\)는 양쪽 모두 \(c\)보다 큰 값으로 다가가므로 극한은 존재한다. "
++            r"\(m>c\)이면 \(q(x)=c\)인 점이 없다.<br>"
++            r"따라서 극한이 존재하지 않는 점의 개수는 \(m&lt;0\)에서 \(6\), \(0\le m&lt;5\)에서 \(4\), "
++            r"\(5\le m&lt;9\)에서 \(2\), \(m\ge9\)에서 \(0\)이다. (가)에서 \(5\le m&lt;9\)이고 "
++            r"\(\alpha,\beta\)는 \(q(x)=9\)의 두 근이다.<br>"
++            r"(나)에 의해 두 근 중 하나가 \(0\)이므로 \(q(0)=9\), 즉 \(u^2+m=9\)이다. "
++            r"따라서 \(0&lt;u^2\le4\)이고 \(q(1)=1-2u+u^2+m=10-2u\)이다. "
++            r"\(u\le2\)이므로 최솟값은 \(6\)이다. \(u=2,m=5\)일 때 "
++            r"\(q(x)=(x-2)^2+5\)이고 극한이 존재하지 않는 점은 \(0,4\)뿐이므로 실제로 이 값을 갖는다."
++        ),
++        fast=r"개수 함수의 점프 높이는 \(0,5,9\)이다. 합성 극한이 두 점에서만 없으려면 이차함수의 최솟값 \(m\)은 \(5\le m&lt;9\)이다. \(q(0)=9\)에서 \(q=(x-u)^2+9-u^2\), \(0&lt;u^2\le4\). 따라서 \(q(1)=10-2u\ge6\).",
++        wrongs=['4', '5'],
++        wrong=r"③ \(4\): 높이 \(5\)에서의 점프를 빠뜨려 \(0\le m&lt;9\)로 판단하면 \(u=3,m=0\)을 허용하여 \(q(1)=4\)를 얻는다. ④ \(5\): 올바른 경계 함수 \(q(x)=x^2-4x+9\)를 구한 뒤 \(q(1)\)을 계산할 때 이차항 \(1\)을 빠뜨리면 \(5\)가 된다.",
++        note=r"원본의 점프 상쇄는 사용되지 않는다. 도함수로 두 극값 높이를 정하고, 세 높이를 꼭짓점이 통과하는 경우를 나누어 합성 극한을 판정한다. 꼭짓점에서의 함숫값과 극한값이 달라도 극한은 존재한다. 최솟값은 연속으로 움직이는 \(u\)의 경계 \(u=2\)에서 달성된다. 독립 검토·블라인드 측정 전 후보이다.",
++    ),
++}
+diff --git a/output/build/기말/2회/후보/c18.py b/output/build/기말/2회/후보/c18.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..daf76abb26eccb72f9ca9b6cbcbc75832b4269be
+--- /dev/null
++++ b/output/build/기말/2회/후보/c18.py
+@@ -0,0 +1,37 @@
++# -*- coding: utf-8 -*-
++ITEMS = {
++    18: dict(
++        body=r"""최고차항의 계수가 \(1\)인 사차함수 \(f(x)\)와 실수 \(k\)가 다음 조건을 만족시킬 때, \(k\)의 값은?""",
++        cond=[
++            ('가', r"\(\displaystyle\lim_{x\to0}\frac{f(x)-1}{x^2}=k\)이다."),
++            ('나', r"모든 실수 \(x\)에 대하여 \(f(x)\ge1\)이고, 방정식 \(f(x)=1\)의 서로 다른 실근의 개수는 \(2\)이다."),
++            ('다', r"열린구간 \(\left(\frac12,\frac32\right)\)의 모든 \(x\)에 대하여 \(f(x)\ge f(1)\)이다."),
++        ],
++        choices=['0', '1', '2', '3', '4'], ans=2,
++        key='D45', src='2025년 수능특강 [25009-0097]',
++        author='codex', cand='codex18', level='상',
++        vtype=['함수 교체', '구조 변경', '조건 변경'],
++        effect='어려워짐', bunseok=False, precedent='2학기 중간 18번',
++        core=dict(
++            axis='②',
++            setting='원문은 최고차항 계수 1인 삼차함수에서 f-2가 (x+2)의 제곱과 일차식의 곱이다.',
++            principle='유한한 이차 분모의 극한은 해당 점의 함숫값과 도함숫값을 정하고, 열린구간에서의 하한 조건은 그 점이 극소점임을 뜻한다.',
++            new='사차함수로 한 차수 올려 남은 이차인수의 실근 배치를 판정한다. 전 구간 하한과 서로 다른 두 근으로 두 제곱인수를 얻고, 고정점이 그 두 근 사이의 극대점인지 다른 극소점인지 구별한다.',
++        ),
++        var='[설정 교체] 삼차함수의 접촉점 하나와 나머지 일차인수 → 사차함수의 두 접촉점과 그 사이의 극대점. 극한·국소 최솟값 판정은 유지한다.',
++        sol=(
++            r"(가)에서 \(f(0)=1\), \(f'(0)=0\)이다. (나)에 의해 \(f(x)-1\)은 모든 실수에서 음이 아니고 서로 다른 두 실근을 갖는다. "
++            r"실근에서 부호가 바뀌지 않아야 하므로 각 인수의 지수는 짝수이다. 따라서 \(0\)이 아닌 실수 \(r\)에 대하여 "
++            r"\(f(x)-1=x^2(x-r)^2\)이고, \(k=r^2\)이다.<br>"
++            r"\(f'(x)=2x(x-r)(2x-r)\)이다. (다)에서 \(x=1\)은 극소점이므로 \(f'(1)=0\), "
++            r"즉 \(2(1-r)(2-r)=0\)이다. 따라서 \(r=1\) 또는 \(r=2\)이다.<br>"
++            r"\(r=2\)이면 \(f'(x)=4x(x-1)(x-2)\)는 \(x=1\)의 왼쪽에서 양수, 오른쪽에서 음수이므로 "
++            r"\(x=1\)이 극대점이다. 이는 (다)에 어긋난다. \(r=1\)이면 \(f(x)=x^2(x-1)^2+1\)이고 "
++            r"\(f(1)=1\)이므로 세 조건을 모두 만족시킨다. 따라서 \(k=1\)이다."
++        ),
++        fast=r"전 구간 하한과 두 실근에서 \(f-1=x^2(x-r)^2\). 극소점은 \(0,r\), 그 사이의 극대점은 \(r/2\)이다. \(1\)은 \(0\)이 아닌 극소점이므로 \(r=1\), \(k=r^2=1\).",
++        wrongs=['2', '4'],
++        wrong=r"③ \(2\): \(f(x)=x^2(x-1)^2+1\)을 구한 뒤 극한값을 \(f''(0)=2\)로 계산한다. 실제 극한값은 \(f''(0)/2\)이다. ⑤ \(4\): (다)를 \(f'(1)=0\)으로만 해석하여 \(r=2\)인 극대점 후보를 택하면 \(k=4\)이다.",
++        note=r"원문의 유한 극한·국소 최소 판정 원리는 유지한다. 삼차의 나머지 일차인수 설정은 통하지 않고, 사차에서 두 근의 지수와 극대·극소 위치를 함께 정해야 한다. (나)의 전 구간 하한을 빼면 \(f(x)=x^4-\frac43x^3+1\), 두 실근 조건을 빼면 \(f(x)=x^4-\frac73x^3+\frac32x^2+1\)이 각각 남아 답이 달라진다. 독립 검토·블라인드 측정 전 후보이다.",
++    ),
++}
+
+exec
+/bin/bash -lc 'PYTHONPATH="$PWD/template/db/parts" python3 output/build/기말/2회/checkpart.py output/build/기말/2회/후보/c17.py' in /home/runner/work/Finale/Finale
+ succeeded in 272ms:
+17: 통과 골격 0.42 원문 0.34 ← [익스텐션] LIVE1-02-098 양정고 2024 7번 · 부교재 115p 31번
+tmp  17: 자료에 없는 어절 ['않는']
+17: [절댓값-수평선] 원문에도 있음(원리 유지형이면 허용)
+흔한 패턴 표시 0 개
+== 학교 선례 (복습형)
+학교 선례 표시 0 개
+== 중복 (복습형)
+== 말투
+== 형식
+형식 표시 0 개
+== 관문 (17·18·서답형2, 지침 0-4)
+17: 독립 검토 기록 없음 (review/codex17.json) → 관문 3 미완, 블라인드 측정 금지
+
+exec
+/bin/bash -lc 'PYTHONPATH="$PWD/template/db/parts" python3 output/build/기말/2회/checkpart.py output/build/기말/2회/후보/c18.py' in /home/runner/work/Finale/Finale
+ succeeded in 267ms:
+18: 통과 골격 0.31 원문 0.24 ← [익스텐션] LIVE1-01-088 단대소프트웨어고 2025 22번 · 부교재 92p 45번
+흔한 패턴 표시 0 개
+== 학교 선례 (복습형)
+학교 선례 표시 0 개
+== 중복 (복습형)
+== 말투
+== 형식
+형식 표시 0 개
+== 관문 (17·18·서답형2, 지침 0-4)
+18: 독립 검토 기록 없음 (review/codex18.json) → 관문 3 미완, 블라인드 측정 금지
+
+exec
+/bin/bash -lc 'PYTHONPATH="$PWD/template/db/parts" python3 output/build/기말/2회/checkpart.py output/build/기말/2회/parts/c5.py' in /home/runner/work/Finale/Finale
+ succeeded in 259ms:
+S2: 통과 골격 0.45 원문 0.42 ← [익스텐션] LIVE1-02-228 대진고 2022 18번 · 부교재 125p 56번
+tmp  S2: 자료에 없는 어절 ['2)의']
+흔한 패턴 표시 0 개
+== 학교 선례 (복습형)
+학교 선례 표시 0 개
+== 중복 (복습형)
+== 말투
+== 형식
+형식 표시 0 개
+== 관문 (17·18·서답형2, 지침 0-4)
+S2: 독립 검토 기록 없음 (review/codexS2.json) → 관문 3 미완, 블라인드 측정 금지
+
+exec
+/bin/bash -lc "sed -n '1,210p' output/build/기말/지침/stylecheck.py; cat output/build/기말/견본4/parts/verify_p1.py" in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+# -*- coding: utf-8 -*-
+"""말투 검사: 문항 문장의 어절을 자료(익스텐션 1,746 + 분석집 433 + 부교재 원문 280 = 2,459문항)의 어절과 대조.
+자료에 한 번도 없는 어절을 보고한다(수식은 Ⓜ로 바꿔 비교). 어절 빈도표는 style_vocab.json (원문 없음).
+
+사용
+  python3 stylecheck.py build <freq.json>        # 어절 빈도표 갱신 (원문 corpus는 저장소 밖)
+  python3 stylecheck.py check <content3.py> ...   # 시험 문항 검사 (RAW, S1/S2 본문·소문항)
+"""
+import sys, os, re, json, importlib.util
+HERE = os.path.dirname(os.path.abspath(__file__))
+VOC = os.path.join(HERE, 'style_vocab.json')
+# 자료에 거의 없거나 시험지에 쓰지 않는 표현 → 자료식 표현 (지침서 '말투' 절과 같은 목록)
+REPLACE = {
+    '생각하자': "'다음 조건을 만족시키는 ~' / '~라 하자'",
+    '속하고': "'k<f(x)<k+c를 만족시키는 실수 x' 또는 '~에 존재한다'",
+    '속한다': "'~에 존재한다' / 부등식으로",
+    '이하가': "'~ 이하인' 또는 부등식(N≤10)",
+    '이상이': "'~ 이상인'",
+    '중근': "식으로 제시 f(x)=(x-a)^2(x-b) 등",
+    '마다': "'~에 대하여'",
+    '정수이고': "'~하도록 하는 정수 ~에 대하여'",
+    '도형': "'둘러싸인 부분' ('도형의 넓이'는 '부분의 넓이')",
+}
+
+def norm(t):
+    t = re.sub(r'<[^>]+>', ' ', t)
+    t = re.sub(r'\\\[[\s\S]*?\\\]', ' Ⓜ ', t)
+    t = re.sub(r'\\\([\s\S]*?\\\)', 'Ⓜ', t)
+    return re.sub(r'\s+', ' ', t.replace('&lt;', '<').replace('&gt;', '>')).strip()
+
+def key(w):
+    return re.sub(r'^[Ⓜ\(\)\[\]]+', '', w.strip('.,?')).lstrip('Ⓜ')
+
+def build(freq):
+    W = json.load(open(freq))['W']
+    voc = {}
+    for w, c in W.items():
+        k = key(w)
+        if k: voc[k] = voc.get(k, 0) + c
+    json.dump(voc, open(VOC, 'w'), ensure_ascii=False, separators=(',', ':'))
+    print('어절', len(voc), '→', VOC)
+
+def check(paths):
+    voc = json.load(open(VOC)); bad = 0
+    for p in paths:
+        d = os.path.dirname(os.path.abspath(p)); sys.path.insert(0, d)
+        for mod in ('content3', 'items_common'): sys.modules.pop(mod, None)
+        spec = importlib.util.spec_from_file_location('c3', p); m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+        items = [(str(n), r[0]) for n, r in sorted(m.RAW.items())]
+        for s in ('S1', 'S2'):
+            if hasattr(m, s): items.append((s, getattr(m, s) + ' ' + ' '.join(q[0] for q in getattr(m, s + 'S', []))))
+        for n, t in items:
+            ws = [key(w) for w in norm(t).split() if re.search('[가-힣]', w)]
+            rare = [w for w in ws if w and voc.get(w, 0) == 0]
+            hint = [f'{w}→{v}' for w in rare for k2, v in REPLACE.items() if k2 in w]
+            if rare:
+                bad += 1
+                print(f'{os.path.basename(d)} {n:>3}: 자료에 없는 어절 {rare}' + (f'  권장: {"; ".join(hint)}' if hint else ''))
+        sys.path.remove(d)
+    return bad
+
+if __name__ == '__main__':
+    if sys.argv[1] == 'build': build(sys.argv[2])
+    else: sys.exit(1 if check(sys.argv[2:]) else 0)
+# -*- coding: utf-8 -*-
+# p1.py (견본4 Claude 1·3·5·7번) 검증: 원문 풀이 · 계산 정답 = 지정 선지 · 유일성 · 선지 등차·서로 다름 · 오답 값이 선지에 있음 · 조건 빼 보기
+import os
+import numpy as np
+import sympy as sp
+from sympy import symbols, Rational, diff, integrate, solve, expand, factor, Piecewise, limit, nsimplify
+x, t, a, b = symbols('x t a b', real=True)
+ns = {}; exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'p1.py')).read(), ns)
+IT = ns['ITEMS']
+WANT = {1: 3, 3: 1, 5: 2, 7: 5}
+assert sorted(IT) == [1, 3, 5, 7] and all(IT[n]['author'] == 'claude' for n in IT)
+assert [IT[n]['key'] for n in (1, 3, 5, 7)] == ['I27', 'I12', 'D15', 'I42']
+
+def arith(no):
+    v = [nsimplify(c) for c in IT[no]['choices']]
+    d = {v[i + 1] - v[i] for i in range(4)}
+    return len(set(v)) == 5 and len(d) == 1 and list(d)[0] != 0
+
+def chk(no, val, wrongs=()):
+    ch = [nsimplify(c) for c in IT[no]['choices']]
+    good = (IT[no]['ans'] == WANT[no] and nsimplify(val) == ch[IT[no]['ans'] - 1] and arith(no)
+            and all(nsimplify(w) in ch and nsimplify(w) != nsimplify(val) for w in wrongs))
+    print(f'{no}번: 계산 {val}, 선지 {ch[IT[no]["ans"] - 1]} (위치 {IT[no]["ans"]}), 오답 {list(wrongs)} {"OK" if good else "FAIL"}')
+    assert good
+
+def increasing_everywhere(fp_left, fp_right, av, lo=-30, hi=30, n=600001):
+    """꺾인 점 x=av 좌우 도함수로 실수 전체 증가(도함수 >=0, 0인 점은 고립) 판정 (수치)"""
+    xs = np.linspace(lo, hi, n)
+    fl = sp.lambdify(x, fp_left, 'numpy'); fr = sp.lambdify(x, fp_right, 'numpy')
+    d = np.where(xs < av, fl(xs), fr(xs))
+    return bool(np.all(d > -1e-12))
+
+# ===== 원문 풀이 =====
+# I27: ∫_{-a}^a (x^5-2x^3+3x^2-7)dx=-12, 양수 a의 합 3 (①)
+A = symbols('A')
+r27 = solve(integrate(x**5 - 2*x**3 + 3*x**2 - 7, (x, -A, A)) + 12, A)
+assert sum(r for r in r27 if r > 0) == 3
+# I12: f=∫_0^x(3t^2+a), lim (f-3)/(x^2-1)=b, a+10b=27
+F12 = integrate(3*t**2 + a, (t, 0, x))
+a12 = solve(F12.subs(x, 1) - 3, a)[0]
+b12 = limit((F12.subs(a, a12) - 3) / (x**2 - 1), x, 1)
+assert a12 + 10*b12 == 27
+# D15: x^3+x^2+|x-a|+2 역함수 존재, a 최댓값 -1 (②)
+okD = [av for av in np.arange(-3, 1.001, 0.25) if increasing_everywhere(3*x**2 + 2*x - 1, 3*x**2 + 2*x + 1, av)]
+assert abs(max(okD) - (-1)) < 1e-9
+# I42: f=x^2+1(x<=1), 2x(x>1), g=∫_{-1}^x t f(t)dt. ㄱ g(1)=0 참, ㄴ 극댓값 없음(거짓), ㄷ g(x)=n 두 실근(참) → ㄱ,ㄷ (③)
+assert integrate(t*(t**2 + 1), (t, -1, 1)) == 0
+g0 = integrate(t*(t**2 + 1), (t, -1, 0))
+assert g0 < 0  # x=0 극소(유일한 임계점), 양쪽으로 +∞ → 모든 자연수 n에서 두 실근
+print('원문 풀이 OK (I27=3, I12=27, D15=-1, I42=ㄱ,ㄷ)')
+
+# ===== 1번 =====
+I1 = integrate(4*x**3 + 3*x**2 - 5*x - 13, (x, -A, A))
+assert expand(I1) == 2*A**3 - 26*A
+r1 = solve(I1 + 24, A)
+assert sorted(r1) == [-4, 1, 3]
+pos1 = [r for r in r1 if r > 0]
+chk(1, sum(pos1), wrongs=(sum(r1), sum(abs(r) for r in r1)))
+
+# ===== 3번 =====
+F3 = integrate(3*t**2 + a, (t, 0, x))
+# 극한이 존재하려면 분자 → 0 (아니면 ±∞): a가 다른 값이면 극한 없음을 확인
+a3s = solve(F3.subs(x, 1) - 7, a)
+assert len(a3s) == 1
+a3 = a3s[0]
+b3 = limit((F3.subs(a, a3) - 7) / (x**3 - 1), x, 1)
+assert limit((F3.subs(a, a3) - 7) / (x**3 - 1), x, 1, '-') == b3
+# a≠6 이면 좌·우극한이 ±∞로 갈림(극한 없음)
+for av in (5, 7):
+    L, R = limit((F3.subs(a, av) - 7) / (x**3 - 1), x, 1, '-'), limit((F3.subs(a, av) - 7) / (x**3 - 1), x, 1, '+')
+    assert L in (sp.oo, -sp.oo) and R in (sp.oo, -sp.oo) and L != R
+b3_wrong = diff(F3.subs(a, a3), x).subs(x, 1)          # x^2+x+1 누락
+chk(3, a3 + b3, wrongs=(a3 + b3_wrong,))
+
+# ===== 5번 =====
+fl5 = diff(x**3 - 3*x**2 - 9*(a - x) + 1, x)   # x<a
+fr5 = diff(x**3 - 3*x**2 - 9*(x - a) + 1, x)   # x>a
+assert expand(fr5 - 3*(x - 3)*(x + 1)) == 0
+assert sp.solve(fl5, x) == [] or all(not s.is_real for s in sp.solve(fl5, x))  # 왼쪽 조각 도함수는 항상 양수
+# 역함수 존재 ⇔ 실수 전체 증가(연속, 양끝 ±∞). a를 촘촘히 전수
+grid = np.round(np.arange(-6, 8.0001, 0.05), 10)
+ok5 = [av for av in grid if increasing_everywhere(fl5, fr5, av, lo=-20, hi=20, n=200001)]
+assert abs(min(ok5) - 3) < 1e-9 and all(av >= 3 - 1e-9 for av in ok5)
+# 경계: a=3은 가능, a=3-ε은 불가 (기호)
+eps = Rational(1, 1000)
+assert fr5.subs(x, 3 - eps / 2) < 0              # a=3-ε 이면 (a,3)에서 감소
+assert all(fr5.subs(x, 3 + Rational(k, 100)) > 0 for k in range(1, 200))
+chk(5, 3, wrongs=(-1, 1))
+
+# ===== 7번 =====
+f7 = Piecewise((x**2 + 5, x <= 1), (8 - 2*x, True))
+gp = x * f7                                        # g'(x)=x f(x) (t f(t) 연속)
+assert (x * (x**2 + 5)).subs(x, 1) == (x * (8 - 2*x)).subs(x, 1)
+# 임계점과 부호 변화 전수
+crit = sorted(set([s for s in solve(x * (x**2 + 5), x) if s.is_real and s <= 1] + [s for s in solve(x * (8 - 2*x), x) if s > 1]))
+assert crit == [0, 4]
+sg = lambda v: sp.sign(gp.subs(x, v))
+pts = [-5, -Rational(1, 2), Rational(1, 2), 1, 2, 3, 5, 10]
+signs = [sg(v) for v in pts]
+assert signs == [-1, -1, 1, 1, 1, 1, -1, -1]
+maxima = [c for c in crit if sg(c - Rational(1, 10)) > 0 and sg(c + Rational(1, 10)) < 0]
+minima = [c for c in crit if sg(c - Rational(1, 10)) < 0 and sg(c + Rational(1, 10)) > 0]
+assert maxima == [4] and minima == [0]
+def g7(X):
+    return integrate(t * (t**2 + 5), (t, -1, min(X, 1))) + (integrate(t * (8 - 2*t), (t, 1, X)) if X > 1 else 0)
+assert integrate(t * (t**2 + 5), (t, -1, 1)) == 0
+val7 = g7(4)
+# 수치 교차
+ts = np.linspace(-1, 4, 2000001); ft = np.where(ts <= 1, ts**2 + 5, 8 - 2*ts)
+assert abs(np.trapezoid(ts * ft, ts) - float(val7)) < 1e-6
+chk(7, val7, wrongs=(integrate(8 - 2*t, (t, 1, 4)),))
+
+# ===== 조건 빼 보기 =====
+print('--- 조건 빼 보기 ---')
+s_all = sum(r1)
+print(f'ABLATION 1 양수 조건: 필요(답 바뀜 {sum(pos1)} → {s_all}; 근 {sorted(r1)} 전체 합)')
+# 3번: 분모를 x^3-1 대신 원문 x^2-1로 되돌리면 b가 바뀜(비교용), 분자 상수 7을 빼면(f(x)/(x^3-1)) a=-1, b=0
+b3_alt = limit((F3.subs(a, a3) - 7) / (x**2 - 1), x, 1)
+print(f'ABLATION 3 분모 x^3-1(→x^2-1): 필요(답 바뀜 {a3 + b3} → {a3 + b3_alt})')
+a3n = solve(F3.subs(x, 1), a)[0]; b3n = limit(F3.subs(a, a3n) / (x**3 - 1), x, 1)
+print(f'ABLATION 3 분자 상수 -7: 필요(답 바뀜 {a3 + b3} → {a3n + b3n})')
+# 5번: 절댓값 항 계수의 부호(−9 → +9)를 되돌리면 판정하는 쪽이 x<a로 바뀌어 a≤-1, 최솟값이 없어짐
+fl5b = diff(x**3 - 3*x**2 + 9*(a - x) + 1, x); fr5b = diff(x**3 - 3*x**2 + 9*(x - a) + 1, x)
+ok5b = [av for av in grid if increasing_everywhere(fl5b, fr5b, av, lo=-20, hi=20, n=200001)]
+assert abs(max(ok5b) + 1) < 1e-9 and min(ok5b) == grid[0]
+print(f'ABLATION 5 절댓값 계수 부호(−9): 필요(정해지지 않음: +9이면 가능한 a는 a≤{max(ok5b)}, 최솟값 없음)')
+# 7번: 조각을 하나씩 지움
+def g_of(fexpr):
+    gp_ = x * fexpr
+    cr = sorted(s_ for s_ in solve(gp_, x) if s_.is_real)
+    mx = [c for c in cr if gp_.subs(x, c - Rational(1, 10)) > 0 and gp_.subs(x, c + Rational(1, 10)) < 0]
+    return [integrate(t * fexpr.subs(x, t), (t, -1, c)) for c in mx]
+m1 = g_of(x**2 + 5); m2 = g_of(8 - 2*x)
+print(f'ABLATION 7 x>1 조각 8-2x: 필요(정해지지 않음: 극댓값 {m1 if m1 else "없음"})')
+print(f'ABLATION 7 x≤1 조각 x^2+5: 필요(답 바뀜 {val7} → {m2[0]})')
+assert m1 == [] and m2[0] != val7
+
+print('정답 위치:', [IT[n]['ans'] for n in sorted(IT)])
+print('ALL OK')
+
+exec
+/bin/bash -lc "python3 - <<'PY'
+import json
+v=json.load(open('output/build/기말/지침/style_vocab.json'))
+print({k:n for k,n in v.items() if '않' in k or '존재' in k})
+PY" in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+{'존재한다': 48, '존재하도록': 13, '존재하기': 3, '않는다고': 1, '않은': 57, '존재하지': 23, '않을': 12, '않다': 14, '존재한다.Ⓜ일': 1, '않는다': 27, '않는다.Ⓜ에': 3, '존재하고': 15, '않도록': 17, '존재한다.방정식': 1, '않는다.Ⓜ': 1, '않는다.Ⓜ일': 5, '존재할': 3, '않는다.실수': 1, '않는다.이때': 1, '않다.Ⓜ의': 1, '존재하는': 1, '존재하면': 2}
+
+apply patch
+patch: completed
+/home/runner/work/Finale/Finale/output/build/기말/2회/parts/c5.py
+/home/runner/work/Finale/Finale/output/build/기말/2회/후보/c17.py
+diff --git a/output/build/기말/2회/parts/c5.py b/output/build/기말/2회/parts/c5.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..07888c4cda0576f8ae56b314b6ea4c21830c204d
+--- /dev/null
++++ b/output/build/기말/2회/parts/c5.py
+@@ -0,0 +1,33 @@
++# -*- coding: utf-8 -*-
++SITEMS = {
++    'S2': dict(
++        body=r"""두 상수 \(a\), \(b\)에 대하여 함수 \(f(x)=\frac12x^3+ax^2+bx\), \(h(x)=f(x)+|f(x)+x|-2x^2\)가 있다. \(h(1)=4\)이고 \(h'(1)=0\)일 때, 다음 물음에 답하시오.""",
++        subs=[
++            (r"상수 \(b\)의 값을 구하시오.", '4점, 답만 적으시오.'),
++            (r"방정식 \(h(x)=k\)의 서로 다른 실근의 개수가 \(4\)가 되도록 하는 실수 \(k\)의 값을 구하시오.", '4점, 답만 적으시오.'),
++            (r"방정식 \(h(x)=k\)의 서로 다른 실근의 개수가 \(4\)일 때, 모든 실근의 합을 구하시오.", '2점, 답만 적으시오.'),
++        ],
++        ans=['(1) 4', r'(2) \frac18', r'(3) \frac{23}{4}'],
++        rubric=[r'(1) \(4\) [4점, 답만]', r'(2) \(\frac18\) [4점, 답만]', r'(3) \(\frac{23}{4}\) [2점, 답만]'],
++        key='M56', src='2022학년도 수능 9월 모의평가 20번',
++        author='codex', cand='codexS2', level='중상',
++        vtype=['구조 변경', '조건 변경', '형식 변경'],
++        effect='같음', bunseok=False, precedent='2학기 중간 18번·서답형2',
++        core=dict(
++            axis='②',
++            setting='원문의 절댓값 방정식은 한쪽 구간에서 일차함수, 다른 쪽에서 삼차함수와 수평선의 교점 문제이다.',
++            principle='절댓값 안의 부호를 먼저 판정하고, 각 구간의 도함수와 극값을 이용해 유효한 실근 수를 합한다.',
++            new='비교 대상을 직선에서 이차함수로 한 겹 교체한다. 음의 구간도 이차함수가 되어 그 꼭짓점에서만 양의 구간의 세 근과 합쳐 정확히 네 근이 된다.',
++        ),
++        var='[설정 교체] f+|f+x|와 직선의 교점 → 이차함수와의 교점. [조건 변경] 함숫값과 미분계수로 계수 결정. [형식 변경] 계수 → 네 근을 주는 값 → 서로 다른 근의 합의 3단계.',
++        sol=[
++            r"\(h(1)=4\)에서 \(f(1)+|f(1)+1|=6\)이다. \(f(1)+1\le0\)이면 좌변이 \(-1\)이므로 불가능하다. 따라서 \(f(1)=\frac52\)이고 \(a+b=2\)이다. \(x=1\) 근처에서는 \(h(x)=2f(x)+x-2x^2\)이므로 \(h'(1)=2f'(1)-3=0\)에서 \(2a+b=0\)이다. 두 식을 풀면 \(a=-2,b=4\)이다.",
++            r"\(f(x)+x=\frac12x(x^2-4x+10)=\frac12x\{(x-2)^2+6\}\)이므로 절댓값 안의 부호는 \(x\)의 부호와 같다. 따라서 \(x&lt;0\)이면 \(h(x)=-2x^2-x=-2(x+\frac14)^2+\frac18\), \(x\ge0\)이면 \(h(x)=x^3-6x^2+9x=x(x-3)^2\)이다. 음의 구간에서는 \(k\le0\)일 때 한 근, \(0&lt;k&lt;\frac18\)일 때 두 근, \(k=\frac18\)일 때 한 근, \(k>\frac18\)일 때 근이 없다. 양의 구간과 \(0\)에서는 도함수 \(3(x-1)(x-3)\)에 의해 \(k&lt;0\)일 때 근이 없고, \(k=0\)일 때 두 근, \(0&lt;k&lt;4\)일 때 세 근, \(k=4\)일 때 두 근, \(k>4\)일 때 한 근이다. 두 구간을 합하면 네 근인 경우는 \(k=\frac18\)뿐이다.",
++            r"\(k=\frac18\)일 때 음의 근은 꼭짓점의 \(x\)좌표인 \(-\frac14\) 하나이다. 양의 세 근은 방정식 \(x^3-6x^2+9x-\frac18=0\)의 세 근이므로 그 합은 \(6\)이다. 서로 다른 모든 실근의 합은 \(6-\frac14=\frac{23}{4}\)이다.",
++        ],
++        fast=r"\(h(1)=4,h'(1)=0\)에서 \(a+b=2,2a+b=0\). 부호 분리 후 음의 구간의 꼭짓점 높이는 \(1/8\), 양의 구간의 두 극값은 \(4,0\)이다. 네 근은 음의 구간의 접점 한 개와 양의 세 근일 때뿐이다. 접점은 한 번만 세어 근의 합은 \(6-1/4\).",
++        wrongs=[],
++        wrong=r"(1) \(6\): \(h'(1)\)을 계산할 때 \(-2x^2\)의 미분을 빠뜨리면 \(2a+b=-2\), \(a+b=2\)에서 \(b=6\)이 나온다. (2) \(4\): 양의 구간의 극댓값만 보면 이 값을 택하지만 전체 근은 두 개이다. \(0\): 원점과 접점을 중복 계산하면 네 개로 잘못 세지만 서로 다른 근은 세 개이다. (3) \(11/2\): 음의 구간에서 접하는 근 \(-1/4\)을 두 번 세어 \(6-1/2\)로 계산한 값이다.",
++        note=r"원본은 음의 구간의 직선이 \(k>0\)에서 한 근을 보태어 네 근인 열린구간을 만든다. 변형은 음의 구간의 이차함수가 두 근·접점 한 근·근 없음으로 바뀌므로 원본의 일차함수 설정으로는 네 근을 판정할 수 없다. 실근 개수라는 단원 개념과 부호 분리·도함수 판정 원리는 유지한다. (1)은 계수를, (2)는 경우 분기를, (3)은 접점의 중복 제외를 평가한다. 독립 검토·블라인드 측정 전 문항이다.",
++    ),
++}
+diff --git a/output/build/기말/2회/후보/c17.py b/output/build/기말/2회/후보/c17.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..87c87aa36c4d697a59d1248edabe1c1ed353fcaf
+--- /dev/null
++++ b/output/build/기말/2회/후보/c17.py
+@@ -0,0 +1,42 @@
++# -*- coding: utf-8 -*-
++ITEMS = {
++    17: dict(
++        body=r"""함수 \(f(x)=x^3-3x+7\)과 최고차항의 계수가 \(1\)인 이차함수 \(q(x)\)가 있다. 방정식 \(|f(x)|=t\)의 서로 다른 실근의 개수를 \(g(t)\)라 하자. 함수 \(q(x)\)가 다음 조건을 만족시킬 때, \(q(1)\)의 최솟값은?""",
++        cond=[
++            ('가', r"서로 다른 두 실수 \(\alpha\), \(\beta\)에 대하여 \(\displaystyle\lim_{x\to a}g(q(x))\)는 \(a=\alpha\) 또는 \(a=\beta\)일 때만 <u>존재하지 않는다</u>."),
++            ('나', r"\(\alpha\beta=0\)이다."),
++        ],
++        choices=['2', '3', '4', '5', '6'], ans=5,
++        key='M31', src='2022년 수능특강 [22009-0122]',
++        author='codex', cand='codex17', level='상',
++        vtype=['숫자 변경', '구조 변경', '구하는 대상 변경'],
++        effect='어려워짐', bunseok=False, precedent='2학기 중간 17번',
++        core=dict(
++            axis='①',
++            setting='삼차함수 f와 방정식 |f(x)|=t의 서로 다른 실근 개수 g(t)를 유지한다.',
++            principle='원문은 g의 불연속점과 평행이동한 불연속점에서 점프의 방향과 크기가 같은지를 비교하여 차의 상쇄점을 제외한다.',
++            new='g의 점프 높이를 이차함수 q가 가로지르는 점에서만 합성함수의 양쪽 극한이 없다. 꼭짓점에서 닿는 점은 극한이 존재하므로 꼭짓점 높이 5를 포함한다.',
++        ),
++        var='[구조 변경] 이동한 개수 함수의 차에서 점프 상쇄 → 이차함수와 합성한 개수 함수에서 경계 높이 통과 여부. [숫자 변경] 극값 높이 변경. [구하는 대상 변경] 불연속점의 합 → q(1)의 최솟값.',
++        sol=(
++            r"\(f'(x)=3(x+1)(x-1)\)이므로 \(f\)는 \(x=-1\)에서 극댓값 \(9\), \(x=1\)에서 극솟값 \(5\)를 갖는다. "
++            r"따라서 \(t&lt;0\), \(t=0\), \(0&lt;t&lt;5\), \(t=5\), \(5&lt;t&lt;9\), \(t=9\), \(t>9\)에서 "
++            r"\(g(t)\)는 각각 \(0,1,2,3,4,3,2\)이다. \(g\)의 좌우극한이 다른 곳은 \(0,5,9\)뿐이다.<br>"
++            r"\(q(x)=(x-u)^2+m\)으로 놓자. \(c\in\{0,5,9\}\)에 대하여 \(m&lt;c\)이면 \(q(x)=c\)인 두 점에서 "
++            r"\(q(x)\)가 \(c\)의 양쪽 값을 가지므로 합성함수의 양쪽 극한은 존재하지 않는다. "
++            r"\(m=c\)이면 \(x\to u\)일 때 \(q(x)\)는 양쪽 모두 \(c\)보다 큰 값으로 다가가므로 극한은 존재한다. "
++            r"\(m>c\)이면 \(q(x)=c\)인 점이 없다.<br>"
++            r"따라서 극한이 존재하지 않는 점의 개수는 \(m&lt;0\)에서 \(6\), \(0\le m&lt;5\)에서 \(4\), "
++            r"\(5\le m&lt;9\)에서 \(2\), \(m\ge9\)에서 \(0\)이다. (가)에서 \(5\le m&lt;9\)이고 "
++            r"\(\alpha,\beta\)는 \(q(x)=9\)의 두 근이다.<br>"
++            r"(나)에 의해 두 근 중 하나가 \(0\)이므로 \(q(0)=9\), 즉 \(u^2+m=9\)이다. "
++            r"따라서 \(0&lt;u^2\le4\)이고 \(q(1)=1-2u+u^2+m=10-2u\)이다. "
++            r"\(u\le2\)이므로 최솟값은 \(6\)이다. \(u=2,m=5\)일 때 "
++            r"\(q(x)=(x-2)^2+5\)이고 극한이 존재하지 않는 점은 \(0,4\)뿐이므로 실제로 이 값을 갖는다."
++        ),
++        fast=r"개수 함수의 점프 높이는 \(0,5,9\)이다. 합성 극한이 두 점에서만 없으려면 이차함수의 최솟값 \(m\)은 \(5\le m&lt;9\)이다. \(q(0)=9\)에서 \(q=(x-u)^2+9-u^2\), \(0&lt;u^2\le4\). 따라서 \(q(1)=10-2u\ge6\).",
++        wrongs=['4', '5'],
++        wrong=r"③ \(4\): 높이 \(5\)에서의 점프를 빠뜨려 \(0\le m&lt;9\)로 판단하면 \(u=3,m=0\)을 허용하여 \(q(1)=4\)를 얻는다. ④ \(5\): 올바른 경계 함수 \(q(x)=x^2-4x+9\)를 구한 뒤 \(q(1)\)을 계산할 때 이차항 \(1\)을 빠뜨리면 \(5\)가 된다.",
++        note=r"원본의 점프 상쇄는 사용되지 않는다. 도함수로 두 극값 높이를 정하고, 세 높이를 꼭짓점이 통과하는 경우를 나누어 합성 극한을 판정한다. 꼭짓점에서의 함숫값과 극한값이 달라도 극한은 존재한다. 최솟값은 연속으로 움직이는 \(u\)의 경계 \(u=2\)에서 달성된다. 독립 검토·블라인드 측정 전 후보이다.",
++    ),
++}
+diff --git a/output/build/기말/2회/후보/c18.py b/output/build/기말/2회/후보/c18.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..daf76abb26eccb72f9ca9b6cbcbc75832b4269be
+--- /dev/null
++++ b/output/build/기말/2회/후보/c18.py
+@@ -0,0 +1,37 @@
++# -*- coding: utf-8 -*-
++ITEMS = {
++    18: dict(
++        body=r"""최고차항의 계수가 \(1\)인 사차함수 \(f(x)\)와 실수 \(k\)가 다음 조건을 만족시킬 때, \(k\)의 값은?""",
++        cond=[
++            ('가', r"\(\displaystyle\lim_{x\to0}\frac{f(x)-1}{x^2}=k\)이다."),
++            ('나', r"모든 실수 \(x\)에 대하여 \(f(x)\ge1\)이고, 방정식 \(f(x)=1\)의 서로 다른 실근의 개수는 \(2\)이다."),
++            ('다', r"열린구간 \(\left(\frac12,\frac32\right)\)의 모든 \(x\)에 대하여 \(f(x)\ge f(1)\)이다."),
++        ],
++        choices=['0', '1', '2', '3', '4'], ans=2,
++        key='D45', src='2025년 수능특강 [25009-0097]',
++        author='codex', cand='codex18', level='상',
++        vtype=['함수 교체', '구조 변경', '조건 변경'],
++        effect='어려워짐', bunseok=False, precedent='2학기 중간 18번',
++        core=dict(
++            axis='②',
++            setting='원문은 최고차항 계수 1인 삼차함수에서 f-2가 (x+2)의 제곱과 일차식의 곱이다.',
++            principle='유한한 이차 분모의 극한은 해당 점의 함숫값과 도함숫값을 정하고, 열린구간에서의 하한 조건은 그 점이 극소점임을 뜻한다.',
++            new='사차함수로 한 차수 올려 남은 이차인수의 실근 배치를 판정한다. 전 구간 하한과 서로 다른 두 근으로 두 제곱인수를 얻고, 고정점이 그 두 근 사이의 극대점인지 다른 극소점인지 구별한다.',
++        ),
++        var='[설정 교체] 삼차함수의 접촉점 하나와 나머지 일차인수 → 사차함수의 두 접촉점과 그 사이의 극대점. 극한·국소 최솟값 판정은 유지한다.',
++        sol=(
++            r"(가)에서 \(f(0)=1\), \(f'(0)=0\)이다. (나)에 의해 \(f(x)-1\)은 모든 실수에서 음이 아니고 서로 다른 두 실근을 갖는다. "
++            r"실근에서 부호가 바뀌지 않아야 하므로 각 인수의 지수는 짝수이다. 따라서 \(0\)이 아닌 실수 \(r\)에 대하여 "
++            r"\(f(x)-1=x^2(x-r)^2\)이고, \(k=r^2\)이다.<br>"
++            r"\(f'(x)=2x(x-r)(2x-r)\)이다. (다)에서 \(x=1\)은 극소점이므로 \(f'(1)=0\), "
++            r"즉 \(2(1-r)(2-r)=0\)이다. 따라서 \(r=1\) 또는 \(r=2\)이다.<br>"
++            r"\(r=2\)이면 \(f'(x)=4x(x-1)(x-2)\)는 \(x=1\)의 왼쪽에서 양수, 오른쪽에서 음수이므로 "
++            r"\(x=1\)이 극대점이다. 이는 (다)에 어긋난다. \(r=1\)이면 \(f(x)=x^2(x-1)^2+1\)이고 "
++            r"\(f(1)=1\)이므로 세 조건을 모두 만족시킨다. 따라서 \(k=1\)이다."
++        ),
++        fast=r"전 구간 하한과 두 실근에서 \(f-1=x^2(x-r)^2\). 극소점은 \(0,r\), 그 사이의 극대점은 \(r/2\)이다. \(1\)은 \(0\)이 아닌 극소점이므로 \(r=1\), \(k=r^2=1\).",
++        wrongs=['2', '4'],
++        wrong=r"③ \(2\): \(f(x)=x^2(x-1)^2+1\)을 구한 뒤 극한값을 \(f''(0)=2\)로 계산한다. 실제 극한값은 \(f''(0)/2\)이다. ⑤ \(4\): (다)를 \(f'(1)=0\)으로만 해석하여 \(r=2\)인 극대점 후보를 택하면 \(k=4\)이다.",
++        note=r"원문의 유한 극한·국소 최소 판정 원리는 유지한다. 삼차의 나머지 일차인수 설정은 통하지 않고, 사차에서 두 근의 지수와 극대·극소 위치를 함께 정해야 한다. (나)의 전 구간 하한을 빼면 \(f(x)=x^4-\frac43x^3+1\), 두 실근 조건을 빼면 \(f(x)=x^4-\frac73x^3+\frac32x^2+1\)이 각각 남아 답이 달라진다. 독립 검토·블라인드 측정 전 후보이다.",
++    ),
++}
+
+apply patch
+patch: completed
+/home/runner/work/Finale/Finale/output/build/기말/2회/parts/verify_c5.py
+/home/runner/work/Finale/Finale/output/build/기말/2회/후보/verify_c17.py
+/home/runner/work/Finale/Finale/output/build/기말/2회/후보/verify_c18.py
+diff --git a/output/build/기말/2회/parts/c5.py b/output/build/기말/2회/parts/c5.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..07888c4cda0576f8ae56b314b6ea4c21830c204d
+--- /dev/null
++++ b/output/build/기말/2회/parts/c5.py
+@@ -0,0 +1,33 @@
++# -*- coding: utf-8 -*-
++SITEMS = {
++    'S2': dict(
++        body=r"""두 상수 \(a\), \(b\)에 대하여 함수 \(f(x)=\frac12x^3+ax^2+bx\), \(h(x)=f(x)+|f(x)+x|-2x^2\)가 있다. \(h(1)=4\)이고 \(h'(1)=0\)일 때, 다음 물음에 답하시오.""",
++        subs=[
++            (r"상수 \(b\)의 값을 구하시오.", '4점, 답만 적으시오.'),
++            (r"방정식 \(h(x)=k\)의 서로 다른 실근의 개수가 \(4\)가 되도록 하는 실수 \(k\)의 값을 구하시오.", '4점, 답만 적으시오.'),
++            (r"방정식 \(h(x)=k\)의 서로 다른 실근의 개수가 \(4\)일 때, 모든 실근의 합을 구하시오.", '2점, 답만 적으시오.'),
++        ],
++        ans=['(1) 4', r'(2) \frac18', r'(3) \frac{23}{4}'],
++        rubric=[r'(1) \(4\) [4점, 답만]', r'(2) \(\frac18\) [4점, 답만]', r'(3) \(\frac{23}{4}\) [2점, 답만]'],
++        key='M56', src='2022학년도 수능 9월 모의평가 20번',
++        author='codex', cand='codexS2', level='중상',
++        vtype=['구조 변경', '조건 변경', '형식 변경'],
++        effect='같음', bunseok=False, precedent='2학기 중간 18번·서답형2',
++        core=dict(
++            axis='②',
++            setting='원문의 절댓값 방정식은 한쪽 구간에서 일차함수, 다른 쪽에서 삼차함수와 수평선의 교점 문제이다.',
++            principle='절댓값 안의 부호를 먼저 판정하고, 각 구간의 도함수와 극값을 이용해 유효한 실근 수를 합한다.',
++            new='비교 대상을 직선에서 이차함수로 한 겹 교체한다. 음의 구간도 이차함수가 되어 그 꼭짓점에서만 양의 구간의 세 근과 합쳐 정확히 네 근이 된다.',
++        ),
++        var='[설정 교체] f+|f+x|와 직선의 교점 → 이차함수와의 교점. [조건 변경] 함숫값과 미분계수로 계수 결정. [형식 변경] 계수 → 네 근을 주는 값 → 서로 다른 근의 합의 3단계.',
++        sol=[
++            r"\(h(1)=4\)에서 \(f(1)+|f(1)+1|=6\)이다. \(f(1)+1\le0\)이면 좌변이 \(-1\)이므로 불가능하다. 따라서 \(f(1)=\frac52\)이고 \(a+b=2\)이다. \(x=1\) 근처에서는 \(h(x)=2f(x)+x-2x^2\)이므로 \(h'(1)=2f'(1)-3=0\)에서 \(2a+b=0\)이다. 두 식을 풀면 \(a=-2,b=4\)이다.",
++            r"\(f(x)+x=\frac12x(x^2-4x+10)=\frac12x\{(x-2)^2+6\}\)이므로 절댓값 안의 부호는 \(x\)의 부호와 같다. 따라서 \(x&lt;0\)이면 \(h(x)=-2x^2-x=-2(x+\frac14)^2+\frac18\), \(x\ge0\)이면 \(h(x)=x^3-6x^2+9x=x(x-3)^2\)이다. 음의 구간에서는 \(k\le0\)일 때 한 근, \(0&lt;k&lt;\frac18\)일 때 두 근, \(k=\frac18\)일 때 한 근, \(k>\frac18\)일 때 근이 없다. 양의 구간과 \(0\)에서는 도함수 \(3(x-1)(x-3)\)에 의해 \(k&lt;0\)일 때 근이 없고, \(k=0\)일 때 두 근, \(0&lt;k&lt;4\)일 때 세 근, \(k=4\)일 때 두 근, \(k>4\)일 때 한 근이다. 두 구간을 합하면 네 근인 경우는 \(k=\frac18\)뿐이다.",
++            r"\(k=\frac18\)일 때 음의 근은 꼭짓점의 \(x\)좌표인 \(-\frac14\) 하나이다. 양의 세 근은 방정식 \(x^3-6x^2+9x-\frac18=0\)의 세 근이므로 그 합은 \(6\)이다. 서로 다른 모든 실근의 합은 \(6-\frac14=\frac{23}{4}\)이다.",
++        ],
++        fast=r"\(h(1)=4,h'(1)=0\)에서 \(a+b=2,2a+b=0\). 부호 분리 후 음의 구간의 꼭짓점 높이는 \(1/8\), 양의 구간의 두 극값은 \(4,0\)이다. 네 근은 음의 구간의 접점 한 개와 양의 세 근일 때뿐이다. 접점은 한 번만 세어 근의 합은 \(6-1/4\).",
++        wrongs=[],
++        wrong=r"(1) \(6\): \(h'(1)\)을 계산할 때 \(-2x^2\)의 미분을 빠뜨리면 \(2a+b=-2\), \(a+b=2\)에서 \(b=6\)이 나온다. (2) \(4\): 양의 구간의 극댓값만 보면 이 값을 택하지만 전체 근은 두 개이다. \(0\): 원점과 접점을 중복 계산하면 네 개로 잘못 세지만 서로 다른 근은 세 개이다. (3) \(11/2\): 음의 구간에서 접하는 근 \(-1/4\)을 두 번 세어 \(6-1/2\)로 계산한 값이다.",
++        note=r"원본은 음의 구간의 직선이 \(k>0\)에서 한 근을 보태어 네 근인 열린구간을 만든다. 변형은 음의 구간의 이차함수가 두 근·접점 한 근·근 없음으로 바뀌므로 원본의 일차함수 설정으로는 네 근을 판정할 수 없다. 실근 개수라는 단원 개념과 부호 분리·도함수 판정 원리는 유지한다. (1)은 계수를, (2)는 경우 분기를, (3)은 접점의 중복 제외를 평가한다. 독립 검토·블라인드 측정 전 문항이다.",
++    ),
++}
+diff --git a/output/build/기말/2회/parts/verify_c5.py b/output/build/기말/2회/parts/verify_c5.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..038e2236cc55980af14a4753efd1d30a35705efe
+--- /dev/null
++++ b/output/build/기말/2회/parts/verify_c5.py
+@@ -0,0 +1,108 @@
++# -*- coding: utf-8 -*-
++"""M56 서답형2: 모든 k 구간·경계의 정확한 근 수와 조건 빼 보기."""
++from pathlib import Path
++import runpy
++import sympy as s
++
++x, a, b, z = s.symbols('x a b z', real=True)
++R = s.Rational
++it = runpy.run_path(str(Path(__file__).with_name('c5.py')))['SITEMS']['S2']
++assert it['key'] == 'M56' and it['author'] == 'codex'
++
++
++def roots_on(poly, negative):
++    roots = set(s.Poly(poly, x).real_roots(radicals=False))
++    return [r for r in roots if bool(r < 0) == negative]
++
++
++def count(left, right, height):
++    return len(roots_on(left-height, True)) + len(roots_on(right-height, False))
++
++
++# 원문: 직선 조각과 삼차 조각의 임계값만이 근 수를 바꾼다.
++original_f = x**3/2-R(9, 2)*x**2+10*x
++assert s.factor(original_f+x) == x*(x**2-9*x+22)/2
++assert s.discriminant(x**2-9*x+22, x) == -7
++old_left, old_right = -7*x, s.expand(2*original_f-5*x)
++assert old_right == x**3-9*x**2+15*x
++assert s.solve(s.diff(old_right, x), x) == [1, 5]
++assert [old_right.subs(x, v) for v in [1, 5]] == [7, -25]
++old_cells = [(-26, 0), (-25, 1), (-1, 2), (0, 3), (1, 4), (7, 3), (8, 2)]
++for height, expected in old_cells:
++    assert count(old_left, old_right, height) == expected
++# 単調性と境界で 4 根 ⇔ 0<k<7。整数を全列挙。
++old_integers = [v for v in range(1, 7) if count(old_left, old_right, v) == 4]
++assert old_integers == [1, 2, 3, 4, 5, 6] and sum(old_integers) == 21
++print('원문 M56: 네 근 0<k<7, 정수 합 21 OK')
++
++# (1) 절댓값의 두 부호를 모두 조사한다.
++assert s.expand(z-(z+1)) == -1  # 이 가지로는 좌변 6 불가능
++f1 = s.solve(z+(z+1)-6, z)[0]
++assert f1 == R(5, 2) and f1+1 > 0
++f = x**3/2+a*x**2+b*x
++positive_h = 2*f+x-2*x**2
++coefficients = s.solve([f.subs(x, 1)-f1, s.diff(positive_h, x).subs(x, 1)], (a, b), dict=True)
++assert coefficients == [{a: -2, b: 4}]
++f = f.subs(coefficients[0])
++assert s.factor(f+x) == x*(x**2-4*x+10)/2
++assert s.expand((x-2)**2+6) == x**2-4*x+10
++left, right = -2*x**2-x, s.expand(2*f+x-2*x**2)
++assert right == x*(x-3)**2 or s.expand(right-x*(x-3)**2) == 0
++assert s.solve(s.diff(left, x), x) == [-R(1, 4)]
++assert s.solve(s.diff(right, x), x) == [1, 3]
++assert left.subs(x, -R(1, 4)) == R(1, 8)
++assert [right.subs(x, v) for v in [0, 1, 3]] == [0, 4, 0]
++assert s.expand(left+2*(x+R(1, 4))**2-R(1, 8)) == 0
++assert s.factor(s.diff(right, x)) == 3*(x-3)*(x-1)
++
++# 全実数 k を覆う区間と境界。端点の高さ・停留値以外で根数は変わらない。
++cells = [(-1, (1, 0)), (0, (1, 2)), (R(1, 16), (2, 3)),
++         (R(1, 8), (1, 3)), (1, (0, 3)), (4, (0, 2)), (5, (0, 1))]
++four_root_cells = []
++for height, expected in cells:
++    actual = (len(roots_on(left-height, True)), len(roots_on(right-height, False)))
++    assert actual == expected
++    if sum(actual) == 4:
++        four_root_cells.append(height)
++assert four_root_cells == [R(1, 8)]
++k = four_root_cells[0]
++negative = roots_on(left-k, True)
++positive = roots_on(right-k, False)
++assert negative == [-R(1, 4)] and len(positive) == 3
++poly = s.Poly(right-k, x)
++assert len(set(poly.real_roots(radicals=False))) == 3
++positive_sum = -poly.all_coeffs()[1]/poly.LC()
++answer3 = positive_sum + negative[0]
++assert positive_sum == 6 and answer3 == R(23, 4)
++assert it['ans'] == ['(1) 4', r'(2) \frac18', r'(3) \frac{23}{4}']
++assert [pts for _, pts in it['subs']] == ['4점, 답만 적으시오.', '4점, 답만 적으시오.', '2점, 답만 적으시오.']
++print('S2: 모든 k 구간 근 수 1/3/5/4/3/2/1, 유일한 k=1/8 OK')
++print('S2 정답: (1) 4, (2) 1/8, (3) 23/4 OK')
++
++# 오답 근거를 실제 식으로 재현한다.
++bad_coefficients = s.solve([a+b-2, 2*a+b+2], (a, b))
++assert bad_coefficients[b] == 6
++assert count(left, right, 0) == 3 and count(left, right, 4) == 2
++assert positive_sum+2*negative[0] == R(11, 2)
++assert not it['wrongs'] and not it.get('choices')
++print('오답 b=6, k=0/4, 근의 합 11/2 근거 OK (서답형: 선지 검사 해당 없음)')
++
++
++def local_values(av, bv, leading=R(1, 2), constant=0):
++    ff = leading*x**3+av*x**2+bv*x+constant
++    assert ff.subs(x, 1)+1 > 0
++    hh = 2*ff+x-2*x**2
++    return hh.subs(x, 1), s.diff(hh, x).subs(x, 1)
++
++
++assert local_values(-3, 6) == (6, 0)
++print('ABLATION S2 h(1)=4: 필요(a=-3,b=6이면 h\'(1)=0 유지, b=6)')
++assert local_values(-1, 3) == (4, 2)
++print('ABLATION S2 h\'(1)=0: 필요(a=-1,b=3이면 h(1)=4 유지, b=3)')
++assert local_values(-3, R(9, 2), leading=1) == (4, 0)
++print('ABLATION S2 삼차항 계수 1/2: 필요(계수 1이면 a=-3,b=9/2 가능)')
++assert local_values(-1, 2, constant=1) == (4, 0)
++print('ABLATION S2 상수항 0: 필요(상수항 1이면 a=-1,b=2 가능)')
++assert count(left, right, 1) == 3 and 1 != k
++print('ABLATION S2 (2) 실근 네 개: 필요(k=1 등 여러 값 가능)')
++print('ALL OK')
+diff --git a/output/build/기말/2회/후보/c17.py b/output/build/기말/2회/후보/c17.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..87c87aa36c4d697a59d1248edabe1c1ed353fcaf
+--- /dev/null
++++ b/output/build/기말/2회/후보/c17.py
+@@ -0,0 +1,42 @@
++# -*- coding: utf-8 -*-
++ITEMS = {
++    17: dict(
++        body=r"""함수 \(f(x)=x^3-3x+7\)과 최고차항의 계수가 \(1\)인 이차함수 \(q(x)\)가 있다. 방정식 \(|f(x)|=t\)의 서로 다른 실근의 개수를 \(g(t)\)라 하자. 함수 \(q(x)\)가 다음 조건을 만족시킬 때, \(q(1)\)의 최솟값은?""",
++        cond=[
++            ('가', r"서로 다른 두 실수 \(\alpha\), \(\beta\)에 대하여 \(\displaystyle\lim_{x\to a}g(q(x))\)는 \(a=\alpha\) 또는 \(a=\beta\)일 때만 <u>존재하지 않는다</u>."),
++            ('나', r"\(\alpha\beta=0\)이다."),
++        ],
++        choices=['2', '3', '4', '5', '6'], ans=5,
++        key='M31', src='2022년 수능특강 [22009-0122]',
++        author='codex', cand='codex17', level='상',
++        vtype=['숫자 변경', '구조 변경', '구하는 대상 변경'],
++        effect='어려워짐', bunseok=False, precedent='2학기 중간 17번',
++        core=dict(
++            axis='①',
++            setting='삼차함수 f와 방정식 |f(x)|=t의 서로 다른 실근 개수 g(t)를 유지한다.',
++            principle='원문은 g의 불연속점과 평행이동한 불연속점에서 점프의 방향과 크기가 같은지를 비교하여 차의 상쇄점을 제외한다.',
++            new='g의 점프 높이를 이차함수 q가 가로지르는 점에서만 합성함수의 양쪽 극한이 없다. 꼭짓점에서 닿는 점은 극한이 존재하므로 꼭짓점 높이 5를 포함한다.',
++        ),
++        var='[구조 변경] 이동한 개수 함수의 차에서 점프 상쇄 → 이차함수와 합성한 개수 함수에서 경계 높이 통과 여부. [숫자 변경] 극값 높이 변경. [구하는 대상 변경] 불연속점의 합 → q(1)의 최솟값.',
++        sol=(
++            r"\(f'(x)=3(x+1)(x-1)\)이므로 \(f\)는 \(x=-1\)에서 극댓값 \(9\), \(x=1\)에서 극솟값 \(5\)를 갖는다. "
++            r"따라서 \(t&lt;0\), \(t=0\), \(0&lt;t&lt;5\), \(t=5\), \(5&lt;t&lt;9\), \(t=9\), \(t>9\)에서 "
++            r"\(g(t)\)는 각각 \(0,1,2,3,4,3,2\)이다. \(g\)의 좌우극한이 다른 곳은 \(0,5,9\)뿐이다.<br>"
++            r"\(q(x)=(x-u)^2+m\)으로 놓자. \(c\in\{0,5,9\}\)에 대하여 \(m&lt;c\)이면 \(q(x)=c\)인 두 점에서 "
++            r"\(q(x)\)가 \(c\)의 양쪽 값을 가지므로 합성함수의 양쪽 극한은 존재하지 않는다. "
++            r"\(m=c\)이면 \(x\to u\)일 때 \(q(x)\)는 양쪽 모두 \(c\)보다 큰 값으로 다가가므로 극한은 존재한다. "
++            r"\(m>c\)이면 \(q(x)=c\)인 점이 없다.<br>"
++            r"따라서 극한이 존재하지 않는 점의 개수는 \(m&lt;0\)에서 \(6\), \(0\le m&lt;5\)에서 \(4\), "
++            r"\(5\le m&lt;9\)에서 \(2\), \(m\ge9\)에서 \(0\)이다. (가)에서 \(5\le m&lt;9\)이고 "
++            r"\(\alpha,\beta\)는 \(q(x)=9\)의 두 근이다.<br>"
++            r"(나)에 의해 두 근 중 하나가 \(0\)이므로 \(q(0)=9\), 즉 \(u^2+m=9\)이다. "
++            r"따라서 \(0&lt;u^2\le4\)이고 \(q(1)=1-2u+u^2+m=10-2u\)이다. "
++            r"\(u\le2\)이므로 최솟값은 \(6\)이다. \(u=2,m=5\)일 때 "
++            r"\(q(x)=(x-2)^2+5\)이고 극한이 존재하지 않는 점은 \(0,4\)뿐이므로 실제로 이 값을 갖는다."
++        ),
++        fast=r"개수 함수의 점프 높이는 \(0,5,9\)이다. 합성 극한이 두 점에서만 없으려면 이차함수의 최솟값 \(m\)은 \(5\le m&lt;9\)이다. \(q(0)=9\)에서 \(q=(x-u)^2+9-u^2\), \(0&lt;u^2\le4\). 따라서 \(q(1)=10-2u\ge6\).",
++        wrongs=['4', '5'],
++        wrong=r"③ \(4\): 높이 \(5\)에서의 점프를 빠뜨려 \(0\le m&lt;9\)로 판단하면 \(u=3,m=0\)을 허용하여 \(q(1)=4\)를 얻는다. ④ \(5\): 올바른 경계 함수 \(q(x)=x^2-4x+9\)를 구한 뒤 \(q(1)\)을 계산할 때 이차항 \(1\)을 빠뜨리면 \(5\)가 된다.",
++        note=r"원본의 점프 상쇄는 사용되지 않는다. 도함수로 두 극값 높이를 정하고, 세 높이를 꼭짓점이 통과하는 경우를 나누어 합성 극한을 판정한다. 꼭짓점에서의 함숫값과 극한값이 달라도 극한은 존재한다. 최솟값은 연속으로 움직이는 \(u\)의 경계 \(u=2\)에서 달성된다. 독립 검토·블라인드 측정 전 후보이다.",
++    ),
++}
+diff --git a/output/build/기말/2회/후보/c18.py b/output/build/기말/2회/후보/c18.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..daf76abb26eccb72f9ca9b6cbcbc75832b4269be
+--- /dev/null
++++ b/output/build/기말/2회/후보/c18.py
+@@ -0,0 +1,37 @@
++# -*- coding: utf-8 -*-
++ITEMS = {
++    18: dict(
++        body=r"""최고차항의 계수가 \(1\)인 사차함수 \(f(x)\)와 실수 \(k\)가 다음 조건을 만족시킬 때, \(k\)의 값은?""",
++        cond=[
++            ('가', r"\(\displaystyle\lim_{x\to0}\frac{f(x)-1}{x^2}=k\)이다."),
++            ('나', r"모든 실수 \(x\)에 대하여 \(f(x)\ge1\)이고, 방정식 \(f(x)=1\)의 서로 다른 실근의 개수는 \(2\)이다."),
++            ('다', r"열린구간 \(\left(\frac12,\frac32\right)\)의 모든 \(x\)에 대하여 \(f(x)\ge f(1)\)이다."),
++        ],
++        choices=['0', '1', '2', '3', '4'], ans=2,
++        key='D45', src='2025년 수능특강 [25009-0097]',
++        author='codex', cand='codex18', level='상',
++        vtype=['함수 교체', '구조 변경', '조건 변경'],
++        effect='어려워짐', bunseok=False, precedent='2학기 중간 18번',
++        core=dict(
++            axis='②',
++            setting='원문은 최고차항 계수 1인 삼차함수에서 f-2가 (x+2)의 제곱과 일차식의 곱이다.',
++            principle='유한한 이차 분모의 극한은 해당 점의 함숫값과 도함숫값을 정하고, 열린구간에서의 하한 조건은 그 점이 극소점임을 뜻한다.',
++            new='사차함수로 한 차수 올려 남은 이차인수의 실근 배치를 판정한다. 전 구간 하한과 서로 다른 두 근으로 두 제곱인수를 얻고, 고정점이 그 두 근 사이의 극대점인지 다른 극소점인지 구별한다.',
++        ),
++        var='[설정 교체] 삼차함수의 접촉점 하나와 나머지 일차인수 → 사차함수의 두 접촉점과 그 사이의 극대점. 극한·국소 최솟값 판정은 유지한다.',
++        sol=(
++            r"(가)에서 \(f(0)=1\), \(f'(0)=0\)이다. (나)에 의해 \(f(x)-1\)은 모든 실수에서 음이 아니고 서로 다른 두 실근을 갖는다. "
++            r"실근에서 부호가 바뀌지 않아야 하므로 각 인수의 지수는 짝수이다. 따라서 \(0\)이 아닌 실수 \(r\)에 대하여 "
++            r"\(f(x)-1=x^2(x-r)^2\)이고, \(k=r^2\)이다.<br>"
++            r"\(f'(x)=2x(x-r)(2x-r)\)이다. (다)에서 \(x=1\)은 극소점이므로 \(f'(1)=0\), "
++            r"즉 \(2(1-r)(2-r)=0\)이다. 따라서 \(r=1\) 또는 \(r=2\)이다.<br>"
++            r"\(r=2\)이면 \(f'(x)=4x(x-1)(x-2)\)는 \(x=1\)의 왼쪽에서 양수, 오른쪽에서 음수이므로 "
++            r"\(x=1\)이 극대점이다. 이는 (다)에 어긋난다. \(r=1\)이면 \(f(x)=x^2(x-1)^2+1\)이고 "
++            r"\(f(1)=1\)이므로 세 조건을 모두 만족시킨다. 따라서 \(k=1\)이다."
++        ),
++        fast=r"전 구간 하한과 두 실근에서 \(f-1=x^2(x-r)^2\). 극소점은 \(0,r\), 그 사이의 극대점은 \(r/2\)이다. \(1\)은 \(0\)이 아닌 극소점이므로 \(r=1\), \(k=r^2=1\).",
++        wrongs=['2', '4'],
++        wrong=r"③ \(2\): \(f(x)=x^2(x-1)^2+1\)을 구한 뒤 극한값을 \(f''(0)=2\)로 계산한다. 실제 극한값은 \(f''(0)/2\)이다. ⑤ \(4\): (다)를 \(f'(1)=0\)으로만 해석하여 \(r=2\)인 극대점 후보를 택하면 \(k=4\)이다.",
++        note=r"원문의 유한 극한·국소 최소 판정 원리는 유지한다. 삼차의 나머지 일차인수 설정은 통하지 않고, 사차에서 두 근의 지수와 극대·극소 위치를 함께 정해야 한다. (나)의 전 구간 하한을 빼면 \(f(x)=x^4-\frac43x^3+1\), 두 실근 조건을 빼면 \(f(x)=x^4-\frac73x^3+\frac32x^2+1\)이 각각 남아 답이 달라진다. 독립 검토·블라인드 측정 전 후보이다.",
++    ),
++}
+diff --git a/output/build/기말/2회/후보/verify_c17.py b/output/build/기말/2회/후보/verify_c17.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..851b1f54746415f63c58b8981320180f74f836b3
+--- /dev/null
++++ b/output/build/기말/2회/후보/verify_c17.py
+@@ -0,0 +1,118 @@
++# -*- coding: utf-8 -*-
++"""M31 후보: 임계 높이 전수 분류, 합성 극한, 최솟값·오답·빼 보기."""
++from pathlib import Path
++import runpy
++import sympy as s
++
++x, t, u, m, c = s.symbols('x t u m c', real=True)
++R = s.Rational
++it = runpy.run_path(str(Path(__file__).with_name('c17.py')))['ITEMS'][17]
++assert it['key'] == 'M31' and it['author'] == 'codex'
++
++
++def distinct_real(poly):
++    return set(s.Poly(poly, x).real_roots(radicals=False))
++
++
++def count_abs(poly, height):
++    if height < 0:
++        return 0
++    if height == 0:
++        return len(distinct_real(poly))
++    return len(distinct_real(poly-height)) + len(distinct_real(poly+height))
++
++
++# 원문: 도함수의 근으로 임계 높이를 완전히 구한다.
++original = x**3-3*x**2-9*x+10
++critical = s.solve(s.diff(original, x), x)
++assert critical == [-1, 3]
++assert [original.subs(x, v) for v in critical] == [15, -17]
++levels_original = [0, 15, 17]
++eps = R(1, 100)
++original_h = lambda z: count_abs(original, z)-count_abs(original, z-2)
++candidates = sorted(set(levels_original + [v+2 for v in levels_original]))
++discontinuous = []
++for z in candidates:
++    triple = [original_h(z-eps), original_h(z), original_h(z+eps)]
++    if len(set(triple)) > 1:
++        discontinuous.append(z)
++assert discontinuous == [0, 2, 15, 19]
++assert sum(discontinuous) == 36
++assert [original_h(17-eps), original_h(17), original_h(17+eps)] == [-2]*3
++print('원문 M31: 불연속점 [0, 2, 15, 19], 합 36 OK')
++
++# 후보: 각 단조 구간의 끝점 높이가 유일한 임계 높이이다.
++f = x**3-3*x+7
++assert s.factor(s.diff(f, x)) == 3*(x-1)*(x+1)
++assert [f.subs(x, z) for z in [-1, 1]] == [9, 5]
++levels = [0, 5, 9]
++heights = [-1, 0, 1, 5, 6, 9, 10]
++assert [count_abs(f, z) for z in heights] == [0, 1, 2, 3, 4, 3, 2]
++side_counts = {z: (count_abs(f, z-eps), count_abs(f, z+eps)) for z in levels}
++assert side_counts == {0: (0, 2), 5: (2, 4), 9: (4, 2)}
++
++
++def bad_points(q):
++    """각 점의 국소 전개: 홀수 차수로 높이를 통과할 때만 양쪽 극한이 다르다."""
++    result = set()
++    for height in levels:
++        for root, mult in s.roots(q-height, x).items():
++            if root.is_real and mult % 2 and side_counts[height][0] != side_counts[height][1]:
++                result.add(root)
++    return result
++
++
++# 전 실수 m의 분류를 결정하는 판별식: 양수면 두 단순근, 0이면 접촉점.
++q = (x-u)**2+m
++assert s.discriminant(q-c, x) == 4*(c-m)
++assert s.expand(q.subs(m, c)-c) == s.expand((x-u)**2)
++# 임계점 사이에서 개수는 불변. 0,5,9 각각의 경계도 별도 확인한다.
++cells = [(-1, 6), (0, 4), (1, 4), (5, 2), (7, 2), (9, 0), (10, 0)]
++for height, expected in cells:
++    assert len(bad_points(q.subs({u: 2, m: height}))) == expected
++assert s.reduce_inequalities([m >= 5, m < 9], m) == s.And(m >= 5, m < 9)
++# (가)에서 m in [5,9), 두 근은 q=9의 근. 근의 곱은 u²+m-9.
++assert s.Poly(q-9, x).TC() == u**2+m-9
++m_value = s.solve(u**2+m-9, m)[0]
++assert m_value == 9-u**2
++domain = s.reduce_inequalities([m_value >= 5, m_value < 9], u)
++expected_domain = s.Or(s.And(u >= -2, u < 0), s.And(u > 0, u <= 2))
++assert domain == expected_domain
++target = s.expand(q.subs({x: 1, m: m_value}))
++assert target == 10-2*u and s.diff(target, u) == -2
++answer = target.subs(u, 2)
++assert answer == 6
++attainer = s.expand(q.subs({u: 2, m: 5}))
++assert bad_points(attainer) == {s.Integer(0), s.Integer(4)}
++# 꼭짓점 x=2에서는 g의 함숫값은 3, 양쪽 극한은 4: 극한은 존재한다.
++assert count_abs(f, 5) == 3 and side_counts[5][1] == 4
++print('17: m 전체 분류 6/4/2/0, 허용 u=[-2,0)∪(0,2], 최솟값 6 OK')
++
++choices = list(map(s.sympify, it['choices']))
++assert len(choices) == len(set(choices)) == 5
++assert {choices[i+1]-choices[i] for i in range(4)} == {1}
++assert it['ans'] == 5 and choices[it['ans']-1] == answer
++wrong_drop_level = ((x-3)**2).subs(x, 1)
++wrong_drop_term = (attainer-x**2).subs(x, 1)
++assert [wrong_drop_level, wrong_drop_term] == [4, 5]
++assert it['wrongs'] == [str(wrong_drop_level), str(wrong_drop_term)]
++assert all(s.sympify(v) in choices and s.sympify(v) != answer for v in it['wrongs'])
++
++# 조건 삭제는 숫자 교체가 아니라 나머지 조건을 만족하는 반례로 확인한다.
++# (가)를 없애면 α,β는 (나)만 만족하면 되므로 임의 q가 가능하다.
++# 더 강한 증인: α=0,β=6 둘 다 실제 극한 부재점이지만 추가 부재점도 있다.
++without_count = (x-3)**2
++assert {s.Integer(0), s.Integer(6)} <= bad_points(without_count)
++assert len(bad_points(without_count)) == 4
++assert without_count.subs(x, 1) == 4 < answer
++print('ABLATION 17 (가) 두 점뿐: 필요(q=(x-3)^2, 부재점 네 개, q(1)=4)')
++without_product = (x-1)**2+5
++assert bad_points(without_product) == {-1, 3}
++assert without_product.subs(x, 1) == 5 < answer
++print('ABLATION 17 (나) 두 점의 곱 0: 필요(q=(x-1)^2+5, q(1)=5)')
++without_monic = 4*(x-1)**2+5
++assert bad_points(without_monic) == {0, 2}
++assert without_monic.subs(x, 1) == 5 < answer
++print('ABLATION 17 최고차항 계수 1: 필요(q=4(x-1)^2+5, q(1)=5)')
++print('선지·정답 위치 ⑤·오답 4,5 OK')
++print('ALL OK')
+diff --git a/output/build/기말/2회/후보/verify_c18.py b/output/build/기말/2회/후보/verify_c18.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..81e1cbdcf89a012cc277b94057a27cfee4e6846e
+--- /dev/null
++++ b/output/build/기말/2회/후보/verify_c18.py
+@@ -0,0 +1,100 @@
++# -*- coding: utf-8 -*-
++"""D45 후보: 사차의 근 지수 전수 분류·두 후보 배제·조건별 반례."""
++from pathlib import Path
++import runpy
++import sympy as s
++
++x, a, b, c, d, r = s.symbols('x a b c d r', real=True)
++R = s.Rational
++it = runpy.run_path(str(Path(__file__).with_name('c18.py')))['ITEMS'][18]
++assert it['key'] == 'D45' and it['author'] == 'codex'
++
++# 원문을 직접 푼다: 유한 극한의 두 소거 조건 + 내부 극소점.
++original = x**3+a*x**2+b*x+c
++osol = s.solve([original.subs(x, -2)-2, s.diff(original, x).subs(x, -2),
++               s.diff(original, x).subs(x, 4)], (a, b, c), dict=True)
++assert len(osol) == 1
++original = original.subs(osol[0])
++assert s.factor(s.diff(original, x)) == 3*(x-4)*(x+2)
++assert s.diff(original, x, 2).subs(x, 4) > 0
++assert s.limit((original-2)/(x+2)**2, x, -2) == -9
++assert original.subs(x, 8) == 102
++print('원문 D45: 유일한 삼차함수, f(8)=102 OK')
++
++general = x**4+a*x**3+b*x**2+c*x+d
++finite = s.solve([general.subs(x, 0)-1, s.diff(general, x).subs(x, 0)], (c, d))
++assert finite == {c: 0, d: 1}
++assert s.limit((general.subs(finite)-1)/x**2, x, 0) == b
++# 두 실근 모두 짝수 지수여야 전 구간에서 부호가 바뀌지 않는다.
++# 차수 4의 모든 양의 지수 분배를 전수 조사하면 (2,2)뿐이다.
++partitions = [(i, 4-i) for i in range(1, 4)]
++assert [(i, j) for i, j in partitions if i % 2 == j % 2 == 0] == [(2, 2)]
++family = x**2*(x-r)**2+1
++assert s.Poly(family, x).LC() == 1
++k = s.limit((family-1)/x**2, x, 0)
++assert k == r**2
++derivative = s.factor(s.diff(family, x))
++assert s.expand(derivative-2*x*(x-r)*(2*x-r)) == 0
++candidates = s.solve(derivative.subs(x, 1), r)
++assert candidates == [1, 2]
++survivors = [rr for rr in candidates if s.diff(family, x, 2).subs({x: 1, r: rr}) > 0]
++assert survivors == [1]
++solution = family.subs(r, survivors[0])
++assert s.factor(solution-1) == x**2*(x-1)**2
++assert s.solve(solution-1, x) == [0, 1]
++assert s.expand(solution-solution.subs(x, 1)) == s.expand(x**2*(x-1)**2)
++answer = k.subs(r, survivors[0])
++assert answer == 1
++print('18: 짝수 지수 배분 (2,2), r=1/2 후보 중 r=1만 극소, k=1 OK')
++
++choices = list(map(s.sympify, it['choices']))
++assert len(choices) == len(set(choices)) == 5
++assert {choices[i+1]-choices[i] for i in range(4)} == {1}
++assert it['ans'] == 2 and choices[it['ans']-1] == answer
++wrong_second_derivative = s.diff(solution, x, 2).subs(x, 0)
++wrong_maximum = k.subs(r, 2)
++assert [wrong_second_derivative, wrong_maximum] == [2, 4]
++assert it['wrongs'] == [str(wrong_second_derivative), str(wrong_maximum)]
++assert all(s.sympify(v) in choices and s.sympify(v) != answer for v in it['wrongs'])
++
++# 모든 명시 조건을 개별 삭제한다. (나)의 두 절도 따로 검사한다.
++without_limit = (x-1)**2*(x-2)**2+1
++assert s.solve(without_limit-1, x) == [1, 2]
++assert s.diff(without_limit, x).subs(x, 1) == 0
++assert without_limit.subs(x, 1) == 1
++assert s.limit((without_limit-1)/x**2, x, 0) == s.oo
++print('ABLATION 18 (가) 유한 극한: 필요(f=(x-1)^2(x-2)^2+1 허용, k 미정)')
++without_lower = x**4-R(4, 3)*x**3+1
++assert s.solve(without_lower-1, x) == [0, R(4, 3)]
++assert s.limit((without_lower-1)/x**2, x, 0) == 0
++assert s.factor(s.diff(without_lower, x)) == 4*x**2*(x-1)
++assert s.factor(without_lower-without_lower.subs(x, 1)) == (x-1)**2*(3*x**2+2*x+1)/3
++assert s.discriminant(3*x**2+2*x+1, x) < 0
++print('ABLATION 18 (나) 전 구간 하한: 필요(f=x^4-4x^3/3+1, k=0)')
++without_two = x**4-R(7, 3)*x**3+R(3, 2)*x**2+1
++assert s.solve(without_two-1, x) == [0]  # x is real
++assert s.discriminant(x**2-R(7, 3)*x+R(3, 2), x) < 0
++assert s.limit((without_two-1)/x**2, x, 0) == R(3, 2)
++# (다)는 작은 근방만 아니라 주어진 열린구간 전체에서 확인한다.
++local_difference = s.factor(without_two-without_two.subs(x, 1))
++assert local_difference == (x-1)**2*(6*x**2-2*x-1)/6
++assert (6*x**2-2*x-1).subs(x, R(1, 2)) == -R(1, 2)
++# 위 함수는 (1/2,3/2) 전체 하한을 만족하지 않는다. 유효 반례를 따로 택한다.
++without_two = x**4-R(11, 5)*x**3+R(13, 10)*x**2+1
++assert s.solve(without_two-1, x) == [0]
++assert s.discriminant(x**2-R(11, 5)*x+R(13, 10), x) < 0
++assert s.limit((without_two-1)/x**2, x, 0) == R(13, 10)
++assert s.factor(without_two-without_two.subs(x, 1)) == (x-1)**2*(10*x**2-2*x-1)/10
++assert (10*x**2-2*x-1).subs(x, R(1, 2)) == R(1, 2)
++assert s.diff(10*x**2-2*x-1, x).subs(x, R(1, 2)) > 0
++print('ABLATION 18 (나) 서로 다른 두 근: 필요(f=x^4-11x^3/5+13x^2/10+1, k=13/10)')
++without_local_min = family.subs(r, 2)
++assert s.solve(without_local_min-1, x) == [0, 2]
++assert s.limit((without_local_min-1)/x**2, x, 0) == 4
++assert s.diff(without_local_min, x, 2).subs(x, 1) < 0
++print('ABLATION 18 (다) 구간 하한: 필요(f=x^2(x-2)^2+1, k=4)')
++without_monic = 2*x**2*(x-1)**2+1
++assert s.limit((without_monic-1)/x**2, x, 0) == 2
++print('ABLATION 18 최고차항 계수 1: 필요(f=2x^2(x-1)^2+1, k=2)')
++print('선지·정답 위치 ②·오답 2,4 OK')
++print('ALL OK')
+
+codex
+세 문항 모두 중복·형식·흔한 패턴·학교 선례 검사를 통과했습니다. 조건 빼 보기 중 18번의 반례 하나가 주어진 열린구간 전체를 만족하지 않는 것을 확인해 수정했고, 원문 정답과 모든 경계값을 포함해 검증을 마무리하고 있습니다.
+
+exec
+/bin/bash -lc 'python3 output/build/기말/2회/parts/verify_c5.py' in /home/runner/work/Finale/Finale
+exec
+/bin/bash -lc 'python3 output/build/기말/2회/후보/verify_c17.py' in /home/runner/work/Finale/Finale
+exec
+/bin/bash -lc 'python3 output/build/기말/2회/후보/verify_c18.py' in /home/runner/work/Finale/Finale
+ exited 1 in 428ms:
+Traceback (most recent call last):
+  File "/home/runner/work/Finale/Finale/output/build/기말/2회/후보/verify_c17.py", line 46, in <module>
+원문 M31: 불연속점 [0, 2, 15, 19], 합 36 OK
+    assert s.factor(s.diff(f, x)) == 3*(x-1)*(x+1)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+ exited 1 in 485ms:
+Traceback (most recent call last):
+  File "/home/runner/work/Finale/Finale/output/build/기말/2회/후보/verify_c18.py", line 18, in <module>
+    assert s.factor(s.diff(original, x)) == 3*(x-4)*(x+2)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+ exited 1 in 582ms:
+원문 M56: 네 근 0<k<7, 정수 합 21 OK
+Traceback (most recent call last):
+  File "/home/runner/work/Finale/Finale/output/build/기말/2회/parts/verify_c5.py", line 56, in <module>
+    assert s.factor(s.diff(right, x)) == 3*(x-3)*(x-1)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+apply patch
+patch: completed
+/home/runner/work/Finale/Finale/output/build/기말/2회/parts/verify_c5.py
+/home/runner/work/Finale/Finale/output/build/기말/2회/후보/c18.py
+/home/runner/work/Finale/Finale/output/build/기말/2회/후보/verify_c17.py
+/home/runner/work/Finale/Finale/output/build/기말/2회/후보/verify_c18.py
+diff --git a/output/build/기말/2회/parts/c5.py b/output/build/기말/2회/parts/c5.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..07888c4cda0576f8ae56b314b6ea4c21830c204d
+--- /dev/null
++++ b/output/build/기말/2회/parts/c5.py
+@@ -0,0 +1,33 @@
++# -*- coding: utf-8 -*-
++SITEMS = {
++    'S2': dict(
++        body=r"""두 상수 \(a\), \(b\)에 대하여 함수 \(f(x)=\frac12x^3+ax^2+bx\), \(h(x)=f(x)+|f(x)+x|-2x^2\)가 있다. \(h(1)=4\)이고 \(h'(1)=0\)일 때, 다음 물음에 답하시오.""",
++        subs=[
++            (r"상수 \(b\)의 값을 구하시오.", '4점, 답만 적으시오.'),
++            (r"방정식 \(h(x)=k\)의 서로 다른 실근의 개수가 \(4\)가 되도록 하는 실수 \(k\)의 값을 구하시오.", '4점, 답만 적으시오.'),
++            (r"방정식 \(h(x)=k\)의 서로 다른 실근의 개수가 \(4\)일 때, 모든 실근의 합을 구하시오.", '2점, 답만 적으시오.'),
++        ],
++        ans=['(1) 4', r'(2) \frac18', r'(3) \frac{23}{4}'],
++        rubric=[r'(1) \(4\) [4점, 답만]', r'(2) \(\frac18\) [4점, 답만]', r'(3) \(\frac{23}{4}\) [2점, 답만]'],
++        key='M56', src='2022학년도 수능 9월 모의평가 20번',
++        author='codex', cand='codexS2', level='중상',
++        vtype=['구조 변경', '조건 변경', '형식 변경'],
++        effect='같음', bunseok=False, precedent='2학기 중간 18번·서답형2',
++        core=dict(
++            axis='②',
++            setting='원문의 절댓값 방정식은 한쪽 구간에서 일차함수, 다른 쪽에서 삼차함수와 수평선의 교점 문제이다.',
++            principle='절댓값 안의 부호를 먼저 판정하고, 각 구간의 도함수와 극값을 이용해 유효한 실근 수를 합한다.',
++            new='비교 대상을 직선에서 이차함수로 한 겹 교체한다. 음의 구간도 이차함수가 되어 그 꼭짓점에서만 양의 구간의 세 근과 합쳐 정확히 네 근이 된다.',
++        ),
++        var='[설정 교체] f+|f+x|와 직선의 교점 → 이차함수와의 교점. [조건 변경] 함숫값과 미분계수로 계수 결정. [형식 변경] 계수 → 네 근을 주는 값 → 서로 다른 근의 합의 3단계.',
++        sol=[
++            r"\(h(1)=4\)에서 \(f(1)+|f(1)+1|=6\)이다. \(f(1)+1\le0\)이면 좌변이 \(-1\)이므로 불가능하다. 따라서 \(f(1)=\frac52\)이고 \(a+b=2\)이다. \(x=1\) 근처에서는 \(h(x)=2f(x)+x-2x^2\)이므로 \(h'(1)=2f'(1)-3=0\)에서 \(2a+b=0\)이다. 두 식을 풀면 \(a=-2,b=4\)이다.",
++            r"\(f(x)+x=\frac12x(x^2-4x+10)=\frac12x\{(x-2)^2+6\}\)이므로 절댓값 안의 부호는 \(x\)의 부호와 같다. 따라서 \(x&lt;0\)이면 \(h(x)=-2x^2-x=-2(x+\frac14)^2+\frac18\), \(x\ge0\)이면 \(h(x)=x^3-6x^2+9x=x(x-3)^2\)이다. 음의 구간에서는 \(k\le0\)일 때 한 근, \(0&lt;k&lt;\frac18\)일 때 두 근, \(k=\frac18\)일 때 한 근, \(k>\frac18\)일 때 근이 없다. 양의 구간과 \(0\)에서는 도함수 \(3(x-1)(x-3)\)에 의해 \(k&lt;0\)일 때 근이 없고, \(k=0\)일 때 두 근, \(0&lt;k&lt;4\)일 때 세 근, \(k=4\)일 때 두 근, \(k>4\)일 때 한 근이다. 두 구간을 합하면 네 근인 경우는 \(k=\frac18\)뿐이다.",
++            r"\(k=\frac18\)일 때 음의 근은 꼭짓점의 \(x\)좌표인 \(-\frac14\) 하나이다. 양의 세 근은 방정식 \(x^3-6x^2+9x-\frac18=0\)의 세 근이므로 그 합은 \(6\)이다. 서로 다른 모든 실근의 합은 \(6-\frac14=\frac{23}{4}\)이다.",
++        ],
++        fast=r"\(h(1)=4,h'(1)=0\)에서 \(a+b=2,2a+b=0\). 부호 분리 후 음의 구간의 꼭짓점 높이는 \(1/8\), 양의 구간의 두 극값은 \(4,0\)이다. 네 근은 음의 구간의 접점 한 개와 양의 세 근일 때뿐이다. 접점은 한 번만 세어 근의 합은 \(6-1/4\).",
++        wrongs=[],
++        wrong=r"(1) \(6\): \(h'(1)\)을 계산할 때 \(-2x^2\)의 미분을 빠뜨리면 \(2a+b=-2\), \(a+b=2\)에서 \(b=6\)이 나온다. (2) \(4\): 양의 구간의 극댓값만 보면 이 값을 택하지만 전체 근은 두 개이다. \(0\): 원점과 접점을 중복 계산하면 네 개로 잘못 세지만 서로 다른 근은 세 개이다. (3) \(11/2\): 음의 구간에서 접하는 근 \(-1/4\)을 두 번 세어 \(6-1/2\)로 계산한 값이다.",
++        note=r"원본은 음의 구간의 직선이 \(k>0\)에서 한 근을 보태어 네 근인 열린구간을 만든다. 변형은 음의 구간의 이차함수가 두 근·접점 한 근·근 없음으로 바뀌므로 원본의 일차함수 설정으로는 네 근을 판정할 수 없다. 실근 개수라는 단원 개념과 부호 분리·도함수 판정 원리는 유지한다. (1)은 계수를, (2)는 경우 분기를, (3)은 접점의 중복 제외를 평가한다. 독립 검토·블라인드 측정 전 문항이다.",
++    ),
++}
+diff --git a/output/build/기말/2회/parts/verify_c5.py b/output/build/기말/2회/parts/verify_c5.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..44455fb277a6ec53a41a424e37c5ea7dc4b025ac
+--- /dev/null
++++ b/output/build/기말/2회/parts/verify_c5.py
+@@ -0,0 +1,108 @@
++# -*- coding: utf-8 -*-
++"""M56 서답형2: 모든 k 구간·경계의 정확한 근 수와 조건 빼 보기."""
++from pathlib import Path
++import runpy
++import sympy as s
++
++x, a, b, z = s.symbols('x a b z', real=True)
++R = s.Rational
++it = runpy.run_path(str(Path(__file__).with_name('c5.py')))['SITEMS']['S2']
++assert it['key'] == 'M56' and it['author'] == 'codex'
++
++
++def roots_on(poly, negative):
++    roots = set(s.Poly(poly, x).real_roots(radicals=False))
++    return [r for r in roots if bool(r < 0) == negative]
++
++
++def count(left, right, height):
++    return len(roots_on(left-height, True)) + len(roots_on(right-height, False))
++
++
++# 원문: 직선 조각과 삼차 조각의 임계값만이 근 수를 바꾼다.
++original_f = x**3/2-R(9, 2)*x**2+10*x
++assert s.factor(original_f+x) == x*(x**2-9*x+22)/2
++assert s.discriminant(x**2-9*x+22, x) == -7
++old_left, old_right = -7*x, s.expand(2*original_f-5*x)
++assert old_right == x**3-9*x**2+15*x
++assert s.solve(s.diff(old_right, x), x) == [1, 5]
++assert [old_right.subs(x, v) for v in [1, 5]] == [7, -25]
++old_cells = [(-26, 0), (-25, 1), (-1, 2), (0, 3), (1, 4), (7, 3), (8, 2)]
++for height, expected in old_cells:
++    assert count(old_left, old_right, height) == expected
++# 단조성과 경계값에서 네 근 ⇔ 0<k<7. 가능한 정수 전수 조사.
++old_integers = [v for v in range(1, 7) if count(old_left, old_right, v) == 4]
++assert old_integers == [1, 2, 3, 4, 5, 6] and sum(old_integers) == 21
++print('원문 M56: 네 근 0<k<7, 정수 합 21 OK')
++
++# (1) 절댓값의 두 부호를 모두 조사한다.
++assert s.expand(z-(z+1)) == -1  # 이 가지로는 좌변 6 불가능
++f1 = s.solve(z+(z+1)-6, z)[0]
++assert f1 == R(5, 2) and f1+1 > 0
++f = x**3/2+a*x**2+b*x
++positive_h = 2*f+x-2*x**2
++coefficients = s.solve([f.subs(x, 1)-f1, s.diff(positive_h, x).subs(x, 1)], (a, b), dict=True)
++assert coefficients == [{a: -2, b: 4}]
++f = f.subs(coefficients[0])
++assert s.factor(f+x) == x*(x**2-4*x+10)/2
++assert s.expand((x-2)**2+6) == x**2-4*x+10
++left, right = -2*x**2-x, s.expand(2*f+x-2*x**2)
++assert right == x*(x-3)**2 or s.expand(right-x*(x-3)**2) == 0
++assert s.solve(s.diff(left, x), x) == [-R(1, 4)]
++assert s.solve(s.diff(right, x), x) == [1, 3]
++assert left.subs(x, -R(1, 4)) == R(1, 8)
++assert [right.subs(x, v) for v in [0, 1, 3]] == [0, 4, 0]
++assert s.expand(left+2*(x+R(1, 4))**2-R(1, 8)) == 0
++assert s.expand(s.diff(right, x)-3*(x-3)*(x-1)) == 0
++
++# 모든 실수 k를 덮는 구간과 경계. 끝점 높이·극값 이외에서는 근 수가 일정하다.
++cells = [(-1, (1, 0)), (0, (1, 2)), (R(1, 16), (2, 3)),
++         (R(1, 8), (1, 3)), (1, (0, 3)), (4, (0, 2)), (5, (0, 1))]
++four_root_cells = []
++for height, expected in cells:
++    actual = (len(roots_on(left-height, True)), len(roots_on(right-height, False)))
++    assert actual == expected
++    if sum(actual) == 4:
++        four_root_cells.append(height)
++assert four_root_cells == [R(1, 8)]
++k = four_root_cells[0]
++negative = roots_on(left-k, True)
++positive = roots_on(right-k, False)
++assert negative == [-R(1, 4)] and len(positive) == 3
++poly = s.Poly(right-k, x)
++assert len(set(poly.real_roots(radicals=False))) == 3
++positive_sum = -poly.all_coeffs()[1]/poly.LC()
++answer3 = positive_sum + negative[0]
++assert positive_sum == 6 and answer3 == R(23, 4)
++assert it['ans'] == ['(1) 4', r'(2) \frac18', r'(3) \frac{23}{4}']
++assert [pts for _, pts in it['subs']] == ['4점, 답만 적으시오.', '4점, 답만 적으시오.', '2점, 답만 적으시오.']
++print('S2: 모든 k 구간 근 수 1/3/5/4/3/2/1, 유일한 k=1/8 OK')
++print('S2 정답: (1) 4, (2) 1/8, (3) 23/4 OK')
++
++# 오답 근거를 실제 식으로 재현한다.
++bad_coefficients = s.solve([a+b-2, 2*a+b+2], (a, b))
++assert bad_coefficients[b] == 6
++assert count(left, right, 0) == 3 and count(left, right, 4) == 2
++assert positive_sum+2*negative[0] == R(11, 2)
++assert not it['wrongs'] and not it.get('choices')
++print('오답 b=6, k=0/4, 근의 합 11/2 근거 OK (서답형: 선지 검사 해당 없음)')
++
++
++def local_values(av, bv, leading=R(1, 2), constant=0):
++    ff = leading*x**3+av*x**2+bv*x+constant
++    assert ff.subs(x, 1)+1 > 0
++    hh = 2*ff+x-2*x**2
++    return hh.subs(x, 1), s.diff(hh, x).subs(x, 1)
++
++
++assert local_values(-3, 6) == (6, 0)
++print('ABLATION S2 h(1)=4: 필요(a=-3,b=6이면 h\'(1)=0 유지, b=6)')
++assert local_values(-1, 3) == (4, 2)
++print('ABLATION S2 h\'(1)=0: 필요(a=-1,b=3이면 h(1)=4 유지, b=3)')
++assert local_values(-3, R(9, 2), leading=1) == (4, 0)
++print('ABLATION S2 삼차항 계수 1/2: 필요(계수 1이면 a=-3,b=9/2 가능)')
++assert local_values(-1, 2, constant=1) == (4, 0)
++print('ABLATION S2 상수항 0: 필요(상수항 1이면 a=-1,b=2 가능)')
++assert count(left, right, 1) == 3 and 1 != k
++print('ABLATION S2 (2) 실근 네 개: 필요(k=1 등 여러 값 가능)')
++print('ALL OK')
+diff --git a/output/build/기말/2회/후보/c17.py b/output/build/기말/2회/후보/c17.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..87c87aa36c4d697a59d1248edabe1c1ed353fcaf
+--- /dev/null
++++ b/output/build/기말/2회/후보/c17.py
+@@ -0,0 +1,42 @@
++# -*- coding: utf-8 -*-
++ITEMS = {
++    17: dict(
++        body=r"""함수 \(f(x)=x^3-3x+7\)과 최고차항의 계수가 \(1\)인 이차함수 \(q(x)\)가 있다. 방정식 \(|f(x)|=t\)의 서로 다른 실근의 개수를 \(g(t)\)라 하자. 함수 \(q(x)\)가 다음 조건을 만족시킬 때, \(q(1)\)의 최솟값은?""",
++        cond=[
++            ('가', r"서로 다른 두 실수 \(\alpha\), \(\beta\)에 대하여 \(\displaystyle\lim_{x\to a}g(q(x))\)는 \(a=\alpha\) 또는 \(a=\beta\)일 때만 <u>존재하지 않는다</u>."),
++            ('나', r"\(\alpha\beta=0\)이다."),
++        ],
++        choices=['2', '3', '4', '5', '6'], ans=5,
++        key='M31', src='2022년 수능특강 [22009-0122]',
++        author='codex', cand='codex17', level='상',
++        vtype=['숫자 변경', '구조 변경', '구하는 대상 변경'],
++        effect='어려워짐', bunseok=False, precedent='2학기 중간 17번',
++        core=dict(
++            axis='①',
++            setting='삼차함수 f와 방정식 |f(x)|=t의 서로 다른 실근 개수 g(t)를 유지한다.',
++            principle='원문은 g의 불연속점과 평행이동한 불연속점에서 점프의 방향과 크기가 같은지를 비교하여 차의 상쇄점을 제외한다.',
++            new='g의 점프 높이를 이차함수 q가 가로지르는 점에서만 합성함수의 양쪽 극한이 없다. 꼭짓점에서 닿는 점은 극한이 존재하므로 꼭짓점 높이 5를 포함한다.',
++        ),
++        var='[구조 변경] 이동한 개수 함수의 차에서 점프 상쇄 → 이차함수와 합성한 개수 함수에서 경계 높이 통과 여부. [숫자 변경] 극값 높이 변경. [구하는 대상 변경] 불연속점의 합 → q(1)의 최솟값.',
++        sol=(
++            r"\(f'(x)=3(x+1)(x-1)\)이므로 \(f\)는 \(x=-1\)에서 극댓값 \(9\), \(x=1\)에서 극솟값 \(5\)를 갖는다. "
++            r"따라서 \(t&lt;0\), \(t=0\), \(0&lt;t&lt;5\), \(t=5\), \(5&lt;t&lt;9\), \(t=9\), \(t>9\)에서 "
++            r"\(g(t)\)는 각각 \(0,1,2,3,4,3,2\)이다. \(g\)의 좌우극한이 다른 곳은 \(0,5,9\)뿐이다.<br>"
++            r"\(q(x)=(x-u)^2+m\)으로 놓자. \(c\in\{0,5,9\}\)에 대하여 \(m&lt;c\)이면 \(q(x)=c\)인 두 점에서 "
++            r"\(q(x)\)가 \(c\)의 양쪽 값을 가지므로 합성함수의 양쪽 극한은 존재하지 않는다. "
++            r"\(m=c\)이면 \(x\to u\)일 때 \(q(x)\)는 양쪽 모두 \(c\)보다 큰 값으로 다가가므로 극한은 존재한다. "
++            r"\(m>c\)이면 \(q(x)=c\)인 점이 없다.<br>"
++            r"따라서 극한이 존재하지 않는 점의 개수는 \(m&lt;0\)에서 \(6\), \(0\le m&lt;5\)에서 \(4\), "
++            r"\(5\le m&lt;9\)에서 \(2\), \(m\ge9\)에서 \(0\)이다. (가)에서 \(5\le m&lt;9\)이고 "
++            r"\(\alpha,\beta\)는 \(q(x)=9\)의 두 근이다.<br>"
++            r"(나)에 의해 두 근 중 하나가 \(0\)이므로 \(q(0)=9\), 즉 \(u^2+m=9\)이다. "
++            r"따라서 \(0&lt;u^2\le4\)이고 \(q(1)=1-2u+u^2+m=10-2u\)이다. "
++            r"\(u\le2\)이므로 최솟값은 \(6\)이다. \(u=2,m=5\)일 때 "
++            r"\(q(x)=(x-2)^2+5\)이고 극한이 존재하지 않는 점은 \(0,4\)뿐이므로 실제로 이 값을 갖는다."
++        ),
++        fast=r"개수 함수의 점프 높이는 \(0,5,9\)이다. 합성 극한이 두 점에서만 없으려면 이차함수의 최솟값 \(m\)은 \(5\le m&lt;9\)이다. \(q(0)=9\)에서 \(q=(x-u)^2+9-u^2\), \(0&lt;u^2\le4\). 따라서 \(q(1)=10-2u\ge6\).",
++        wrongs=['4', '5'],
++        wrong=r"③ \(4\): 높이 \(5\)에서의 점프를 빠뜨려 \(0\le m&lt;9\)로 판단하면 \(u=3,m=0\)을 허용하여 \(q(1)=4\)를 얻는다. ④ \(5\): 올바른 경계 함수 \(q(x)=x^2-4x+9\)를 구한 뒤 \(q(1)\)을 계산할 때 이차항 \(1\)을 빠뜨리면 \(5\)가 된다.",
++        note=r"원본의 점프 상쇄는 사용되지 않는다. 도함수로 두 극값 높이를 정하고, 세 높이를 꼭짓점이 통과하는 경우를 나누어 합성 극한을 판정한다. 꼭짓점에서의 함숫값과 극한값이 달라도 극한은 존재한다. 최솟값은 연속으로 움직이는 \(u\)의 경계 \(u=2\)에서 달성된다. 독립 검토·블라인드 측정 전 후보이다.",
++    ),
++}
+diff --git a/output/build/기말/2회/후보/c18.py b/output/build/기말/2회/후보/c18.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..cf3c2a371ecdc774f3e140ec1591eaf7f8bfd623
+--- /dev/null
++++ b/output/build/기말/2회/후보/c18.py
+@@ -0,0 +1,37 @@
++# -*- coding: utf-8 -*-
++ITEMS = {
++    18: dict(
++        body=r"""최고차항의 계수가 \(1\)인 사차함수 \(f(x)\)와 실수 \(k\)가 다음 조건을 만족시킬 때, \(k\)의 값은?""",
++        cond=[
++            ('가', r"\(\displaystyle\lim_{x\to0}\frac{f(x)-1}{x^2}=k\)이다."),
++            ('나', r"모든 실수 \(x\)에 대하여 \(f(x)\ge1\)이고, 방정식 \(f(x)=1\)의 서로 다른 실근의 개수는 \(2\)이다."),
++            ('다', r"열린구간 \(\left(\frac12,\frac32\right)\)의 모든 \(x\)에 대하여 \(f(x)\ge f(1)\)이다."),
++        ],
++        choices=['0', '1', '2', '3', '4'], ans=2,
++        key='D45', src='2025년 수능특강 [25009-0097]',
++        author='codex', cand='codex18', level='상',
++        vtype=['함수 교체', '구조 변경', '조건 변경'],
++        effect='어려워짐', bunseok=False, precedent='2학기 중간 18번',
++        core=dict(
++            axis='②',
++            setting='원문은 최고차항 계수 1인 삼차함수에서 f-2가 (x+2)의 제곱과 일차식의 곱이다.',
++            principle='유한한 이차 분모의 극한은 해당 점의 함숫값과 도함숫값을 정하고, 열린구간에서의 하한 조건은 그 점이 극소점임을 뜻한다.',
++            new='사차함수로 한 차수 올려 남은 이차인수의 실근 배치를 판정한다. 전 구간 하한과 서로 다른 두 근으로 두 제곱인수를 얻고, 고정점이 그 두 근 사이의 극대점인지 다른 극소점인지 구별한다.',
++        ),
++        var='[설정 교체] 삼차함수의 접촉점 하나와 나머지 일차인수 → 사차함수의 두 접촉점과 그 사이의 극대점. 극한·국소 최솟값 판정은 유지한다.',
++        sol=(
++            r"(가)에서 \(f(0)=1\), \(f'(0)=0\)이다. (나)에 의해 \(f(x)-1\)은 모든 실수에서 음이 아니고 서로 다른 두 실근을 갖는다. "
++            r"실근에서 부호가 바뀌지 않아야 하므로 각 인수의 지수는 짝수이다. 따라서 \(0\)이 아닌 실수 \(r\)에 대하여 "
++            r"\(f(x)-1=x^2(x-r)^2\)이고, \(k=r^2\)이다.<br>"
++            r"\(f'(x)=2x(x-r)(2x-r)\)이다. (다)에서 \(x=1\)은 극소점이므로 \(f'(1)=0\), "
++            r"즉 \(2(1-r)(2-r)=0\)이다. 따라서 \(r=1\) 또는 \(r=2\)이다.<br>"
++            r"\(r=2\)이면 \(f'(x)=4x(x-1)(x-2)\)는 \(x=1\)의 왼쪽에서 양수, 오른쪽에서 음수이므로 "
++            r"\(x=1\)이 극대점이다. 이는 (다)에 어긋난다. \(r=1\)이면 \(f(x)=x^2(x-1)^2+1\)이고 "
++            r"\(f(1)=1\)이므로 세 조건을 모두 만족시킨다. 따라서 \(k=1\)이다."
++        ),
++        fast=r"전 구간 하한과 두 실근에서 \(f-1=x^2(x-r)^2\). 극소점은 \(0,r\), 그 사이의 극대점은 \(r/2\)이다. \(1\)은 \(0\)이 아닌 극소점이므로 \(r=1\), \(k=r^2=1\).",
++        wrongs=['2', '4'],
++        wrong=r"③ \(2\): \(f(x)=x^2(x-1)^2+1\)을 구한 뒤 극한값을 \(f''(0)=2\)로 계산한다. 실제 극한값은 \(f''(0)/2\)이다. ⑤ \(4\): (다)를 \(f'(1)=0\)으로만 해석하여 \(r=2\)인 극대점 후보를 택하면 \(k=4\)이다.",
++        note=r"원문의 유한 극한·국소 최소 판정 원리는 유지한다. 삼차의 나머지 일차인수 설정은 통하지 않고, 사차에서 두 근의 지수와 극대·극소 위치를 함께 정해야 한다. (나)의 전 구간 하한을 빼면 \(f(x)=x^4-\frac43x^3+1\), 두 실근 조건을 빼면 \(f(x)=x^4-\frac{11}{5}x^3+\frac{13}{10}x^2+1\)이 각각 남아 답이 달라진다. 독립 검토·블라인드 측정 전 후보이다.",
++    ),
++}
+diff --git a/output/build/기말/2회/후보/verify_c17.py b/output/build/기말/2회/후보/verify_c17.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..a0f02dc09a85db2c8261786f5187a22897f6ac24
+--- /dev/null
++++ b/output/build/기말/2회/후보/verify_c17.py
+@@ -0,0 +1,118 @@
++# -*- coding: utf-8 -*-
++"""M31 후보: 임계 높이 전수 분류, 합성 극한, 최솟값·오답·빼 보기."""
++from pathlib import Path
++import runpy
++import sympy as s
++
++x, t, u, m, c = s.symbols('x t u m c', real=True)
++R = s.Rational
++it = runpy.run_path(str(Path(__file__).with_name('c17.py')))['ITEMS'][17]
++assert it['key'] == 'M31' and it['author'] == 'codex'
++
++
++def distinct_real(poly):
++    return set(s.Poly(poly, x).real_roots(radicals=False))
++
++
++def count_abs(poly, height):
++    if height < 0:
++        return 0
++    if height == 0:
++        return len(distinct_real(poly))
++    return len(distinct_real(poly-height)) + len(distinct_real(poly+height))
++
++
++# 원문: 도함수의 근으로 임계 높이를 완전히 구한다.
++original = x**3-3*x**2-9*x+10
++critical = s.solve(s.diff(original, x), x)
++assert critical == [-1, 3]
++assert [original.subs(x, v) for v in critical] == [15, -17]
++levels_original = [0, 15, 17]
++eps = R(1, 100)
++original_h = lambda z: count_abs(original, z)-count_abs(original, z-2)
++candidates = sorted(set(levels_original + [v+2 for v in levels_original]))
++discontinuous = []
++for z in candidates:
++    triple = [original_h(z-eps), original_h(z), original_h(z+eps)]
++    if len(set(triple)) > 1:
++        discontinuous.append(z)
++assert discontinuous == [0, 2, 15, 19]
++assert sum(discontinuous) == 36
++assert [original_h(17-eps), original_h(17), original_h(17+eps)] == [-2]*3
++print('원문 M31: 불연속점 [0, 2, 15, 19], 합 36 OK')
++
++# 후보: 각 단조 구간의 끝점 높이가 유일한 임계 높이이다.
++f = x**3-3*x+7
++assert s.expand(s.diff(f, x)-3*(x-1)*(x+1)) == 0
++assert [f.subs(x, z) for z in [-1, 1]] == [9, 5]
++levels = [0, 5, 9]
++heights = [-1, 0, 1, 5, 6, 9, 10]
++assert [count_abs(f, z) for z in heights] == [0, 1, 2, 3, 4, 3, 2]
++side_counts = {z: (count_abs(f, z-eps), count_abs(f, z+eps)) for z in levels}
++assert side_counts == {0: (0, 2), 5: (2, 4), 9: (4, 2)}
++
++
++def bad_points(q):
++    """각 점의 국소 전개: 홀수 차수로 높이를 통과할 때만 양쪽 극한이 다르다."""
++    result = set()
++    for height in levels:
++        for root, mult in s.roots(q-height, x).items():
++            if root.is_real and mult % 2 and side_counts[height][0] != side_counts[height][1]:
++                result.add(root)
++    return result
++
++
++# 전 실수 m의 분류를 결정하는 판별식: 양수면 두 단순근, 0이면 접촉점.
++q = (x-u)**2+m
++assert s.discriminant(q-c, x) == 4*(c-m)
++assert s.expand(q.subs(m, c)-c) == s.expand((x-u)**2)
++# 임계점 사이에서 개수는 불변. 0,5,9 각각의 경계도 별도 확인한다.
++cells = [(-1, 6), (0, 4), (1, 4), (5, 2), (7, 2), (9, 0), (10, 0)]
++for height, expected in cells:
++    assert len(bad_points(q.subs({u: 2, m: height}))) == expected
++assert s.reduce_inequalities([m >= 5, m < 9], m) == s.And(m >= 5, m < 9)
++# (가)에서 m in [5,9), 두 근은 q=9의 근. 근의 곱은 u²+m-9.
++assert s.Poly(q-9, x).TC() == u**2+m-9
++m_value = s.solve(u**2+m-9, m)[0]
++assert m_value == 9-u**2
++domain = s.reduce_inequalities([m_value >= 5, m_value < 9], u)
++expected_domain = s.Or(s.And(u >= -2, u < 0), s.And(u > 0, u <= 2))
++assert domain == expected_domain
++target = s.expand(q.subs({x: 1, m: m_value}))
++assert target == 10-2*u and s.diff(target, u) == -2
++answer = target.subs(u, 2)
++assert answer == 6
++attainer = s.expand(q.subs({u: 2, m: 5}))
++assert bad_points(attainer) == {s.Integer(0), s.Integer(4)}
++# 꼭짓점 x=2에서는 g의 함숫값은 3, 양쪽 극한은 4: 극한은 존재한다.
++assert count_abs(f, 5) == 3 and side_counts[5][1] == 4
++print('17: m 전체 분류 6/4/2/0, 허용 u=[-2,0)∪(0,2], 최솟값 6 OK')
++
++choices = list(map(s.sympify, it['choices']))
++assert len(choices) == len(set(choices)) == 5
++assert {choices[i+1]-choices[i] for i in range(4)} == {1}
++assert it['ans'] == 5 and choices[it['ans']-1] == answer
++wrong_drop_level = ((x-3)**2).subs(x, 1)
++wrong_drop_term = (attainer-x**2).subs(x, 1)
++assert [wrong_drop_level, wrong_drop_term] == [4, 5]
++assert it['wrongs'] == [str(wrong_drop_level), str(wrong_drop_term)]
++assert all(s.sympify(v) in choices and s.sympify(v) != answer for v in it['wrongs'])
++
++# 조건 삭제는 숫자 교체가 아니라 나머지 조건을 만족하는 반례로 확인한다.
++# (가)를 없애면 α,β는 (나)만 만족하면 되므로 임의 q가 가능하다.
++# 더 강한 증인: α=0,β=6 둘 다 실제 극한 부재점이지만 추가 부재점도 있다.
++without_count = (x-3)**2
++assert {s.Integer(0), s.Integer(6)} <= bad_points(without_count)
++assert len(bad_points(without_count)) == 4
++assert without_count.subs(x, 1) == 4 < answer
++print('ABLATION 17 (가) 두 점뿐: 필요(q=(x-3)^2, 부재점 네 개, q(1)=4)')
++without_product = (x-1)**2+5
++assert bad_points(without_product) == {-1, 3}
++assert without_product.subs(x, 1) == 5 < answer
++print('ABLATION 17 (나) 두 점의 곱 0: 필요(q=(x-1)^2+5, q(1)=5)')
++without_monic = 4*(x-1)**2+5
++assert bad_points(without_monic) == {0, 2}
++assert without_monic.subs(x, 1) == 5 < answer
++print('ABLATION 17 최고차항 계수 1: 필요(q=4(x-1)^2+5, q(1)=5)')
++print('선지·정답 위치 ⑤·오답 4,5 OK')
++print('ALL OK')
+diff --git a/output/build/기말/2회/후보/verify_c18.py b/output/build/기말/2회/후보/verify_c18.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..db6ee8d6cfd584099f2f238abd5c1a4ecf2b8fd8
+--- /dev/null
++++ b/output/build/기말/2회/후보/verify_c18.py
+@@ -0,0 +1,92 @@
++# -*- coding: utf-8 -*-
++"""D45 후보: 사차의 근 지수 전수 분류·두 후보 배제·조건별 반례."""
++from pathlib import Path
++import runpy
++import sympy as s
++
++x, a, b, c, d, r = s.symbols('x a b c d r', real=True)
++R = s.Rational
++it = runpy.run_path(str(Path(__file__).with_name('c18.py')))['ITEMS'][18]
++assert it['key'] == 'D45' and it['author'] == 'codex'
++
++# 원문을 직접 푼다: 유한 극한의 두 소거 조건 + 내부 극소점.
++original = x**3+a*x**2+b*x+c
++osol = s.solve([original.subs(x, -2)-2, s.diff(original, x).subs(x, -2),
++               s.diff(original, x).subs(x, 4)], (a, b, c), dict=True)
++assert len(osol) == 1
++original = original.subs(osol[0])
++assert s.expand(s.diff(original, x)-3*(x-4)*(x+2)) == 0
++assert s.diff(original, x, 2).subs(x, 4) > 0
++assert s.limit((original-2)/(x+2)**2, x, -2) == -9
++assert original.subs(x, 8) == 102
++print('원문 D45: 유일한 삼차함수, f(8)=102 OK')
++
++general = x**4+a*x**3+b*x**2+c*x+d
++finite = s.solve([general.subs(x, 0)-1, s.diff(general, x).subs(x, 0)], (c, d))
++assert finite == {c: 0, d: 1}
++assert s.limit((general.subs(finite)-1)/x**2, x, 0) == b
++# 두 실근 모두 짝수 지수여야 전 구간에서 부호가 바뀌지 않는다.
++# 차수 4의 모든 양의 지수 분배를 전수 조사하면 (2,2)뿐이다.
++partitions = [(i, 4-i) for i in range(1, 4)]
++assert [(i, j) for i, j in partitions if i % 2 == j % 2 == 0] == [(2, 2)]
++family = x**2*(x-r)**2+1
++assert s.Poly(family, x).LC() == 1
++k = s.limit((family-1)/x**2, x, 0)
++assert k == r**2
++derivative = s.factor(s.diff(family, x))
++assert s.expand(derivative-2*x*(x-r)*(2*x-r)) == 0
++candidates = s.solve(derivative.subs(x, 1), r)
++assert candidates == [1, 2]
++survivors = [rr for rr in candidates if s.diff(family, x, 2).subs({x: 1, r: rr}) > 0]
++assert survivors == [1]
++solution = family.subs(r, survivors[0])
++assert s.factor(solution-1) == x**2*(x-1)**2
++assert s.solve(solution-1, x) == [0, 1]
++assert s.expand(solution-solution.subs(x, 1)) == s.expand(x**2*(x-1)**2)
++answer = k.subs(r, survivors[0])
++assert answer == 1
++print('18: 짝수 지수 배분 (2,2), r=1 또는 2 중 r=1만 극소, k=1 OK')
++
++choices = list(map(s.sympify, it['choices']))
++assert len(choices) == len(set(choices)) == 5
++assert {choices[i+1]-choices[i] for i in range(4)} == {1}
++assert it['ans'] == 2 and choices[it['ans']-1] == answer
++wrong_second_derivative = s.diff(solution, x, 2).subs(x, 0)
++wrong_maximum = k.subs(r, 2)
++assert [wrong_second_derivative, wrong_maximum] == [2, 4]
++assert it['wrongs'] == [str(wrong_second_derivative), str(wrong_maximum)]
++assert all(s.sympify(v) in choices and s.sympify(v) != answer for v in it['wrongs'])
++
++# 모든 명시 조건을 개별 삭제한다. (나)의 두 절도 따로 검사한다.
++without_limit = (x-1)**2*(x-2)**2+1
++assert s.solve(without_limit-1, x) == [1, 2]
++assert s.diff(without_limit, x).subs(x, 1) == 0
++assert without_limit.subs(x, 1) == 1
++assert s.limit((without_limit-1)/x**2, x, 0) == s.oo
++print('ABLATION 18 (가) 유한 극한: 필요(f=(x-1)^2(x-2)^2+1 허용, k 미정)')
++without_lower = x**4-R(4, 3)*x**3+1
++assert s.solve(without_lower-1, x) == [0, R(4, 3)]
++assert s.limit((without_lower-1)/x**2, x, 0) == 0
++assert s.expand(s.diff(without_lower, x)-4*x**2*(x-1)) == 0
++assert s.expand(without_lower-without_lower.subs(x, 1)-(x-1)**2*(3*x**2+2*x+1)/3) == 0
++assert s.discriminant(3*x**2+2*x+1, x) < 0
++print('ABLATION 18 (나) 전 구간 하한: 필요(f=x^4-4x^3/3+1, k=0)')
++# (다)는 작은 근방만 아니라 주어진 열린구간 전체에서 확인한다.
++without_two = x**4-R(11, 5)*x**3+R(13, 10)*x**2+1
++assert s.solve(without_two-1, x) == [0]
++assert s.discriminant(x**2-R(11, 5)*x+R(13, 10), x) < 0
++assert s.limit((without_two-1)/x**2, x, 0) == R(13, 10)
++assert s.expand(without_two-without_two.subs(x, 1)-(x-1)**2*(10*x**2-2*x-1)/10) == 0
++assert (10*x**2-2*x-1).subs(x, R(1, 2)) == R(1, 2)
++assert s.diff(10*x**2-2*x-1, x).subs(x, R(1, 2)) > 0
++print('ABLATION 18 (나) 서로 다른 두 근: 필요(f=x^4-11x^3/5+13x^2/10+1, k=13/10)')
++without_local_min = family.subs(r, 2)
++assert s.solve(without_local_min-1, x) == [0, 2]
++assert s.limit((without_local_min-1)/x**2, x, 0) == 4
++assert s.diff(without_local_min, x, 2).subs(x, 1) < 0
++print('ABLATION 18 (다) 구간 하한: 필요(f=x^2(x-2)^2+1, k=4)')
++without_monic = 2*x**2*(x-1)**2+1
++assert s.limit((without_monic-1)/x**2, x, 0) == 2
++print('ABLATION 18 최고차항 계수 1: 필요(f=2x^2(x-1)^2+1, k=2)')
++print('선지·정답 위치 ②·오답 2,4 OK')
++print('ALL OK')
+
+exec
+/bin/bash -lc 'python3 output/build/기말/2회/후보/verify_c17.py' in /home/runner/work/Finale/Finale
+exec
+/bin/bash -lc 'python3 output/build/기말/2회/후보/verify_c18.py' in /home/runner/work/Finale/Finale
+exec
+/bin/bash -lc 'python3 output/build/기말/2회/parts/verify_c5.py' in /home/runner/work/Finale/Finale
+ exited 1 in 457ms:
+Traceback (most recent call last):
+  File "/home/runner/work/Finale/Finale/output/build/기말/2회/후보/verify_c17.py", line 73, in <module>
+원문 M31: 불연속점 [0, 2, 15, 19], 합 36 OK
+    assert s.reduce_inequalities([m >= 5, m < 9], m) == s.And(m >= 5, m < 9)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+ succeeded in 654ms:
+원문 M56: 네 근 0<k<7, 정수 합 21 OK
+S2: 모든 k 구간 근 수 1/3/5/4/3/2/1, 유일한 k=1/8 OK
+S2 정답: (1) 4, (2) 1/8, (3) 23/4 OK
+오답 b=6, k=0/4, 근의 합 11/2 근거 OK (서답형: 선지 검사 해당 없음)
+ABLATION S2 h(1)=4: 필요(a=-3,b=6이면 h'(1)=0 유지, b=6)
+ABLATION S2 h'(1)=0: 필요(a=-1,b=3이면 h(1)=4 유지, b=3)
+ABLATION S2 삼차항 계수 1/2: 필요(계수 1이면 a=-3,b=9/2 가능)
+ABLATION S2 상수항 0: 필요(상수항 1이면 a=-1,b=2 가능)
+ABLATION S2 (2) 실근 네 개: 필요(k=1 등 여러 값 가능)
+ALL OK
+
+ succeeded in 694ms:
+원문 D45: 유일한 삼차함수, f(8)=102 OK
+18: 짝수 지수 배분 (2,2), r=1 또는 2 중 r=1만 극소, k=1 OK
+ABLATION 18 (가) 유한 극한: 필요(f=(x-1)^2(x-2)^2+1 허용, k 미정)
+ABLATION 18 (나) 전 구간 하한: 필요(f=x^4-4x^3/3+1, k=0)
+ABLATION 18 (나) 서로 다른 두 근: 필요(f=x^4-11x^3/5+13x^2/10+1, k=13/10)
+ABLATION 18 (다) 구간 하한: 필요(f=x^2(x-2)^2+1, k=4)
+ABLATION 18 최고차항 계수 1: 필요(f=2x^2(x-1)^2+1, k=2)
+선지·정답 위치 ②·오답 2,4 OK
+ALL OK
+
+apply patch
+patch: completed
+/home/runner/work/Finale/Finale/output/build/기말/2회/후보/verify_c17.py
+diff --git a/output/build/기말/2회/parts/c5.py b/output/build/기말/2회/parts/c5.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..07888c4cda0576f8ae56b314b6ea4c21830c204d
+--- /dev/null
++++ b/output/build/기말/2회/parts/c5.py
+@@ -0,0 +1,33 @@
++# -*- coding: utf-8 -*-
++SITEMS = {
++    'S2': dict(
++        body=r"""두 상수 \(a\), \(b\)에 대하여 함수 \(f(x)=\frac12x^3+ax^2+bx\), \(h(x)=f(x)+|f(x)+x|-2x^2\)가 있다. \(h(1)=4\)이고 \(h'(1)=0\)일 때, 다음 물음에 답하시오.""",
++        subs=[
++            (r"상수 \(b\)의 값을 구하시오.", '4점, 답만 적으시오.'),
++            (r"방정식 \(h(x)=k\)의 서로 다른 실근의 개수가 \(4\)가 되도록 하는 실수 \(k\)의 값을 구하시오.", '4점, 답만 적으시오.'),
++            (r"방정식 \(h(x)=k\)의 서로 다른 실근의 개수가 \(4\)일 때, 모든 실근의 합을 구하시오.", '2점, 답만 적으시오.'),
++        ],
++        ans=['(1) 4', r'(2) \frac18', r'(3) \frac{23}{4}'],
++        rubric=[r'(1) \(4\) [4점, 답만]', r'(2) \(\frac18\) [4점, 답만]', r'(3) \(\frac{23}{4}\) [2점, 답만]'],
++        key='M56', src='2022학년도 수능 9월 모의평가 20번',
++        author='codex', cand='codexS2', level='중상',
++        vtype=['구조 변경', '조건 변경', '형식 변경'],
++        effect='같음', bunseok=False, precedent='2학기 중간 18번·서답형2',
++        core=dict(
++            axis='②',
++            setting='원문의 절댓값 방정식은 한쪽 구간에서 일차함수, 다른 쪽에서 삼차함수와 수평선의 교점 문제이다.',
++            principle='절댓값 안의 부호를 먼저 판정하고, 각 구간의 도함수와 극값을 이용해 유효한 실근 수를 합한다.',
++            new='비교 대상을 직선에서 이차함수로 한 겹 교체한다. 음의 구간도 이차함수가 되어 그 꼭짓점에서만 양의 구간의 세 근과 합쳐 정확히 네 근이 된다.',
++        ),
++        var='[설정 교체] f+|f+x|와 직선의 교점 → 이차함수와의 교점. [조건 변경] 함숫값과 미분계수로 계수 결정. [형식 변경] 계수 → 네 근을 주는 값 → 서로 다른 근의 합의 3단계.',
++        sol=[
++            r"\(h(1)=4\)에서 \(f(1)+|f(1)+1|=6\)이다. \(f(1)+1\le0\)이면 좌변이 \(-1\)이므로 불가능하다. 따라서 \(f(1)=\frac52\)이고 \(a+b=2\)이다. \(x=1\) 근처에서는 \(h(x)=2f(x)+x-2x^2\)이므로 \(h'(1)=2f'(1)-3=0\)에서 \(2a+b=0\)이다. 두 식을 풀면 \(a=-2,b=4\)이다.",
++            r"\(f(x)+x=\frac12x(x^2-4x+10)=\frac12x\{(x-2)^2+6\}\)이므로 절댓값 안의 부호는 \(x\)의 부호와 같다. 따라서 \(x&lt;0\)이면 \(h(x)=-2x^2-x=-2(x+\frac14)^2+\frac18\), \(x\ge0\)이면 \(h(x)=x^3-6x^2+9x=x(x-3)^2\)이다. 음의 구간에서는 \(k\le0\)일 때 한 근, \(0&lt;k&lt;\frac18\)일 때 두 근, \(k=\frac18\)일 때 한 근, \(k>\frac18\)일 때 근이 없다. 양의 구간과 \(0\)에서는 도함수 \(3(x-1)(x-3)\)에 의해 \(k&lt;0\)일 때 근이 없고, \(k=0\)일 때 두 근, \(0&lt;k&lt;4\)일 때 세 근, \(k=4\)일 때 두 근, \(k>4\)일 때 한 근이다. 두 구간을 합하면 네 근인 경우는 \(k=\frac18\)뿐이다.",
++            r"\(k=\frac18\)일 때 음의 근은 꼭짓점의 \(x\)좌표인 \(-\frac14\) 하나이다. 양의 세 근은 방정식 \(x^3-6x^2+9x-\frac18=0\)의 세 근이므로 그 합은 \(6\)이다. 서로 다른 모든 실근의 합은 \(6-\frac14=\frac{23}{4}\)이다.",
++        ],
++        fast=r"\(h(1)=4,h'(1)=0\)에서 \(a+b=2,2a+b=0\). 부호 분리 후 음의 구간의 꼭짓점 높이는 \(1/8\), 양의 구간의 두 극값은 \(4,0\)이다. 네 근은 음의 구간의 접점 한 개와 양의 세 근일 때뿐이다. 접점은 한 번만 세어 근의 합은 \(6-1/4\).",
++        wrongs=[],
++        wrong=r"(1) \(6\): \(h'(1)\)을 계산할 때 \(-2x^2\)의 미분을 빠뜨리면 \(2a+b=-2\), \(a+b=2\)에서 \(b=6\)이 나온다. (2) \(4\): 양의 구간의 극댓값만 보면 이 값을 택하지만 전체 근은 두 개이다. \(0\): 원점과 접점을 중복 계산하면 네 개로 잘못 세지만 서로 다른 근은 세 개이다. (3) \(11/2\): 음의 구간에서 접하는 근 \(-1/4\)을 두 번 세어 \(6-1/2\)로 계산한 값이다.",
++        note=r"원본은 음의 구간의 직선이 \(k>0\)에서 한 근을 보태어 네 근인 열린구간을 만든다. 변형은 음의 구간의 이차함수가 두 근·접점 한 근·근 없음으로 바뀌므로 원본의 일차함수 설정으로는 네 근을 판정할 수 없다. 실근 개수라는 단원 개념과 부호 분리·도함수 판정 원리는 유지한다. (1)은 계수를, (2)는 경우 분기를, (3)은 접점의 중복 제외를 평가한다. 독립 검토·블라인드 측정 전 문항이다.",
++    ),
++}
+diff --git a/output/build/기말/2회/parts/verify_c5.py b/output/build/기말/2회/parts/verify_c5.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..44455fb277a6ec53a41a424e37c5ea7dc4b025ac
+--- /dev/null
++++ b/output/build/기말/2회/parts/verify_c5.py
+@@ -0,0 +1,108 @@
++# -*- coding: utf-8 -*-
++"""M56 서답형2: 모든 k 구간·경계의 정확한 근 수와 조건 빼 보기."""
++from pathlib import Path
++import runpy
++import sympy as s
++
++x, a, b, z = s.symbols('x a b z', real=True)
++R = s.Rational
++it = runpy.run_path(str(Path(__file__).with_name('c5.py')))['SITEMS']['S2']
++assert it['key'] == 'M56' and it['author'] == 'codex'
++
++
++def roots_on(poly, negative):
++    roots = set(s.Poly(poly, x).real_roots(radicals=False))
++    return [r for r in roots if bool(r < 0) == negative]
++
++
++def count(left, right, height):
++    return len(roots_on(left-height, True)) + len(roots_on(right-height, False))
++
++
++# 원문: 직선 조각과 삼차 조각의 임계값만이 근 수를 바꾼다.
++original_f = x**3/2-R(9, 2)*x**2+10*x
++assert s.factor(original_f+x) == x*(x**2-9*x+22)/2
++assert s.discriminant(x**2-9*x+22, x) == -7
++old_left, old_right = -7*x, s.expand(2*original_f-5*x)
++assert old_right == x**3-9*x**2+15*x
++assert s.solve(s.diff(old_right, x), x) == [1, 5]
++assert [old_right.subs(x, v) for v in [1, 5]] == [7, -25]
++old_cells = [(-26, 0), (-25, 1), (-1, 2), (0, 3), (1, 4), (7, 3), (8, 2)]
++for height, expected in old_cells:
++    assert count(old_left, old_right, height) == expected
++# 단조성과 경계값에서 네 근 ⇔ 0<k<7. 가능한 정수 전수 조사.
++old_integers = [v for v in range(1, 7) if count(old_left, old_right, v) == 4]
++assert old_integers == [1, 2, 3, 4, 5, 6] and sum(old_integers) == 21
++print('원문 M56: 네 근 0<k<7, 정수 합 21 OK')
++
++# (1) 절댓값의 두 부호를 모두 조사한다.
++assert s.expand(z-(z+1)) == -1  # 이 가지로는 좌변 6 불가능
++f1 = s.solve(z+(z+1)-6, z)[0]
++assert f1 == R(5, 2) and f1+1 > 0
++f = x**3/2+a*x**2+b*x
++positive_h = 2*f+x-2*x**2
++coefficients = s.solve([f.subs(x, 1)-f1, s.diff(positive_h, x).subs(x, 1)], (a, b), dict=True)
++assert coefficients == [{a: -2, b: 4}]
++f = f.subs(coefficients[0])
++assert s.factor(f+x) == x*(x**2-4*x+10)/2
++assert s.expand((x-2)**2+6) == x**2-4*x+10
++left, right = -2*x**2-x, s.expand(2*f+x-2*x**2)
++assert right == x*(x-3)**2 or s.expand(right-x*(x-3)**2) == 0
++assert s.solve(s.diff(left, x), x) == [-R(1, 4)]
++assert s.solve(s.diff(right, x), x) == [1, 3]
++assert left.subs(x, -R(1, 4)) == R(1, 8)
++assert [right.subs(x, v) for v in [0, 1, 3]] == [0, 4, 0]
++assert s.expand(left+2*(x+R(1, 4))**2-R(1, 8)) == 0
++assert s.expand(s.diff(right, x)-3*(x-3)*(x-1)) == 0
++
++# 모든 실수 k를 덮는 구간과 경계. 끝점 높이·극값 이외에서는 근 수가 일정하다.
++cells = [(-1, (1, 0)), (0, (1, 2)), (R(1, 16), (2, 3)),
++         (R(1, 8), (1, 3)), (1, (0, 3)), (4, (0, 2)), (5, (0, 1))]
++four_root_cells = []
++for height, expected in cells:
++    actual = (len(roots_on(left-height, True)), len(roots_on(right-height, False)))
++    assert actual == expected
++    if sum(actual) == 4:
++        four_root_cells.append(height)
++assert four_root_cells == [R(1, 8)]
++k = four_root_cells[0]
++negative = roots_on(left-k, True)
++positive = roots_on(right-k, False)
++assert negative == [-R(1, 4)] and len(positive) == 3
++poly = s.Poly(right-k, x)
++assert len(set(poly.real_roots(radicals=False))) == 3
++positive_sum = -poly.all_coeffs()[1]/poly.LC()
++answer3 = positive_sum + negative[0]
++assert positive_sum == 6 and answer3 == R(23, 4)
++assert it['ans'] == ['(1) 4', r'(2) \frac18', r'(3) \frac{23}{4}']
++assert [pts for _, pts in it['subs']] == ['4점, 답만 적으시오.', '4점, 답만 적으시오.', '2점, 답만 적으시오.']
++print('S2: 모든 k 구간 근 수 1/3/5/4/3/2/1, 유일한 k=1/8 OK')
++print('S2 정답: (1) 4, (2) 1/8, (3) 23/4 OK')
++
++# 오답 근거를 실제 식으로 재현한다.
++bad_coefficients = s.solve([a+b-2, 2*a+b+2], (a, b))
++assert bad_coefficients[b] == 6
++assert count(left, right, 0) == 3 and count(left, right, 4) == 2
++assert positive_sum+2*negative[0] == R(11, 2)
++assert not it['wrongs'] and not it.get('choices')
++print('오답 b=6, k=0/4, 근의 합 11/2 근거 OK (서답형: 선지 검사 해당 없음)')
++
++
++def local_values(av, bv, leading=R(1, 2), constant=0):
++    ff = leading*x**3+av*x**2+bv*x+constant
++    assert ff.subs(x, 1)+1 > 0
++    hh = 2*ff+x-2*x**2
++    return hh.subs(x, 1), s.diff(hh, x).subs(x, 1)
++
++
++assert local_values(-3, 6) == (6, 0)
++print('ABLATION S2 h(1)=4: 필요(a=-3,b=6이면 h\'(1)=0 유지, b=6)')
++assert local_values(-1, 3) == (4, 2)
++print('ABLATION S2 h\'(1)=0: 필요(a=-1,b=3이면 h(1)=4 유지, b=3)')
++assert local_values(-3, R(9, 2), leading=1) == (4, 0)
++print('ABLATION S2 삼차항 계수 1/2: 필요(계수 1이면 a=-3,b=9/2 가능)')
++assert local_values(-1, 2, constant=1) == (4, 0)
++print('ABLATION S2 상수항 0: 필요(상수항 1이면 a=-1,b=2 가능)')
++assert count(left, right, 1) == 3 and 1 != k
++print('ABLATION S2 (2) 실근 네 개: 필요(k=1 등 여러 값 가능)')
++print('ALL OK')
+diff --git a/output/build/기말/2회/후보/c17.py b/output/build/기말/2회/후보/c17.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..87c87aa36c4d697a59d1248edabe1c1ed353fcaf
+--- /dev/null
++++ b/output/build/기말/2회/후보/c17.py
+@@ -0,0 +1,42 @@
++# -*- coding: utf-8 -*-
++ITEMS = {
++    17: dict(
++        body=r"""함수 \(f(x)=x^3-3x+7\)과 최고차항의 계수가 \(1\)인 이차함수 \(q(x)\)가 있다. 방정식 \(|f(x)|=t\)의 서로 다른 실근의 개수를 \(g(t)\)라 하자. 함수 \(q(x)\)가 다음 조건을 만족시킬 때, \(q(1)\)의 최솟값은?""",
++        cond=[
++            ('가', r"서로 다른 두 실수 \(\alpha\), \(\beta\)에 대하여 \(\displaystyle\lim_{x\to a}g(q(x))\)는 \(a=\alpha\) 또는 \(a=\beta\)일 때만 <u>존재하지 않는다</u>."),
++            ('나', r"\(\alpha\beta=0\)이다."),
++        ],
++        choices=['2', '3', '4', '5', '6'], ans=5,
++        key='M31', src='2022년 수능특강 [22009-0122]',
++        author='codex', cand='codex17', level='상',
++        vtype=['숫자 변경', '구조 변경', '구하는 대상 변경'],
++        effect='어려워짐', bunseok=False, precedent='2학기 중간 17번',
++        core=dict(
++            axis='①',
++            setting='삼차함수 f와 방정식 |f(x)|=t의 서로 다른 실근 개수 g(t)를 유지한다.',
++            principle='원문은 g의 불연속점과 평행이동한 불연속점에서 점프의 방향과 크기가 같은지를 비교하여 차의 상쇄점을 제외한다.',
++            new='g의 점프 높이를 이차함수 q가 가로지르는 점에서만 합성함수의 양쪽 극한이 없다. 꼭짓점에서 닿는 점은 극한이 존재하므로 꼭짓점 높이 5를 포함한다.',
++        ),
++        var='[구조 변경] 이동한 개수 함수의 차에서 점프 상쇄 → 이차함수와 합성한 개수 함수에서 경계 높이 통과 여부. [숫자 변경] 극값 높이 변경. [구하는 대상 변경] 불연속점의 합 → q(1)의 최솟값.',
++        sol=(
++            r"\(f'(x)=3(x+1)(x-1)\)이므로 \(f\)는 \(x=-1\)에서 극댓값 \(9\), \(x=1\)에서 극솟값 \(5\)를 갖는다. "
++            r"따라서 \(t&lt;0\), \(t=0\), \(0&lt;t&lt;5\), \(t=5\), \(5&lt;t&lt;9\), \(t=9\), \(t>9\)에서 "
++            r"\(g(t)\)는 각각 \(0,1,2,3,4,3,2\)이다. \(g\)의 좌우극한이 다른 곳은 \(0,5,9\)뿐이다.<br>"
++            r"\(q(x)=(x-u)^2+m\)으로 놓자. \(c\in\{0,5,9\}\)에 대하여 \(m&lt;c\)이면 \(q(x)=c\)인 두 점에서 "
++            r"\(q(x)\)가 \(c\)의 양쪽 값을 가지므로 합성함수의 양쪽 극한은 존재하지 않는다. "
++            r"\(m=c\)이면 \(x\to u\)일 때 \(q(x)\)는 양쪽 모두 \(c\)보다 큰 값으로 다가가므로 극한은 존재한다. "
++            r"\(m>c\)이면 \(q(x)=c\)인 점이 없다.<br>"
++            r"따라서 극한이 존재하지 않는 점의 개수는 \(m&lt;0\)에서 \(6\), \(0\le m&lt;5\)에서 \(4\), "
++            r"\(5\le m&lt;9\)에서 \(2\), \(m\ge9\)에서 \(0\)이다. (가)에서 \(5\le m&lt;9\)이고 "
++            r"\(\alpha,\beta\)는 \(q(x)=9\)의 두 근이다.<br>"
++            r"(나)에 의해 두 근 중 하나가 \(0\)이므로 \(q(0)=9\), 즉 \(u^2+m=9\)이다. "
++            r"따라서 \(0&lt;u^2\le4\)이고 \(q(1)=1-2u+u^2+m=10-2u\)이다. "
++            r"\(u\le2\)이므로 최솟값은 \(6\)이다. \(u=2,m=5\)일 때 "
++            r"\(q(x)=(x-2)^2+5\)이고 극한이 존재하지 않는 점은 \(0,4\)뿐이므로 실제로 이 값을 갖는다."
++        ),
++        fast=r"개수 함수의 점프 높이는 \(0,5,9\)이다. 합성 극한이 두 점에서만 없으려면 이차함수의 최솟값 \(m\)은 \(5\le m&lt;9\)이다. \(q(0)=9\)에서 \(q=(x-u)^2+9-u^2\), \(0&lt;u^2\le4\). 따라서 \(q(1)=10-2u\ge6\).",
++        wrongs=['4', '5'],
++        wrong=r"③ \(4\): 높이 \(5\)에서의 점프를 빠뜨려 \(0\le m&lt;9\)로 판단하면 \(u=3,m=0\)을 허용하여 \(q(1)=4\)를 얻는다. ④ \(5\): 올바른 경계 함수 \(q(x)=x^2-4x+9\)를 구한 뒤 \(q(1)\)을 계산할 때 이차항 \(1\)을 빠뜨리면 \(5\)가 된다.",
++        note=r"원본의 점프 상쇄는 사용되지 않는다. 도함수로 두 극값 높이를 정하고, 세 높이를 꼭짓점이 통과하는 경우를 나누어 합성 극한을 판정한다. 꼭짓점에서의 함숫값과 극한값이 달라도 극한은 존재한다. 최솟값은 연속으로 움직이는 \(u\)의 경계 \(u=2\)에서 달성된다. 독립 검토·블라인드 측정 전 후보이다.",
++    ),
++}
+diff --git a/output/build/기말/2회/후보/c18.py b/output/build/기말/2회/후보/c18.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..cf3c2a371ecdc774f3e140ec1591eaf7f8bfd623
+--- /dev/null
++++ b/output/build/기말/2회/후보/c18.py
+@@ -0,0 +1,37 @@
++# -*- coding: utf-8 -*-
++ITEMS = {
++    18: dict(
++        body=r"""최고차항의 계수가 \(1\)인 사차함수 \(f(x)\)와 실수 \(k\)가 다음 조건을 만족시킬 때, \(k\)의 값은?""",
++        cond=[
++            ('가', r"\(\displaystyle\lim_{x\to0}\frac{f(x)-1}{x^2}=k\)이다."),
++            ('나', r"모든 실수 \(x\)에 대하여 \(f(x)\ge1\)이고, 방정식 \(f(x)=1\)의 서로 다른 실근의 개수는 \(2\)이다."),
++            ('다', r"열린구간 \(\left(\frac12,\frac32\right)\)의 모든 \(x\)에 대하여 \(f(x)\ge f(1)\)이다."),
++        ],
++        choices=['0', '1', '2', '3', '4'], ans=2,
++        key='D45', src='2025년 수능특강 [25009-0097]',
++        author='codex', cand='codex18', level='상',
++        vtype=['함수 교체', '구조 변경', '조건 변경'],
++        effect='어려워짐', bunseok=False, precedent='2학기 중간 18번',
++        core=dict(
++            axis='②',
++            setting='원문은 최고차항 계수 1인 삼차함수에서 f-2가 (x+2)의 제곱과 일차식의 곱이다.',
++            principle='유한한 이차 분모의 극한은 해당 점의 함숫값과 도함숫값을 정하고, 열린구간에서의 하한 조건은 그 점이 극소점임을 뜻한다.',
++            new='사차함수로 한 차수 올려 남은 이차인수의 실근 배치를 판정한다. 전 구간 하한과 서로 다른 두 근으로 두 제곱인수를 얻고, 고정점이 그 두 근 사이의 극대점인지 다른 극소점인지 구별한다.',
++        ),
++        var='[설정 교체] 삼차함수의 접촉점 하나와 나머지 일차인수 → 사차함수의 두 접촉점과 그 사이의 극대점. 극한·국소 최솟값 판정은 유지한다.',
++        sol=(
++            r"(가)에서 \(f(0)=1\), \(f'(0)=0\)이다. (나)에 의해 \(f(x)-1\)은 모든 실수에서 음이 아니고 서로 다른 두 실근을 갖는다. "
++            r"실근에서 부호가 바뀌지 않아야 하므로 각 인수의 지수는 짝수이다. 따라서 \(0\)이 아닌 실수 \(r\)에 대하여 "
++            r"\(f(x)-1=x^2(x-r)^2\)이고, \(k=r^2\)이다.<br>"
++            r"\(f'(x)=2x(x-r)(2x-r)\)이다. (다)에서 \(x=1\)은 극소점이므로 \(f'(1)=0\), "
++            r"즉 \(2(1-r)(2-r)=0\)이다. 따라서 \(r=1\) 또는 \(r=2\)이다.<br>"
++            r"\(r=2\)이면 \(f'(x)=4x(x-1)(x-2)\)는 \(x=1\)의 왼쪽에서 양수, 오른쪽에서 음수이므로 "
++            r"\(x=1\)이 극대점이다. 이는 (다)에 어긋난다. \(r=1\)이면 \(f(x)=x^2(x-1)^2+1\)이고 "
++            r"\(f(1)=1\)이므로 세 조건을 모두 만족시킨다. 따라서 \(k=1\)이다."
++        ),
++        fast=r"전 구간 하한과 두 실근에서 \(f-1=x^2(x-r)^2\). 극소점은 \(0,r\), 그 사이의 극대점은 \(r/2\)이다. \(1\)은 \(0\)이 아닌 극소점이므로 \(r=1\), \(k=r^2=1\).",
++        wrongs=['2', '4'],
++        wrong=r"③ \(2\): \(f(x)=x^2(x-1)^2+1\)을 구한 뒤 극한값을 \(f''(0)=2\)로 계산한다. 실제 극한값은 \(f''(0)/2\)이다. ⑤ \(4\): (다)를 \(f'(1)=0\)으로만 해석하여 \(r=2\)인 극대점 후보를 택하면 \(k=4\)이다.",
++        note=r"원문의 유한 극한·국소 최소 판정 원리는 유지한다. 삼차의 나머지 일차인수 설정은 통하지 않고, 사차에서 두 근의 지수와 극대·극소 위치를 함께 정해야 한다. (나)의 전 구간 하한을 빼면 \(f(x)=x^4-\frac43x^3+1\), 두 실근 조건을 빼면 \(f(x)=x^4-\frac{11}{5}x^3+\frac{13}{10}x^2+1\)이 각각 남아 답이 달라진다. 독립 검토·블라인드 측정 전 후보이다.",
++    ),
++}
+diff --git a/output/build/기말/2회/후보/verify_c17.py b/output/build/기말/2회/후보/verify_c17.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..5097b99064822d61155d005967d37bb94ae9db70
+--- /dev/null
++++ b/output/build/기말/2회/후보/verify_c17.py
+@@ -0,0 +1,118 @@
++# -*- coding: utf-8 -*-
++"""M31 후보: 임계 높이 전수 분류, 합성 극한, 최솟값·오답·빼 보기."""
++from pathlib import Path
++import runpy
++import sympy as s
++
++x, t, u, m, c = s.symbols('x t u m c', real=True)
++R = s.Rational
++it = runpy.run_path(str(Path(__file__).with_name('c17.py')))['ITEMS'][17]
++assert it['key'] == 'M31' and it['author'] == 'codex'
++
++
++def distinct_real(poly):
++    return set(s.Poly(poly, x).real_roots(radicals=False))
++
++
++def count_abs(poly, height):
++    if height < 0:
++        return 0
++    if height == 0:
++        return len(distinct_real(poly))
++    return len(distinct_real(poly-height)) + len(distinct_real(poly+height))
++
++
++# 원문: 도함수의 근으로 임계 높이를 완전히 구한다.
++original = x**3-3*x**2-9*x+10
++critical = s.solve(s.diff(original, x), x)
++assert critical == [-1, 3]
++assert [original.subs(x, v) for v in critical] == [15, -17]
++levels_original = [0, 15, 17]
++eps = R(1, 100)
++original_h = lambda z: count_abs(original, z)-count_abs(original, z-2)
++candidates = sorted(set(levels_original + [v+2 for v in levels_original]))
++discontinuous = []
++for z in candidates:
++    triple = [original_h(z-eps), original_h(z), original_h(z+eps)]
++    if len(set(triple)) > 1:
++        discontinuous.append(z)
++assert discontinuous == [0, 2, 15, 19]
++assert sum(discontinuous) == 36
++assert [original_h(17-eps), original_h(17), original_h(17+eps)] == [-2]*3
++print('원문 M31: 불연속점 [0, 2, 15, 19], 합 36 OK')
++
++# 후보: 각 단조 구간의 끝점 높이가 유일한 임계 높이이다.
++f = x**3-3*x+7
++assert s.expand(s.diff(f, x)-3*(x-1)*(x+1)) == 0
++assert [f.subs(x, z) for z in [-1, 1]] == [9, 5]
++levels = [0, 5, 9]
++heights = [-1, 0, 1, 5, 6, 9, 10]
++assert [count_abs(f, z) for z in heights] == [0, 1, 2, 3, 4, 3, 2]
++side_counts = {z: (count_abs(f, z-eps), count_abs(f, z+eps)) for z in levels}
++assert side_counts == {0: (0, 2), 5: (2, 4), 9: (4, 2)}
++
++
++def bad_points(q):
++    """각 점의 국소 전개: 홀수 차수로 높이를 통과할 때만 양쪽 극한이 다르다."""
++    result = set()
++    for height in levels:
++        for root, mult in s.roots(q-height, x).items():
++            if root.is_real and mult % 2 and side_counts[height][0] != side_counts[height][1]:
++                result.add(root)
++    return result
++
++
++# 전 실수 m의 분류를 결정하는 판별식: 양수면 두 단순근, 0이면 접촉점.
++q = (x-u)**2+m
++assert s.discriminant(q-c, x) == 4*(c-m)
++assert s.expand(q.subs(m, c)-c) == s.expand((x-u)**2)
++# 임계점 사이에서 개수는 불변. 0,5,9 각각의 경계도 별도 확인한다.
++cells = [(-1, 6), (0, 4), (1, 4), (5, 2), (7, 2), (9, 0), (10, 0)]
++for height, expected in cells:
++    assert len(bad_points(q.subs({u: 2, m: height}))) == expected
++assert s.reduce_inequalities([m >= 5, m < 9], m).as_set() == s.Interval.Ropen(5, 9)
++# (가)에서 m in [5,9), 두 근은 q=9의 근. 근의 곱은 u²+m-9.
++assert s.Poly(q-9, x).TC() == u**2+m-9
++m_value = s.solve(u**2+m-9, m)[0]
++assert m_value == 9-u**2
++domain = s.reduce_inequalities([m_value >= 5, m_value < 9], u)
++expected_domain = s.Union(s.Interval.Ropen(-2, 0), s.Interval.Lopen(0, 2))
++assert domain.as_set() == expected_domain
++target = s.expand(q.subs({x: 1, m: m_value}))
++assert target == 10-2*u and s.diff(target, u) == -2
++answer = target.subs(u, 2)
++assert answer == 6
++attainer = s.expand(q.subs({u: 2, m: 5}))
++assert bad_points(attainer) == {s.Integer(0), s.Integer(4)}
++# 꼭짓점 x=2에서는 g의 함숫값은 3, 양쪽 극한은 4: 극한은 존재한다.
++assert count_abs(f, 5) == 3 and side_counts[5][1] == 4
++print('17: m 전체 분류 6/4/2/0, 허용 u=[-2,0)∪(0,2], 최솟값 6 OK')
++
++choices = list(map(s.sympify, it['choices']))
++assert len(choices) == len(set(choices)) == 5
++assert {choices[i+1]-choices[i] for i in range(4)} == {1}
++assert it['ans'] == 5 and choices[it['ans']-1] == answer
++wrong_drop_level = ((x-3)**2).subs(x, 1)
++wrong_drop_term = (attainer-x**2).subs(x, 1)
++assert [wrong_drop_level, wrong_drop_term] == [4, 5]
++assert it['wrongs'] == [str(wrong_drop_level), str(wrong_drop_term)]
++assert all(s.sympify(v) in choices and s.sympify(v) != answer for v in it['wrongs'])
++
++# 조건 삭제는 숫자 교체가 아니라 나머지 조건을 만족하는 반례로 확인한다.
++# (가)를 없애면 α,β는 (나)만 만족하면 되므로 임의 q가 가능하다.
++# 더 강한 증인: α=0,β=6 둘 다 실제 극한 부재점이지만 추가 부재점도 있다.
++without_count = (x-3)**2
++assert {s.Integer(0), s.Integer(6)} <= bad_points(without_count)
++assert len(bad_points(without_count)) == 4
++assert without_count.subs(x, 1) == 4 < answer
++print('ABLATION 17 (가) 두 점뿐: 필요(q=(x-3)^2, 부재점 네 개, q(1)=4)')
++without_product = (x-1)**2+5
++assert bad_points(without_product) == {-1, 3}
++assert without_product.subs(x, 1) == 5 < answer
++print('ABLATION 17 (나) 두 점의 곱 0: 필요(q=(x-1)^2+5, q(1)=5)')
++without_monic = 4*(x-1)**2+5
++assert bad_points(without_monic) == {0, 2}
++assert without_monic.subs(x, 1) == 5 < answer
++print('ABLATION 17 최고차항 계수 1: 필요(q=4(x-1)^2+5, q(1)=5)')
++print('선지·정답 위치 ⑤·오답 4,5 OK')
++print('ALL OK')
+diff --git a/output/build/기말/2회/후보/verify_c18.py b/output/build/기말/2회/후보/verify_c18.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..db6ee8d6cfd584099f2f238abd5c1a4ecf2b8fd8
+--- /dev/null
++++ b/output/build/기말/2회/후보/verify_c18.py
+@@ -0,0 +1,92 @@
++# -*- coding: utf-8 -*-
++"""D45 후보: 사차의 근 지수 전수 분류·두 후보 배제·조건별 반례."""
++from pathlib import Path
++import runpy
++import sympy as s
++
++x, a, b, c, d, r = s.symbols('x a b c d r', real=True)
++R = s.Rational
++it = runpy.run_path(str(Path(__file__).with_name('c18.py')))['ITEMS'][18]
++assert it['key'] == 'D45' and it['author'] == 'codex'
++
++# 원문을 직접 푼다: 유한 극한의 두 소거 조건 + 내부 극소점.
++original = x**3+a*x**2+b*x+c
++osol = s.solve([original.subs(x, -2)-2, s.diff(original, x).subs(x, -2),
++               s.diff(original, x).subs(x, 4)], (a, b, c), dict=True)
++assert len(osol) == 1
++original = original.subs(osol[0])
++assert s.expand(s.diff(original, x)-3*(x-4)*(x+2)) == 0
++assert s.diff(original, x, 2).subs(x, 4) > 0
++assert s.limit((original-2)/(x+2)**2, x, -2) == -9
++assert original.subs(x, 8) == 102
++print('원문 D45: 유일한 삼차함수, f(8)=102 OK')
++
++general = x**4+a*x**3+b*x**2+c*x+d
++finite = s.solve([general.subs(x, 0)-1, s.diff(general, x).subs(x, 0)], (c, d))
++assert finite == {c: 0, d: 1}
++assert s.limit((general.subs(finite)-1)/x**2, x, 0) == b
++# 두 실근 모두 짝수 지수여야 전 구간에서 부호가 바뀌지 않는다.
++# 차수 4의 모든 양의 지수 분배를 전수 조사하면 (2,2)뿐이다.
++partitions = [(i, 4-i) for i in range(1, 4)]
++assert [(i, j) for i, j in partitions if i % 2 == j % 2 == 0] == [(2, 2)]
++family = x**2*(x-r)**2+1
++assert s.Poly(family, x).LC() == 1
++k = s.limit((family-1)/x**2, x, 0)
++assert k == r**2
++derivative = s.factor(s.diff(family, x))
++assert s.expand(derivative-2*x*(x-r)*(2*x-r)) == 0
++candidates = s.solve(derivative.subs(x, 1), r)
++assert candidates == [1, 2]
++survivors = [rr for rr in candidates if s.diff(family, x, 2).subs({x: 1, r: rr}) > 0]
++assert survivors == [1]
++solution = family.subs(r, survivors[0])
++assert s.factor(solution-1) == x**2*(x-1)**2
++assert s.solve(solution-1, x) == [0, 1]
++assert s.expand(solution-solution.subs(x, 1)) == s.expand(x**2*(x-1)**2)
++answer = k.subs(r, survivors[0])
++assert answer == 1
++print('18: 짝수 지수 배분 (2,2), r=1 또는 2 중 r=1만 극소, k=1 OK')
++
++choices = list(map(s.sympify, it['choices']))
++assert len(choices) == len(set(choices)) == 5
++assert {choices[i+1]-choices[i] for i in range(4)} == {1}
++assert it['ans'] == 2 and choices[it['ans']-1] == answer
++wrong_second_derivative = s.diff(solution, x, 2).subs(x, 0)
++wrong_maximum = k.subs(r, 2)
++assert [wrong_second_derivative, wrong_maximum] == [2, 4]
++assert it['wrongs'] == [str(wrong_second_derivative), str(wrong_maximum)]
++assert all(s.sympify(v) in choices and s.sympify(v) != answer for v in it['wrongs'])
++
++# 모든 명시 조건을 개별 삭제한다. (나)의 두 절도 따로 검사한다.
++without_limit = (x-1)**2*(x-2)**2+1
++assert s.solve(without_limit-1, x) == [1, 2]
++assert s.diff(without_limit, x).subs(x, 1) == 0
++assert without_limit.subs(x, 1) == 1
++assert s.limit((without_limit-1)/x**2, x, 0) == s.oo
++print('ABLATION 18 (가) 유한 극한: 필요(f=(x-1)^2(x-2)^2+1 허용, k 미정)')
++without_lower = x**4-R(4, 3)*x**3+1
++assert s.solve(without_lower-1, x) == [0, R(4, 3)]
++assert s.limit((without_lower-1)/x**2, x, 0) == 0
++assert s.expand(s.diff(without_lower, x)-4*x**2*(x-1)) == 0
++assert s.expand(without_lower-without_lower.subs(x, 1)-(x-1)**2*(3*x**2+2*x+1)/3) == 0
++assert s.discriminant(3*x**2+2*x+1, x) < 0
++print('ABLATION 18 (나) 전 구간 하한: 필요(f=x^4-4x^3/3+1, k=0)')
++# (다)는 작은 근방만 아니라 주어진 열린구간 전체에서 확인한다.
++without_two = x**4-R(11, 5)*x**3+R(13, 10)*x**2+1
++assert s.solve(without_two-1, x) == [0]
++assert s.discriminant(x**2-R(11, 5)*x+R(13, 10), x) < 0
++assert s.limit((without_two-1)/x**2, x, 0) == R(13, 10)
++assert s.expand(without_two-without_two.subs(x, 1)-(x-1)**2*(10*x**2-2*x-1)/10) == 0
++assert (10*x**2-2*x-1).subs(x, R(1, 2)) == R(1, 2)
++assert s.diff(10*x**2-2*x-1, x).subs(x, R(1, 2)) > 0
++print('ABLATION 18 (나) 서로 다른 두 근: 필요(f=x^4-11x^3/5+13x^2/10+1, k=13/10)')
++without_local_min = family.subs(r, 2)
++assert s.solve(without_local_min-1, x) == [0, 2]
++assert s.limit((without_local_min-1)/x**2, x, 0) == 4
++assert s.diff(without_local_min, x, 2).subs(x, 1) < 0
++print('ABLATION 18 (다) 구간 하한: 필요(f=x^2(x-2)^2+1, k=4)')
++without_monic = 2*x**2*(x-1)**2+1
++assert s.limit((without_monic-1)/x**2, x, 0) == 2
++print('ABLATION 18 최고차항 계수 1: 필요(f=2x^2(x-1)^2+1, k=2)')
++print('선지·정답 위치 ②·오답 2,4 OK')
++print('ALL OK')
+
+exec
+/bin/bash -lc 'python3 output/build/기말/2회/후보/verify_c17.py' in /home/runner/work/Finale/Finale
+exec
+/bin/bash -lc 'PYTHONPATH="$PWD/template/db/parts" python3 output/build/기말/2회/checkpart.py output/build/기말/2회/parts/c5.py' in /home/runner/work/Finale/Finale
+exec
+/bin/bash -lc 'PYTHONPATH="$PWD/template/db/parts" python3 output/build/기말/2회/checkpart.py output/build/기말/2회/후보/c18.py' in /home/runner/work/Finale/Finale
+exec
+/bin/bash -lc 'PYTHONPATH="$PWD/template/db/parts" python3 output/build/기말/2회/checkpart.py output/build/기말/2회/후보/c17.py' in /home/runner/work/Finale/Finale
+ succeeded in 507ms:
+S2: 통과 골격 0.45 원문 0.42 ← [익스텐션] LIVE1-02-228 대진고 2022 18번 · 부교재 125p 56번
+흔한 패턴 표시 0 개
+== 학교 선례 (복습형)
+학교 선례 표시 0 개
+== 중복 (복습형)
+== 말투
+== 형식
+형식 표시 0 개
+== 관문 (17·18·서답형2, 지침 0-4)
+S2: 독립 검토 기록 없음 (review/codexS2.json) → 관문 3 미완, 블라인드 측정 금지
+
+ succeeded in 526ms:
+17: 통과 골격 0.42 원문 0.34 ← [익스텐션] LIVE1-02-098 양정고 2024 7번 · 부교재 115p 31번
+tmp  17: 자료에 없는 어절 ['때만']
+17: [절댓값-수평선] 원문에도 있음(원리 유지형이면 허용)
+흔한 패턴 표시 0 개
+== 학교 선례 (복습형)
+학교 선례 표시 0 개
+== 중복 (복습형)
+== 말투
+== 형식
+형식 표시 0 개
+== 관문 (17·18·서답형2, 지침 0-4)
+17: 독립 검토 기록 없음 (review/codex17.json) → 관문 3 미완, 블라인드 측정 금지
+
+ succeeded in 551ms:
+18: 통과 골격 0.31 원문 0.24 ← [익스텐션] LIVE1-01-088 단대소프트웨어고 2025 22번 · 부교재 92p 45번
+흔한 패턴 표시 0 개
+== 학교 선례 (복습형)
+학교 선례 표시 0 개
+== 중복 (복습형)
+== 말투
+== 형식
+형식 표시 0 개
+== 관문 (17·18·서답형2, 지침 0-4)
+18: 독립 검토 기록 없음 (review/codex18.json) → 관문 3 미완, 블라인드 측정 금지
+
+ succeeded in 946ms:
+원문 M31: 불연속점 [0, 2, 15, 19], 합 36 OK
+17: m 전체 분류 6/4/2/0, 허용 u=[-2,0)∪(0,2], 최솟값 6 OK
+ABLATION 17 (가) 두 점뿐: 필요(q=(x-3)^2, 부재점 네 개, q(1)=4)
+ABLATION 17 (나) 두 점의 곱 0: 필요(q=(x-1)^2+5, q(1)=5)
+ABLATION 17 최고차항 계수 1: 필요(q=4(x-1)^2+5, q(1)=5)
+선지·정답 위치 ⑤·오답 4,5 OK
+ALL OK
+
+exec
+/bin/bash -lc "python3 - <<'PY'
+import json
+v=json.load(open('output/build/기말/지침/style_vocab.json'))
+for w in ['에서만','일','때','경우에만','일때만','뿐이다','때에만','아닐','아닌']:
+ print(w,v.get(w))
+PY" in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+에서만 68
+일 936
+때 1975
+경우에만 None
+일때만 None
+뿐이다 7
+때에만 None
+아닐 None
+아닌 76
+
+apply patch
+patch: completed
+/home/runner/work/Finale/Finale/output/build/기말/2회/후보/c17.py
+diff --git a/output/build/기말/2회/parts/c5.py b/output/build/기말/2회/parts/c5.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..07888c4cda0576f8ae56b314b6ea4c21830c204d
+--- /dev/null
++++ b/output/build/기말/2회/parts/c5.py
+@@ -0,0 +1,33 @@
++# -*- coding: utf-8 -*-
++SITEMS = {
++    'S2': dict(
++        body=r"""두 상수 \(a\), \(b\)에 대하여 함수 \(f(x)=\frac12x^3+ax^2+bx\), \(h(x)=f(x)+|f(x)+x|-2x^2\)가 있다. \(h(1)=4\)이고 \(h'(1)=0\)일 때, 다음 물음에 답하시오.""",
++        subs=[
++            (r"상수 \(b\)의 값을 구하시오.", '4점, 답만 적으시오.'),
++            (r"방정식 \(h(x)=k\)의 서로 다른 실근의 개수가 \(4\)가 되도록 하는 실수 \(k\)의 값을 구하시오.", '4점, 답만 적으시오.'),
++            (r"방정식 \(h(x)=k\)의 서로 다른 실근의 개수가 \(4\)일 때, 모든 실근의 합을 구하시오.", '2점, 답만 적으시오.'),
++        ],
++        ans=['(1) 4', r'(2) \frac18', r'(3) \frac{23}{4}'],
++        rubric=[r'(1) \(4\) [4점, 답만]', r'(2) \(\frac18\) [4점, 답만]', r'(3) \(\frac{23}{4}\) [2점, 답만]'],
++        key='M56', src='2022학년도 수능 9월 모의평가 20번',
++        author='codex', cand='codexS2', level='중상',
++        vtype=['구조 변경', '조건 변경', '형식 변경'],
++        effect='같음', bunseok=False, precedent='2학기 중간 18번·서답형2',
++        core=dict(
++            axis='②',
++            setting='원문의 절댓값 방정식은 한쪽 구간에서 일차함수, 다른 쪽에서 삼차함수와 수평선의 교점 문제이다.',
++            principle='절댓값 안의 부호를 먼저 판정하고, 각 구간의 도함수와 극값을 이용해 유효한 실근 수를 합한다.',
++            new='비교 대상을 직선에서 이차함수로 한 겹 교체한다. 음의 구간도 이차함수가 되어 그 꼭짓점에서만 양의 구간의 세 근과 합쳐 정확히 네 근이 된다.',
++        ),
++        var='[설정 교체] f+|f+x|와 직선의 교점 → 이차함수와의 교점. [조건 변경] 함숫값과 미분계수로 계수 결정. [형식 변경] 계수 → 네 근을 주는 값 → 서로 다른 근의 합의 3단계.',
++        sol=[
++            r"\(h(1)=4\)에서 \(f(1)+|f(1)+1|=6\)이다. \(f(1)+1\le0\)이면 좌변이 \(-1\)이므로 불가능하다. 따라서 \(f(1)=\frac52\)이고 \(a+b=2\)이다. \(x=1\) 근처에서는 \(h(x)=2f(x)+x-2x^2\)이므로 \(h'(1)=2f'(1)-3=0\)에서 \(2a+b=0\)이다. 두 식을 풀면 \(a=-2,b=4\)이다.",
++            r"\(f(x)+x=\frac12x(x^2-4x+10)=\frac12x\{(x-2)^2+6\}\)이므로 절댓값 안의 부호는 \(x\)의 부호와 같다. 따라서 \(x&lt;0\)이면 \(h(x)=-2x^2-x=-2(x+\frac14)^2+\frac18\), \(x\ge0\)이면 \(h(x)=x^3-6x^2+9x=x(x-3)^2\)이다. 음의 구간에서는 \(k\le0\)일 때 한 근, \(0&lt;k&lt;\frac18\)일 때 두 근, \(k=\frac18\)일 때 한 근, \(k>\frac18\)일 때 근이 없다. 양의 구간과 \(0\)에서는 도함수 \(3(x-1)(x-3)\)에 의해 \(k&lt;0\)일 때 근이 없고, \(k=0\)일 때 두 근, \(0&lt;k&lt;4\)일 때 세 근, \(k=4\)일 때 두 근, \(k>4\)일 때 한 근이다. 두 구간을 합하면 네 근인 경우는 \(k=\frac18\)뿐이다.",
++            r"\(k=\frac18\)일 때 음의 근은 꼭짓점의 \(x\)좌표인 \(-\frac14\) 하나이다. 양의 세 근은 방정식 \(x^3-6x^2+9x-\frac18=0\)의 세 근이므로 그 합은 \(6\)이다. 서로 다른 모든 실근의 합은 \(6-\frac14=\frac{23}{4}\)이다.",
++        ],
++        fast=r"\(h(1)=4,h'(1)=0\)에서 \(a+b=2,2a+b=0\). 부호 분리 후 음의 구간의 꼭짓점 높이는 \(1/8\), 양의 구간의 두 극값은 \(4,0\)이다. 네 근은 음의 구간의 접점 한 개와 양의 세 근일 때뿐이다. 접점은 한 번만 세어 근의 합은 \(6-1/4\).",
++        wrongs=[],
++        wrong=r"(1) \(6\): \(h'(1)\)을 계산할 때 \(-2x^2\)의 미분을 빠뜨리면 \(2a+b=-2\), \(a+b=2\)에서 \(b=6\)이 나온다. (2) \(4\): 양의 구간의 극댓값만 보면 이 값을 택하지만 전체 근은 두 개이다. \(0\): 원점과 접점을 중복 계산하면 네 개로 잘못 세지만 서로 다른 근은 세 개이다. (3) \(11/2\): 음의 구간에서 접하는 근 \(-1/4\)을 두 번 세어 \(6-1/2\)로 계산한 값이다.",
++        note=r"원본은 음의 구간의 직선이 \(k>0\)에서 한 근을 보태어 네 근인 열린구간을 만든다. 변형은 음의 구간의 이차함수가 두 근·접점 한 근·근 없음으로 바뀌므로 원본의 일차함수 설정으로는 네 근을 판정할 수 없다. 실근 개수라는 단원 개념과 부호 분리·도함수 판정 원리는 유지한다. (1)은 계수를, (2)는 경우 분기를, (3)은 접점의 중복 제외를 평가한다. 독립 검토·블라인드 측정 전 문항이다.",
++    ),
++}
+diff --git a/output/build/기말/2회/parts/verify_c5.py b/output/build/기말/2회/parts/verify_c5.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..44455fb277a6ec53a41a424e37c5ea7dc4b025ac
+--- /dev/null
++++ b/output/build/기말/2회/parts/verify_c5.py
+@@ -0,0 +1,108 @@
++# -*- coding: utf-8 -*-
++"""M56 서답형2: 모든 k 구간·경계의 정확한 근 수와 조건 빼 보기."""
++from pathlib import Path
++import runpy
++import sympy as s
++
++x, a, b, z = s.symbols('x a b z', real=True)
++R = s.Rational
++it = runpy.run_path(str(Path(__file__).with_name('c5.py')))['SITEMS']['S2']
++assert it['key'] == 'M56' and it['author'] == 'codex'
++
++
++def roots_on(poly, negative):
++    roots = set(s.Poly(poly, x).real_roots(radicals=False))
++    return [r for r in roots if bool(r < 0) == negative]
++
++
++def count(left, right, height):
++    return len(roots_on(left-height, True)) + len(roots_on(right-height, False))
++
++
++# 원문: 직선 조각과 삼차 조각의 임계값만이 근 수를 바꾼다.
++original_f = x**3/2-R(9, 2)*x**2+10*x
++assert s.factor(original_f+x) == x*(x**2-9*x+22)/2
++assert s.discriminant(x**2-9*x+22, x) == -7
++old_left, old_right = -7*x, s.expand(2*original_f-5*x)
++assert old_right == x**3-9*x**2+15*x
++assert s.solve(s.diff(old_right, x), x) == [1, 5]
++assert [old_right.subs(x, v) for v in [1, 5]] == [7, -25]
++old_cells = [(-26, 0), (-25, 1), (-1, 2), (0, 3), (1, 4), (7, 3), (8, 2)]
++for height, expected in old_cells:
++    assert count(old_left, old_right, height) == expected
++# 단조성과 경계값에서 네 근 ⇔ 0<k<7. 가능한 정수 전수 조사.
++old_integers = [v for v in range(1, 7) if count(old_left, old_right, v) == 4]
++assert old_integers == [1, 2, 3, 4, 5, 6] and sum(old_integers) == 21
++print('원문 M56: 네 근 0<k<7, 정수 합 21 OK')
++
++# (1) 절댓값의 두 부호를 모두 조사한다.
++assert s.expand(z-(z+1)) == -1  # 이 가지로는 좌변 6 불가능
++f1 = s.solve(z+(z+1)-6, z)[0]
++assert f1 == R(5, 2) and f1+1 > 0
++f = x**3/2+a*x**2+b*x
++positive_h = 2*f+x-2*x**2
++coefficients = s.solve([f.subs(x, 1)-f1, s.diff(positive_h, x).subs(x, 1)], (a, b), dict=True)
++assert coefficients == [{a: -2, b: 4}]
++f = f.subs(coefficients[0])
++assert s.factor(f+x) == x*(x**2-4*x+10)/2
++assert s.expand((x-2)**2+6) == x**2-4*x+10
++left, right = -2*x**2-x, s.expand(2*f+x-2*x**2)
++assert right == x*(x-3)**2 or s.expand(right-x*(x-3)**2) == 0
++assert s.solve(s.diff(left, x), x) == [-R(1, 4)]
++assert s.solve(s.diff(right, x), x) == [1, 3]
++assert left.subs(x, -R(1, 4)) == R(1, 8)
++assert [right.subs(x, v) for v in [0, 1, 3]] == [0, 4, 0]
++assert s.expand(left+2*(x+R(1, 4))**2-R(1, 8)) == 0
++assert s.expand(s.diff(right, x)-3*(x-3)*(x-1)) == 0
++
++# 모든 실수 k를 덮는 구간과 경계. 끝점 높이·극값 이외에서는 근 수가 일정하다.
++cells = [(-1, (1, 0)), (0, (1, 2)), (R(1, 16), (2, 3)),
++         (R(1, 8), (1, 3)), (1, (0, 3)), (4, (0, 2)), (5, (0, 1))]
++four_root_cells = []
++for height, expected in cells:
++    actual = (len(roots_on(left-height, True)), len(roots_on(right-height, False)))
++    assert actual == expected
++    if sum(actual) == 4:
++        four_root_cells.append(height)
++assert four_root_cells == [R(1, 8)]
++k = four_root_cells[0]
++negative = roots_on(left-k, True)
++positive = roots_on(right-k, False)
++assert negative == [-R(1, 4)] and len(positive) == 3
++poly = s.Poly(right-k, x)
++assert len(set(poly.real_roots(radicals=False))) == 3
++positive_sum = -poly.all_coeffs()[1]/poly.LC()
++answer3 = positive_sum + negative[0]
++assert positive_sum == 6 and answer3 == R(23, 4)
++assert it['ans'] == ['(1) 4', r'(2) \frac18', r'(3) \frac{23}{4}']
++assert [pts for _, pts in it['subs']] == ['4점, 답만 적으시오.', '4점, 답만 적으시오.', '2점, 답만 적으시오.']
++print('S2: 모든 k 구간 근 수 1/3/5/4/3/2/1, 유일한 k=1/8 OK')
++print('S2 정답: (1) 4, (2) 1/8, (3) 23/4 OK')
++
++# 오답 근거를 실제 식으로 재현한다.
++bad_coefficients = s.solve([a+b-2, 2*a+b+2], (a, b))
++assert bad_coefficients[b] == 6
++assert count(left, right, 0) == 3 and count(left, right, 4) == 2
++assert positive_sum+2*negative[0] == R(11, 2)
++assert not it['wrongs'] and not it.get('choices')
++print('오답 b=6, k=0/4, 근의 합 11/2 근거 OK (서답형: 선지 검사 해당 없음)')
++
++
++def local_values(av, bv, leading=R(1, 2), constant=0):
++    ff = leading*x**3+av*x**2+bv*x+constant
++    assert ff.subs(x, 1)+1 > 0
++    hh = 2*ff+x-2*x**2
++    return hh.subs(x, 1), s.diff(hh, x).subs(x, 1)
++
++
++assert local_values(-3, 6) == (6, 0)
++print('ABLATION S2 h(1)=4: 필요(a=-3,b=6이면 h\'(1)=0 유지, b=6)')
++assert local_values(-1, 3) == (4, 2)
++print('ABLATION S2 h\'(1)=0: 필요(a=-1,b=3이면 h(1)=4 유지, b=3)')
++assert local_values(-3, R(9, 2), leading=1) == (4, 0)
++print('ABLATION S2 삼차항 계수 1/2: 필요(계수 1이면 a=-3,b=9/2 가능)')
++assert local_values(-1, 2, constant=1) == (4, 0)
++print('ABLATION S2 상수항 0: 필요(상수항 1이면 a=-1,b=2 가능)')
++assert count(left, right, 1) == 3 and 1 != k
++print('ABLATION S2 (2) 실근 네 개: 필요(k=1 등 여러 값 가능)')
++print('ALL OK')
+diff --git a/output/build/기말/2회/후보/c17.py b/output/build/기말/2회/후보/c17.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..6018ba334e512378689d5f90ab49b3a6650eae04
+--- /dev/null
++++ b/output/build/기말/2회/후보/c17.py
+@@ -0,0 +1,42 @@
++# -*- coding: utf-8 -*-
++ITEMS = {
++    17: dict(
++        body=r"""함수 \(f(x)=x^3-3x+7\)과 최고차항의 계수가 \(1\)인 이차함수 \(q(x)\)가 있다. 방정식 \(|f(x)|=t\)의 서로 다른 실근의 개수를 \(g(t)\)라 하자. 함수 \(q(x)\)가 다음 조건을 만족시킬 때, \(q(1)\)의 최솟값은?""",
++        cond=[
++            ('가', r"서로 다른 두 실수 \(\alpha\), \(\beta\)에 대하여 \(\displaystyle\lim_{x\to a}g(q(x))\)는 \(a=\alpha,\beta\)에서만 <u>존재하지 않는다</u>."),
++            ('나', r"\(\alpha\beta=0\)이다."),
++        ],
++        choices=['2', '3', '4', '5', '6'], ans=5,
++        key='M31', src='2022년 수능특강 [22009-0122]',
++        author='codex', cand='codex17', level='상',
++        vtype=['숫자 변경', '구조 변경', '구하는 대상 변경'],
++        effect='어려워짐', bunseok=False, precedent='2학기 중간 17번',
++        core=dict(
++            axis='①',
++            setting='삼차함수 f와 방정식 |f(x)|=t의 서로 다른 실근 개수 g(t)를 유지한다.',
++            principle='원문은 g의 불연속점과 평행이동한 불연속점에서 점프의 방향과 크기가 같은지를 비교하여 차의 상쇄점을 제외한다.',
++            new='g의 점프 높이를 이차함수 q가 가로지르는 점에서만 합성함수의 양쪽 극한이 없다. 꼭짓점에서 닿는 점은 극한이 존재하므로 꼭짓점 높이 5를 포함한다.',
++        ),
++        var='[구조 변경] 이동한 개수 함수의 차에서 점프 상쇄 → 이차함수와 합성한 개수 함수에서 경계 높이 통과 여부. [숫자 변경] 극값 높이 변경. [구하는 대상 변경] 불연속점의 합 → q(1)의 최솟값.',
++        sol=(
++            r"\(f'(x)=3(x+1)(x-1)\)이므로 \(f\)는 \(x=-1\)에서 극댓값 \(9\), \(x=1\)에서 극솟값 \(5\)를 갖는다. "
++            r"따라서 \(t&lt;0\), \(t=0\), \(0&lt;t&lt;5\), \(t=5\), \(5&lt;t&lt;9\), \(t=9\), \(t>9\)에서 "
++            r"\(g(t)\)는 각각 \(0,1,2,3,4,3,2\)이다. \(g\)의 좌우극한이 다른 곳은 \(0,5,9\)뿐이다.<br>"
++            r"\(q(x)=(x-u)^2+m\)으로 놓자. \(c\in\{0,5,9\}\)에 대하여 \(m&lt;c\)이면 \(q(x)=c\)인 두 점에서 "
++            r"\(q(x)\)가 \(c\)의 양쪽 값을 가지므로 합성함수의 양쪽 극한은 존재하지 않는다. "
++            r"\(m=c\)이면 \(x\to u\)일 때 \(q(x)\)는 양쪽 모두 \(c\)보다 큰 값으로 다가가므로 극한은 존재한다. "
++            r"\(m>c\)이면 \(q(x)=c\)인 점이 없다.<br>"
++            r"따라서 극한이 존재하지 않는 점의 개수는 \(m&lt;0\)에서 \(6\), \(0\le m&lt;5\)에서 \(4\), "
++            r"\(5\le m&lt;9\)에서 \(2\), \(m\ge9\)에서 \(0\)이다. (가)에서 \(5\le m&lt;9\)이고 "
++            r"\(\alpha,\beta\)는 \(q(x)=9\)의 두 근이다.<br>"
++            r"(나)에 의해 두 근 중 하나가 \(0\)이므로 \(q(0)=9\), 즉 \(u^2+m=9\)이다. "
++            r"따라서 \(0&lt;u^2\le4\)이고 \(q(1)=1-2u+u^2+m=10-2u\)이다. "
++            r"\(u\le2\)이므로 최솟값은 \(6\)이다. \(u=2,m=5\)일 때 "
++            r"\(q(x)=(x-2)^2+5\)이고 극한이 존재하지 않는 점은 \(0,4\)뿐이므로 실제로 이 값을 갖는다."
++        ),
++        fast=r"개수 함수의 점프 높이는 \(0,5,9\)이다. 합성 극한이 두 점에서만 없으려면 이차함수의 최솟값 \(m\)은 \(5\le m&lt;9\)이다. \(q(0)=9\)에서 \(q=(x-u)^2+9-u^2\), \(0&lt;u^2\le4\). 따라서 \(q(1)=10-2u\ge6\).",
++        wrongs=['4', '5'],
++        wrong=r"③ \(4\): 높이 \(5\)에서의 점프를 빠뜨려 \(0\le m&lt;9\)로 판단하면 \(u=3,m=0\)을 허용하여 \(q(1)=4\)를 얻는다. ④ \(5\): 올바른 경계 함수 \(q(x)=x^2-4x+9\)를 구한 뒤 \(q(1)\)을 계산할 때 이차항 \(1\)을 빠뜨리면 \(5\)가 된다.",
++        note=r"원본의 점프 상쇄는 사용되지 않는다. 도함수로 두 극값 높이를 정하고, 세 높이를 꼭짓점이 통과하는 경우를 나누어 합성 극한을 판정한다. 꼭짓점에서의 함숫값과 극한값이 달라도 극한은 존재한다. 최솟값은 연속으로 움직이는 \(u\)의 경계 \(u=2\)에서 달성된다. 독립 검토·블라인드 측정 전 후보이다.",
++    ),
++}
+diff --git a/output/build/기말/2회/후보/c18.py b/output/build/기말/2회/후보/c18.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..cf3c2a371ecdc774f3e140ec1591eaf7f8bfd623
+--- /dev/null
++++ b/output/build/기말/2회/후보/c18.py
+@@ -0,0 +1,37 @@
++# -*- coding: utf-8 -*-
++ITEMS = {
++    18: dict(
++        body=r"""최고차항의 계수가 \(1\)인 사차함수 \(f(x)\)와 실수 \(k\)가 다음 조건을 만족시킬 때, \(k\)의 값은?""",
++        cond=[
++            ('가', r"\(\displaystyle\lim_{x\to0}\frac{f(x)-1}{x^2}=k\)이다."),
++            ('나', r"모든 실수 \(x\)에 대하여 \(f(x)\ge1\)이고, 방정식 \(f(x)=1\)의 서로 다른 실근의 개수는 \(2\)이다."),
++            ('다', r"열린구간 \(\left(\frac12,\frac32\right)\)의 모든 \(x\)에 대하여 \(f(x)\ge f(1)\)이다."),
++        ],
++        choices=['0', '1', '2', '3', '4'], ans=2,
++        key='D45', src='2025년 수능특강 [25009-0097]',
++        author='codex', cand='codex18', level='상',
++        vtype=['함수 교체', '구조 변경', '조건 변경'],
++        effect='어려워짐', bunseok=False, precedent='2학기 중간 18번',
++        core=dict(
++            axis='②',
++            setting='원문은 최고차항 계수 1인 삼차함수에서 f-2가 (x+2)의 제곱과 일차식의 곱이다.',
++            principle='유한한 이차 분모의 극한은 해당 점의 함숫값과 도함숫값을 정하고, 열린구간에서의 하한 조건은 그 점이 극소점임을 뜻한다.',
++            new='사차함수로 한 차수 올려 남은 이차인수의 실근 배치를 판정한다. 전 구간 하한과 서로 다른 두 근으로 두 제곱인수를 얻고, 고정점이 그 두 근 사이의 극대점인지 다른 극소점인지 구별한다.',
++        ),
++        var='[설정 교체] 삼차함수의 접촉점 하나와 나머지 일차인수 → 사차함수의 두 접촉점과 그 사이의 극대점. 극한·국소 최솟값 판정은 유지한다.',
++        sol=(
++            r"(가)에서 \(f(0)=1\), \(f'(0)=0\)이다. (나)에 의해 \(f(x)-1\)은 모든 실수에서 음이 아니고 서로 다른 두 실근을 갖는다. "
++            r"실근에서 부호가 바뀌지 않아야 하므로 각 인수의 지수는 짝수이다. 따라서 \(0\)이 아닌 실수 \(r\)에 대하여 "
++            r"\(f(x)-1=x^2(x-r)^2\)이고, \(k=r^2\)이다.<br>"
++            r"\(f'(x)=2x(x-r)(2x-r)\)이다. (다)에서 \(x=1\)은 극소점이므로 \(f'(1)=0\), "
++            r"즉 \(2(1-r)(2-r)=0\)이다. 따라서 \(r=1\) 또는 \(r=2\)이다.<br>"
++            r"\(r=2\)이면 \(f'(x)=4x(x-1)(x-2)\)는 \(x=1\)의 왼쪽에서 양수, 오른쪽에서 음수이므로 "
++            r"\(x=1\)이 극대점이다. 이는 (다)에 어긋난다. \(r=1\)이면 \(f(x)=x^2(x-1)^2+1\)이고 "
++            r"\(f(1)=1\)이므로 세 조건을 모두 만족시킨다. 따라서 \(k=1\)이다."
++        ),
++        fast=r"전 구간 하한과 두 실근에서 \(f-1=x^2(x-r)^2\). 극소점은 \(0,r\), 그 사이의 극대점은 \(r/2\)이다. \(1\)은 \(0\)이 아닌 극소점이므로 \(r=1\), \(k=r^2=1\).",
++        wrongs=['2', '4'],
++        wrong=r"③ \(2\): \(f(x)=x^2(x-1)^2+1\)을 구한 뒤 극한값을 \(f''(0)=2\)로 계산한다. 실제 극한값은 \(f''(0)/2\)이다. ⑤ \(4\): (다)를 \(f'(1)=0\)으로만 해석하여 \(r=2\)인 극대점 후보를 택하면 \(k=4\)이다.",
++        note=r"원문의 유한 극한·국소 최소 판정 원리는 유지한다. 삼차의 나머지 일차인수 설정은 통하지 않고, 사차에서 두 근의 지수와 극대·극소 위치를 함께 정해야 한다. (나)의 전 구간 하한을 빼면 \(f(x)=x^4-\frac43x^3+1\), 두 실근 조건을 빼면 \(f(x)=x^4-\frac{11}{5}x^3+\frac{13}{10}x^2+1\)이 각각 남아 답이 달라진다. 독립 검토·블라인드 측정 전 후보이다.",
++    ),
++}
+diff --git a/output/build/기말/2회/후보/verify_c17.py b/output/build/기말/2회/후보/verify_c17.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..5097b99064822d61155d005967d37bb94ae9db70
+--- /dev/null
++++ b/output/build/기말/2회/후보/verify_c17.py
+@@ -0,0 +1,118 @@
++# -*- coding: utf-8 -*-
++"""M31 후보: 임계 높이 전수 분류, 합성 극한, 최솟값·오답·빼 보기."""
++from pathlib import Path
++import runpy
++import sympy as s
++
++x, t, u, m, c = s.symbols('x t u m c', real=True)
++R = s.Rational
++it = runpy.run_path(str(Path(__file__).with_name('c17.py')))['ITEMS'][17]
++assert it['key'] == 'M31' and it['author'] == 'codex'
++
++
++def distinct_real(poly):
++    return set(s.Poly(poly, x).real_roots(radicals=False))
++
++
++def count_abs(poly, height):
++    if height < 0:
++        return 0
++    if height == 0:
++        return len(distinct_real(poly))
++    return len(distinct_real(poly-height)) + len(distinct_real(poly+height))
++
++
++# 원문: 도함수의 근으로 임계 높이를 완전히 구한다.
++original = x**3-3*x**2-9*x+10
++critical = s.solve(s.diff(original, x), x)
++assert critical == [-1, 3]
++assert [original.subs(x, v) for v in critical] == [15, -17]
++levels_original = [0, 15, 17]
++eps = R(1, 100)
++original_h = lambda z: count_abs(original, z)-count_abs(original, z-2)
++candidates = sorted(set(levels_original + [v+2 for v in levels_original]))
++discontinuous = []
++for z in candidates:
++    triple = [original_h(z-eps), original_h(z), original_h(z+eps)]
++    if len(set(triple)) > 1:
++        discontinuous.append(z)
++assert discontinuous == [0, 2, 15, 19]
++assert sum(discontinuous) == 36
++assert [original_h(17-eps), original_h(17), original_h(17+eps)] == [-2]*3
++print('원문 M31: 불연속점 [0, 2, 15, 19], 합 36 OK')
++
++# 후보: 각 단조 구간의 끝점 높이가 유일한 임계 높이이다.
++f = x**3-3*x+7
++assert s.expand(s.diff(f, x)-3*(x-1)*(x+1)) == 0
++assert [f.subs(x, z) for z in [-1, 1]] == [9, 5]
++levels = [0, 5, 9]
++heights = [-1, 0, 1, 5, 6, 9, 10]
++assert [count_abs(f, z) for z in heights] == [0, 1, 2, 3, 4, 3, 2]
++side_counts = {z: (count_abs(f, z-eps), count_abs(f, z+eps)) for z in levels}
++assert side_counts == {0: (0, 2), 5: (2, 4), 9: (4, 2)}
++
++
++def bad_points(q):
++    """각 점의 국소 전개: 홀수 차수로 높이를 통과할 때만 양쪽 극한이 다르다."""
++    result = set()
++    for height in levels:
++        for root, mult in s.roots(q-height, x).items():
++            if root.is_real and mult % 2 and side_counts[height][0] != side_counts[height][1]:
++                result.add(root)
++    return result
++
++
++# 전 실수 m의 분류를 결정하는 판별식: 양수면 두 단순근, 0이면 접촉점.
++q = (x-u)**2+m
++assert s.discriminant(q-c, x) == 4*(c-m)
++assert s.expand(q.subs(m, c)-c) == s.expand((x-u)**2)
++# 임계점 사이에서 개수는 불변. 0,5,9 각각의 경계도 별도 확인한다.
++cells = [(-1, 6), (0, 4), (1, 4), (5, 2), (7, 2), (9, 0), (10, 0)]
++for height, expected in cells:
++    assert len(bad_points(q.subs({u: 2, m: height}))) == expected
++assert s.reduce_inequalities([m >= 5, m < 9], m).as_set() == s.Interval.Ropen(5, 9)
++# (가)에서 m in [5,9), 두 근은 q=9의 근. 근의 곱은 u²+m-9.
++assert s.Poly(q-9, x).TC() == u**2+m-9
++m_value = s.solve(u**2+m-9, m)[0]
++assert m_value == 9-u**2
++domain = s.reduce_inequalities([m_value >= 5, m_value < 9], u)
++expected_domain = s.Union(s.Interval.Ropen(-2, 0), s.Interval.Lopen(0, 2))
++assert domain.as_set() == expected_domain
++target = s.expand(q.subs({x: 1, m: m_value}))
++assert target == 10-2*u and s.diff(target, u) == -2
++answer = target.subs(u, 2)
++assert answer == 6
++attainer = s.expand(q.subs({u: 2, m: 5}))
++assert bad_points(attainer) == {s.Integer(0), s.Integer(4)}
++# 꼭짓점 x=2에서는 g의 함숫값은 3, 양쪽 극한은 4: 극한은 존재한다.
++assert count_abs(f, 5) == 3 and side_counts[5][1] == 4
++print('17: m 전체 분류 6/4/2/0, 허용 u=[-2,0)∪(0,2], 최솟값 6 OK')
++
++choices = list(map(s.sympify, it['choices']))
++assert len(choices) == len(set(choices)) == 5
++assert {choices[i+1]-choices[i] for i in range(4)} == {1}
++assert it['ans'] == 5 and choices[it['ans']-1] == answer
++wrong_drop_level = ((x-3)**2).subs(x, 1)
++wrong_drop_term = (attainer-x**2).subs(x, 1)
++assert [wrong_drop_level, wrong_drop_term] == [4, 5]
++assert it['wrongs'] == [str(wrong_drop_level), str(wrong_drop_term)]
++assert all(s.sympify(v) in choices and s.sympify(v) != answer for v in it['wrongs'])
++
++# 조건 삭제는 숫자 교체가 아니라 나머지 조건을 만족하는 반례로 확인한다.
++# (가)를 없애면 α,β는 (나)만 만족하면 되므로 임의 q가 가능하다.
++# 더 강한 증인: α=0,β=6 둘 다 실제 극한 부재점이지만 추가 부재점도 있다.
++without_count = (x-3)**2
++assert {s.Integer(0), s.Integer(6)} <= bad_points(without_count)
++assert len(bad_points(without_count)) == 4
++assert without_count.subs(x, 1) == 4 < answer
++print('ABLATION 17 (가) 두 점뿐: 필요(q=(x-3)^2, 부재점 네 개, q(1)=4)')
++without_product = (x-1)**2+5
++assert bad_points(without_product) == {-1, 3}
++assert without_product.subs(x, 1) == 5 < answer
++print('ABLATION 17 (나) 두 점의 곱 0: 필요(q=(x-1)^2+5, q(1)=5)')
++without_monic = 4*(x-1)**2+5
++assert bad_points(without_monic) == {0, 2}
++assert without_monic.subs(x, 1) == 5 < answer
++print('ABLATION 17 최고차항 계수 1: 필요(q=4(x-1)^2+5, q(1)=5)')
++print('선지·정답 위치 ⑤·오답 4,5 OK')
++print('ALL OK')
+diff --git a/output/build/기말/2회/후보/verify_c18.py b/output/build/기말/2회/후보/verify_c18.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..db6ee8d6cfd584099f2f238abd5c1a4ecf2b8fd8
+--- /dev/null
++++ b/output/build/기말/2회/후보/verify_c18.py
+@@ -0,0 +1,92 @@
++# -*- coding: utf-8 -*-
++"""D45 후보: 사차의 근 지수 전수 분류·두 후보 배제·조건별 반례."""
++from pathlib import Path
++import runpy
++import sympy as s
++
++x, a, b, c, d, r = s.symbols('x a b c d r', real=True)
++R = s.Rational
++it = runpy.run_path(str(Path(__file__).with_name('c18.py')))['ITEMS'][18]
++assert it['key'] == 'D45' and it['author'] == 'codex'
++
++# 원문을 직접 푼다: 유한 극한의 두 소거 조건 + 내부 극소점.
++original = x**3+a*x**2+b*x+c
++osol = s.solve([original.subs(x, -2)-2, s.diff(original, x).subs(x, -2),
++               s.diff(original, x).subs(x, 4)], (a, b, c), dict=True)
++assert len(osol) == 1
++original = original.subs(osol[0])
++assert s.expand(s.diff(original, x)-3*(x-4)*(x+2)) == 0
++assert s.diff(original, x, 2).subs(x, 4) > 0
++assert s.limit((original-2)/(x+2)**2, x, -2) == -9
++assert original.subs(x, 8) == 102
++print('원문 D45: 유일한 삼차함수, f(8)=102 OK')
++
++general = x**4+a*x**3+b*x**2+c*x+d
++finite = s.solve([general.subs(x, 0)-1, s.diff(general, x).subs(x, 0)], (c, d))
++assert finite == {c: 0, d: 1}
++assert s.limit((general.subs(finite)-1)/x**2, x, 0) == b
++# 두 실근 모두 짝수 지수여야 전 구간에서 부호가 바뀌지 않는다.
++# 차수 4의 모든 양의 지수 분배를 전수 조사하면 (2,2)뿐이다.
++partitions = [(i, 4-i) for i in range(1, 4)]
++assert [(i, j) for i, j in partitions if i % 2 == j % 2 == 0] == [(2, 2)]
++family = x**2*(x-r)**2+1
++assert s.Poly(family, x).LC() == 1
++k = s.limit((family-1)/x**2, x, 0)
++assert k == r**2
++derivative = s.factor(s.diff(family, x))
++assert s.expand(derivative-2*x*(x-r)*(2*x-r)) == 0
++candidates = s.solve(derivative.subs(x, 1), r)
++assert candidates == [1, 2]
++survivors = [rr for rr in candidates if s.diff(family, x, 2).subs({x: 1, r: rr}) > 0]
++assert survivors == [1]
++solution = family.subs(r, survivors[0])
++assert s.factor(solution-1) == x**2*(x-1)**2
++assert s.solve(solution-1, x) == [0, 1]
++assert s.expand(solution-solution.subs(x, 1)) == s.expand(x**2*(x-1)**2)
++answer = k.subs(r, survivors[0])
++assert answer == 1
++print('18: 짝수 지수 배분 (2,2), r=1 또는 2 중 r=1만 극소, k=1 OK')
++
++choices = list(map(s.sympify, it['choices']))
++assert len(choices) == len(set(choices)) == 5
++assert {choices[i+1]-choices[i] for i in range(4)} == {1}
++assert it['ans'] == 2 and choices[it['ans']-1] == answer
++wrong_second_derivative = s.diff(solution, x, 2).subs(x, 0)
++wrong_maximum = k.subs(r, 2)
++assert [wrong_second_derivative, wrong_maximum] == [2, 4]
++assert it['wrongs'] == [str(wrong_second_derivative), str(wrong_maximum)]
++assert all(s.sympify(v) in choices and s.sympify(v) != answer for v in it['wrongs'])
++
++# 모든 명시 조건을 개별 삭제한다. (나)의 두 절도 따로 검사한다.
++without_limit = (x-1)**2*(x-2)**2+1
++assert s.solve(without_limit-1, x) == [1, 2]
++assert s.diff(without_limit, x).subs(x, 1) == 0
++assert without_limit.subs(x, 1) == 1
++assert s.limit((without_limit-1)/x**2, x, 0) == s.oo
++print('ABLATION 18 (가) 유한 극한: 필요(f=(x-1)^2(x-2)^2+1 허용, k 미정)')
++without_lower = x**4-R(4, 3)*x**3+1
++assert s.solve(without_lower-1, x) == [0, R(4, 3)]
++assert s.limit((without_lower-1)/x**2, x, 0) == 0
++assert s.expand(s.diff(without_lower, x)-4*x**2*(x-1)) == 0
++assert s.expand(without_lower-without_lower.subs(x, 1)-(x-1)**2*(3*x**2+2*x+1)/3) == 0
++assert s.discriminant(3*x**2+2*x+1, x) < 0
++print('ABLATION 18 (나) 전 구간 하한: 필요(f=x^4-4x^3/3+1, k=0)')
++# (다)는 작은 근방만 아니라 주어진 열린구간 전체에서 확인한다.
++without_two = x**4-R(11, 5)*x**3+R(13, 10)*x**2+1
++assert s.solve(without_two-1, x) == [0]
++assert s.discriminant(x**2-R(11, 5)*x+R(13, 10), x) < 0
++assert s.limit((without_two-1)/x**2, x, 0) == R(13, 10)
++assert s.expand(without_two-without_two.subs(x, 1)-(x-1)**2*(10*x**2-2*x-1)/10) == 0
++assert (10*x**2-2*x-1).subs(x, R(1, 2)) == R(1, 2)
++assert s.diff(10*x**2-2*x-1, x).subs(x, R(1, 2)) > 0
++print('ABLATION 18 (나) 서로 다른 두 근: 필요(f=x^4-11x^3/5+13x^2/10+1, k=13/10)')
++without_local_min = family.subs(r, 2)
++assert s.solve(without_local_min-1, x) == [0, 2]
++assert s.limit((without_local_min-1)/x**2, x, 0) == 4
++assert s.diff(without_local_min, x, 2).subs(x, 1) < 0
++print('ABLATION 18 (다) 구간 하한: 필요(f=x^2(x-2)^2+1, k=4)')
++without_monic = 2*x**2*(x-1)**2+1
++assert s.limit((without_monic-1)/x**2, x, 0) == 2
++print('ABLATION 18 최고차항 계수 1: 필요(f=2x^2(x-1)^2+1, k=2)')
++print('선지·정답 위치 ②·오답 2,4 OK')
++print('ALL OK')
+
+exec
+/bin/bash -lc 'git status --short --untracked-files=all' in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+?? "output/build/\352\270\260\353\247\220/2\355\232\214/parts/CODEX_RUN_INFO_2\355\232\214-1.txt"
+?? "output/build/\352\270\260\353\247\220/2\355\232\214/parts/c5.py"
+?? "output/build/\352\270\260\353\247\220/2\355\232\214/parts/verify_c5.py"
+?? "output/build/\352\270\260\353\247\220/2\355\232\214/\355\233\204\353\263\264/c17.py"
+?? "output/build/\352\270\260\353\247\220/2\355\232\214/\355\233\204\353\263\264/c18.py"
+?? "output/build/\352\270\260\353\247\220/2\355\232\214/\355\233\204\353\263\264/verify_c17.py"
+?? "output/build/\352\270\260\353\247\220/2\355\232\214/\355\233\204\353\263\264/verify_c18.py"
+
+exec
+/bin/bash -lc 'PYTHONPATH="$PWD/template/db/parts" python3 output/build/기말/2회/checkpart.py output/build/기말/2회/후보/c17.py' in /home/runner/work/Finale/Finale
+exec
+/bin/bash -lc "python3 - <<'PY'
+import sys,runpy,re
+from pathlib import Path
+sys.path[:0]=['output/build/기말/지침','template/db/parts','output/build/부교재_기말']
+import schoolcheck as S,items_final as F,dupcheck as D
+files=['후보/c17.py','후보/c18.py','parts/c5.py']
+base=Path('output/build/기말/2회')
+for file in files:
+ ns=runpy.run_path(str(base/file)); n,it=next(iter((ns.get('ITEMS') or ns['SITEMS']).items()))
+ body=S.body(it); subs=''.join(q for q,_ in it.get('subs',[]))
+ old=F.I[it['key']][0]
+ print(n,'원문 골격 유사도',round(S.odist(it),3),'길이(정규화) 원문/변형',len(D.norm(old)),len(D.norm(body+subs)))
+ assert S.odist(it)<0.25
+ assert len(D.norm(body+subs))>=.9*len(D.norm(old))
+ assert not re.search(r'(?<"'!&lt;)<(?=[a-zA-Z0-9'"\\\\])',re.sub(r'<["'^>]+>'"','',body))
+print('지정 파일·원문 거리·길이 확인 OK')
+PY" in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+17 원문 골격 유사도 0.164 길이(정규화) 원문/변형 102 184
+18 원문 골격 유사도 0.157 길이(정규화) 원문/변형 125 159
+S2 원문 골격 유사도 0.13 길이(정규화) 원문/변형 92 175
+지정 파일·원문 거리·길이 확인 OK
+
+ succeeded in 299ms:
+17: 통과 골격 0.42 원문 0.34 ← [익스텐션] LIVE1-02-098 양정고 2024 7번 · 부교재 115p 31번
+17: [절댓값-수평선] 원문에도 있음(원리 유지형이면 허용)
+흔한 패턴 표시 0 개
+== 학교 선례 (복습형)
+학교 선례 표시 0 개
+== 중복 (복습형)
+== 말투
+== 형식
+형식 표시 0 개
+== 관문 (17·18·서답형2, 지침 0-4)
+17: 독립 검토 기록 없음 (review/codex17.json) → 관문 3 미완, 블라인드 측정 금지
+
+codex
+17번 후보 ⑤(6), 18번 후보 ②(1), 서답형2 (4, 1/8, 23/4) — verify 모두 ALL OK, checkpart 통과(독립 검토 대기).
+tokens used
+130,607
+17번 후보 ⑤(6), 18번 후보 ②(1), 서답형2 (4, 1/8, 23/4) — verify 모두 ALL OK, checkpart 통과(독립 검토 대기).

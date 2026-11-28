@@ -1,0 +1,1934 @@
+`과 같고, 정해 준 정답 번호와 같은지
+  - 답이 하나로 정해지는지. 경우 분기나 후보가 있으면 전수 조사한다.
+  - 선지 5개가 서로 다르고 등차 배열인지(오름차순 또는 내림차순)
+  - `wrong`에 적은 오답 값이 실제로 선지에 있는지
+  - 원문을 직접 풀어 정답이 맞는지
+- 그림이 필요하면 `parts/fig_b3_번호.svg`로 저장하고 본문에 `<div class="fig"><img src="fig_b3_번호.svg" style="width:140pt"></div>`처럼 넣는다.
+  - 원문 그림을 그대로 쓰려면 그 svg를 이 이름으로 복사한다.
+  - 새로 그리면 `지침/figkit.py`로 그린다(직접 matplotlib 설정 금지). Codex는 그림을 만들지 않고 그릴 내용만 note에 적는다(Claude가 그림).
+
+## 공동 출제 (2회)
+- 분담표: `../공동출제/2회_분담표.md`. Claude 문항은 `parts/p*.py`(author='claude'), Codex 문항은 `parts/c*.py`(author='codex').
+- 번호대별 측정 목표 (2학기 중간 기준 프로필, 블라인드 풀이 패널 평균, 50분 환산): `../공동출제/풀이/기준프로필/profile.json`
+
+| 번호대 | 체감 난도(10점) | 시간(분, 번호대 합) | 특징 |
+|---|---|---|---|
+| 1–4 | 1.8 (1–3) | 3.8 | 기본. 숫자만 바꾼 단순 계산은 1–2번 중 하나까지 |
+| 5–8 | 4.2 (3–5) | 7.3 | 원문과 같은 무게, 숫자 + 함수 교체·조건·형식 중 1–2가지 (0-8) |
+| 9–12 | 4.9 (4–6) | 9.8 | 9번이 가장 무거움(5.7), 11번 가벼움(3.7) |
+| 13–16 | 5.6 (5–7), 16번 7.0 | 12.1 | 16번은 17번에 버금가게 |
+| 17–18 | 7.5 (7–8) | 9.8 | 판단 무겁고 계산 가볍게 |
+| 서답형 | 1번 3.0 · 2번 6.3 | 7.3 | 서답형1은 기본 서술 |
+
+- 견본3을 같은 방법으로 쟀을 때 17·18이 +1.3, 서답형1이 +2.0 무거웠다. 같은 실수를 하지 않는다.
+- 견본4에서 배운 것:
+  - 17번 초안은 상수를 t로 바꾼 개수 함수(흔한 패턴)라 원문 원리가 그대로 통해 실패했다. 후보 경쟁으로 바꾼 문항은 −0.8, +0.7로 맞았다.
+  - Codex 후보는 구하는 값이 인위적(\(\sqrt5f(\sqrt5)\))이거나, 정적분이 마지막 계산에만 쓰여(단원 개념 미흡) 떨어졌다. 구하는 값은 자연스러운 함숫값·정적분으로 하고, 원문 단원의 개념이 조건에서 일하게 한다.
+  - 14번은 범위 밖 곡선(\(x=y^2/a\))과 그림에만 있던 좌표 때문에 다시 냈다(0-1-1, 그림 수치 규칙).
+  - 선지에 \(f\ge0\)인데 음수 값처럼 계산 없이 지워지는 값을 두지 않는다.
+
+## 검사 (모두 통과해야 끝)
+`python3 checkpart.py parts/pN.py`(Codex는 parts/cN.py)를 실행한다(이 폴더에서).
+- **중복**
+  - '금지'가 0개여야 한다.
+  - 17·18·서답형2는 골격 0.60 미만이어야 한다. 그 밖의 번호는 '허용(숫자만 다름)'과 '주의'까지 괜찮다.
+- **말투**: '자료에 없는 어절'이 나오면 0-6 표대로 고친다. 수학 용어로 꼭 필요한 경우만 남긴다.
+- **형식**
+  - 선지는 등차 배열이어야 한다.
+  - 상자 문항은 질문 → 상자 순서로 쓴다. 상자 뒤에 질문을 두는 형식은 18번 같은 최고난도 한 문항에만 허용한다.
+  - 수식에는 l, o, W, V, Y, Z를 변수로 쓰지 않는다(글꼴에 없음).
+
+## 17·18·서답형2 관문 (순서 고정, front.md 0-4 설계 카드)
+1. **중복·정답:** 골격 0.60 미만, sympy 전수 검증, 조건 빼 보기에서 모든 조건이 '필요'.
+2. **흔한 패턴:** checkpart의 '흔한 패턴 표시'가 0개여야 한다. 원문에 없던 t-개수함수, 절댓값-수평선, 높이만 교체를 새로 넣으면 구조 변경이 아니다.
+3. **독립 검토:** 출제자가 아닌 검토자가 원문 핵심 한 줄(설정 줄·원리 줄)이 변형에서 통하는지 본다. ①형(설정 유지·원리 교체)은 원리 줄이, ②형(원리 유지·설정 교체)은 설정 줄이 불통이어야 한다. d_step은 0.75 이상이어야 한다. 기록은 `review/<후보>.json`에 남기며 checkpart가 읽는다. **이 관문 전에는 난도를 재지 않는다.**
+4. **블라인드 측정:** 학교 8·12·17·18 앵커를 섞어 푼다. 학교 같은 번호와의 차이가 ±1.5 안이어야 한다.
+5. **형식·말투**
+- **후보 경쟁:** 17·18은 Claude·Codex가 후보를 하나씩 `후보/`에 낸다(`cand='claude17'`처럼). 독립 검토자가 관문 3·4로 고른 후보만 `parts/`로 옮긴다.
+- **3단 구분을 먼저 적는다:** 문항 dict에 `core=dict(axis='①'|'②', setting='원문 설정 줄', principle='원문 원리 줄', new='변형의 새 핵심 줄')`을 넣는다. 검토자가 이 줄로 '핵심 한 줄 테스트'를 한다.
+
+## 조건 빼 보기 (모든 번호 권장, 15–18·서답형 필수)
+verify 스크립트에서 본문 조건·상자 조건을 하나씩 지우고 답이 바뀌거나 정해지지 않음을 보인다. 출력은 `ABLATION <번호> <조건>: 필요(...)` 또는 `군더더기(답 그대로)` 형식이다. 군더더기가 나오면 그 조건을 빼거나 일하는 조건으로 바꾼다.
+
+## 작성 규칙 (사용자가 여러 번 지적한 것)
+- **수식 표기**
+  - 수식은 `\( \)`(KaTeX), 가운데 줄 수식은 `\[ \]`로 쓴다. HTML 안에서 `<`는 `&lt;`로 쓴다.
+  - 조각함수·부등식·관계식은 가운데 줄로, 짧은 정의는 문장 안에 쓴다.
+- **군더더기**: 쓸데없는 괄호 설명, 답이 바뀌지 않는 단서, '(자체 제작)' 같은 표기는 넣지 않는다.
+- **말투**: 자료식 말투(0-6)를 쓴다. '속한다', '생각하자', '~마다', '중근' 같은 말은 쓰지 않는다.
+- **선지**
+  - 5개 등차 배열로 둔다. 기본은 공차 1이고 2, 5, 1/2 등도 쓸 수 있다.
+  - 학교식: 오름차순 위주(내림차순은 회당 2개까지), 공차 1 위주(2·5·1/2·1/5 가능). 오답 근거를 넣으려고 공차를 키우지 않는다(0-8).
+  - 원문이 단답형이면 5지선다로 바꾼다.
+  - 13번 이상에서 답이 분수가 나오면 상수배를 붙이거나 묻는 양을 바꿔 정수로 만든다.
+- **질문 위치**: 조건 상자가 있으면 '…가 다음 조건을 만족시킬 때, ~의 값은?' 다음에 상자를 둔다.
+- **함수 소개 순서**: 함수·미정계수는 첫 문장에서 소개한다.
+- **중복 금지**: 익스텐션·분석집과 같은 문항은 금지다. 숫자만 바꾼 출제는 1–16번에서는 허용되지만, 17·18·서답형2에서는 허용되지 않는다.
+- **평가 요소 유지**: 어느 번호든 원문이 재는 단원 핵심 개념(극한·연속, 미분가능성, 넓이 등)은 바꾸지 않는다. 바꾸는 것은 설정·원리·수치이고 주제는 그대로 둔다.
+- **출제 범위**: 미적분Ⅰ 다항함수만 쓴다. 넓이는 \(y=f(x)\) 그래프를 \(x\)로 적분해 구한다. \(x=g(y)\) 꼴 곡선, 이차곡선, \(y\)에 대한 적분, 지수·로그·삼각함수는 금지다(front.md 0-1-1).
+- **17·18 문장 길이**: 원문 길이와 조건 수를 유지하거나 늘린다(학교 18번 270→272자, 조건 2→3). 앞번호 길이 규칙은 1–8번에만 쓴다. 계수를 미리 정해 조건을 줄이는 식으로 짧게 만들지 않는다.
+- **그림 문항 수**: 한 회에 2–3개. 1–8번에는 두지 않고 9번 이후에 흩어 둔다. 그림은 새로 만들지 않고, 원문에 그림이 있는 문항을 분담 단계에서 골라 그 그림을 쓴다. 분담표에 그림 번호와 원문을 미리 정한다.
+- **그림 그리기 (1회 지적 반영):** 그림은 Claude가 `지침/figkit.py`로 그린다(시험지 수식 글꼴 HyhwpEQ·Tinos, 화살표 축, 회색 칠). Codex 실행기에는 이 글꼴이 없어 DejaVu로 대체되어 스타일이 달라지므로, Codex는 그림 파일을 만들지 않고 본문에 `<div class="fig"><img src="fig_번호.svg" style="width:150pt"></div>` 자리와 그릴 내용(함수식·라벨·칠할 영역)만 note에 적는다. 그림 스크립트는 `<회차>/figs/fig번호.py`에 둔다.
+- **줄 바꾼 식(\[ \]) (1회 지적 반영):** 원문에 줄을 바꿔 쓴 식이 있는 자리에만 쓴다. 원문에 없던 짧은 식(부등식 한 줄, 넓이 관계식, 조건 상자 안의 짧은 식)은 문장 안에 쓴다. 억지로 줄을 바꿔 들여쓰지 않는다. 조각함수(cases)처럼 여러 줄인 식만 예외다.
+- **단서·조건 표현 (1회 16번 지적):** 원문의 단서("(단, \(n\)은 자연수이다.)" 등)와 조건 범위는 원문 표현 그대로 둔다. 풀이에 필요 없는 범위로 좁히거나(예: \(n=1,2,\ldots,6\)) 새 단서를 덧붙이지 않는다. 원문 단서가 줄을 바꿔 따로 있으면(`<br>(단, …)`) 그 배치도 따른다. 새 단서는 답이 정해지는 데 꼭 필요할 때만 쓰고 note에 이유를 적는다.
+- **그림 수치**: 풀이에 쓰는 좌표·길이·값은 본문에 쓰고, 그림은 모양 확인용으로만 쓴다.
+- **앞번호 길이**: 억지로 줄이지 않는다. 1–4번은 (가)(나) 조건 상자가 여러 개인 긴 문항만 빼고, 5–8번은 원문 정도 길이면 된다(너무 긴 것만 피함). 1–8번 모두 개념 판단 1개(등호, 범위, 단조성, 좌·우극한, 부호, 그래프 읽기 등)가 핵심이고 계산은 짧게 한다(front.md '1–8번 공통').
+- **번호대별 변형 강도**: front.md 0-8 표대로 한다. 1–12번은 같음·쉬워짐, 13–16번은 어려워짐 1–2개, 17·18·서답형2는 0-4. 복습형 회차는 분석집 문항에서만 분석집 TIP 함정을 쓴다.
+
+## 배점 (빌드가 붙이므로 본문에 쓰지 않음)
+| 번호 | 배점 |
+|---|---|
+| 1–4 | 4.0 |
+| 5–8 | 4.2 |
+| 9–10 | 4.4 |
+| 11–12 | 4.5 |
+| 13–15 | 4.7 |
+| 16 | 4.9 |
+| 17–18 | 5.2 |
+| 서답형 | 각 10점 (S1: 4 + 6점, 풀이과정 서술 / S2: 4 + 4 + 2점, 답만) |
+
+---
+# 이번 작업
+작업 지시서 output/build/기말/공동출제/2회-2_codex.md에 적힌 번호만 출제한다. 결과물은 작업 지시서에 적힌 파일이다(적혀 있지 않으면 output/build/기말/2회/parts/c*.py 와 verify_c*.py. 17·18 후보는 output/build/기말/2회/후보/). 그림 파일은 만들지 않는다(Claude가 그린다). 각 verify 스크립트가 ALL OK, checkpart.py가 통과할 때까지 고친다. 보고서 파일은 쓰지 않는다(토큰 절약 5: 내용은 문항 파일에 있다). 마지막 답은 한 줄(맡은 번호·정답·ALL OK 여부)로 끝낸다. git commit/push는 하지 않는다(워크플로가 한다).
+codex
+작업 지시서의 담당 번호와 원문 카드를 확인한 뒤, 지정 파일만 작성하고 검증하겠습니다.
+
+exec
+/bin/bash -lc 'cat output/build/기말/공동출제/2회-2_codex.md' in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+MODEL: gpt-6-astra
+EFFORT: medium
+
+# Codex 작업 지시서 2/2: 2회(복습형) 홀수 1–15번
+
+지침 전문(AGENTS.md · front.md · 2회 BRIEF.md)은 프롬프트 앞에 이미 있다. 이번 회차는 **복습형**이다(round.json). 분담표는 `output/build/기말/공동출제/2회_분담표.md`, 학교 선례는 `output/build/기말/지침/school_recipes.json`이다.
+
+| 번호 | 원문 | 분석집 방향(`bunseok`) | 그림 | 목표 체감 · 시간 | 정답 | 파일 |
+|---|---|---|---|---|---|---|
+| 1 | D17 (EBS, 난도 3) | — (False) | | 1.3 · 0.7분 | ② | `parts/c1.py` |
+| 3 | I29 (EBS, 3) | **○ (True)** | | 1.3 · 0.8분 | ① | `parts/c1.py` |
+| 5 | J20 (EBS, 4) | **○ (True)** | | 3.3 · 1.4분 | ⑤ | `parts/c1.py` |
+| 7 | J45 (Level Up, 5) | — (False) | | 4.7 · 2.0분 | ④ | `parts/c1.py` |
+| 9 | J58 (평가원, 5) | — (False) | **그림 문항** | 5.7 · 3.0분 | ③ | `parts/c2.py` |
+| 11 | I43 (Level Up, 5) | **○ (True)** | | 3.7 · 1.7분 | ① | `parts/c2.py` |
+| 13 | I45 (Level Up, 4) | — (False) | | 4.7 · 2.4분 | ② | `parts/c2.py` |
+| 15 | M66 (평가원, 6) | **○ (True)** | | 5.7 · 3.0분 | ③ | `parts/c2.py` |
+
+파일은 모두 `output/build/기말/2회/parts/` 아래(`c1.py`+`verify_c1.py`, `c2.py`+`verify_c2.py`, `ITEMS={번호: dict(...)}`).
+
+## 규칙 요점
+- **복습형:** `bunseok=True` 문항(3·5·11·15)만 analysis.json의 `study`(분석집 판정·TIP·변형 방향)를 쓰고, 분석집 TIP에서 나온 함정을 쓸 수 있다(`vtype`에 '함정 추가'). 나머지는 학교형처럼 함정 없이 낸다. 분석집과 같은 문항은 금지.
+- **무게:** 1–12번은 같음·쉬워짐(어려워짐은 회 전체 1개까지 — 이번에는 Claude 쪽 짝수에서 쓰지 않으면 9번에 1개 허용), 13–16번은 어려워짐 1–2개(13·15 중 하나). 목표 체감·시간을 지킨다(1회 측정에서 3번이 무거웠다: 1–4번은 한두 단계로 끝나게).
+- **선지:** 오름차순. 그럴듯한 오답을 선지 안에(`wrongs=[...]`, 13·15번은 2개 이상, 1–11번은 1개 이상). 공차는 1 기본, 몇 문항은 2·5·1/2 등(회 전체 공차 1은 10–13개).
+- **9번 그림:** 그림 파일은 만들지 않는다. 본문에 `<div class="fig"><img src="fig_9.svg" style="width:150pt"></div>` 자리만 두고, note에 그릴 내용(함수식, 라벨, 칠할 영역 이름 A·B)을 적는다. Claude가 그린다. 풀이에 쓰는 값은 본문에 쓴다.
+- **줄 바꾼 식·단서:** 원문에 없던 짧은 식은 문장 안에, 원문 단서는 원문 표현 그대로.
+- **문항 dict 필드:** `author='codex'`, `vtype`, `effect`, `bunseok`, `precedent`, `wrongs`.
+- **검사:** 각 verify는 마지막 줄이 `ALL OK`. `cd output/build/기말/2회 && python3 checkpart.py parts/c1.py`(c2도)에서 중복 '금지'·말투·형식·학교 선례 '✗'가 0이어야 한다.
+- `output/build/기말/2회/parts/p*.py`는 열지 않는다(독립성).
+
+exec
+/bin/bash -lc 'git status --short; rg --files output/build/기말/2회 output/build/기말/견본4/parts | head -60' in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+?? "output/build/\352\270\260\353\247\220/2\355\232\214/parts/"
+output/build/기말/견본4/parts/verify_p4.py
+output/build/기말/견본4/parts/verify_p1.py
+output/build/기말/견본4/parts/verify_p3.py
+output/build/기말/견본4/parts/CODEX_REPORT.md
+output/build/기말/견본4/parts/c1.py
+output/build/기말/견본4/parts/p3.py
+output/build/기말/견본4/parts/c4.py
+output/build/기말/견본4/parts/verify_c4.py
+output/build/기말/견본4/parts/verify_p2.py
+output/build/기말/견본4/parts/CODEX_RUN_INFO.txt
+output/build/기말/견본4/parts/p1.py
+output/build/기말/견본4/parts/c2.py
+output/build/기말/견본4/parts/p2.py
+output/build/기말/견본4/parts/fig_c_14.svg
+output/build/기말/견본4/parts/p5.py
+output/build/기말/견본4/parts/verify_c1.py
+output/build/기말/견본4/parts/verify_c2.py
+output/build/기말/견본4/parts/p4.py
+output/build/기말/견본4/parts/CODEX_LOG.txt
+output/build/기말/견본4/parts/verify_p5.py
+output/build/기말/2회/checkpart.py
+output/build/기말/2회/BRIEF.md
+output/build/기말/2회/build3.py
+output/build/기말/2회/sol3.py
+output/build/기말/2회/render3.js
+output/build/기말/2회/ans3.py
+output/build/기말/2회/content3.py
+output/build/기말/2회/eqfont.js
+output/build/기말/2회/round.json
+output/build/기말/2회/compare.py
+output/build/기말/2회/parts/CODEX_RUN_INFO_2회-2.txt
+
+exec
+/bin/bash -lc 'cat output/build/기말/견본4/parts/p1.py output/build/기말/견본4/parts/verify_p1.py output/build/기말/2회/round.json; cat output/build/기말/2회/checkpart.py' in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+# -*- coding: utf-8 -*-
+# 견본4 기말 모의고사 Claude 담당 1·3·5·7번 (1·3: 4.0점, 5·7: 4.2점)
+# 1번만 숫자 변경 단순 계산, 3·5·7번은 개념 판단 1개(극한 존재 → 분자 0, 꺾인 점 좌우 증가 판정, g'=xf(x) 부호)
+ITEMS = {
+  1: dict(body=r"""\(\displaystyle\int_{-a}^{a}(4x^3+3x^2-5x-13)\,dx=-24\)를 만족시키는 모든 양수 \(a\)의 값의 합은?""",
+          choices=['0', '2', '4', '6', '8'],
+          ans=3,
+          key='I27', src='2023년 수능특강 [23009-0143]', author='claude',
+          var=r"[숫자 변경] 피적분함수 \(x^5-2x^3+3x^2-7\)→\(4x^3+3x^2-5x-13\), 우변 \(-12\)→\(-24\) (\(2a^3-26a=-24\), \((a-1)(a-3)(a+4)=0\))",
+          level='하',
+          sol=r"\(4x^3-5x\)는 홀함수, \(3x^2-13\)은 짝함수이므로 \(\displaystyle\int_{-a}^{a}(4x^3+3x^2-5x-13)\,dx=2\int_0^a(3x^2-13)\,dx=2\Big[x^3-13x\Big]_0^a=2a^3-26a\)이다. \(2a^3-26a=-24\)에서 \(a^3-13a+12=0\), \((a-1)(a-3)(a+4)=0\)이므로 \(a=1\) 또는 \(a=3\) 또는 \(a=-4\)이다. 양수 \(a\)는 \(1\), \(3\)이므로 그 합은 \(4\)이다.",
+          fast=r"짝수차 항만 남아 \(a^3-13a+12=0\). 세 근의 합이 \(0\)이고 음수 근 \(-4\)를 빼면 양수 근의 합은 \(4\).",
+          wrong=r"① \(0\): 음수 근 \(-4\)까지 더한 세 근의 합 / ⑤ \(8\): 음수 근의 부호를 바꿔 \(1+3+4\)로 더한 값",
+          note=r"원문과 같은 '대칭구간에서 홀수차 항 소거 → 삼차방정식의 양수 근'. 피적분함수와 우변만 바꿈"),
+  3: dict(body=r"""함수 \(f(x)=\displaystyle\int_0^x(3t^2+a)\,dt\)에 대하여 \(\displaystyle\lim_{x\to1}\frac{f(x)-7}{x^3-1}=b\)일 때, \(a+b\)의 값은? (단, \(a\), \(b\)는 상수이다.)""",
+          choices=['9', '11', '13', '15', '17'],
+          ans=1,
+          key='I12', src='2023년 수능완성 [23054-0174]', author='claude',
+          var=r"[조건 변경·형식 변경] 분모 \(x^2-1\)→\(x^3-1\), 분자 \(f(x)-3\)→\(f(x)-7\), 구하는 값 \(a+10b\)→\(a+b\), 단답형 → 5지선다 (\(a=6\), \(b=\frac{f'(1)}{3}=3\))",
+          level='하',
+          sol=r"\(f(x)=x^3+ax\)이다. \(x\to1\)일 때 (분모)\(\to0\)이고 극한값이 존재하므로 (분자)\(\to0\)이어야 한다. 즉 \(f(1)-7=1+a-7=0\)에서 \(a=6\)이다. 이때 \(\displaystyle b=\lim_{x\to1}\frac{f(x)-f(1)}{x-1}\cdot\frac{1}{x^2+x+1}=\frac{f'(1)}{3}\)이고, \(f'(x)=3x^2+6\)이므로 \(b=\dfrac{9}{3}=3\)이다. 따라서 \(a+b=9\)이다.",
+          fast=r"\(f(1)=7\)에서 \(a=6\). \(f(x)-7=x^3+6x-7=(x-1)(x^2+x+7)\)이므로 \(b=\dfrac{1+1+7}{1+1+1}=3\), \(a+b=9\).",
+          wrong=r"④ \(15\): \(x^3-1=(x-1)(x^2+x+1)\)의 인수 \(x^2+x+1\)을 빠뜨려 \(b=f'(1)=9\)로 계산한 값",
+          note=r"원문과 같은 '극한 존재 → 분자 \(\to0\) → 미분계수'. 분모를 \(x^3-1\)로 바꿔 나누는 수가 \(3\)이 됨"),
+  5: dict(body=r"""실수 전체의 집합에서 정의된 함수
+\[f(x)=x^3-3x^2-9|x-a|+1\]
+의 역함수가 존재하도록 하는 실수 \(a\)의 최솟값은?""",
+          choices=['5', '3', '1', '-1', '-3'],
+          ans=2,
+          key='D15', src='2023년 수능완성 [23054-0135]', author='claude',
+          var=r"[조건 변경] \(x^3+x^2+|x-a|+2\)→\(x^3-3x^2-9|x-a|+1\), 최댓값→최솟값 (절댓값 계수를 음수로 바꿔 판정하는 쪽이 \(x&lt;a\)에서 \(x>a\)로 넘어감, \(a\ge3\))",
+          level='중',
+          sol=r"\(f(x)\)는 연속이고 최고차항의 계수가 양수인 삼차식으로 이루어져 있으므로, 역함수가 존재하려면 \(f(x)\)가 실수 전체의 집합에서 증가해야 한다. \(x&lt;a\)일 때 \(f(x)=x^3-3x^2+9x-9a+1\)이고 \(f'(x)=3x^2-6x+9=3(x-1)^2+6>0\)이므로 항상 증가한다. \(x>a\)일 때 \(f(x)=x^3-3x^2-9x+9a+1\)이고 \(f'(x)=3x^2-6x-9=3(x+1)(x-3)\)이다. \(-1&lt;x&lt;3\)에서 \(f'(x)&lt;0\)이므로 열린구간 \((a,\,\infty)\)가 이 구간과 겹치지 않아야 한다. 즉 \(a\ge3\)이고, \(a=3\)이면 \(x>3\)에서 \(f'(x)>0\)이므로 증가한다. 따라서 \(a\)의 최솟값은 \(3\)이다.",
+          fast=r"\(x&lt;a\) 쪽 도함수 \(3(x-1)^2+6\)은 항상 양수. \(x>a\) 쪽 \(3(x+1)(x-3)\)이 음수인 \((-1,\,3)\)이 \((a,\,\infty)\) 밖에 있어야 하므로 \(a\ge3\), 최솟값 \(3\).",
+          wrong=r"④ \(-1\): 원문처럼 \(x&lt;a\) 쪽에서 판정한다고 보고 \(a\le-1\)의 끝값을 답한 값 / ③ \(1\): 도함수 \(3x^2-6x\pm9\)의 꼭짓점 \(x=1\)을 경계로 잡은 값",
+          note=r"원문은 \(x&lt;a\) 쪽 조각이 판정을 정하고 \(a\)의 최댓값을 물었다. 절댓값 계수를 음수로 바꿔 \(x>a\) 쪽이 판정을 정하고 최솟값을 묻는다"),
+  7: dict(body=r"""함수
+\[f(x)=\begin{cases}x^2+5 & (x\le1)\\ 8-2x & (x>1)\end{cases}\]
+에 대하여 함수 \(g(x)\)를
+\[g(x)=\int_{-1}^x tf(t)\,dt\]
+라 할 때, 함수 \(g(x)\)의 극댓값은?""",
+          choices=['6', '9', '12', '15', '18'],
+          ans=5,
+          key='I42', src='2022년 수능특강 [22009-0156]', author='claude',
+          var=r"[조건 변경·형식 변경] \(f(x)\)의 \(x>1\) 조각 \(2x\)→\(8-2x\)(영점 \(x=4\) 생김), \(x\le1\) 조각 \(x^2+1\)→\(x^2+5\), &lt;보기&gt;형 → 극댓값 (극대점이 \(x=0\)이 아니라 \(f\)의 영점 \(x=4\))",
+          level='중',
+          sol=r"\(t\,f(t)\)는 연속이므로 \(g'(x)=xf(x)\)이다. \(x\le1\)에서 \(f(x)=x^2+5>0\)이고, \(x>1\)에서 \(f(x)=8-2x\)는 \(1&lt;x&lt;4\)일 때 양수, \(x>4\)일 때 음수이다. 따라서 \(g'(x)\)의 부호는 \(x&lt;0\)에서 음, \(0&lt;x&lt;4\)에서 양, \(x>4\)에서 음이므로 \(g(x)\)는 \(x=0\)에서 극소, \(x=4\)에서 극대이다. \(t(t^2+5)\)는 홀함수이므로 \(\displaystyle\int_{-1}^{1}t(t^2+5)\,dt=0\)이고, 극댓값은 \(\displaystyle g(4)=0+\int_1^4 t(8-2t)\,dt=\Big[4t^2-\frac{2}{3}t^3\Big]_1^4=\frac{64}{3}-\frac{10}{3}=18\)이다.",
+          fast=r"\(g'=xf(x)\)의 부호가 \(-,+,-\)로 바뀌는 점은 \(x=0\), \(x=4\)이고 극대는 \(x=4\). \(\int_{-1}^1\)은 홀함수라 \(0\)이므로 \(g(4)=\int_1^4 2t(4-t)\,dt=2\cdot\dfrac{(4-1)^2(4+2)}{6}=18\).",
+          wrong=r"② \(9\): 피적분함수의 \(t\)를 빠뜨려 \(\displaystyle\int_1^4(8-2t)\,dt=9\)로 계산한 값",
+          note=r"원문 ㄴ은 \(f>0\)이라 \(x=0\)에서 극소만 있었다. \(x>1\) 조각에 영점을 넣어 \(xf(x)\)의 부호 변화로 극대점을 찾게 하고, 원문 ㄱ의 홀함수 소거를 극댓값 계산에 씀"),
+}
+# -*- coding: utf-8 -*-
+# p1.py (견본4 Claude 1·3·5·7번) 검증: 원문 풀이 · 계산 정답 = 지정 선지 · 유일성 · 선지 등차·서로 다름 · 오답 값이 선지에 있음 · 조건 빼 보기
+import os
+import numpy as np
+import sympy as sp
+from sympy import symbols, Rational, diff, integrate, solve, expand, factor, Piecewise, limit, nsimplify
+x, t, a, b = symbols('x t a b', real=True)
+ns = {}; exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'p1.py')).read(), ns)
+IT = ns['ITEMS']
+WANT = {1: 3, 3: 1, 5: 2, 7: 5}
+assert sorted(IT) == [1, 3, 5, 7] and all(IT[n]['author'] == 'claude' for n in IT)
+assert [IT[n]['key'] for n in (1, 3, 5, 7)] == ['I27', 'I12', 'D15', 'I42']
+
+def arith(no):
+    v = [nsimplify(c) for c in IT[no]['choices']]
+    d = {v[i + 1] - v[i] for i in range(4)}
+    return len(set(v)) == 5 and len(d) == 1 and list(d)[0] != 0
+
+def chk(no, val, wrongs=()):
+    ch = [nsimplify(c) for c in IT[no]['choices']]
+    good = (IT[no]['ans'] == WANT[no] and nsimplify(val) == ch[IT[no]['ans'] - 1] and arith(no)
+            and all(nsimplify(w) in ch and nsimplify(w) != nsimplify(val) for w in wrongs))
+    print(f'{no}번: 계산 {val}, 선지 {ch[IT[no]["ans"] - 1]} (위치 {IT[no]["ans"]}), 오답 {list(wrongs)} {"OK" if good else "FAIL"}')
+    assert good
+
+def increasing_everywhere(fp_left, fp_right, av, lo=-30, hi=30, n=600001):
+    """꺾인 점 x=av 좌우 도함수로 실수 전체 증가(도함수 >=0, 0인 점은 고립) 판정 (수치)"""
+    xs = np.linspace(lo, hi, n)
+    fl = sp.lambdify(x, fp_left, 'numpy'); fr = sp.lambdify(x, fp_right, 'numpy')
+    d = np.where(xs < av, fl(xs), fr(xs))
+    return bool(np.all(d > -1e-12))
+
+# ===== 원문 풀이 =====
+# I27: ∫_{-a}^a (x^5-2x^3+3x^2-7)dx=-12, 양수 a의 합 3 (①)
+A = symbols('A')
+r27 = solve(integrate(x**5 - 2*x**3 + 3*x**2 - 7, (x, -A, A)) + 12, A)
+assert sum(r for r in r27 if r > 0) == 3
+# I12: f=∫_0^x(3t^2+a), lim (f-3)/(x^2-1)=b, a+10b=27
+F12 = integrate(3*t**2 + a, (t, 0, x))
+a12 = solve(F12.subs(x, 1) - 3, a)[0]
+b12 = limit((F12.subs(a, a12) - 3) / (x**2 - 1), x, 1)
+assert a12 + 10*b12 == 27
+# D15: x^3+x^2+|x-a|+2 역함수 존재, a 최댓값 -1 (②)
+okD = [av for av in np.arange(-3, 1.001, 0.25) if increasing_everywhere(3*x**2 + 2*x - 1, 3*x**2 + 2*x + 1, av)]
+assert abs(max(okD) - (-1)) < 1e-9
+# I42: f=x^2+1(x<=1), 2x(x>1), g=∫_{-1}^x t f(t)dt. ㄱ g(1)=0 참, ㄴ 극댓값 없음(거짓), ㄷ g(x)=n 두 실근(참) → ㄱ,ㄷ (③)
+assert integrate(t*(t**2 + 1), (t, -1, 1)) == 0
+g0 = integrate(t*(t**2 + 1), (t, -1, 0))
+assert g0 < 0  # x=0 극소(유일한 임계점), 양쪽으로 +∞ → 모든 자연수 n에서 두 실근
+print('원문 풀이 OK (I27=3, I12=27, D15=-1, I42=ㄱ,ㄷ)')
+
+# ===== 1번 =====
+I1 = integrate(4*x**3 + 3*x**2 - 5*x - 13, (x, -A, A))
+assert expand(I1) == 2*A**3 - 26*A
+r1 = solve(I1 + 24, A)
+assert sorted(r1) == [-4, 1, 3]
+pos1 = [r for r in r1 if r > 0]
+chk(1, sum(pos1), wrongs=(sum(r1), sum(abs(r) for r in r1)))
+
+# ===== 3번 =====
+F3 = integrate(3*t**2 + a, (t, 0, x))
+# 극한이 존재하려면 분자 → 0 (아니면 ±∞): a가 다른 값이면 극한 없음을 확인
+a3s = solve(F3.subs(x, 1) - 7, a)
+assert len(a3s) == 1
+a3 = a3s[0]
+b3 = limit((F3.subs(a, a3) - 7) / (x**3 - 1), x, 1)
+assert limit((F3.subs(a, a3) - 7) / (x**3 - 1), x, 1, '-') == b3
+# a≠6 이면 좌·우극한이 ±∞로 갈림(극한 없음)
+for av in (5, 7):
+    L, R = limit((F3.subs(a, av) - 7) / (x**3 - 1), x, 1, '-'), limit((F3.subs(a, av) - 7) / (x**3 - 1), x, 1, '+')
+    assert L in (sp.oo, -sp.oo) and R in (sp.oo, -sp.oo) and L != R
+b3_wrong = diff(F3.subs(a, a3), x).subs(x, 1)          # x^2+x+1 누락
+chk(3, a3 + b3, wrongs=(a3 + b3_wrong,))
+
+# ===== 5번 =====
+fl5 = diff(x**3 - 3*x**2 - 9*(a - x) + 1, x)   # x<a
+fr5 = diff(x**3 - 3*x**2 - 9*(x - a) + 1, x)   # x>a
+assert expand(fr5 - 3*(x - 3)*(x + 1)) == 0
+assert sp.solve(fl5, x) == [] or all(not s.is_real for s in sp.solve(fl5, x))  # 왼쪽 조각 도함수는 항상 양수
+# 역함수 존재 ⇔ 실수 전체 증가(연속, 양끝 ±∞). a를 촘촘히 전수
+grid = np.round(np.arange(-6, 8.0001, 0.05), 10)
+ok5 = [av for av in grid if increasing_everywhere(fl5, fr5, av, lo=-20, hi=20, n=200001)]
+assert abs(min(ok5) - 3) < 1e-9 and all(av >= 3 - 1e-9 for av in ok5)
+# 경계: a=3은 가능, a=3-ε은 불가 (기호)
+eps = Rational(1, 1000)
+assert fr5.subs(x, 3 - eps / 2) < 0              # a=3-ε 이면 (a,3)에서 감소
+assert all(fr5.subs(x, 3 + Rational(k, 100)) > 0 for k in range(1, 200))
+chk(5, 3, wrongs=(-1, 1))
+
+# ===== 7번 =====
+f7 = Piecewise((x**2 + 5, x <= 1), (8 - 2*x, True))
+gp = x * f7                                        # g'(x)=x f(x) (t f(t) 연속)
+assert (x * (x**2 + 5)).subs(x, 1) == (x * (8 - 2*x)).subs(x, 1)
+# 임계점과 부호 변화 전수
+crit = sorted(set([s for s in solve(x * (x**2 + 5), x) if s.is_real and s <= 1] + [s for s in solve(x * (8 - 2*x), x) if s > 1]))
+assert crit == [0, 4]
+sg = lambda v: sp.sign(gp.subs(x, v))
+pts = [-5, -Rational(1, 2), Rational(1, 2), 1, 2, 3, 5, 10]
+signs = [sg(v) for v in pts]
+assert signs == [-1, -1, 1, 1, 1, 1, -1, -1]
+maxima = [c for c in crit if sg(c - Rational(1, 10)) > 0 and sg(c + Rational(1, 10)) < 0]
+minima = [c for c in crit if sg(c - Rational(1, 10)) < 0 and sg(c + Rational(1, 10)) > 0]
+assert maxima == [4] and minima == [0]
+def g7(X):
+    return integrate(t * (t**2 + 5), (t, -1, min(X, 1))) + (integrate(t * (8 - 2*t), (t, 1, X)) if X > 1 else 0)
+assert integrate(t * (t**2 + 5), (t, -1, 1)) == 0
+val7 = g7(4)
+# 수치 교차
+ts = np.linspace(-1, 4, 2000001); ft = np.where(ts <= 1, ts**2 + 5, 8 - 2*ts)
+assert abs(np.trapezoid(ts * ft, ts) - float(val7)) < 1e-6
+chk(7, val7, wrongs=(integrate(8 - 2*t, (t, 1, 4)),))
+
+# ===== 조건 빼 보기 =====
+print('--- 조건 빼 보기 ---')
+s_all = sum(r1)
+print(f'ABLATION 1 양수 조건: 필요(답 바뀜 {sum(pos1)} → {s_all}; 근 {sorted(r1)} 전체 합)')
+# 3번: 분모를 x^3-1 대신 원문 x^2-1로 되돌리면 b가 바뀜(비교용), 분자 상수 7을 빼면(f(x)/(x^3-1)) a=-1, b=0
+b3_alt = limit((F3.subs(a, a3) - 7) / (x**2 - 1), x, 1)
+print(f'ABLATION 3 분모 x^3-1(→x^2-1): 필요(답 바뀜 {a3 + b3} → {a3 + b3_alt})')
+a3n = solve(F3.subs(x, 1), a)[0]; b3n = limit(F3.subs(a, a3n) / (x**3 - 1), x, 1)
+print(f'ABLATION 3 분자 상수 -7: 필요(답 바뀜 {a3 + b3} → {a3n + b3n})')
+# 5번: 절댓값 항 계수의 부호(−9 → +9)를 되돌리면 판정하는 쪽이 x<a로 바뀌어 a≤-1, 최솟값이 없어짐
+fl5b = diff(x**3 - 3*x**2 + 9*(a - x) + 1, x); fr5b = diff(x**3 - 3*x**2 + 9*(x - a) + 1, x)
+ok5b = [av for av in grid if increasing_everywhere(fl5b, fr5b, av, lo=-20, hi=20, n=200001)]
+assert abs(max(ok5b) + 1) < 1e-9 and min(ok5b) == grid[0]
+print(f'ABLATION 5 절댓값 계수 부호(−9): 필요(정해지지 않음: +9이면 가능한 a는 a≤{max(ok5b)}, 최솟값 없음)')
+# 7번: 조각을 하나씩 지움
+def g_of(fexpr):
+    gp_ = x * fexpr
+    cr = sorted(s_ for s_ in solve(gp_, x) if s_.is_real)
+    mx = [c for c in cr if gp_.subs(x, c - Rational(1, 10)) > 0 and gp_.subs(x, c + Rational(1, 10)) < 0]
+    return [integrate(t * fexpr.subs(x, t), (t, -1, c)) for c in mx]
+m1 = g_of(x**2 + 5); m2 = g_of(8 - 2*x)
+print(f'ABLATION 7 x>1 조각 8-2x: 필요(정해지지 않음: 극댓값 {m1 if m1 else "없음"})')
+print(f'ABLATION 7 x≤1 조각 x^2+5: 필요(답 바뀜 {val7} → {m2[0]})')
+assert m1 == [] and m2[0] != val7
+
+print('정답 위치:', [IT[n]['ans'] for n in sorted(IT)])
+print('ALL OK')
+{"type": "복습형"}
+# -*- coding: utf-8 -*-
+"""부품 파일 하나 검사: 중복(dupcheck items) · 말투(stylecheck) · 형식(선지 등차, 상자 위치)
+17·18·서답형2는 지침 0-4 관문도 본다: 흔한 패턴(patterns.py) · 독립 검토 기록(<회차>/review/<번호>.json의 핵심 한 줄·d_step).
+학교 선례(0-8: 변형 기록·회차 유형·원문 거리·선지)도 본다.
+관문 순서: 1 중복·정답·빼 보기 → 2 흔한 패턴 → 3 독립 검토(핵심 한 줄 불통·d_step 0.75 이상) → 4 블라인드 측정 → 5 형식·말투.
+3을 통과하기 전에는 측정하지 않는다.
+사용: python3 checkpart.py parts/p3.py   (후보 폴더 파일도 됨)"""
+import sys, os, re, subprocess, tempfile
+from fractions import Fraction
+HERE = os.path.dirname(os.path.abspath(__file__)); G = os.path.join(HERE, '..', '지침')
+sys.path.insert(0, '/home/user/Finale/template/db/parts')
+from items_common import COND, BOGI
+p = os.path.abspath(sys.argv[1])
+_rj = os.path.join(os.path.dirname(os.path.dirname(p)), 'round.json')
+RT = __import__('json').load(open(_rj)).get('type', '학교형') if os.path.exists(_rj) else '학교형'
+os.environ['DUP_ROUND_TYPE'] = RT
+print(f'== 중복 ({RT})'); r1 = subprocess.run([sys.executable, os.path.join(G, 'dupcheck.py'), 'items', p]).returncode
+ns = {}; exec(open(p).read(), ns)
+IT, SI = ns.get('ITEMS', {}), ns.get('SITEMS', {})
+def body(it):
+    return it['body'] + (COND(it['cond']) if it.get('cond') else '') + (BOGI(it['bogi']) if it.get('bogi') else '') + (it.get('after') or '')
+tmp = tempfile.NamedTemporaryFile('w', suffix='.py', delete=False)
+tmp.write('RAW = ' + repr({n: (body(it), it.get('choices')) for n, it in IT.items()}) + '\n')
+for s, it in SI.items():
+    tmp.write(f'{s} = {body(it)!r}\n{s}S = {[(q[0],) for q in it.get("subs", [])]!r}\n')
+tmp.close()
+print('== 말투'); subprocess.run([sys.executable, os.path.join(G, 'stylecheck.py'), 'check', tmp.name]); os.unlink(tmp.name)
+print('== 형식')
+def val(c):
+    c = re.sub(r'\\displaystyle|\s', '', str(c))
+    m = re.fullmatch(r'(-?)\\[dt]?frac\{?(\d+)\}?\{?(\d+)\}?', c)
+    if m: return Fraction(int(m[2]), int(m[3])) * (-1 if m[1] else 1)
+    return Fraction(int(c)) if re.fullmatch(r'-?\d+', c) else None
+bad = 0
+for n, it in IT.items():
+    ch = it.get('choices') or []; v = [val(c) for c in ch]; msg = []
+    if ch and not str(ch[0]).startswith('T:'):
+        if None in v: msg.append('선지가 수가 아님(확인)')
+        elif len({v[i + 1] - v[i] for i in range(4)}) != 1: msg.append('선지 비등차')
+    if it.get('cond') and '?' not in re.sub(r'<[^>]+>', '', it['body']): msg.append('상자→질문형(18번 같은 최고난도 한 문항만 허용)')
+    if re.search(r'(?<![a-zA-Z\\])[loWVYZ](?![a-zA-Z])', ''.join(re.findall(r'\\\((.*?)\\\)', body(it)))): msg.append('수식에 l·o·W·V·Y·Z 변수(글꼴에 없음)')
+    if msg: bad += 1; print(f'{n}: ' + ' | '.join(msg))
+print('형식 표시', bad, '개')
+gate = 0
+big = [str(n) for n in list(IT) + list(SI) if str(n) in ('17', '18', 'S2')]
+if big:
+    print('== 관문 (17·18·서답형2, 지침 0-4)')
+    gate = subprocess.run([sys.executable, os.path.join(G, 'patterns.py'), 'check', p]).returncode
+    rdir = os.path.join(os.path.dirname(os.path.dirname(p)), 'review')
+    for n in big:
+        it = IT.get(int(n)) if n.isdigit() else SI.get(n)
+        tag = it.get('cand', n) if it else n
+        f = os.path.join(rdir, f'{tag}.json')
+        if not os.path.exists(f):
+            print(f'{n}: 독립 검토 기록 없음 ({os.path.relpath(f, os.path.dirname(rdir))}) → 관문 3 미완, 블라인드 측정 금지'); continue
+        R = __import__('json').load(open(f)); ok = []
+        ax = str(R.get('axis', ''))[:1]; ct = {k: ('불통' if str(v).lstrip().startswith('불통') else ('통' if str(v).lstrip().startswith('통') else '')) for k, v in R.get('core_test', {}).items()}
+        if ax == '①' and ct.get('principle') != '불통': ok.append('원리 교체형인데 원문 원리 줄이 통함')
+        if ax == '②' and ct.get('setting') != '불통': ok.append('설정 교체형인데 원문 설정 줄이 통함')
+        if ax not in ('①', '②'): ok.append(f'축 {ax!r}(①·②만 허용)')
+        if float(R.get('d_step', 0)) < 0.75: ok.append(f"d_step {R.get('d_step')} < 0.75")
+        if R.get('verdict') != '통과': ok.append(f"검토 판정 {R.get('verdict')}")
+        print(f"{n}: 관문 3 {'통과' if not ok else '미통과: ' + ' / '.join(ok)} (검토 {R.get('reviewer', '?')}, 축 {ax}, d_step {R.get('d_step')})")
+        gate |= bool(ok)
+r_s = subprocess.run([sys.executable, os.path.join(G, 'schoolcheck.py'), 'item', p]).returncode   # 학교 선례(0-8)
+sys.exit(1 if r1 or bad or gate or r_s else 0)
+
+exec
+/bin/bash -lc "cat output/build/기말/공동출제/2회_분담표.md; python3 - <<'PY'
+import json
+v=json.load(open('output/build/기말/지침/school_recipes.json'));print(json.dumps(v,ensure_ascii=False)[:22000])
+PY" in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+# 2회 분담표 (복습형 · 짝수 회차, 예측 순위 기준)
+
+지침: front.md **0-8 학교 선례**(복습형 열), 0-4 설계 카드, 출제프로세스.md. 원문은 `지침/predict.py plan 2 복습형 <1회 원문>`으로 골랐다(1회 원문 20개 제외, 분석집 원문 우선, **소재 상한** 적용).
+
+| 번호 | 출처 자리 | 원문 | 단원 | 원본 난도 | 라이브 | 분석집 원문 | **분석집 방향 출제** | 그림 | 목표 체감 · 시간 | 정답 | 출제 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | EBS | D17 | 도함수 활용(1) | 3 | 9 | ○ |  |  | 1.3 · 0.7분 | ② | **Codex** |
+| 2 | EBS | M11 | 도함수 활용(2) | 2 | 8 |  |  |  | 1.7 · 0.9분 | ④ | **Claude** |
+| 3 | EBS | I29 | 부정적분·정적분 | 3 | 7 | ○ | **○** |  | 1.3 · 0.8분 | ① | **Codex** |
+| 4 | 평가원 | D54 | 도함수 활용(1) | 3 | 11 |  |  |  | 3.0 · 1.4분 | ③ | **Claude** |
+| 5 | EBS | J20 | 정적분 활용 | 4 | 7 | ○ | **○** |  | 3.3 · 1.4분 | ⑤ | **Codex** |
+| 6 | EBS | D30 | 도함수 활용(1) | 5 | 5 | ○ | **○** |  | 4.7 · 2.0분 | ① | **Claude** |
+| 7 | Level Up | J45 | 정적분 활용 | 5 | 3 | ○ |  |  | 4.7 · 2.0분 | ④ | **Codex** |
+| 8 | EBS | J25 | 정적분 활용 | 5 | 4 | ○ | **○** |  | 4.0 · 1.8분 | ② | **Claude** |
+| 9 | 평가원 | J58 | 정적분 활용 | 5 | 4 | ○ |  | 그림 | 5.7 · 3.0분 | ③ | **Codex** |
+| 10 | 평가원 | I60 | 부정적분·정적분 | 5 | 9 | ○ | **○** |  | 5.0 · 2.6분 | ⑤ | **Claude** |
+| 11 | Level Up | I43 | 부정적분·정적분 | 5 | 3 | ○ | **○** |  | 3.7 · 1.7분 | ① | **Codex** |
+| 12 | Level Up | M35 | 도함수 활용(2) | 6 | 7 | ○ | **○** |  | 5.3 · 2.5분 | ④ | **Claude** |
+| 13 | Level Up | I45 | 부정적분·정적분 | 4 | 2 | ○ |  |  | 4.7 · 2.4분 | ② | **Codex** |
+| 14 | 자체 | I24(유형) | 부정적분·정적분 | 4 | 4 |  |  | 그림 | 5.0 · 2.4분 | ⑤ | **Claude** |
+| 15 | 평가원 | M66 | 도함수 활용(2) | 6 | 9 | ○ | **○** |  | 5.7 · 3.0분 | ③ | **Codex** |
+| 16 | 평가원 | I61 | 부정적분·정적분 | 7 | 13 | ○ |  |  | 7.0 · 4.4분 | ① | **Claude** |
+| 17 | Level Up | M31 | 도함수 활용(2) | 7 | 6 | ○ |  |  | 7.3 · 4.8분 (①형: 설정 유지·원리 교체, 최댓값·최솟값) | ⑤ | **후보 경쟁** |
+| 18 | Level Up | D45 | 도함수 활용(1) | 6 | 5 |  |  |  | 7.7 · 5.0분 (②형: 원리 유지·설정 교체, 값) | ② | **후보 경쟁** |
+| 서1 | 자체 | D18(유형) | 도함수 활용(1) | 3 | 1 |  |  |  | 3.0 · 2.8분 (기본 서술) | — | **Claude** |
+| 서2 | 평가원 | M56 | 도함수 활용(2) | 6 | 9 | ○ |  |  | 6.3 · 4.6분 (구조 변경, 체감 6/10 이하) | — | **Codex** |
+
+## 맞춘 기준
+- **출처:** 평가원 6 · EBS 6 · Level Up 6 · 자체 2. **단원:** D 5 · M 5 · I 6 · J 4(1–4번 J 없음).
+- **소재 상한 (1회 지적):** 수직선 운동 1(8번), 넓이 3(5·7·9), 적분함수 3(10·13·16), 실근·교점 개수 3(15·17·서2). `predict.py`가 상한(수직선 운동 2 등)을 지킨다.
+- **그림:** 9번(J58)과 14번(자체, I24형). 둘 다 원문에 그림이 있고 9번 이후다. **그림은 Claude가 figkit으로 그린다**(Codex는 그릴 내용만 note에).
+- **정답:** ①4 ②4 ③3 ④3 ⑤4. 17번 ⑤, 18번 ②로 1회(③·④)와 다르게 했다.
+- **출제자:** 1회와 홀짝을 바꿔 Codex 홀수·Claude 짝수, 서답형1 Claude·서답형2 Codex. 17·18은 Claude·Codex 후보를 하나씩 내고 이름을 가린 독립 검토로 고른다.
+- **복습형 (0-8):** 1–16번 중 분석집 방향 8문항(3·5·6·8·10·11·12·15, 출제자별 4개씩). 이 8문항만 `bunseok=True`이고, 분석집 TIP 함정은 이 문항에서만 쓴다. 나머지는 학교형처럼.
+- **선지 (1회 지적):** 한 회 공차 1은 10–13개, 나머지 2·5·1/2 등. 그럴듯한 오답을 선지 안에(`wrongs`, 13–18번 2개 이상, 1–12번 1개 이상).
+- **측정 (1회 지적 5):** Claude 강·약 + **Codex 풀이자**까지 3명으로 잰다. 앵커는 학교 8·12·17·18.
+- **Codex 비용:** 지침 전문을 프롬프트 앞에 고정(캐시), 보고서 없음. 2회 로그의 tokens used를 1회(14만–16만)와 비교한다.
+{"note": "학교 실제 시험 3회 60문항의 원문→시험 변형 기록(원문·시험 전문은 저장소 밖). 출제 시 precedent로 인용.", "items": [{"exam": "2학기 중간(미적분Ⅰ)", "no": 1, "band": "1–4", "src": "L6", "change_type": ["구하는 대상 변경"], "change_detail": ["그래프: 동일 (점 (-1,1) 채운 점, (0,1)·(-1,0) 빈 점, (0,-1) 채운 점, (1,-1) 빈 점, 왼쪽 끝 (-1,-2) 빈 점 그대로; 시험지는 다시 그린 그림이라 왼쪽 직선에 꺾임이 조금 있음)", "구하는 식: lim_{x→0-} f(x) + lim_{x→1+} f(x)f(-x) → lim_{x→-1-} f(x) + lim_{x→1-} f(x)", "f(x)f(-x) 꼴의 곱 극한(-x→-1- 해석)이 없어짐", "선지: -2, -1, 0, 1, 2 그대로 (정답 ④1 → ②-1)"], "core_kept": "그래프에서 한쪽 극한 두 개를 읽어 더함", "effect": "쉬워짐"}, {"exam": "2학기 중간(미적분Ⅰ)", "no": 2, "band": "1–4", "src": "C5", "change_type": ["식·함수 교체", "조건 변경", "구하는 대상 변경"], "change_detail": ["분모: 무리식 √(x+3)-2 → 일차식 x-1 (유리화 대신 분수식 약분)", "분자: 미정계수가 없는 x^2+4x-5 → 미정계수 a가 들어간 x^2+ax-2 (0/0 꼴이 되도록 a를 먼저 정해야 함: 1+a-2=0, a=1)", "상수: x=1에서 함숫값 a → b", "구하는 값: a → a+b (a=1, b=3, 답 4)", "선지: 21~25 → 1~5"], "core_kept": "x=1에서 연속 ⇔ 극한값 = 함숫값. 0/0 꼴 극한을 계산해 함숫값을 정함", "effect": "같음"}, {"exam": "2학기 중간(미적분Ⅰ)", "no": 3, "band": "1–4", "src": "A5", "change_type": ["숫자 변경"], "change_detail": ["f(x)=x^2+1 → x^2+3 (상수항만 바뀌어 결과에는 영향 없음)", "구간 [1, 4] → [2, 5] (평균변화율 5 → 7)", "선지: 3/2, 2, 5/2, 3, 7/2 → 7/2, 4, 9/2, 5, 11/2 (모두 +2; 정답 위치 ③ → ①)"], "core_kept": "평균값 정리: 이차함수는 c가 구간의 중점 (c=(2+5)/2)", "effect": "같음"}, {"exam": "2학기 중간(미적분Ⅰ)", "no": 4, "band": "1–4", "src": "T6", "change_type": ["숫자 변경", "조건 변경", "구하는 대상 변경"], "change_detail": ["기준점: f(4)=10 (오른쪽 끝) → f(0)=2 (왼쪽 끝)", "도함수 조건: 대칭 범위 |f'(x)|≤6 → 비대칭 범위 1≤f'(x)≤2", "구간: 2<x<4 → 0<x<3", "구하는 값: f(2)의 M-m → f(3)의 M+m (5≤f(3)≤8, 답 13)", "선지: 18~26(짝수) → 12~16"], "core_kept": "평균값 정리 f(b)-f(a)=(b-a)f'(c)로 함숫값 범위를 잡고, 일차함수가 등호를 만족시킴을 확인", "effect": "같음"}, {"exam": "2학기 중간(미적분Ⅰ)", "no": 5, "band": "5–8", "src": "L29", "change_type": ["식·함수 교체", "조건 변경"], "change_detail": ["극한 위치: x→1 → x→∞", "양쪽 경계식: 다항식 -x^2+3, 2x^2-6x+6 (x=1에서 둘 다 2) → 분수식 (3x^2+1)/(x^2+3), (6x^2+5)/(2x^2+1) (x→∞에서 둘 다 3)", "구하는 식: 3fg/(f^2+2g^2) → (f^2+4fg)/(2f^2-3g^2) (g^2으로 나누면 (9+12)/(18-3)=7/5)", "선지: 1~5 → 1, 6/5, 7/5, 8/5, 9/5"], "core_kept": "함수의 극한의 대소 관계(샌드위치)로 f/g의 극한을 구한 뒤 분모·분자를 g^2으로 나눠 대입", "effect": "같음"}, {"exam": "2학기 중간(미적분Ⅰ)", "no": 6, "band": "5–8", "src": "C34", "change_type": ["조건 변경", "숫자 변경", "식·함수 교체"], "change_detail": ["단조 조건: f(x1)≥f(x2) (감소) → f(x1)≤f(x2) (증가)", "함숫값: f(1)=3, f(2)=-1, f(3)=-2 → f(1)=-1, f(2)=1, f(3)=2", "방정식: f(x)+f(x-1)=2x-3 → f(x)+f(x+1)=-x", "선지 구간: (0,1)~(4,5) → (-1,0)~(3,4) (정답 ③(2,3) → ②(0,1))", "판단 방식: 원본은 h(2)=1>0, h(3)=-6<0처럼 주어진 값만으로 부호가 정해짐 → 시험은 h(0)=f(0)+f(1)를 구할 때 주어지지 않은 f(0)을 단조성 f(0)≤f(1)=-1로 어림해야 함"], "core_kept": "h(x)=f(x)+f(x±1)+(일차식)으로 두고 사잇값 정리로 부호가 바뀌는 구간을 찾으며, 단조성으로 해가 하나뿐임을 보임", "effect": "어려워짐"}, {"exam": "2학기 중간(미적분Ⅰ)", "no": 7, "band": "5–8", "src": "A37", "change_type": ["숫자 변경"], "change_detail": ["함숫값 기준: f(x)=3 → f(x)=2", "근의 배치: {-a, a, 2a} → {-2a, -a, a}", "(나) 조건 f(0)>0, f'(1)=-2 그대로 (f(0)>0에서 원본은 a>0, 시험은 a<1)", "구하는 값: f(3) → f(2) (a=-1, 답 2)", "선지: 7~11 → -4, -2, 0, 2, 4"], "core_kept": "f(x)-k=(x-α)(x-β)(x-γ)로 놓고 곱의 미분으로 f'(1)을 계산한 뒤, f(0)>0으로 a를 하나로 고름", "effect": "같음"}, {"exam": "2학기 중간(미적분Ⅰ)", "no": 8, "band": "5–8", "src": "A29", "change_type": ["숫자 변경", "형식 변경(보기형/서술·단계형/선지 변경)"], "change_detail": ["관계식: (x^2-1)g(x)=f(x)-2 → (x+2)(x-2)g(x)=f(x)+3 (근 x=1 → x=2, 상수 -2 → +3)", "조건: f'(1)=-2, h'(1)=6 → f'(2)=-4, h'(2)=1", "구하는 값: g'(1) → g'(2) (f(2)=-3, g(2)=-1, 답 1)", "형식: 단답형 → 5지선다 (-1~3)"], "core_kept": "대입으로 f(근)을 구하고, 양변을 미분해 근을 대입하면 g(근)이 나옴. 이어서 곱의 미분 h'=f'g+fg'", "effect": "같음"}, {"exam": "2학기 중간(미적분Ⅰ)", "no": 9, "band": "9–12", "src": "B63", "change_type": ["숫자 변경", "식·함수 교체", "형식 변경(보기형/서술·단계형/선지 변경)"], "change_detail": ["가운데 식: (f(k+2)-f(k))/2 → (f(k+1)-f(k-1))/2 (k에 대해 대칭인 차분)", "아래 경계: 2k-8 → 6k-6", "위 경계: 4k^2+14k → 3k^2-9k+12 (최고차항 계수가 가운데 식과 같은 3이 되어, 결과적으로 가운데 식이 위 경계와 같아짐)", "등호가 성립하는 정수: k=-2, -1 → k=2, 3", "구하는 값: f'(3) → f'(1) (p=-9/2, q=11, 답 5)", "형식: 단답형 → 5지선다 (2~6)"], "core_kept": "두 경계가 만나는 정수 k에서는 가운데 식도 같은 값이어야 함. 이 두 등식으로 f의 계수 두 개를 결정", "effect": "같음"}, {"exam": "2학기 중간(미적분Ⅰ)", "no": 10, "band": "9–12", "src": "L58", "change_type": ["숫자 변경", "조건 변경", "형식 변경(보기형/서술·단계형/선지 변경)"], "change_detail": ["첫째 극한: x^3 f(1/x)-1, 분모 x^3+x → x^3 f(1/x)-5, 분모 x^3+5x (f의 최고차항 1x^3+5x^2 → 5x^3+25x^2)", "둘째 극한: x→1에서 f(x)/(x^2+x-2)=1/3 → x→0에서 f(x+2)/(x^2+7x)=10 (평행이동 꼴, f(2)=0, f'(2)=70)", "구하는 값: f(2) → f(1) (답 -20)", "형식: 단답형 → 5지선다 (0, -5, -10, -15, -20)"], "core_kept": "1/x=s로 치환해 x→∞ 극한으로 바꿔 f의 차수와 최고차 두 항을 정하고, 0/0 꼴 극한에서 f(근)=0과 미분계수로 나머지 계수를 정함", "effect": "같음"}, {"exam": "2학기 중간(미적분Ⅰ)", "no": 11, "band": "9–12", "src": "L33", "change_type": ["숫자 변경", "식·함수 교체"], "change_detail": ["f: -x+4a, 2x+3 → -x+2a, x+2", "g: f(x){f(-x)+a} → {f(x)+1}{f(-x)+a} (앞 인수에 +1)", "조건: 양수 a → 실수 a (방정식 9a=(2a+1)(a+2)가 2(a-1)^2=0으로 중근이 되어 a가 하나로 정해짐)", "선지: 3/4~4/3 → 1~5"], "core_kept": "x→0+와 x→0-에서 f(x), f(-x)의 극한을 따로 구해 좌극한=우극한 방정식을 세움", "effect": "같음"}, {"exam": "2학기 중간(미적분Ⅰ)", "no": 12, "band": "9–12", "src": "C9", "change_type": ["식·함수 교체", "구조 변경", "형식 변경(보기형/서술·단계형/선지 변경)"], "change_detail": ["f: 두 구간 (불연속점 x=0 하나) → 세 구간 (불연속점 x=0, x=2 둘)", "경우 나누기: f(a)=0인 a만 확인 → (i) a≠0, 2일 때 f(a)=0 (a=-1, 5), (ii) a=0 확인 (좌 4 ≠ 우 16, 불연속), (iii) a=2일 때 두 점프가 상쇄 (좌 12 = 우 12 = 함숫값 12, 연속)", "답: 13 → 6 (-1+5+2)", "형식: 단답형 → 5지선다 (10, 9, 8, 7, 6)"], "core_kept": "x=a에서 f(x-a)는 x=0 근처 값(좌 2, 우 4)을 가지므로, f(x)가 a에서 연속이면 f(a)=0이 필요함", "effect": "어려워짐"}, {"exam": "2학기 중간(미적분Ⅰ)", "no": 13, "band": "13–16", "src": "B47", "change_type": ["조건 변경", "숫자 변경", "형식 변경(보기형/서술·단계형/선지 변경)"], "change_detail": ["대칭 조건: 도함수 식 f'(x)+f'(8-x)=0 (축 x=4) → 함숫값 식 f(2x-1)=f(11-2x) (축 x=5)", "극한 안의 식: [f(k-3+h)-f(k-3-h)]/h → 2f'(k-3) 에서 [f(2k-3+2h)-f(2k-3-h)]/h → 3f'(2k-3) (h의 계수가 비대칭)", "합의 범위: k=1~10 → k=1~6 (홀수 점 -1, 1, …, 9)", "구하는 값: f(1) → f(2) (c=11, 답 20)", "형식: 단답형 → 5지선다 (16~20)"], "core_kept": "대칭축으로 f=(x-p)^2+c를 놓고, 미분계수 정의로 극한을 f'으로 바꾼 뒤 Σ를 계산해 c를 정함", "effect": "같음"}, {"exam": "2학기 중간(미적분Ⅰ)", "no": 14, "band": "13–16", "src": "L18 (가장 가까운 유형)", "change_type": ["자체 제작"], "change_detail": ["가장 가까운 유형(L18)과 비교: 시험의 중심 거리 AB=√((t+2)^2+(2t+2)^2)는 L18의 OA와 같은 식", "고정된 5 → 두 반지름의 합 2t+3 (t=1일 때 5): f(t)=√(5t^2+12t+8)-(2t+3)", "두 원 사이 최소 거리 = 중심 거리 - 반지름의 합이라는 도형 해석 단계 추가 (t>1일 때 두 원이 떨어져 있음 확인)", "극한: x→1 양쪽 → t→1+ 한쪽", "답: 11/5 → 1/5 (L18의 값 11/5에서 반지름 합의 기울기 2를 뺀 값)"], "core_kept": "√(이차식)-(일차식) 꼴을 유리화해 0/0을 없앤 뒤 대입", "effect": "어려워짐"}, {"exam": "2학기 중간(미적분Ⅰ)", "no": 15, "band": "13–16", "src": "T1", "change_type": ["식·함수 교체", "조건 변경", "구하는 대상 변경", "형식 변경(보기형/서술·단계형/선지 변경)"], "change_detail": ["함수: f(x)=-x^3+ax^2+2x (미정계수 a 하나) → 최고차항의 계수가 1이고 원점을 지나는 삼차함수 f(x)=x^3+px^2+qx (미정계수 2개)", "도형 조건: A가 OB를 지름으로 하는 원 위의 점 (∠OAB=90°) → OA=AB (이등변삼각형), OB=4", "OA=AB 조건은 부교재 p.79 7번 [25054-0143] (OA=AB, OC=BC=5/2)과 같은 아이디어", "구하는 값: OA×AB → OA^2 (답 20)", "형식: 단답형 → 5지선다 (18~26 짝수)"], "core_kept": "O에서의 접선과 곡선의 교점 A(x좌표 -p), A에서의 접선의 x절편 B를 차례로 구하고 도형 조건으로 미정계수를 정함", "effect": "쉬워짐"}, {"exam": "2학기 중간(미적분Ⅰ)", "no": 16, "band": "13–16", "src": "C54", "change_type": ["식·함수 교체", "조건 변경", "숫자 변경", "구하는 대상 변경"], "change_detail": ["특이점 기준: f(x)=0 → f(x)=1 (분모 f(x) → f(x)-1)", "g의 식: f(x+3){f(x)+1}/f(x) → f(x){f(x-2)-1}/(f(x)-1) (평행이동 +3 → -2)", "따로 정한 값: 상수 3 → -|x-2| (x에 따라 바뀌는 값, g(4)=-2)", "조건: lim_{x→3} g = g(3)-1 → g(4) - lim_{x→4} g = -3", "구하는 값: g(5) → 10g(7) (f=(x-2)(x-3)(x-4)+1, g(7)=61/10, 답 61)", "선지: 14~22 → 59~63"], "core_kept": "함숫값을 따로 정한 점(f(x)=상수)에서 극한과 함숫값의 차이를 이용해 f(4)=1, f(2)=1 같은 근을 찾고, 0/0 꼴 극한값으로 나머지 근을 정함", "effect": "같음"}, {"exam": "2학기 중간(미적분Ⅰ)", "no": 17, "band": "17–18", "src": "L42", "change_type": ["식·함수 교체", "조건 변경", "구하는 대상 변경", "구조 변경", "형식 변경(보기형/서술·단계형/선지 변경)"], "change_detail": ["그래프: 그대로 사용 (식 없이 그림만 제시. x=0, 1에서 불연속이고 lim_{x→0-}=-1, lim_{x→0+}=1, lim_{x→1-}=0, lim_{x→1+}=2)", "g: 최고차항의 계수가 1인 삼차함수 → 이차함수", "극한 구조: 몫 g(x)/f(x)의 극한 존재 (f의 근을 g가 상쇄) → 합성 (f∘g)(x)의 극한 존재 (속함수 g가 0, 1에 어느 방향에서 다가가는지 봄)", "조건: -3<a<3에서 모두 존재 → 존재하지 않는 t가 α, β 둘뿐이고 αβ=0", "구하는 값: g(3)의 값 → g(3)의 최솟값 (g=x^2+bx+1, -2≤b<0 또는 0<b≤2, b=-2일 때 4)", "형식: 단답형 → 5지선다 (4~8)"], "core_kept": "같은 그래프 f의 불연속점 x=0, 1과 각 점의 좌·우극한 정보를 이용해 g를 결정", "effect": "어려워짐"}, {"exam": "2학기 중간(미적분Ⅰ)", "no": 18, "band": "17–18", "src": "C30", "change_type": ["식·함수 교체", "조건 변경", "구하는 대상 변경", "구조 변경"], "change_detail": ["f: 이차함수 → 사차함수", "함수: g=x/f(x^2+4), h=f(x-4)/f(x^2) 두 개 → g=f(x)/f(x^2) 하나 (분자와 분모가 같은 f)", "조건: 불연속점이 1개, 2개 → 불연속점 3개 + 극한이 존재하지 않는 점 1개 + lim_{x→-3} g=0", "분석 대상: f(x^2)=0의 근 ±√r의 개수와 분자에 의한 약분 여부 → f(0)=0, 양의 근이 r=1 하나, f(-3)=0", "구하는 값: f(c)×lim h → f(2) (f=x(x-1)(x+1)(x+3), 답 30)"], "core_kept": "분모 f(x^2)=0이 되는 x가 불연속점 후보(±로 쌍을 이룸). 분자가 같은 인수를 가져 약분되면 극한은 존재함", "effect": "어려워짐"}, {"exam": "2학기 중간(미적분Ⅰ)", "no": 19, "band": "서답", "src": "A11 (가장 가까운 유형)", "change_type": ["자체 제작", "형식 변경(보기형/서술·단계형/선지 변경)"], "change_detail": ["가장 가까운 유형(A11 ㄴ)과 비교: 조각 함수 → 절댓값 함수 x^3-3|x|+2 (x=0의 값은 따로 2로 정했지만 식의 값과 같음)", "형식: <보기> 참·거짓 판단 → 서술형 2단계 (연속성 → 미분가능성)", "판정: 좌미분계수 3, 우미분계수 -3 → 미분가능하지 않음"], "core_kept": "x=0에서 극한값=함숫값으로 연속을 보이고, 좌·우 미분계수를 정의대로 계산해 비교함", "effect": "쉬워짐"}, {"exam": "2학기 중간(미적분Ⅰ)", "no": 20, "band": "서답", "src": "L68", "change_type": ["식·함수 교체", "숫자 변경", "형식 변경(보기형/서술·단계형/선지 변경)", "구하는 대상 변경"], "change_detail": ["극한식: f(2x+1)/f(x) → f(4x+4)/f(2x+3) (분모 근 r에 대응하는 분자 점: r → 2r+1 대신 r → 2r-2, 고정점 -1 → 2)", "계수 구조: 상수항 4 고정, a·b 미정 → x의 계수를 -(2a+1)로 묶고 상수항 b를 미정으로 둠 (f(2)=6+b로 a가 사라져 b=-6이 바로 나옴)", "나머지 이차식: x^2+(a-1)x+4 (판별식 (a-1)^2-16<0, -3<a<5) → x^2+(a+2)x+3 (판별식 (a+2)^2-12<0, -2-2√3<a<-2+2√3)", "형식: 단답 1개 → 서답형 3단계 (1) b=-6 (2) a의 최솟값 -5 (3) f(1)=-6-a의 최댓값 -1", "최댓값을 주는 방향: 원본은 a 최대(f(1)=2a+8)에서 → 시험은 a 최소(f(1)=-6-a)에서"], "core_kept": "f의 실근 r에 대해 분자 쪽 점(2r-2)도 근이어야 하므로, 근이 계속 생기지 않으려면 실근은 고정점 하나뿐이고 나머지 이차식은 실근이 없음(판별식<0)", "effect": "같음"}, {"exam": "1학기 중간(수학Ⅰ)", "no": 1, "band": "1–4", "src": "2023 수능완성 [23054-0005] (01 유형2", "change_type": ["숫자 변경"], "change_detail": ["밑 2−√2 → √2+1", "지수 순서 (1+√3),(1−√3) → (1−√3),(1+√3)", "+2^(5/2) → −2^(3/2)", "선지 6~10 → 3~7"], "core_kept": "지수 합 2로 무리수 지수 소거 후 (밑)^2 전개, √2항 상쇄", "effect": "같음"}, {"exam": "1학기 중간(수학Ⅰ)", "no": 2, "band": "1–4", "src": "2023 수능특강 [23008-0008] (01 유형4", "change_type": ["숫자 변경", "형식 변경(보기형/서술·단계형/선지 변경)"], "change_detail": ["비 2/3 → 3/2", "b^(log_c 4) → b^(log_c 8)", "단답(구하시오) → 5지선다(4~8)"], "core_kept": "밑변환으로 log_b c 도출 후 a^(log_b c)=c^(log_b a) 성질", "effect": "같음"}, {"exam": "1학기 중간(수학Ⅰ)", "no": 3, "band": "1–4", "src": "2012학년도 9월 모의평가 나형 5번", "change_type": ["숫자 변경"], "change_detail": ["2^(5−x) → 2^(4−x)", "우변 33 → 10 (t+16/t=10, t=2,8)", "선지 4~8 → 1~5"], "core_kept": "2^x=t 치환 이차방정식, 두 근의 곱=2^4 → 실근의 합=지수 상수", "effect": "같음"}, {"exam": "1학기 중간(수학Ⅰ)", "no": 4, "band": "1–4", "src": "2026학년도 9월 모의평가 6번", "change_type": ["조건 변경", "숫자 변경", "구하는 대상 변경"], "change_detail": ["cos(θ−π)=3/5, tanθ<0 → θ 제2사분면, cosθ=−4/5 (변환공식·부호 추론 단계 삭제)", "3/5 → 4/5", "sinθ → tanθ", "선지 ±4/5,±3/5,1/5 → ±4/3,±3/4,3/5"], "core_kept": "사분면에 따른 부호 판단 + sin²+cos²=1", "effect": "쉬워짐"}, {"exam": "1학기 중간(수학Ⅰ)", "no": 5, "band": "5–8", "src": "2023 수능완성 [23054-0010] (01 유형3", "change_type": ["식·함수 교체", "구하는 대상 변경"], "change_detail": ["밑 x−2 → x+2", "진수 −(x−a)(x−a−3) → 5−x(일차)", "미지 상수 a 제거, \"x가 4뿐일 때 a\" → \"정수 x의 개수\""], "core_kept": "밑 조건(>0, ≠1)과 진수 조건(>0) 동시 적용, 밑=1 되는 값 제외", "effect": "쉬워짐"}, {"exam": "1학기 중간(수학Ⅰ)", "no": 6, "band": "5–8", "src": "2022 수능완성 [22054-0017] (02 유형2", "change_type": ["식·함수 교체", "조건 변경"], "change_detail": ["밑 2 → 3", "평행이동량 m → 계수 k (k·3^(x+1))", "제4사분면 → 제2사분면", "선지 정수 → 분수"], "core_kept": "점근선 위치 + y절편 부호로 사분면 통과 판정(f(0)≤0)", "effect": "같음"}, {"exam": "1학기 중간(수학Ⅰ)", "no": 7, "band": "5–8", "src": "2026학년도 수능 6번", "change_type": ["조건 변경", "숫자 변경"], "change_detail": ["log_a b=3 → (log a+½log b)/(2log a)=1 (⇒ b=a²)", "log_3(b/a)=1/2 → log_a 100b=12 (⇒ log_a 100=10)", "밑 3·9 → 상용로그 10", "구하는 식 log_9 ab → log ab"], "core_kept": "한 조건으로 b를 a의 거듭제곱으로, 다른 조건으로 a를 확정해 대입", "effect": "어려워짐"}, {"exam": "1학기 중간(수학Ⅰ)", "no": 8, "band": "5–8", "src": "2025 수능특강 [25008-0039] (02 유형5", "change_type": ["숫자 변경", "식·함수 교체"], "change_detail": ["x²−5x+6 → x²−13x+40 (x<5 또는 x>8)", "(x+2)(log x−2)<0 → (x+1)(log x−1)<0 (0<x<10)", "답 97 → 5, 선지 49~97 → 4~8"], "core_kept": "로그부등식 인수분해 후 x>0에서 일차인수 부호 제거, 이차부등식과 교집합", "effect": "쉬워짐"}, {"exam": "1학기 중간(수학Ⅰ)", "no": 9, "band": "9–12", "src": "2024 수능완성 [24054-0028] (03 유형1", "change_type": ["숫자 변경"], "change_detail": ["AB 2 → 10/3 (R=5/3)", "r 1/2 → 1/3", "계수 2 → 5 (=R/r)", "답 π → 5π/3"], "core_kept": "∠O1BO2=∠O1PO2=90°로 두 중심각 합=π, 계수 R/r로 각 소거", "effect": "같음"}, {"exam": "1학기 중간(수학Ⅰ)", "no": 10, "band": "9–12", "src": "2024 수능특강 [24008-0097] (03 Lev", "change_type": ["식·함수 교체", "조건 변경", "숫자 변경"], "change_detail": ["조건(가)(나)로 정의된 f → 명시적 |cos(πx/2)|", "절댓값 위치 |f+f| → f 자체에 절댓값", "범위 0<x<20 → 0<x<10", "답 45 → 20"], "core_kept": "f(x−2)를 주기·대칭성으로 f(x)와 연결해 합=2 ⇔ 각 항 최댓값 1", "effect": "쉬워짐"}, {"exam": "1학기 중간(수학Ⅰ)", "no": 11, "band": "9–12", "src": "2019학년도 9월 모의평가 가형 14번", "change_type": ["식·함수 교체", "숫자 변경", "구하는 대상 변경"], "change_detail": ["cos²(x−3π/4) → sin²(x−7π/8)", "위상 π/4 → 3π/8 (차이 π/2 유지)", "최댓값 3 → 5", "k+m → 최솟값", "정의역 0≤x≤2π 명시"], "core_kept": "위상차 π/2로 한 삼각함수로 통일 후 이차함수 최대·최소", "effect": "같음"}, {"exam": "1학기 중간(수학Ⅰ)", "no": 12, "band": "9–12", "src": "2025 수능특강 [25008-0085] (03 Lev", "change_type": ["조건 변경", "식·함수 교체", "구하는 대상 변경"], "change_detail": ["기울기 범위(<−3/(5π)) → 고정값 1/(2π)", "−|tan3x|+1 → −tan|3x|+2 (절댓값 위치 이동: y축 대칭 그래프)", "정의역 [0,2π] → [−2π,2π)", "\"최솟값\" → 개수"], "core_kept": "tan 그래프의 주기(π/3)·점근선 단위로 가지를 세고 끝점 처리", "effect": "같음"}, {"exam": "1학기 중간(수학Ⅰ)", "no": 13, "band": "13–16", "src": "2025 수능특강 [25008-0027] (01 Lev", "change_type": ["구조 변경", "식·함수 교체"], "change_detail": ["매개 a를 가진 f_n(a) 한 가족 → n의 함수 f(n), g(n) 두 개", "지수 n+1, (3n+1)² 홀짝이 n에 따라 바뀌도록 설계", "진수 n−8, n−4 부호도 n에 의존", "합성 f_n(f_(n+1)(a)) → f(g(k)), g(f(k))"], "core_kept": "거듭제곱근 실수 개수 = 지수 홀짝 × 부호 판정, 최대 조건 후 합성값 계산", "effect": "어려워짐"}, {"exam": "1학기 중간(수학Ⅰ)", "no": 14, "band": "13–16", "src": "2024 수능특강 [24008-0096] (03 Lev", "change_type": ["구조 변경", "조건 변경", "구하는 대상 변경"], "change_detail": ["a sinx+b → |a sinx+b| (절댓값 추가)", "세 수평선 교점 합 → 함수 g(t) 도입, g(1)−g(k)=5", "열린구간 → 닫힌구간 0≤x≤2π (끝점 근 2개)", "(a,b) 개수 → a−b"], "core_kept": "a sinx+b와 수평선 교점 수를 진폭·평행이동으로 판정", "effect": "어려워짐"}, {"exam": "1학기 중간(수학Ⅰ)", "no": 15, "band": "13–16", "src": "2026학년도 6월 모의평가 22번", "change_type": ["구조 변경", "식·함수 교체", "조건 변경", "구하는 대상 변경"], "change_detail": ["지수곡선 → 로그곡선(평행이동형 3개)", "교점 A + 직선과의 교점 B → 한 곡선과 두 곡선의 교점 A,B", "조건: 넓이 16 → 기울기 1/4", "구하는 것: k+log₂k → 넓이", "단답 → 5지선다"], "core_kept": "평행이동된 곡선의 교점을 진수 비교로 구하고 원점 삼각형 넓이 계산", "effect": "쉬워짐"}, {"exam": "1학기 중간(수학Ⅰ)", "no": 16, "band": "13–16", "src": "2023학년도 6월 모의평가 21번 (01 유형3 대표", "change_type": ["식·함수 교체", "숫자 변경", "형식 변경(보기형/서술·단계형/선지 변경)"], "change_detail": ["4log₆₄(3/(4n+16)) → 3log_(1/9)(4/(3n+9))", "단답 → ㄱㄴㄷ 보기형", "원문 질문(합)을 ㄷ으로 흡수, ㄱ(대입)·ㄴ(6의 배수) 추가", "ㄷ은 1083이 참값이라 거짓 선지"], "core_kept": "진수=밑의 유리수 거듭제곱 조건 → 지수 정수 조건으로 n 나열", "effect": "어려워짐"}, {"exam": "1학기 중간(수학Ⅰ)", "no": 17, "band": "17–18", "src": "2023학년도 수능 21번", "change_type": ["식·함수 교체", "조건 변경", "구하는 대상 변경"], "change_detail": ["x<0: 지수 → 뒤집힌 로그 −|log₂(2^(−7)−x)|+6", "x≥0: 로그 → 지수 |3^(2−x)−5| (n을 5로 고정)", "f(x)=t → {f−t}{f−t−2}=0 (두 수평선 동시)", "\"g 최댓값 4인 n 합\" → \"근 5개 이상인 정수 t 합\"", "\"자연수 n에 대하여\" 문구가 원문에서 그대로 남음(시험지에 n 미사용) — 변형 흔적"], "core_kept": "구간별 절댓값 지수·로그 그래프 개형으로 수평선 교점 수 세기", "effect": "같음"}, {"exam": "1학기 중간(수학Ⅰ)", "no": 18, "band": "17–18", "src": "2021학년도 6월 모의평가 가형 18번", "change_type": ["식·함수 교체", "숫자 변경"], "change_detail": ["곡선쌍 2^x & −2x²+2 → |9^x−2| & 2^(x+1) (p.48 #58의 |9^x−3|, 2^(x+k) 차용)", "ㄴ 기울기<1 → 기울기>2 (거짓으로 전환)", "ㄷ 범위 (√2/2,1) → (4,8)", "ㄱ 유지"], "core_kept": "교점 위치를 특정 x값 대입 비교로 판정, 기울기·곱을 지수법칙으로 평가", "effect": "어려워짐"}, {"exam": "1학기 중간(수학Ⅰ)", "no": "서1", "band": "서답", "src": "2021학년도 6월 모의평가 가형 14번", "change_type": ["식·함수 교체", "구하는 대상 변경", "형식 변경(보기형/서술·단계형/선지 변경)"], "change_detail": ["상수항 −3cos²θ−5sinθ+5 → cos²θ+3cosθ+2 (판별식이 sin 이차식 → cos 이차식)", "해 범위 π/6≤θ≤5π/6 → 2π/3≤θ≤4π/3", "4β−2α → α, β 각각", "5지선다 → 서술형(채점 10단계×1점)"], "core_kept": "판별식 D/4≥0 → sin²+cos²=1로 한 함수 이차부등식 → 단위원 범위", "effect": "같음"}, {"exam": "1학기 중간(수학Ⅰ)", "no": "서2", "band": "서답", "src": "부교재 외 기출 변형(출처표). 부교재 최근접: p.5", "change_type": ["자체 제작", "구조 변경"], "change_detail": ["부교재 직접 대응 문항 없음", "y축 대칭인 두 지수곡선 a^x−1, a^(−x)−1과 제3곡선 −a^x+t의 교점", "중점 조건으로 P(k,a^k−1), Q(1−k,a^(k−1)−1) 설정, t 소거", "a²−6a+5=0 → a=5"], "core_kept": "두 곡선 위 점을 매개 k로 놓고 중점 조건(x합=1, y합=0)으로 연립", "effect": "어려워짐"}, {"exam": "1학기 기말(수학Ⅰ)", "no": 1, "band": "1–4", "src": "2020학년도 9월 모의평가 나형 7번", "change_type": ["숫자 변경", "조건 변경", "구하는 대상 변경"], "change_detail": ["a_1=a_3+8 (공차 -4) → a_4=a_2+4 (공차 2)", "2a_4-3a_6=3 → a_5=6", "'a_k<0인 k의 최솟값' → 'a_1의 값'"], "core_kept": "두 항의 차(a_i-a_j=(i-j)d)로 공차를 구하고 일반항 a_n=a_1+(n-1)d에 대입", "effect": "쉬워짐"}, {"exam": "1학기 기말(수학Ⅰ)", "no": 2, "band": "1–4", "src": "2014학년도 6월 모의평가 A형 12번", "change_type": ["식·함수 교체", "구하는 대상 변경", "형식 변경(보기형/서술·단계형/선지 변경)"], "change_detail": ["S_n=n^2-10n → S_n=2n^2+n", "'a_n<0인 n의 개수' → '일반항 a_n'(식 선지)"], "core_kept": "a_n=S_n-S_{n-1}(n≥2), a_1=S_1 (상수항 0이므로 n=1에서도 성립)", "effect": "쉬워짐"}, {"exam": "1학기 기말(수학Ⅰ)", "no": 3, "band": "1–4", "src": "2025 수능특강 [25008-0127] (유형3 등비", "change_type": ["숫자 변경"], "change_detail": ["a_2=-2 → a_3=-2", "a_3a_5=36 → a_4a_6=64", "선지 무리수(-k√3/3) → 유리수(-1/4,-1/2,…)"], "core_kept": "등비중항 a_{n-1}a_{n+1}=a_n^2로 중간항 결정, 모든 항이 음수이므로 부호 선택 후 공비 계산", "effect": "같음"}, {"exam": "1학기 기말(수학Ⅰ)", "no": 4, "band": "1–4", "src": "2026학년도 수능 18번", "change_type": ["숫자 변경", "형식 변경(보기형/서술·단계형/선지 변경)"], "change_detail": ["cos∠BAC=-3/5 → -1/5", "sin=4/5(유리수) → sin=2√6/5(무리수)", "단답형 → 5지선다"], "core_kept": "sin^2+cos^2=1로 sinA를 구한 뒤 S=(1/2)bc·sinA", "effect": "같음"}, {"exam": "1학기 기말(수학Ⅰ)", "no": 5, "band": "5–8", "src": "2023 수능특강 [22008-0148] (유형1 합의", "change_type": ["숫자 변경"], "change_detail": ["a_1=3 → a_1=2", "합의 상한 15 → 10 (구하는 항 a_16 → a_11)", "50, 30 → 80, 90"], "core_kept": "Σa_{k+1}=S_{n+1}-a_1과 Σa_k=S_n을 빼서 a_{n+1}을 구함", "effect": "같음"}, {"exam": "1학기 기말(수학Ⅰ)", "no": 6, "band": "5–8", "src": "2024 수능특강 [24008-0127] (유형2 등차", "change_type": ["숫자 변경", "형식 변경(보기형/서술·단계형/선지 변경)"], "change_detail": ["a_10=8 → a_10=4", "단답형 → 5지선다"], "core_kept": "S_{2m-1}=(2m-1)·a_m (중앙항×항수)", "effect": "같음"}, {"exam": "1학기 기말(수학Ⅰ)", "no": 7, "band": "5–8", "src": "2025 수능특강 [25008-0157] (유형3 일반", "change_type": ["숫자 변경", "식·함수 교체"], "change_detail": ["(2k+1)/(k+1) → (3k+2)/(k+1)", "+(k+1)/k → -(k-1)/k", "상한 10 → 9"], "core_kept": "각 항을 상수+분수(대분수 꼴)로 나눈 뒤 1/k-1/(k+1) 꼴의 소거(망원합)", "effect": "같음"}, {"exam": "1학기 기말(수학Ⅰ)", "no": 8, "band": "5–8", "src": "2025 수능완성 [25054-0057] (유형3 삼각", "change_type": ["숫자 변경", "조건 변경"], "change_detail": ["비 4:5:6 → 5:1:4√2(무리수 포함)", "'둘레 30' → '외접원 넓이 25π'(R=5)", "변 길이 직접 결정 → 코사인법칙으로 cosC=-3/5, sinC=4/5를 구한 뒤 c=2R·sinC로 배율 결정"], "core_kept": "사인법칙으로 sin 비 = 변의 비로 바꾸어 변을 구한 뒤 넓이 계산", "effect": "어려워짐"}, {"exam": "1학기 기말(수학Ⅰ)", "no": 9, "band": "9–12", "src": "2010학년도 수능 나형 30번", "change_type": ["조건 변경", "숫자 변경", "형식 변경(보기형/서술·단계형/선지 변경)"], "change_detail": ["등차(공차 -3, 2) → 등비(공비 2, 2)", "a_2=1 → a_2=2", "a_8 → a_10", "단답형 → 5지선다"], "core_kept": "홀수번째·짝수번째 부분합을 따로 놓고 a_{2n}=S_{2n}-S_{2n-1} 같은 차로 항을 구함", "effect": "같음"}, {"exam": "1학기 기말(수학Ⅰ)", "no": 10, "band": "9–12", "src": "2024 수능특강 [24008-0167] (유형4 등차", "change_type": ["숫자 변경", "구하는 대상 변경", "형식 변경(보기형/서술·단계형/선지 변경)"], "change_detail": ["a_3=1 → a_4=3", "a_5+a_7=20 → a_6+a_8=60", "Σ_{1}^{9}의 p+q → Σ_{1}^{5}의 값", "단답 → 5지선다"], "core_kept": "등비중항 꼴 점화식에서 등비수열을 판별하고 r^4+r^2=20으로 r^2=4를 구해 등비합 계산", "effect": "같음"}, {"exam": "1학기 기말(수학Ⅰ)", "no": 11, "band": "9–12", "src": "2025 수능특강 [25008-0094] (유형1 사인", "change_type": ["숫자 변경", "조건 변경", "구하는 대상 변경"], "change_detail": ["직각 위치 B,D → A,C (지름이 AC → BD)", "sinA를 주고 대각선 BD를 구함 → 변(AB, AD)과 대각선 AC를 주고 sin∠ABC를 구함 (역방향)", "AB=3, BC=4 → AB=4, AD=4√3, AC=6"], "core_kept": "마주 보는 두 직각 → 원에 내접하고 대각선이 지름(2R)이 됨. 피타고라스로 2R을 구한 뒤 사인법칙 (현)=2R·sin(원주각)", "effect": "같음"}, {"exam": "1학기 기말(수학Ⅰ)", "no": 12, "band": "9–12", "src": "2025 수능특강 [25008-0150]", "change_type": ["식·함수 교체", "숫자 변경", "조건 변경"], "change_detail": ["등비수열 → 등차수열", "곱 a_pa_q=100(=a_m^2) → 합 a_p+a_q=30(=2a_m)", "a_1=1/m → a_3=-m", "순서쌍 5개 → 6개 (m=5 → m=6)", "a_{m-1} → a_{m+1}"], "core_kept": "(나)는 p+q=2m과 같으므로 순서쌍 개수가 m임을 이용해 m 결정 → 일반항 계산", "effect": "쉬워짐"}, {"exam": "1학기 기말(수학Ⅰ)", "no": 13, "band": "13–16", "src": "2024 수능완성 [24054-0072] (유형2 자연", "change_type": ["숫자 변경", "식·함수 교체"], "change_detail": ["|k-n|, 상한 2n → |2n-k|, 상한 4n", "Σ_{n=1}^{5} → Σ_{k=1}^{10}"], "core_kept": "절댓값을 k=2n 기준으로 나누어 a_n=4n^2(원문은 a_n=n^2)을 구한 뒤 Σk^2 공식 적용", "effect": "어려워짐"}, {"exam": "1학기 기말(수학Ⅰ)", "no": 14, "band": "13–16", "src": "2025 수능특강 [25008-0100] (유형3 삼각", "change_type": ["조건 변경", "구조 변경", "숫자 변경"], "change_detail": ["삼각형 단독 → 원에 내접하는 사각형 안에 삼각형을 넣음", "∠A=120° 직접 제시 → 'AC가 지름'에서 ∠ABC=90°, BC=2를 유도해야 함", "이등분각 60°+60° → 45°+45°", "AP → BE"], "core_kept": "각의 이등분선 길이: △ABC=△ABE+△EBC 넓이 분할(1/2·ab·sinθ)로 BE=2ab·cos(θ/2)/(a+b)", "effect": "어려워짐"}, {"exam": "1학기 기말(수학Ⅰ)", "no": 15, "band": "13–16", "src": "2025학년도 9월 모의평가 22번", "change_type": ["식·함수 교체", "숫자 변경", "형식 변경(보기형/서술·단계형/선지 변경)"], "change_detail": ["차 (2/3)k → 2k", "곱의 비 -k → -2/k", "k 값 {2√3/3, 2, √6/3, √2} (합 8) → {1, 1/2, √2} (합 13/4)", "단답 → 5지선다"], "core_kept": "각 단계에서 'k만큼 감소' 또는 '-배' 두 갈래의 경우를 나누는 수형도, a_2a_3<0으로 가지치기, a_5=0 역추적", "effect": "같음"}, {"exam": "1학기 기말(수학Ⅰ)", "no": 16, "band": "13–16", "src": "2026학년도 9월 모의평가 20번", "change_type": ["숫자 변경", "형식 변경(보기형/서술·단계형/선지 변경)"], "change_detail": ["AB:CD=1:3 → 14:11", "PB:PC:BC=7:5:√14 → 7:8:3", "AD=4√13 → 3", "빈칸 채우기(증명 과정 제시) → 풀이 과정 없는 5지선다", "반지름 R → 외접원 넓이 πR^2"], "core_kept": "할선 정리(PB·PA=PC·PD) 또는 △PBC∽△PDA로 l:k와 닮음비(2:7)를 구하고 BC 결정 → 코사인법칙으로 cosP → 사인법칙으로 R", "effect": "어려워짐"}, {"exam": "1학기 기말(수학Ⅰ)", "no": 17, "band": "17–18", "src": "2023 수능특강 [23008-0182]", "change_type": ["조건 변경", "구하는 대상 변경", "형식 변경(보기형/서술·단계형/선지 변경)"], "change_detail":
+
+exec
+/bin/bash -lc "python3 - <<'PY'
+import json,sys
+sys.path.insert(0,'output/build/부교재_기말')
+import items_final as F
+cards=json.load(open('output/build/기말/지침/analysis.json'))
+print(type(cards),list(cards)[:10])
+for k in ['D17','I29','J20','J45','J58','I43','I45','M66']:
+ print('\\nKEY',k,'ORIGINAL',F.I[k],'META',F.D[k]);print('CARD',json.dumps(cards.get(k),ensure_ascii=False))
+PY" in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+<class 'dict'> ['D9', 'D10', 'D11', 'D12', 'D13', 'D14', 'D15', 'D16', 'D17', 'D18']
+
+KEY D17 ORIGINAL ('두 상수 \\(a\\), \\(b\\)에 대하여 삼차함수 \\(f(x)=ax^3+bx+a\\)는 \\(x=1\\)에서 극소이다. 함수 \\(f(x)\\)의 극솟값이 \\(-2\\)일 때, 함수 \\(f(x)\\)의 극댓값을 구하시오.', None, '6', '2024학년도 대수능 6월 모의평가 18번 [24107-0117]') META (3, '유형3 함수의 극대와 극소 · 대표기출', '3a+b=0, 2a+b=-2 → f=2x³-6x+2, 극댓값 f(-1)=6')
+CARD {"key": "D17", "original_core": "극값 조건 f'(1)=0, f(1)=-2 두 식으로 계수 결정 → 극댓값", "calc_only": true, "variant_elements": [{"type": "소재 결합", "element": "lim f(x)/x 값으로 f(0)=0, f'(0) 결정 + 극값 조건", "ids": ["LIVE1-01-036", "LIVE1-01-040"], "effect": "같음", "why": "극한→계수 번역 한 단계 추가"}, {"type": "조건 변경", "element": "기함수 조건 + x=2 극댓값 16 → f(1)", "ids": ["LIVE1-01-037"], "effect": "같음", "why": "대칭으로 짝수차항 제거"}, {"type": "함수 교체", "element": "x³-3a²x+3a, 극솟값에서 a의 삼차방정식", "ids": ["GEN1-01-023"], "effect": "같음", "why": "점대칭 (극대+극소=2·3a) 활용"}, {"type": "형식 변경", "element": "증감표 작성 서술형 / (1)함수 (2)극댓값 단계형", "ids": ["LIVE1-01-039", "LIVE1-01-036"], "effect": "같음", "why": "과정 서술"}], "number_only_ids": ["GEN1-01-021", "GEN1-01-022", "LIVE1-01-032", "LIVE1-01-033", "LIVE1-01-034", "LIVE1-01-035", "LIVE1-01-038"], "live_pattern": "9회: 3~8번 7회(객관식), 18번 단계형·21번 서술형(증감표) 2회. 대부분 계수만 교체, 일부 lim f(x)/x·기함수 조건 결합", "exam_guide": {"slot": "3~6 / 서술형", "level": "하", "recipes": ["f=x³+ax²+bx, x=1에서 극소, 극댓값-극솟값=32 → ½d³=32, d=4 → f'=3(x+3)(x-1) → 극댓값 27 (극솟값 대신 차를 조건으로)"], "traps": ["극소점·극대점 위치 혼동(최고차 부호)", "f'(p)=0만 쓰고 f(p) 조건 누락"], "avoid": ["계수만 바꾼 극값→계수 결정 다수 (number_only)", "lim f(x)/x 결합 (LIVE1-01-036, LIVE1-01-040)", "기함수 + 극댓값 (LIVE1-01-037)", "x³-3a²x+3a (GEN1-01-023)", "증감표 서술형 (LIVE1-01-039)"]}, "study": {"title": "이차항 없는 삼차함수의 점대칭과 극값의 합·차", "known": "이차항 없는 삼차는 (0, 상수항) 점대칭 → 극값 합=2×상수항, 차=|a|/2·d³(손필기·TIP1). 이차항이 있으면 대칭으로 못 풀고 f−m=(x−β)²(x−γ)와 비율 관계로 극대점을 구함(변형①).", "note_core": "이차항 X → $f(x)-a$는 원점 대칭 함수. ⇒ 점 $(0,\\ a)$ 대칭. 극대점은 $x=-1$. 극소점이 오른쪽 → $a\\gt 0$.¹⁾ 합: $M+m=2a$ / 차: $M-m=\\frac a2\\times2^3=4a$ → 합과 차를 모두 같은 문자 $a$로 나타낼 수 있다. $a$, $b$는 구하지 않는다.²⁾", "directions": ["이차항이 있으면 → 대칭의 중심이 $(0,\\ \\text{상수항})$에서 벗어나므로 극대점을 비율 관계로 구한다", "극소점이 왼쪽에 있으면 → 최고차항의 계수가 음수라 극값의 차 부호를 바꾼다"], "variants_answer": ["27", "16"], "recipes": [{"i": 0, "overlap": "direction", "with": "방향1", "note": "이차항 있는 x³+ax²+bx에서 극값 차 32로 d=4 → 극점 −3, 1 결정. 극값 차 공식·비율 관계 활용은 방향1·TIP 계열, 문제(극솟값 대신 차를 조건)는 다름"}], "extra_recipe": null}}
+
+KEY I29 ORIGINAL ('다항함수 \\(f(x)\\)가 모든 실수 \\(x\\)에 대하여 \\(f(-x)=-f(x)\\)를 만족시키고 \\(\\displaystyle\\int_0^1 xf(x)\\,dx=3\\)일 때, \\(\\displaystyle\\int_{-1}^1 (x+2)^2f(x)\\,dx\\)의 값은?', ['18', '20', '22', '24', '26'], '④', '2022년 수능완성 [22054-0163]') META (3, '유형4 다항함수의 성질을 이용한 정적분 · 일반', '기함수 f: (x+2)²f 중 짝수 부분 4xf → 8∫₀¹xf=24')
+CARD {"key": "I29", "original_core": "기함수 f에 (x+2)² 곱 → 우함수 부분 4xf만 남음 → 8∫₀¹xf", "calc_only": false, "variant_elements": [{"type": "역문제화", "element": "(x+c)² 의 c를 적분값 36에서 역산", "ids": ["GEN2-03-051"], "effect": "같음", "why": "짝 부분 2cxf만 남음"}, {"type": "조건 변경", "element": "기함수 → 우함수 f, ∫f·∫x²f 주고 (x+1)²f / (3x+2)f", "ids": ["GEN2-03-052", "LIVE2-03-112"], "effect": "쉬워짐", "why": "xf가 기함수로 소거"}, {"type": "구조 변경", "element": "f를 h=f·g(기×우=기함수)로 교체, h' 우함수 → ∫(x+k)h'=k{h(a)−h(−a)} → h(a)", "ids": ["LIVE2-03-107", "LIVE2-03-109", "LIVE2-03-110"], "effect": "어려워짐", "why": "곱·도함수의 홀짝 판정 2단계 + 도함수 적분=끝값"}, {"type": "소재 결합", "element": "우함수 f의 f'(기함수) + (x+1)²f' + 곱의 미분 {xf}'=f+xf' → f(1)", "ids": ["LIVE2-03-108"], "effect": "어려워짐", "why": "홀짝 + 곱미분 역방향 결합(서답형)"}, {"type": "함수 교체", "element": "기함수 f의 f'(짝함수)×(x³+5x+1)", "ids": ["LIVE2-03-111"], "effect": "같음", "why": "도함수 홀짝 + 끝값 f(4)−f(−4)"}, {"type": "함수 교체", "element": "|f| (기함수 절댓값=우함수) × (x+3)", "ids": ["LIVE2-03-113"], "effect": "같음", "why": "절댓값의 홀짝 판정"}], "number_only_ids": ["GEN2-03-050"], "live_pattern": "5~19번 7회: 5·6·6·9번(기본 홀짝·절댓값), 13·17·19번(곱 h=fg, f'·곱미분 결합). 서답형 1회(17번)", "exam_guide": {"slot": "6~13 / 17~19", "level": "중상", "recipes": ["구조 변경(변수 구간 함수화): 기함수 다항 f, f(1)=2, g(x)=∫₋ₓˣ(t+2)²f(t)dt → 대칭으로 g(x)=8∫₀ˣtf(t)dt → g'(1)=8f(1)=16", "조건 변경(대칭중심 이동): f(2−x)=−f(x)(점(1,0) 대칭), ∫₁²(x−1)f=3 → t=x−1 기준 (t+2)²φ(t) → ∫₀²(x+1)²f=24"], "traps": ["기×기=우, 기함수의 도함수=우함수", "(x+2)² 짝 부분 4xf의 계수(2배 누락)", "대칭중심이 원점이 아닌 경우 그대로 소거"], "avoid": ["(x−3)², 구간 숫자 교체 (GEN2-03-050)", "(x+c)² c 역산 (GEN2-03-051)", "우함수 (x+1)²f / (3x+2)f (GEN2-03-052, LIVE2-03-112)", "h=fg, (x+k)h' → h(a) (LIVE2-03-107·109·110)", "(x+1)²f' + {xf}' 서답형 (LIVE2-03-108)", "f'(x³+5x+1) (LIVE2-03-111)", "(x+3)|f| (LIVE2-03-113)"]}, "study": {"title": "원점 대칭 함수에 곱한 다항식의 홀수 차수 항만 남는 정적분", "known": "f 기함수 → (x+2)²의 짝수차 부분과의 곱은 소거, 4x만 남음 → 4·2∫_0^1 xf (f 구하지 않음).", "note_core": "$f$는 원점 대칭 함수 → 짝수 차수 항과 곱하면 원점 대칭 함수 → 적분 0.", "directions": ["대칭의 중심이 원점이 아니면 → 곱한 다항식을 대칭의 중심을 기준으로 다시 전개하여 홀짝을 나눈다", "원점 대칭 함수에 상수를 더한 함수이면 → 상수를 뺀 함수로 홀짝을 나누고 주어진 적분값도 그에 맞게 고친다"], "variants_answer": ["③ 20", "④ 30"], "recipes": [{"i": 0, "overlap": "direction", "with": "I30 방향2·변형②(타 원본)", "note": "I29 분석집에는 없으나 I30 분석집의 '구간 [−x,x] 함수화 → 반구간 적분 후 미분'과 같은 방향."}, {"i": 1, "overlap": "same", "with": "변형①", "note": "대칭중심 (1,0)으로 이동, x−1 기준 재전개. 변형①(f(1+x)=−f(1−x), ∫_0^2(x+1)²f)과 사실상 같음."}], "extra_recipe": null}}
+
+KEY J20 ORIGINAL ('곡선 \\(y=x^4-(2+k)x^3+2kx^2\\)과 \\(x\\)축으로 둘러싸인 두 부분의 넓이가 서로 같을 때, 상수 \\(k\\)의 값은? (단, \\(k>2\\))', ['3', '\\dfrac{10}3', '\\dfrac{11}3', '4', '\\dfrac{13}3'], '②', '2022년 수능특강 [22009-0171]') META (4, '유형3 두 곡선으로 둘러싸인 두 부분의 넓이가 같은 경우 · 일반', 'x²(x-2)(x-k), ∫₀ᵏ=0 → k⁵/20-(2+k)k⁴/4+2k⁴/3=0 → k=10/3')
+CARD {"key": "J20", "original_core": "x²(x-2)(x-k)와 x축 두 부분 등넓이 ⇔ ∫₀ᵏ=k⁴(10-3k)/60=0 → k=10/3 (중근이 비율 결정)", "calc_only": false, "variant_elements": [{"type": "함수 교체", "element": "사차(중근) → 세 단순근 삼차 (두 곡선 차 x(x-4)(x-a), x(x+2)(x-a), x(x-a)(x-4)) → 등넓이 = 가운데 근이 중점", "ids": ["LIVE2-04-052", "LIVE2-04-056", "LIVE2-04-058"], "effect": "쉬워짐", "why": "점대칭 성질로 적분 없이 해결"}, {"type": "함정 추가", "element": "x(x-k)(x-4), k의 위치(0 왼쪽/내부/4 오른쪽) 세 케이스 → k 최댓값 8", "ids": ["LIVE2-04-053"], "effect": "어려워짐", "why": "근 순서 케이스 분류"}, {"type": "함수 교체", "element": "삼차곡선과 직선 y=mx, 차 x(x-2)(x-m) (서답형)", "ids": ["LIVE2-04-054"], "effect": "같음", "why": "직선을 빼서 근 배치만 이용"}, {"type": "함수 교체", "element": "우함수 사차 (x²-4)(x²-k), 세 영역 P+R=Q → ∫₋₂²=0", "ids": ["LIVE2-04-055"], "effect": "같음", "why": "세 영역 합 조건 + 우함수 반구간"}], "number_only_ids": ["GEN2-04-039", "LIVE2-04-057"], "live_pattern": "2·7·9·11·13·14번 객관식 6회, 22번 서답형 1회. 대부분 사차(중근)→삼차 단순근으로 단순화해 '가운데 근=중점', 1회는 근 위치 케이스", "exam_guide": {"slot": "9~14 / 서답형", "level": "중상", "recipes": ["[역문제화: 중근 외 근 위치] 곡선 y=x²(x-a)(x-6) (0<a<6)와 x축 두 부분 등넓이 → ∫₀⁶=6⁴(5a-18)/60=0 → a=18/5 (삼차의 중점 공식 적용 시 오답 3 유도)", "[형식 변경 ㄱㄴㄷ+케이스] f=x²(x-2)(x-k): ㄱ. k=10/3이면 두 넓이 같다 ㄴ. 2<k<10/3이면 왼쪽 부분이 더 크다(∫₀ᵏ>0) ㄷ. 0<k<2이면 두 넓이가 같게 하는 k는 6/5 (∫₀²=-8/5+4k/3=0) — 모두 참"], "traps": ["중근 있는 사차에 삼차 '가운데 근=중점' 적용", "근 순서(k<2 vs k>2) 케이스 누락"], "avoid": ["3+k 숫자 변경 (GEN2-04-039, LIVE2-04-057)", "삼차 단순근 중점 (LIVE2-04-052, 056, 058)", "근 위치 세 케이스 최댓값 (LIVE2-04-053)", "삼차-직선 y=mx 서답 (LIVE2-04-054)", "우함수 사차 P+R=Q (LIVE2-04-055)"]}, "study": {"title": "사차함수의 넓이 공식으로 구하는 넓이가 같은 두 부분의 조건", "known": "∫₀ᵏx²(x-2)(x-k)dx=0을 x-2=(x-k)+(k-2)로 나누어 1/12·1/30 공식으로 계산한다. TIP2의 근 위치비 0:3:5를 쓰면 바로 나온다.", "note_core": "$y=x^2(x-2)(x-k)$ → $x=0$에서 $x$축에 접하고 2, $k$에서 만난다.", "directions": ["중근이 오른쪽에 있으면 → 넓이가 같아지는 근의 위치 비를 중근에서부터 잰다", "곡선과 접선 사이의 넓이이면 → 곡선에서 접선을 뺀 식의 두 근의 합과 근의 위치 비로 근을 정한다"], "variants_answer": ["④ 5", "④ 15"], "recipes": [{"i": 0, "overlap": "none", "with": "-", "note": "가운데 근을 미지수로 바꾼 원본 재현이다. 분석집 TIP2(0:3:5)로 즉답되어 차별성이 약하다"}, {"i": 1, "overlap": "none", "with": "-", "note": "ㄱㄴㄷ과 0<k<2인 경우(0:k:2=0:3:5)는 방향에 없지만 TIP2로 바로 풀린다"}], "extra_recipe": null}}
+
+KEY J45 ORIGINAL ('실수 전체의 집합에서 연속인 함수 \\(f(x)\\)가 다음 조건을 만족시킬 때, 함수 \\(y=f(x)\\)의 그래프와 \\(x\\)축으로 둘러싸인 부분의 넓이는?<div class="cond"><div class="ci"><span class="ck">(가)</span>모든 실수 \\(x\\)에 대하여 \\(f(x)=-f(-x)\\)이다.</div><div class="ci"><span class="ck">(나)</span>\\(\\displaystyle\\int_{-5}^7 f(x)\\,dx=3\\), \\(\\displaystyle\\int_{-7}^0 f(x)\\,dx=5\\)</div><div class="ci"><span class="ck">(다)</span>방정식 \\(f(x)=0\\)을 만족시키는 양수 \\(x\\)는 \\(5\\)와 \\(7\\)뿐이다</div></div>', ['14', '16', '18', '20', '22'], '⑤', '2025년 수능특강 [25009-0177]') META (5, 'Level Up', '기함수: ∫₅⁷f=3, ∫₀⁷f=-5 → ∫₀⁵f=-8; 넓이 2(8+3)=22')
+CARD {"key": "J45", "original_core": "기함수 + 정적분 두 값 → 대칭 구간 소거로 [0,5],[5,7] 부호 있는 적분 → 근 사이 부호 일정 → 넓이=2(|X|+|Y|)", "calc_only": false, "variant_elements": [{"type": "조건 변경", "element": "기함수 → 우함수(f(x)=f(-x)), 근 1,2(음이 아닌 근)", "ids": ["GEN2-04-094"], "effect": "같음", "why": "우함수는 ∫-a^a=2∫0^a로 바뀜, 대칭 처리 방식 전환"}, {"type": "구조 변경", "element": "대칭 조건을 '|f|가 x=5 대칭 + f'>0'으로 간접 제시 → f가 점(5,0) 대칭임을 유도, ∫9^10 f 질문", "ids": ["LIVE2-04-108"], "effect": "어려워짐", "why": "|f| 선대칭 → f 선대칭/점대칭 판별을 증가 조건으로 결정해야 함"}, {"type": "조건 변경", "element": "근을 문자 a,b로, 조건을 ∫-a^b f=∫a^0 f 등 적분 등식으로 → X,Y 연립", "ids": ["LIVE2-04-109"], "effect": "어려워짐", "why": "부호 있는 미지수 설정과 연립 처리 요구"}, {"type": "구하는 대상 변경", "element": "넓이 → ∫-5^3 {4x+f(x)}dx (영점 조건 삭제)", "ids": ["LIVE2-04-110"], "effect": "쉬워짐", "why": "부호 판정 불필요, 구간 '대칭+나머지' 분해만"}], "number_only_ids": ["GEN2-04-095"], "live_pattern": "6·10·13번대 3회, 모두 객관식. 우함수·문자화로 조건만 바꾸거나, |f| 대칭+단조로 점대칭 유도, 넓이 대신 정적분값 질문", "exam_guide": {"slot": "8~13", "level": "중", "recipes": ["조건 변경(대칭 중심 이동): (가) f(x)+f(4-x)=6 (점 (2,3) 대칭) (나) ∫2^5 f=7, ∫-1^3 f=16 (다) f(x)=3의 해는 -1,1,2,3,5뿐. 기준선 y=3으로 g=f-3 두면 ∫0^1 g=2, ∫1^3 g=-4 (u=x-2) → 곡선 y=f(x)와 직선 y=3으로 둘러싸인 넓이 12", "형식 변경(ㄱㄴㄷ) + 함정: 원본에서 (다) 영점 조건 삭제. ㄱ ∫-5^0 f=8 (참) ㄴ ∫-7^7 |f|=22 (거짓, ≥22만 보장) ㄷ 양수 영점이 5,7뿐이면 넓이=22 (참)", "소재 결합(J47): 기함수 f 대신 f(x)=-f(-x)이고 증가하는 f의 역함수 g에 대해 ∫ 구간 조건을 g로 주고 f의 넓이 묻기"], "traps": ["영점 조건 없이 정적분=넓이로 처리", "기함수 ∫-5^7 → ∫5^7만 남는 분해 실수", "우함수는 f(0)=0 아님", "구간 [0,5]의 부호(음)를 양으로 착각"], "avoid": ["기함수 그대로 숫자만 (GEN2-04-095)", "우함수·근 1,2 (GEN2-04-094)", "|f| x=5 대칭+f'>0 → ∫9^10 f (LIVE2-04-108)", "우함수, 근 a,b 문자+적분 등식 (LIVE2-04-109)", "기함수 ∫-5^3{4x+f} (LIVE2-04-110)"]}, "study": {"title": "근 사이 구간의 정적분으로 정하는 부호와 원점 대칭 함수의 넓이", "known": "원점 대칭이면 대칭 구간의 적분이 0이므로 근 사이 구간의 적분만 남는다. 근 사이에서는 부호가 일정하므로 넓이=|정적분|의 합이고 이를 2배 한다.", "note_core": "(가) 원점 대칭 함수 → $[-5,\\ 5]$에서의 정적분은 0 → $\\int_{-5}^7f=\\int_5^7f=3$¹⁾", "directions": ["대칭의 중심이 $x$축 위에 있지 않으면 → 중심의 함숫값을 뺀 함수로 바꾸어 대칭인 구간의 정적분을 0으로 만든다", "원점 대칭 대신 $y$축 대칭이면 → 대칭인 구간의 정적분이 절반 구간의 2배가 되고 가운데 부분이 하나의 넓이가 된다"], "variants_answer": ["③ 20", "③ 18"], "recipes": [{"i": 0, "overlap": "same", "with": "변형①", "note": "대칭 중심을 (2,3)으로 옮기고 f-3으로 바꿔 y=3과의 넓이를 구한다. 변형①과 같은 조건 구조이고 수치만 다르다"}, {"i": 1, "overlap": "none", "with": "-", "note": "영점 조건을 삭제한 ㄱㄴㄷ 함정은 없다"}, {"i": 2, "overlap": "none", "with": "-", "note": "역함수 결합은 없다"}], "extra_recipe": null}}
+
+KEY J58 ORIGINAL ('최고차항의 계수가 \\(1\\)인 삼차함수 \\(f(x)\\)가\n\\[f(1)=f(2)=0,\\quad f\'(0)=-7\\]\n을 만족시킨다. 원점 O와 점 \\(\\mathrm{P}(3,\\ f(3))\\)에 대하여 선분 OP가 곡선 \\(y=f(x)\\)와 만나는 점 중 P가 아닌 점을 Q라 하자. 곡선 \\(y=f(x)\\)와 \\(y\\)축 및 선분 OQ로 둘러싸인 부분의 넓이를 \\(A\\), 곡선 \\(y=f(x)\\)와 선분 PQ로 둘러싸인 부분의 넓이를 \\(B\\)라 할 때, \\(B-A\\)의 값은?<div class="fig"><img src="fig_J58.svg" style="width:110pt"></div>', ['\\dfrac{37}4', '\\dfrac{39}4', '\\dfrac{41}4', '\\dfrac{43}4', '\\dfrac{45}4'], '⑤', '2025학년도 수능 13번') META (5, '평가원 기출', 'f=(x-1)(x-2)(x+3)=x³-7x+6, 선분 OP: y=4x; B-A=∫₀³(4x-f)=18-27/4=45/4')
+CARD {"key": "J58", "original_core": "조건으로 삼차 f 결정, 원점-P 할선 → B-A=∫0^3(직선-f) 하나로 압축 (중간 교점 Q 불필요)", "calc_only": false, "variant_elements": [{"type": "역문제화", "element": "f(0)·f'(0)·P(2,6) 고정, B(직선 x=2 포함)-A=11/2 주고 f(2) 구하기", "ids": ["GEN2-04-125"], "effect": "같음", "why": "미지 계수 a를 넓이 차 조건으로 결정"}, {"type": "역문제화", "element": "f=x³-7x+a 에서 B-A=45/4 → a (P도 a에 따라 이동)", "ids": ["LIVE2-04-158"], "effect": "같음", "why": "곡선 이동이 할선 기울기도 바꿈을 인식"}, {"type": "역문제화", "element": "f=a(x+1)(x-2)², B-A=4 → a (전체 a배 확대)", "ids": ["LIVE2-04-159"], "effect": "같음", "why": "양수배는 교점 불변, 넓이 비례"}, {"type": "구조 변경", "element": "할선 → x=0 접선 g, P=접선의 x절편, 수직선분 PQ 경계, A-B=∫0^3(g-f)", "ids": ["GEN2-04-126"], "effect": "같음", "why": "접점 중근 인수 x² 이용"}, {"type": "함수 교체", "element": "최고차항 -1 → A-B로 부호 반전", "ids": ["GEN2-04-128"], "effect": "같음", "why": "위아래 관계 재확인"}, {"type": "조건 변경", "element": "∫-3^x f'(t)dt=(x-1){x(x+1)-f(0)} 항등식으로 f 결정 + (1)(2) 단계형 서답형", "ids": ["LIVE2-04-157"], "effect": "어려워짐", "why": "x=-3, x=0 대입으로 상수 결정 후 넓이"}], "number_only_ids": ["GEN2-04-124", "GEN2-04-127", "GEN2-04-129", "LIVE2-04-156"], "live_pattern": "6·17·19·22번대 4회, 서답형 2회(19·22번). 숫자만 1회, f 결정을 적분 항등식으로 바꾼 단계형 1회, B-A 값을 주고 매개변수 찾는 역문제화 2회", "exam_guide": {"slot": "15~19 / 서답형", "level": "중상", "recipes": ["구조 변경(끝점 이동→넓이 차를 함수로): f=x³-7x+6, 점 P(t, f(t)) (t>0). h(t)=B-A=t·f(t)/2-∫0^t f = t⁴/4-3t. A=B가 되는 t³=12, 또는 h(t)의 최솟값(t=∛3) 묻기", "구하는 대상 변경(Q 좌표 필요하게): f=x³-3x²-3x+8, P(4,f(4))=(4,12), 직선 y=3x, f-3x=(x-1)(x-4)(x+2) → Q x=1. A=17/4, B=81/4 → A+B=49/2 (B-A=16과 대비)", "소재 결합(J46): f 대신 f'의 그래프(두 근·넓이 조건)로 f를 결정한 뒤 할선 넓이 차 묻기"], "traps": ["B-A는 Q 없이 되지만 A+B는 Q 필요", "최고차항 음수면 B-A↔A-B", "f(0)=0이면 A의 y축 경계가 사라짐", "할선 기울기 f(3)/3 계산 실수"], "avoid": ["근·f' 조건·P 좌표만 변경 (GEN2-04-124, GEN2-04-127, GEN2-04-129, LIVE2-04-156)", "P(2,6) 고정, B-A 주고 f(2) (GEN2-04-125)", "x=0 접선·x절편 P·A-B (GEN2-04-126)", "최고차항 -1, A-B (GEN2-04-128)", "적분 항등식으로 f 결정 단계형 (LIVE2-04-157)", "x³-7x+a, B-A로 a (LIVE2-04-158)", "a(x+1)(x-2)², B-A=4로 a (LIVE2-04-159)"]}, "study": {"title": "변곡점을 지나는 직선과 삼각형으로 구하는 넓이의 차", "known": "B-A=∫₀³(직선-f) 하나로 나타내므로 Q가 필요 없다. 변곡점 S가 y축 위에 있으면 (변곡점을 지나는 직선의 1/4 공식)-(삼각형)으로 구한다.", "note_core": "$f(x)=x^3+ax^2+bx+c$ → $b=f'(0)=-7$", "directions": ["삼차함수가 하나로 정해지지 않으면 → 직선과 곡선의 차에 일차항이 남지 않으므로 함수를 구하지 않고 넓이의 차를 구한다", "두 넓이가 같도록 점의 위치를 정하면 → 삼각형의 넓이와 변곡점을 지나는 선분과 곡선 사이의 넓이가 같다는 방정식을 세운다"], "variants_answer": ["③ 48", "③ 2"], "recipes": [{"i": 0, "overlap": "same", "with": "변형②", "note": "점 P(t)를 움직여 A=B 조건(t⁴/4-3t=0)을 세운다. 변형②(f=x³-3x+4, t=2)와 같은 문제이다"}, {"i": 1, "overlap": "none", "with": "-", "note": "Q의 좌표가 필요한 A+B는 없다"}, {"i": 2, "overlap": "none", "with": "-", "note": "f' 그래프 결합은 없다"}], "extra_recipe": null}}
+
+KEY I43 ORIGINAL ("\\(f'(0)=0\\)인 이차함수 \\(f(x)\\)와 연속함수 \\(g(x)\\)가 모든 실수 \\(x\\)에 대하여\n\\[xg(x)=\\int_{-1}^1|x-t|f(t)\\,dt\\]\n를 만족시킨다. \\(g(-2)=2\\)일 때, \\(f(2)\\)의 값을 구하시오.", None, '21', '2024년 수능특강 [24009-0155]') META (5, 'Level Up', 'f=px²+q; x=0 대입 ∫|t|f=0 → p=-2q; x≤-1: xg=-x∫f → g=-∫f=-(2p/3+2q)=2 → q=-3,p=6 → f(2)=21')
+CARD {"key": "I43", "original_core": "xg(x)=∫_{-1}^1|x-t|f(t)dt: x=0 대입으로 ∫|t|f=0, 구간 밖 x에서 절댓값 제거(+tf 기함수 소거)로 g 상수화 → 계수 결정", "calc_only": false, "variant_elements": [{"type": "역문제화", "element": "적분구간을 [-m,m]으로 미지수화, x<-m에서 g=2와 f(0)=-1로 m 역산", "ids": ["GEN2-03-084"], "effect": "어려워짐", "why": "p, q를 m의 식으로 두고 연립"}, {"type": "구조 변경", "element": "f 확정 후 구간 내부 x∈[-1,1]에서 t=x로 분할해 h(x)=x⁴-3x² 구하고 최대·최소 차", "ids": ["GEN2-03-085"], "effect": "어려워짐", "why": "원본이 피한 '구간 내부' 절댓값 적분 전개 요구"}, {"type": "형식 변경", "element": "단계형 (1) f(3) (2) ∫₀³|g|dx → 0<x<2 내부식 x³-12x와 x≥2 상수식 -16 모두 필요", "ids": ["LIVE2-03-154"], "effect": "어려워짐", "why": "계수 결정 이후 g 전체 식(내부·외부) 구성 + 연속성 처리"}], "number_only_ids": ["GEN2-03-083", "LIVE2-03-152", "LIVE2-03-153"], "live_pattern": "12, 14, 22번 3회. 12·14번 객관식 숫자 변형, 22번은 (1)(2) 단계형(서술 성격). 학교는 대체로 구간 [-2,2]·g(-3) 숫자만 바꾸고, 고난도 쪽은 g의 구간 내부식까지 요구", "exam_guide": {"slot": "14~18 / 서답형", "level": "중상", "recipes": ["구조 변경(극한 메커니즘): f'(0)=0 삭제(일반 이차 f=px²+qx+r) → tf 기함수 소거 불가. 조건 'lim_{x→∞} g(x)=-1', 'g(-2)=3' 제시. x≥1에서 g=∫f-(∫tf)/x의 극한으로 p, x≤-1식으로 q 결정 → f=3x²-6x-3/2, f(2)=-3/2", "구하는 대상 변경: 위 설정에서 g(0) 묻기 → 연속함수 g의 x=0값 = 우변 h(x)의 x=0 미분계수 h'(0)=∫_{-1}^0 f-∫_0^1 f = 6"], "traps": ["x≤-1과 x≥1에서 |x-t| 부호 반대", "x=0에서 g(0)는 대입 불가(연속성/미분계수로)", "f'(0)=0 없으면 ∫tf≠0"], "avoid": ["구간 [-m,m] 미지수, m 역산 (GEN2-03-084)", "f 확정, 구간 내부 h(x) 최대최소 (GEN2-03-085)", "단계형 f(3), ∫|g| (LIVE2-03-154)", "구간·g값 숫자만 변경 (GEN2-03-083, LIVE2-03-152, LIVE2-03-153)"]}, "study": {"title": "적분 구간 밖에서 절댓값이 풀리는 정적분 함수", "known": "x=0 대입으로 ∫|t|f=0, 구간 밖 x에서는 |x−t|가 한 부호로 풀려 xg(x)가 x의 일차식(TIP) → f'(0)=0이면 ∫tf=0이라 g 상수.", "note_core": "$f'(0)=0$ → $f(t)=pt^2+q$, $y$축 대칭 함수 → $tf(t)$는 원점 대칭 함수.", "directions": ["이차함수의 일차항이 남아 있으면 → 구간 밖 양쪽의 두 값을 함께 써서 두 적분을 따로 구한다", "대입하는 값이 적분 구간 안에 있으면 → 그 값에서 구간을 나누어 절댓값을 푼다"], "variants_answer": ["15", "42"], "recipes": [{"i": 0, "overlap": "same", "with": "변형①", "note": "f'(0)=0 삭제(일차항 살림) → 구간 밖 양쪽 직선으로 ∫f, ∫tf 분리. 변형①(g(−2)=3, g(2)=−1)에서 한쪽 값을 극한으로 준 정도."}, {"i": 1, "overlap": "direction", "with": "방향2", "note": "구간 안의 값 g(0)을 묻는 방향 동일. 분석집은 t=x에서 구간 분할, 우리는 h'(0)로 처리."}], "extra_recipe": null}}
+
+KEY I45 ORIGINAL ('일차함수 \\(f(x)\\)와 최고차항의 계수가 \\(1\\)인 이차함수 \\(g(x)\\)가 다음 조건을 만족시킬 때, \\(f(g\'(1))\\)의 값은?<div class="cond"><div class="ci"><span class="ck">(가)</span>\\(\\displaystyle\\lim_{x\\to0}\\frac1x\\int_0^x f(t)\\,dt=0\\)</div><div class="ci"><span class="ck">(나)</span>\\(\\displaystyle\\int_{-1}^1 f(x)g(x)\\,dx=0\\), \\(\\displaystyle\\int_{-1}^1 f(x)g\'(x)\\,dx=8\\)</div></div>', ['4', '6', '8', '10', '12'], '⑤', '2025년 수능특강 [25009-0154]') META (4, 'Level Up', "f(0)=0 → f=mx; ∫x g=2b m/3=0 → b=0; ∫mx(2x+b)=4m/3=8 → m=6; f(g'(1))=f(2)=12")
+CARD {"key": "I45", "original_core": "lim(1/x)∫₀ˣf=f(0)=0으로 f=mx, 대칭구간 [-1,1] 홀짝 소거로 g 계수·m 결정", "calc_only": false, "variant_elements": [{"type": "조건 변경", "element": "∫fg=0 → ∫f'g=0으로 바꿔 g 상수항 q 결정, 묻는 값 f(g(0))", "ids": ["GEN2-03-089"], "effect": "같음", "why": "어느 계수가 소거되는지 다시 판단(p 불필요)"}, {"type": "조건 변경", "element": "극한 중심 x→1 → f(1)=0, f=a(x-1)로 대칭구간 소거가 깔끔하지 않음 + g(0)=0 추가", "ids": ["LIVE2-03-159"], "effect": "같음", "why": "a≠0(일차) 조건으로 b 결정, 영함수 배제"}, {"type": "함수 교체", "element": "f 이차(축 x=2), g 삼차, 극한 (1/x)∫_{2-x}^{2+x}g=2g(2)", "ids": ["LIVE2-03-160"], "effect": "어려워짐", "why": "구간 길이 2x vs 분모 x 계수 2 함정 + 조건 다수 조합"}], "number_only_ids": [], "live_pattern": "7, 12번 2회 객관식. 학교는 극한 중심 이동(x→1, 2±x 대칭구간)과 차수 올리기로 변형", "exam_guide": {"slot": "7~12", "level": "중", "recipes": ["조건 변경(극한 차수): (가) lim_{x→0}(1/x²)∫₀ˣf(t)dt=3 → f(0)=0이고 m/2=3, f=6x. (나) ∫_{-1}^1 f(x)g(x)dx=0(→g의 x계수 0), ∫₀¹g(x)dx=0(→상수항 -1/3) → f(g(1))=4", "조건 변경(항등식+케이스): (나) '모든 실수 a에 대하여 ∫_{-a}^{a}f(x)g(x)dx=0'(fg 기함수) + g(0)≠0 → f=mx, g 일차항 0; ∫_{-1}^1 f g'=8 → m=6, f(g'(1)) 묻기. g(0)≠0 없으면 c=0, n=-mb 케이스 생김"], "traps": ["(1/x)∫_{a-x}^{a+x}는 2f(a)", "일차함수 ⇒ m≠0 사용 누락", "대칭구간 아닌 [0,1] 적분에서 홀수항 소거 착각"], "avoid": ["∫f'g=0, f(g(0)) (GEN2-03-089)", "x→1 극한, g(0)=0 (LIVE2-03-159)", "f 이차 축 x=2, g 삼차, 2±x 극한 (LIVE2-03-160)"]}, "study": {"title": "원점 대칭 함수와 곱한 대칭 구간 적분에서 남는 항", "known": "(가) 극한 = f(0)=0 → f=mx(기함수). 대칭구간에서 기함수와 곱하면 홀수차만 남아 b=0, m=6; c는 안 정해지고 필요도 없음.", "note_core": "(가)의 극한 = $f(0)$ → $f(0)=0$. (core 202쪽, 뉴런 358–359쪽)", "directions": ["대칭의 중심이 원점이 아니면 → 구간의 중점을 기준으로 식을 다시 써서 남는 항을 고른다", "곱하는 함수에 절댓값이 씌워지면 → 원점 대칭 함수가 $y$축 대칭 함수로 바뀌어 짝수 차수 항이 남는다"], "variants_answer": ["③ 9", "② 24"], "recipes": [{"i": 0, "overlap": "none", "with": "-", "note": "극한 분모를 x²로 바꿔 계수까지 결정 + ∫_0^1 g=0으로 상수항 결정. 분석집 방향(중심 이동, |f|)과 다름."}, {"i": 1, "overlap": "none", "with": "-", "note": "모든 a에 대한 항등식 → fg 기함수 + g(0)≠0 케이스 분리. 분석집에 없음."}], "extra_recipe": null}}
+
+KEY M66 ORIGINAL ('상수 \\(a\\) \\((a\\ne3\\sqrt5)\\)와 최고차항의 계수가 음수인 이차함수 \\(f(x)\\)에 대하여 함수\n\\[g(x)=\\begin{cases}x^3+ax^2+15x+7 & (x\\le0)\\\\ f(x) & (x>0)\\end{cases}\\]\n이 다음 조건을 만족시킨다.<div class="cond"><div class="ci"><span class="ck">(가)</span>함수 \\(g(x)\\)는 실수 전체의 집합에서 미분가능하다.</div><div class="ci"><span class="ck">(나)</span>\\(x\\)에 대한 방정식 \\(g\'(x)\\times g\'(x-4)=0\\)의 서로 다른 실근의 개수는 \\(4\\)이다.</div></div>\\(g(-2)+g(2)\\)의 값은?', ['30', '32', '34', '36', '38'], '②', '2025학년도 수능 15번') META (6, '평가원 기출', "f=-px²+15x+7; g'(x≤0) 두 음근 r₁,r₂(a>3√5), g'(x>0) 근 s; r₁+4=r₂, r₂+4=s → r=-5,-1, a=9, s=3, p=5/2 → 5+27=32")
+CARD {"key": "M66", "original_core": "x=0 미분가능으로 f의 상수·일차항 확정 → g' 영점 집합 S와 S+4의 합집합 원소 수 → 영점들이 간격 4의 등차(-5,-1,3), 근과 계수 관계로 a·p 결정", "calc_only": false, "variant_elements": [{"type": "조건 변경", "element": "합집합 원소 수 4 → 3: 영점 2개·간격=이동량 (왼쪽 중근 또는 오른쪽 영점 없음)", "ids": ["GEN1-02-175", "LIVE1-02-269", "LIVE1-02-272", "LIVE1-02-273"], "effect": "같음", "why": "S의 원소 수부터 확정(중근도 한 원소)"}, {"type": "함수 교체", "element": "좌우 역할 교대: 왼쪽 ax³(계수 미지)+이차 f(GEN175) / 왼쪽 삼차 f, 오른쪽 주어진 삼차(GEN176) / 왼쪽 이차·오른쪽 삼차(GEN177) / -x³ 부호 반전(LIVE271)", "ids": ["GEN1-02-175", "GEN1-02-176", "GEN1-02-177", "LIVE1-02-271"], "effect": "같음", "why": "어느 쪽에 영점이 몇 개인지 판별식·근의 부호로 재판단"}, {"type": "조건 변경", "element": "극댓값 존재 조건 (다) 추가로 중근 케이스 제거", "ids": ["GEN1-02-177"], "effect": "어려워짐", "why": "합집합 4개의 두 경우(겹침 없음/사슬) 구분"}, {"type": "역문제화", "element": "식 대신 '삼차 f는 x=-6에서 극대, 이차 g 일차항 36'으로 근 위치를 먼저 제시", "ids": ["LIVE1-02-270"], "effect": "같음", "why": "등차 배치를 주어진 극점에서 역추적"}, {"type": "구하는 대상 변경", "element": "g값 대신 g'(-1)+g'(1) / 함수 최솟값 / f(0) 최댓값 / 2a+g값", "ids": ["LIVE1-02-269", "LIVE1-02-274", "LIVE1-02-275", "LIVE1-02-277"], "effect": "같음", "why": "결정 후 요구 대상만 바뀜"}, {"type": "소재 결합", "element": "g(x)=2 근 3개(오른쪽 양의 중근 강제) + g'g'(x-2)=0 근 5개, 최솟값", "ids": ["LIVE1-02-274"], "effect": "어려워짐", "why": "함수값 근 조건으로 인수형 결정 후 도함수 영점 겹침"}, {"type": "구조 변경", "element": "x≤1에서 -f+2, x>1에서 f (같은 f의 세로 반사 연결) + |g|=3 근 3개, 두 케이스 비교로 f(0) 최댓값", "ids": ["LIVE1-02-275"], "effect": "어려워짐", "why": "f(1)=1, f'(1)=0 유도 + 가로 배치 2경우 비교"}, {"type": "조건 변경", "element": "g'(x){g'(x)-8}=0 근 6개 조건 추가 → 오른쪽 삼차의 g'=0 중근 확정, 이동량 10/3", "ids": ["LIVE1-02-276"], "effect": "어려워짐", "why": "g'=0, g'=8 근 분포로 단순근·중근 위치 결정"}], "number_only_ids": ["GEN1-02-178", "GEN1-02-179", "GEN1-02-180", "LIVE1-02-277"], "live_pattern": "7~22번대 9회(13·17·18번 각 2회, 15·21·22번 1회, 7번 1회), 단답 서답형(구하시오) 2회(21·22번). 원소 수 4→3(중근) 변형 3회, 좌우 함수 차수·부호 교체, g'(g'-8)·g=2·|g|=3 같은 보조 조건 추가 경향", "exam_guide": {"slot": "13~18 / 단답 서답형", "level": "중상", "recipes": ["[구조 변경] 평행이동 → 배율: g(x)=x³+9x²+24x+c (x≤0), f(x)=-px²+24x+c (x>0), 미분가능, '방정식 g'(x)×g'(2x)=0의 서로 다른 실근 5개' → S∪(S/2)에서 음근끼리만 겹침 α=2β, 곱 8 → -4,-2 (a=9 확인), (다) x>0에서 g 최댓값 = g(0)+36 → 144/p=36, p=4; c=5이면 g(-1)+g(1)=14", "[역문제화] g를 완전히 주고(x≤0: x³+6x²+9x+c, x>0: -(9/8)x²+9x+c → S={-3,-1,4}) 'g'(x)g'(x-k)=0의 서로 다른 실근이 5개가 되는 양수 k의 합' → 간격 2,5,7 → 14 (4개는 불가함도 보기로)", "[형식 변경] 보기형: ㄱ. 원소 수 3이면 왼쪽 중근 ㄴ. 원소 수 4이면 영점 등차 ㄷ. 원소 수 5 가능 여부 — 개수-구조 대응을 판단"], "traps": ["합집합 4개를 '겹침 없음(2원소)'과 '사슬(3원소)' 구분 누락", "a≠… 조건이 중근 배제임을 못 봄", "S+k 와 S-k 방향 혼동", "중근을 원소 2개로 셈"], "avoid": ["계수·이동량만 바꾼 동형 (GEN1-02-178·179·180, LIVE1-02-277)", "원소 수 3, 간격=이동량 (GEN1-02-175, LIVE1-02-269·272·273)", "좌우 차수 교체/부호 반전 (GEN1-02-176·177, LIVE1-02-271)", "극점·일차항 제시 역추적 (LIVE1-02-270)", "g=2 근 조건 + 5개 (LIVE1-02-274)", "-f+2 / f 연결 + |g|=3 (LIVE1-02-275)", "g'(g'-8)=0 6개 추가 (LIVE1-02-276)"]}, "study": {"title": "$g'(x)$와 $g'(x-4)$의 근이 겹치는 조건, 간격 4로 이어진 세 근", "known": "미분가능 접합이면 두 식의 차가 x²을 인수로 갖는다. u(x)u(x-c)=0의 근은 R∪(R+c)이고, 줄어든 개수만큼 간격 c인 쌍이 있어 -5, -1, 3이 등차이다.", "note_core": "(가) $x=0$에서 미분가능 → 두 식의 차가 $x^2$을 인수로.", "directions": ["서로 다른 실근의 개수가 3이면 → 서로 다른 세 근으로는 만들 수 없어 중근인 경우를 쓴다", "서로 다른 실근의 개수가 5이면 → 한 번만 겹치면 되어 겹치는 경우를 모두 찾는다"], "variants_answer": ["③ 18", "④ 16"], "recipes": [{"i": 0, "overlap": "none", "with": "-", "note": "평행이동을 배율(g'(2x))로 바꿔 S∪S/2를 보는 것은 분석집에 없다."}, {"i": 1, "overlap": "direction", "with": "방향2 / 변형②", "note": "5개 ⇒ 한 번만 겹친다는 판정은 변형②와 같다. g를 주고 k를 묻는 역방향만 다르다."}, {"i": 2, "overlap": "direction", "with": "방향1·2", "note": "ㄱ(3개⇒중근)은 변형①, ㄷ(5개 가능)은 변형②의 판정을 보기로 옮긴 것이다."}], "extra_recipe": null}}
+
+exec
+/bin/bash -lc "python3 - <<'PY'
+import json,sys
+sys.path.insert(0,'output/build/부교재_기말');import items_final as F
+c=json.load(open('output/build/기말/지침/analysis.json'))
+for k in ['I43','I45','M66']:
+ print(k,F.I[k],F.D[k]);print(json.dumps(c[k],ensure_ascii=False,indent=1))
+PY" in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+I43 ("\\(f'(0)=0\\)인 이차함수 \\(f(x)\\)와 연속함수 \\(g(x)\\)가 모든 실수 \\(x\\)에 대하여\n\\[xg(x)=\\int_{-1}^1|x-t|f(t)\\,dt\\]\n를 만족시킨다. \\(g(-2)=2\\)일 때, \\(f(2)\\)의 값을 구하시오.", None, '21', '2024년 수능특강 [24009-0155]') (5, 'Level Up', 'f=px²+q; x=0 대입 ∫|t|f=0 → p=-2q; x≤-1: xg=-x∫f → g=-∫f=-(2p/3+2q)=2 → q=-3,p=6 → f(2)=21')
+{
+ "key": "I43",
+ "original_core": "xg(x)=∫_{-1}^1|x-t|f(t)dt: x=0 대입으로 ∫|t|f=0, 구간 밖 x에서 절댓값 제거(+tf 기함수 소거)로 g 상수화 → 계수 결정",
+ "calc_only": false,
+ "variant_elements": [
+  {
+   "type": "역문제화",
+   "element": "적분구간을 [-m,m]으로 미지수화, x<-m에서 g=2와 f(0)=-1로 m 역산",
+   "ids": [
+    "GEN2-03-084"
+   ],
+   "effect": "어려워짐",
+   "why": "p, q를 m의 식으로 두고 연립"
+  },
+  {
+   "type": "구조 변경",
+   "element": "f 확정 후 구간 내부 x∈[-1,1]에서 t=x로 분할해 h(x)=x⁴-3x² 구하고 최대·최소 차",
+   "ids": [
+    "GEN2-03-085"
+   ],
+   "effect": "어려워짐",
+   "why": "원본이 피한 '구간 내부' 절댓값 적분 전개 요구"
+  },
+  {
+   "type": "형식 변경",
+   "element": "단계형 (1) f(3) (2) ∫₀³|g|dx → 0<x<2 내부식 x³-12x와 x≥2 상수식 -16 모두 필요",
+   "ids": [
+    "LIVE2-03-154"
+   ],
+   "effect": "어려워짐",
+   "why": "계수 결정 이후 g 전체 식(내부·외부) 구성 + 연속성 처리"
+  }
+ ],
+ "number_only_ids": [
+  "GEN2-03-083",
+  "LIVE2-03-152",
+  "LIVE2-03-153"
+ ],
+ "live_pattern": "12, 14, 22번 3회. 12·14번 객관식 숫자 변형, 22번은 (1)(2) 단계형(서술 성격). 학교는 대체로 구간 [-2,2]·g(-3) 숫자만 바꾸고, 고난도 쪽은 g의 구간 내부식까지 요구",
+ "exam_guide": {
+  "slot": "14~18 / 서답형",
+  "level": "중상",
+  "recipes": [
+   "구조 변경(극한 메커니즘): f'(0)=0 삭제(일반 이차 f=px²+qx+r) → tf 기함수 소거 불가. 조건 'lim_{x→∞} g(x)=-1', 'g(-2)=3' 제시. x≥1에서 g=∫f-(∫tf)/x의 극한으로 p, x≤-1식으로 q 결정 → f=3x²-6x-3/2, f(2)=-3/2",
+   "구하는 대상 변경: 위 설정에서 g(0) 묻기 → 연속함수 g의 x=0값 = 우변 h(x)의 x=0 미분계수 h'(0)=∫_{-1}^0 f-∫_0^1 f = 6"
+  ],
+  "traps": [
+   "x≤-1과 x≥1에서 |x-t| 부호 반대",
+   "x=0에서 g(0)는 대입 불가(연속성/미분계수로)",
+   "f'(0)=0 없으면 ∫tf≠0"
+  ],
+  "avoid": [
+   "구간 [-m,m] 미지수, m 역산 (GEN2-03-084)",
+   "f 확정, 구간 내부 h(x) 최대최소 (GEN2-03-085)",
+   "단계형 f(3), ∫|g| (LIVE2-03-154)",
+   "구간·g값 숫자만 변경 (GEN2-03-083, LIVE2-03-152, LIVE2-03-153)"
+  ]
+ },
+ "study": {
+  "title": "적분 구간 밖에서 절댓값이 풀리는 정적분 함수",
+  "known": "x=0 대입으로 ∫|t|f=0, 구간 밖 x에서는 |x−t|가 한 부호로 풀려 xg(x)가 x의 일차식(TIP) → f'(0)=0이면 ∫tf=0이라 g 상수.",
+  "note_core": "$f'(0)=0$ → $f(t)=pt^2+q$, $y$축 대칭 함수 → $tf(t)$는 원점 대칭 함수.",
+  "directions": [
+   "이차함수의 일차항이 남아 있으면 → 구간 밖 양쪽의 두 값을 함께 써서 두 적분을 따로 구한다",
+   "대입하는 값이 적분 구간 안에 있으면 → 그 값에서 구간을 나누어 절댓값을 푼다"
+  ],
+  "variants_answer": [
+   "15",
+   "42"
+  ],
+  "recipes": [
+   {
+    "i": 0,
+    "overlap": "same",
+    "with": "변형①",
+    "note": "f'(0)=0 삭제(일차항 살림) → 구간 밖 양쪽 직선으로 ∫f, ∫tf 분리. 변형①(g(−2)=3, g(2)=−1)에서 한쪽 값을 극한으로 준 정도."
+   },
+   {
+    "i": 1,
+    "overlap": "direction",
+    "with": "방향2",
+    "note": "구간 안의 값 g(0)을 묻는 방향 동일. 분석집은 t=x에서 구간 분할, 우리는 h'(0)로 처리."
+   }
+  ],
+  "extra_recipe": null
+ }
+}
+I45 ('일차함수 \\(f(x)\\)와 최고차항의 계수가 \\(1\\)인 이차함수 \\(g(x)\\)가 다음 조건을 만족시킬 때, \\(f(g\'(1))\\)의 값은?<div class="cond"><div class="ci"><span class="ck">(가)</span>\\(\\displaystyle\\lim_{x\\to0}\\frac1x\\int_0^x f(t)\\,dt=0\\)</div><div class="ci"><span class="ck">(나)</span>\\(\\displaystyle\\int_{-1}^1 f(x)g(x)\\,dx=0\\), \\(\\displaystyle\\int_{-1}^1 f(x)g\'(x)\\,dx=8\\)</div></div>', ['4', '6', '8', '10', '12'], '⑤', '2025년 수능특강 [25009-0154]') (4, 'Level Up', "f(0)=0 → f=mx; ∫x g=2b m/3=0 → b=0; ∫mx(2x+b)=4m/3=8 → m=6; f(g'(1))=f(2)=12")
+{
+ "key": "I45",
+ "original_core": "lim(1/x)∫₀ˣf=f(0)=0으로 f=mx, 대칭구간 [-1,1] 홀짝 소거로 g 계수·m 결정",
+ "calc_only": false,
+ "variant_elements": [
+  {
+   "type": "조건 변경",
+   "element": "∫fg=0 → ∫f'g=0으로 바꿔 g 상수항 q 결정, 묻는 값 f(g(0))",
+   "ids": [
+    "GEN2-03-089"
+   ],
+   "effect": "같음",
+   "why": "어느 계수가 소거되는지 다시 판단(p 불필요)"
+  },
+  {
+   "type": "조건 변경",
+   "element": "극한 중심 x→1 → f(1)=0, f=a(x-1)로 대칭구간 소거가 깔끔하지 않음 + g(0)=0 추가",
+   "ids": [
+    "LIVE2-03-159"
+   ],
+   "effect": "같음",
+   "why": "a≠0(일차) 조건으로 b 결정, 영함수 배제"
+  },
+  {
+   "type": "함수 교체",
+   "element": "f 이차(축 x=2), g 삼차, 극한 (1/x)∫_{2-x}^{2+x}g=2g(2)",
+   "ids": [
+    "LIVE2-03-160"
+   ],
+   "effect": "어려워짐",
+   "why": "구간 길이 2x vs 분모 x 계수 2 함정 + 조건 다수 조합"
+  }
+ ],
+ "number_only_ids": [],
+ "live_pattern": "7, 12번 2회 객관식. 학교는 극한 중심 이동(x→1, 2±x 대칭구간)과 차수 올리기로 변형",
+ "exam_guide": {
+  "slot": "7~12",
+  "level": "중",
+  "recipes": [
+   "조건 변경(극한 차수): (가) lim_{x→0}(1/x²)∫₀ˣf(t)dt=3 → f(0)=0이고 m/2=3, f=6x. (나) ∫_{-1}^1 f(x)g(x)dx=0(→g의 x계수 0), ∫₀¹g(x)dx=0(→상수항 -1/3) → f(g(1))=4",
+   "조건 변경(항등식+케이스): (나) '모든 실수 a에 대하여 ∫_{-a}^{a}f(x)g(x)dx=0'(fg 기함수) + g(0)≠0 → f=mx, g 일차항 0; ∫_{-1}^1 f g'=8 → m=6, f(g'(1)) 묻기. g(0)≠0 없으면 c=0, n=-mb 케이스 생김"
+  ],
+  "traps": [
+   "(1/x)∫_{a-x}^{a+x}는 2f(a)",
+   "일차함수 ⇒ m≠0 사용 누락",
+   "대칭구간 아닌 [0,1] 적분에서 홀수항 소거 착각"
+  ],
+  "avoid": [
+   "∫f'g=0, f(g(0)) (GEN2-03-089)",
+   "x→1 극한, g(0)=0 (LIVE2-03-159)",
+   "f 이차 축 x=2, g 삼차, 2±x 극한 (LIVE2-03-160)"
+  ]
+ },
+ "study": {
+  "title": "원점 대칭 함수와 곱한 대칭 구간 적분에서 남는 항",
+  "known": "(가) 극한 = f(0)=0 → f=mx(기함수). 대칭구간에서 기함수와 곱하면 홀수차만 남아 b=0, m=6; c는 안 정해지고 필요도 없음.",
+  "note_core": "(가)의 극한 = $f(0)$ → $f(0)=0$. (core 202쪽, 뉴런 358–359쪽)",
+  "directions": [
+   "대칭의 중심이 원점이 아니면 → 구간의 중점을 기준으로 식을 다시 써서 남는 항을 고른다",
+   "곱하는 함수에 절댓값이 씌워지면 → 원점 대칭 함수가 $y$축 대칭 함수로 바뀌어 짝수 차수 항이 남는다"
+  ],
+  "variants_answer": [
+   "③ 9",
+   "② 24"
+  ],
+  "recipes": [
+   {
+    "i": 0,
+    "overlap": "none",
+    "with": "-",
+    "note": "극한 분모를 x²로 바꿔 계수까지 결정 + ∫_0^1 g=0으로 상수항 결정. 분석집 방향(중심 이동, |f|)과 다름."
+   },
+   {
+    "i": 1,
+    "overlap": "none",
+    "with": "-",
+    "note": "모든 a에 대한 항등식 → fg 기함수 + g(0)≠0 케이스 분리. 분석집에 없음."
+   }
+  ],
+  "extra_recipe": null
+ }
+}
+M66 ('상수 \\(a\\) \\((a\\ne3\\sqrt5)\\)와 최고차항의 계수가 음수인 이차함수 \\(f(x)\\)에 대하여 함수\n\\[g(x)=\\begin{cases}x^3+ax^2+15x+7 & (x\\le0)\\\\ f(x) & (x>0)\\end{cases}\\]\n이 다음 조건을 만족시킨다.<div class="cond"><div class="ci"><span class="ck">(가)</span>함수 \\(g(x)\\)는 실수 전체의 집합에서 미분가능하다.</div><div class="ci"><span class="ck">(나)</span>\\(x\\)에 대한 방정식 \\(g\'(x)\\times g\'(x-4)=0\\)의 서로 다른 실근의 개수는 \\(4\\)이다.</div></div>\\(g(-2)+g(2)\\)의 값은?', ['30', '32', '34', '36', '38'], '②', '2025학년도 수능 15번') (6, '평가원 기출', "f=-px²+15x+7; g'(x≤0) 두 음근 r₁,r₂(a>3√5), g'(x>0) 근 s; r₁+4=r₂, r₂+4=s → r=-5,-1, a=9, s=3, p=5/2 → 5+27=32")
+{
+ "key": "M66",
+ "original_core": "x=0 미분가능으로 f의 상수·일차항 확정 → g' 영점 집합 S와 S+4의 합집합 원소 수 → 영점들이 간격 4의 등차(-5,-1,3), 근과 계수 관계로 a·p 결정",
+ "calc_only": false,
+ "variant_elements": [
+  {
+   "type": "조건 변경",
+   "element": "합집합 원소 수 4 → 3: 영점 2개·간격=이동량 (왼쪽 중근 또는 오른쪽 영점 없음)",
+   "ids": [
+    "GEN1-02-175",
+    "LIVE1-02-269",
+    "LIVE1-02-272",
+    "LIVE1-02-273"
+   ],
+   "effect": "같음",
+   "why": "S의 원소 수부터 확정(중근도 한 원소)"
+  },
+  {
+   "type": "함수 교체",
+   "element": "좌우 역할 교대: 왼쪽 ax³(계수 미지)+이차 f(GEN175) / 왼쪽 삼차 f, 오른쪽 주어진 삼차(GEN176) / 왼쪽 이차·오른쪽 삼차(GEN177) / -x³ 부호 반전(LIVE271)",
+   "ids": [
+    "GEN1-02-175",
+    "GEN1-02-176",
+    "GEN1-02-177",
+    "LIVE1-02-271"
+   ],
+   "effect": "같음",
+   "why": "어느 쪽에 영점이 몇 개인지 판별식·근의 부호로 재판단"
+  },
+  {
+   "type": "조건 변경",
+   "element": "극댓값 존재 조건 (다) 추가로 중근 케이스 제거",
+   "ids": [
+    "GEN1-02-177"
+   ],
+   "effect": "어려워짐",
+   "why": "합집합 4개의 두 경우(겹침 없음/사슬) 구분"
+  },
+  {
+   "type": "역문제화",
+   "element": "식 대신 '삼차 f는 x=-6에서 극대, 이차 g 일차항 36'으로 근 위치를 먼저 제시",
+   "ids": [
+    "LIVE1-02-270"
+   ],
+   "effect": "같음",
+   "why": "등차 배치를 주어진 극점에서 역추적"
+  },
+  {
+   "type": "구하는 대상 변경",
+   "element": "g값 대신 g'(-1)+g'(1) / 함수 최솟값 / f(0) 최댓값 / 2a+g값",
+   "ids": [
+    "LIVE1-02-269",
+    "LIVE1-02-274",
+    "LIVE1-02-275",
+    "LIVE1-02-277"
+   ],
+   "effect": "같음",
+   "why": "결정 후 요구 대상만 바뀜"
+  },
+  {
+   "type": "소재 결합",
+   "element": "g(x)=2 근 3개(오른쪽 양의 중근 강제) + g'g'(x-2)=0 근 5개, 최솟값",
+   "ids": [
+    "LIVE1-02-274"
+   ],
+   "effect": "어려워짐",
+   "why": "함수값 근 조건으로 인수형 결정 후 도함수 영점 겹침"
+  },
+  {
+   "type": "구조 변경",
+   "element": "x≤1에서 -f+2, x>1에서 f (같은 f의 세로 반사 연결) + |g|=3 근 3개, 두 케이스 비교로 f(0) 최댓값",
+   "ids": [
+    "LIVE1-02-275"
+   ],
+   "effect": "어려워짐",
+   "why": "f(1)=1, f'(1)=0 유도 + 가로 배치 2경우 비교"
+  },
+  {
+   "type": "조건 변경",
+   "element": "g'(x){g'(x)-8}=0 근 6개 조건 추가 → 오른쪽 삼차의 g'=0 중근 확정, 이동량 10/3",
+   "ids": [
+    "LIVE1-02-276"
+   ],
+   "effect": "어려워짐",
+   "why": "g'=0, g'=8 근 분포로 단순근·중근 위치 결정"
+  }
+ ],
+ "number_only_ids": [
+  "GEN1-02-178",
+  "GEN1-02-179",
+  "GEN1-02-180",
+  "LIVE1-02-277"
+ ],
+ "live_pattern": "7~22번대 9회(13·17·18번 각 2회, 15·21·22번 1회, 7번 1회), 단답 서답형(구하시오) 2회(21·22번). 원소 수 4→3(중근) 변형 3회, 좌우 함수 차수·부호 교체, g'(g'-8)·g=2·|g|=3 같은 보조 조건 추가 경향",
+ "exam_guide": {
+  "slot": "13~18 / 단답 서답형",
+  "level": "중상",
+  "recipes": [
+   "[구조 변경] 평행이동 → 배율: g(x)=x³+9x²+24x+c (x≤0), f(x)=-px²+24x+c (x>0), 미분가능, '방정식 g'(x)×g'(2x)=0의 서로 다른 실근 5개' → S∪(S/2)에서 음근끼리만 겹침 α=2β, 곱 8 → -4,-2 (a=9 확인), (다) x>0에서 g 최댓값 = g(0)+36 → 144/p=36, p=4; c=5이면 g(-1)+g(1)=14",
+   "[역문제화] g를 완전히 주고(x≤0: x³+6x²+9x+c, x>0: -(9/8)x²+9x+c → S={-3,-1,4}) 'g'(x)g'(x-k)=0의 서로 다른 실근이 5개가 되는 양수 k의 합' → 간격 2,5,7 → 14 (4개는 불가함도 보기로)",
+   "[형식 변경] 보기형: ㄱ. 원소 수 3이면 왼쪽 중근 ㄴ. 원소 수 4이면 영점 등차 ㄷ. 원소 수 5 가능 여부 — 개수-구조 대응을 판단"
+  ],
+  "traps": [
+   "합집합 4개를 '겹침 없음(2원소)'과 '사슬(3원소)' 구분 누락",
+   "a≠… 조건이 중근 배제임을 못 봄",
+   "S+k 와 S-k 방향 혼동",
+   "중근을 원소 2개로 셈"
+  ],
+  "avoid": [
+   "계수·이동량만 바꾼 동형 (GEN1-02-178·179·180, LIVE1-02-277)",
+   "원소 수 3, 간격=이동량 (GEN1-02-175, LIVE1-02-269·272·273)",
+   "좌우 차수 교체/부호 반전 (GEN1-02-176·177, LIVE1-02-271)",
+   "극점·일차항 제시 역추적 (LIVE1-02-270)",
+   "g=2 근 조건 + 5개 (LIVE1-02-274)",
+   "-f+2 / f 연결 + |g|=3 (LIVE1-02-275)",
+   "g'(g'-8)=0 6개 추가 (LIVE1-02-276)"
+  ]
+ },
+ "study": {
+  "title": "$g'(x)$와 $g'(x-4)$의 근이 겹치는 조건, 간격 4로 이어진 세 근",
+  "known": "미분가능 접합이면 두 식의 차가 x²을 인수로 갖는다. u(x)u(x-c)=0의 근은 R∪(R+c)이고, 줄어든 개수만큼 간격 c인 쌍이 있어 -5, -1, 3이 등차이다.",
+  "note_core": "(가) $x=0$에서 미분가능 → 두 식의 차가 $x^2$을 인수로.",
+  "directions": [
+   "서로 다른 실근의 개수가 3이면 → 서로 다른 세 근으로는 만들 수 없어 중근인 경우를 쓴다",
+   "서로 다른 실근의 개수가 5이면 → 한 번만 겹치면 되어 겹치는 경우를 모두 찾는다"
+  ],
+  "variants_answer": [
+   "③ 18",
+   "④ 16"
+  ],
+  "recipes": [
+   {
+    "i": 0,
+    "overlap": "none",
+    "with": "-",
+    "note": "평행이동을 배율(g'(2x))로 바꿔 S∪S/2를 보는 것은 분석집에 없다."
+   },
+   {
+    "i": 1,
+    "overlap": "direction",
+    "with": "방향2 / 변형②",
+    "note": "5개 ⇒ 한 번만 겹친다는 판정은 변형②와 같다. g를 주고 k를 묻는 역방향만 다르다."
+   },
+   {
+    "i": 2,
+    "overlap": "direction",
+    "with": "방향1·2",
+    "note": "ㄱ(3개⇒중근)은 변형①, ㄷ(5개 가능)은 변형②의 판정을 보기로 옮긴 것이다."
+   }
+  ],
+  "extra_recipe": null
+ }
+}
+
+exec
+/bin/bash -lc 'cat output/build/기말/견본4/parts/p1.py; cat output/build/기말/2회/checkpart.py' in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+# -*- coding: utf-8 -*-
+# 견본4 기말 모의고사 Claude 담당 1·3·5·7번 (1·3: 4.0점, 5·7: 4.2점)
+# 1번만 숫자 변경 단순 계산, 3·5·7번은 개념 판단 1개(극한 존재 → 분자 0, 꺾인 점 좌우 증가 판정, g'=xf(x) 부호)
+ITEMS = {
+  1: dict(body=r"""\(\displaystyle\int_{-a}^{a}(4x^3+3x^2-5x-13)\,dx=-24\)를 만족시키는 모든 양수 \(a\)의 값의 합은?""",
+          choices=['0', '2', '4', '6', '8'],
+          ans=3,
+          key='I27', src='2023년 수능특강 [23009-0143]', author='claude',
+          var=r"[숫자 변경] 피적분함수 \(x^5-2x^3+3x^2-7\)→\(4x^3+3x^2-5x-13\), 우변 \(-12\)→\(-24\) (\(2a^3-26a=-24\), \((a-1)(a-3)(a+4)=0\))",
+          level='하',
+          sol=r"\(4x^3-5x\)는 홀함수, \(3x^2-13\)은 짝함수이므로 \(\displaystyle\int_{-a}^{a}(4x^3+3x^2-5x-13)\,dx=2\int_0^a(3x^2-13)\,dx=2\Big[x^3-13x\Big]_0^a=2a^3-26a\)이다. \(2a^3-26a=-24\)에서 \(a^3-13a+12=0\), \((a-1)(a-3)(a+4)=0\)이므로 \(a=1\) 또는 \(a=3\) 또는 \(a=-4\)이다. 양수 \(a\)는 \(1\), \(3\)이므로 그 합은 \(4\)이다.",
+          fast=r"짝수차 항만 남아 \(a^3-13a+12=0\). 세 근의 합이 \(0\)이고 음수 근 \(-4\)를 빼면 양수 근의 합은 \(4\).",
+          wrong=r"① \(0\): 음수 근 \(-4\)까지 더한 세 근의 합 / ⑤ \(8\): 음수 근의 부호를 바꿔 \(1+3+4\)로 더한 값",
+          note=r"원문과 같은 '대칭구간에서 홀수차 항 소거 → 삼차방정식의 양수 근'. 피적분함수와 우변만 바꿈"),
+  3: dict(body=r"""함수 \(f(x)=\displaystyle\int_0^x(3t^2+a)\,dt\)에 대하여 \(\displaystyle\lim_{x\to1}\frac{f(x)-7}{x^3-1}=b\)일 때, \(a+b\)의 값은? (단, \(a\), \(b\)는 상수이다.)""",
+          choices=['9', '11', '13', '15', '17'],
+          ans=1,
+          key='I12', src='2023년 수능완성 [23054-0174]', author='claude',
+          var=r"[조건 변경·형식 변경] 분모 \(x^2-1\)→\(x^3-1\), 분자 \(f(x)-3\)→\(f(x)-7\), 구하는 값 \(a+10b\)→\(a+b\), 단답형 → 5지선다 (\(a=6\), \(b=\frac{f'(1)}{3}=3\))",
+          level='하',
+          sol=r"\(f(x)=x^3+ax\)이다. \(x\to1\)일 때 (분모)\(\to0\)이고 극한값이 존재하므로 (분자)\(\to0\)이어야 한다. 즉 \(f(1)-7=1+a-7=0\)에서 \(a=6\)이다. 이때 \(\displaystyle b=\lim_{x\to1}\frac{f(x)-f(1)}{x-1}\cdot\frac{1}{x^2+x+1}=\frac{f'(1)}{3}\)이고, \(f'(x)=3x^2+6\)이므로 \(b=\dfrac{9}{3}=3\)이다. 따라서 \(a+b=9\)이다.",
+          fast=r"\(f(1)=7\)에서 \(a=6\). \(f(x)-7=x^3+6x-7=(x-1)(x^2+x+7)\)이므로 \(b=\dfrac{1+1+7}{1+1+1}=3\), \(a+b=9\).",
+          wrong=r"④ \(15\): \(x^3-1=(x-1)(x^2+x+1)\)의 인수 \(x^2+x+1\)을 빠뜨려 \(b=f'(1)=9\)로 계산한 값",
+          note=r"원문과 같은 '극한 존재 → 분자 \(\to0\) → 미분계수'. 분모를 \(x^3-1\)로 바꿔 나누는 수가 \(3\)이 됨"),
+  5: dict(body=r"""실수 전체의 집합에서 정의된 함수
+\[f(x)=x^3-3x^2-9|x-a|+1\]
+의 역함수가 존재하도록 하는 실수 \(a\)의 최솟값은?""",
+          choices=['5', '3', '1', '-1', '-3'],
+          ans=2,
+          key='D15', src='2023년 수능완성 [23054-0135]', author='claude',
+          var=r"[조건 변경] \(x^3+x^2+|x-a|+2\)→\(x^3-3x^2-9|x-a|+1\), 최댓값→최솟값 (절댓값 계수를 음수로 바꿔 판정하는 쪽이 \(x&lt;a\)에서 \(x>a\)로 넘어감, \(a\ge3\))",
+          level='중',
+          sol=r"\(f(x)\)는 연속이고 최고차항의 계수가 양수인 삼차식으로 이루어져 있으므로, 역함수가 존재하려면 \(f(x)\)가 실수 전체의 집합에서 증가해야 한다. \(x&lt;a\)일 때 \(f(x)=x^3-3x^2+9x-9a+1\)이고 \(f'(x)=3x^2-6x+9=3(x-1)^2+6>0\)이므로 항상 증가한다. \(x>a\)일 때 \(f(x)=x^3-3x^2-9x+9a+1\)이고 \(f'(x)=3x^2-6x-9=3(x+1)(x-3)\)이다. \(-1&lt;x&lt;3\)에서 \(f'(x)&lt;0\)이므로 열린구간 \((a,\,\infty)\)가 이 구간과 겹치지 않아야 한다. 즉 \(a\ge3\)이고, \(a=3\)이면 \(x>3\)에서 \(f'(x)>0\)이므로 증가한다. 따라서 \(a\)의 최솟값은 \(3\)이다.",
+          fast=r"\(x&lt;a\) 쪽 도함수 \(3(x-1)^2+6\)은 항상 양수. \(x>a\) 쪽 \(3(x+1)(x-3)\)이 음수인 \((-1,\,3)\)이 \((a,\,\infty)\) 밖에 있어야 하므로 \(a\ge3\), 최솟값 \(3\).",
+          wrong=r"④ \(-1\): 원문처럼 \(x&lt;a\) 쪽에서 판정한다고 보고 \(a\le-1\)의 끝값을 답한 값 / ③ \(1\): 도함수 \(3x^2-6x\pm9\)의 꼭짓점 \(x=1\)을 경계로 잡은 값",
+          note=r"원문은 \(x&lt;a\) 쪽 조각이 판정을 정하고 \(a\)의 최댓값을 물었다. 절댓값 계수를 음수로 바꿔 \(x>a\) 쪽이 판정을 정하고 최솟값을 묻는다"),
+  7: dict(body=r"""함수
+\[f(x)=\begin{cases}x^2+5 & (x\le1)\\ 8-2x & (x>1)\end{cases}\]
+에 대하여 함수 \(g(x)\)를
+\[g(x)=\int_{-1}^x tf(t)\,dt\]
+라 할 때, 함수 \(g(x)\)의 극댓값은?""",
+          choices=['6', '9', '12', '15', '18'],
+          ans=5,
+          key='I42', src='2022년 수능특강 [22009-0156]', author='claude',
+          var=r"[조건 변경·형식 변경] \(f(x)\)의 \(x>1\) 조각 \(2x\)→\(8-2x\)(영점 \(x=4\) 생김), \(x\le1\) 조각 \(x^2+1\)→\(x^2+5\), &lt;보기&gt;형 → 극댓값 (극대점이 \(x=0\)이 아니라 \(f\)의 영점 \(x=4\))",
+          level='중',
+          sol=r"\(t\,f(t)\)는 연속이므로 \(g'(x)=xf(x)\)이다. \(x\le1\)에서 \(f(x)=x^2+5>0\)이고, \(x>1\)에서 \(f(x)=8-2x\)는 \(1&lt;x&lt;4\)일 때 양수, \(x>4\)일 때 음수이다. 따라서 \(g'(x)\)의 부호는 \(x&lt;0\)에서 음, \(0&lt;x&lt;4\)에서 양, \(x>4\)에서 음이므로 \(g(x)\)는 \(x=0\)에서 극소, \(x=4\)에서 극대이다. \(t(t^2+5)\)는 홀함수이므로 \(\displaystyle\int_{-1}^{1}t(t^2+5)\,dt=0\)이고, 극댓값은 \(\displaystyle g(4)=0+\int_1^4 t(8-2t)\,dt=\Big[4t^2-\frac{2}{3}t^3\Big]_1^4=\frac{64}{3}-\frac{10}{3}=18\)이다.",
+          fast=r"\(g'=xf(x)\)의 부호가 \(-,+,-\)로 바뀌는 점은 \(x=0\), \(x=4\)이고 극대는 \(x=4\). \(\int_{-1}^1\)은 홀함수라 \(0\)이므로 \(g(4)=\int_1^4 2t(4-t)\,dt=2\cdot\dfrac{(4-1)^2(4+2)}{6}=18\).",
+          wrong=r"② \(9\): 피적분함수의 \(t\)를 빠뜨려 \(\displaystyle\int_1^4(8-2t)\,dt=9\)로 계산한 값",
+          note=r"원문 ㄴ은 \(f>0\)이라 \(x=0\)에서 극소만 있었다. \(x>1\) 조각에 영점을 넣어 \(xf(x)\)의 부호 변화로 극대점을 찾게 하고, 원문 ㄱ의 홀함수 소거를 극댓값 계산에 씀"),
+}
+# -*- coding: utf-8 -*-
+"""부품 파일 하나 검사: 중복(dupcheck items) · 말투(stylecheck) · 형식(선지 등차, 상자 위치)
+17·18·서답형2는 지침 0-4 관문도 본다: 흔한 패턴(patterns.py) · 독립 검토 기록(<회차>/review/<번호>.json의 핵심 한 줄·d_step).
+학교 선례(0-8: 변형 기록·회차 유형·원문 거리·선지)도 본다.
+관문 순서: 1 중복·정답·빼 보기 → 2 흔한 패턴 → 3 독립 검토(핵심 한 줄 불통·d_step 0.75 이상) → 4 블라인드 측정 → 5 형식·말투.
+3을 통과하기 전에는 측정하지 않는다.
+사용: python3 checkpart.py parts/p3.py   (후보 폴더 파일도 됨)"""
+import sys, os, re, subprocess, tempfile
+from fractions import Fraction
+HERE = os.path.dirname(os.path.abspath(__file__)); G = os.path.join(HERE, '..', '지침')
+sys.path.insert(0, '/home/user/Finale/template/db/parts')
+from items_common import COND, BOGI
+p = os.path.abspath(sys.argv[1])
+_rj = os.path.join(os.path.dirname(os.path.dirname(p)), 'round.json')
+RT = __import__('json').load(open(_rj)).get('type', '학교형') if os.path.exists(_rj) else '학교형'
+os.environ['DUP_ROUND_TYPE'] = RT
+print(f'== 중복 ({RT})'); r1 = subprocess.run([sys.executable, os.path.join(G, 'dupcheck.py'), 'items', p]).returncode
+ns = {}; exec(open(p).read(), ns)
+IT, SI = ns.get('ITEMS', {}), ns.get('SITEMS', {})
+def body(it):
+    return it['body'] + (COND(it['cond']) if it.get('cond') else '') + (BOGI(it['bogi']) if it.get('bogi') else '') + (it.get('after') or '')
+tmp = tempfile.NamedTemporaryFile('w', suffix='.py', delete=False)
+tmp.write('RAW = ' + repr({n: (body(it), it.get('choices')) for n, it in IT.items()}) + '\n')
+for s, it in SI.items():
+    tmp.write(f'{s} = {body(it)!r}\n{s}S = {[(q[0],) for q in it.get("subs", [])]!r}\n')
+tmp.close()
+print('== 말투'); subprocess.run([sys.executable, os.path.join(G, 'stylecheck.py'), 'check', tmp.name]); os.unlink(tmp.name)
+print('== 형식')
+def val(c):
+    c = re.sub(r'\\displaystyle|\s', '', str(c))
+    m = re.fullmatch(r'(-?)\\[dt]?frac\{?(\d+)\}?\{?(\d+)\}?', c)
+    if m: return Fraction(int(m[2]), int(m[3])) * (-1 if m[1] else 1)
+    return Fraction(int(c)) if re.fullmatch(r'-?\d+', c) else None
+bad = 0
+for n, it in IT.items():
+    ch = it.get('choices') or []; v = [val(c) for c in ch]; msg = []
+    if ch and not str(ch[0]).startswith('T:'):
+        if None in v: msg.append('선지가 수가 아님(확인)')
+        elif len({v[i + 1] - v[i] for i in range(4)}) != 1: msg.append('선지 비등차')
+    if it.get('cond') and '?' not in re.sub(r'<[^>]+>', '', it['body']): msg.append('상자→질문형(18번 같은 최고난도 한 문항만 허용)')
+    if re.search(r'(?<![a-zA-Z\\])[loWVYZ](?![a-zA-Z])', ''.join(re.findall(r'\\\((.*?)\\\)', body(it)))): msg.append('수식에 l·o·W·V·Y·Z 변수(글꼴에 없음)')
+    if msg: bad += 1; print(f'{n}: ' + ' | '.join(msg))
+print('형식 표시', bad, '개')
+gate = 0
+big = [str(n) for n in list(IT) + list(SI) if str(n) in ('17', '18', 'S2')]
+if big:
+    print('== 관문 (17·18·서답형2, 지침 0-4)')
+    gate = subprocess.run([sys.executable, os.path.join(G, 'patterns.py'), 'check', p]).returncode
+    rdir = os.path.join(os.path.dirname(os.path.dirname(p)), 'review')
+    for n in big:
+        it = IT.get(int(n)) if n.isdigit() else SI.get(n)
+        tag = it.get('cand', n) if it else n
+        f = os.path.join(rdir, f'{tag}.json')
+        if not os.path.exists(f):
+            print(f'{n}: 독립 검토 기록 없음 ({os.path.relpath(f, os.path.dirname(rdir))}) → 관문 3 미완, 블라인드 측정 금지'); continue
+        R = __import__('json').load(open(f)); ok = []
+        ax = str(R.get('axis', ''))[:1]; ct = {k: ('불통' if str(v).lstrip().startswith('불통') else ('통' if str(v).lstrip().startswith('통') else '')) for k, v in R.get('core_test', {}).items()}
+        if ax == '①' and ct.get('principle') != '불통': ok.append('원리 교체형인데 원문 원리 줄이 통함')
+        if ax == '②' and ct.get('setting') != '불통': ok.append('설정 교체형인데 원문 설정 줄이 통함')
+        if ax not in ('①', '②'): ok.append(f'축 {ax!r}(①·②만 허용)')
+        if float(R.get('d_step', 0)) < 0.75: ok.append(f"d_step {R.get('d_step')} < 0.75")
+        if R.get('verdict') != '통과': ok.append(f"검토 판정 {R.get('verdict')}")
+        print(f"{n}: 관문 3 {'통과' if not ok else '미통과: ' + ' / '.join(ok)} (검토 {R.get('reviewer', '?')}, 축 {ax}, d_step {R.get('d_step')})")
+        gate |= bool(ok)
+r_s = subprocess.run([sys.executable, os.path.join(G, 'schoolcheck.py'), 'item', p]).returncode   # 학교 선례(0-8)
+sys.exit(1 if r1 or bad or gate or r_s else 0)
+
+codex
+홀수 1–15번의 8문항이 담당입니다. 분석집 지정 문항은 해당 TIP을 반영하고, 나머지는 원문 무게를 유지하겠습니다. 9번은 그림 자리와 작도 정보만 남기고, 15번은 근의 겹침 경우를 전수 검증하겠습니다.
+
+exec
+/bin/bash -lc "python3 - <<'PY'
+import sympy as s
+x,r=s.symbols('x r');f=(x-1)*(x-2)*(x+r)
+for t in [2,3,4]:
+ val=s.expand(t*f.subs(x,t)/2-s.integrate(f,(x,0,t)))
+ print(t,val)
+PY
+cat output/build/기말/지침/schoolcheck.py" in /home/runner/work/Finale/Finale
+ succeeded in 357ms:
+2 -2*r/3
+3 3*r/2 + 27/4
+4 20*r/3 + 32
+# -*- coding: utf-8 -*-
+"""학교 선례 검사 (지침 front.md 0-8). 학교 실제 시험 3회 60문항(school_recipes.json)과 2학기 중간 실측에서 뽑은 기준.
+  item  <parts.py>      문항별: 변형 기록(vtype·effect·bunseok·precedent), 회차 유형 규칙, 원문과의 거리, 선지 방식
+  round <회차 폴더>     회차 전체 분포: 난도 효과, 함정·분석집 문항 수, 내림차순 선지 수, 그림 위치·수, 정답 분포
+회차 유형은 <회차>/round.json {"type": "학교형"|"복습형"} (없으면 학교형)."""
+import sys, os, re, json, runpy, collections
+from fractions import Fraction
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(HERE, '..', '..', '부교재_기말'))
+sys.path.insert(0, '/home/user/Finale/template/db/parts')
+import dupcheck as DC
+
+VTYPES = ['숫자 변경', '조건 변경', '함수 교체', '구하는 대상 변경', '형식 변경', '구조 변경', '함정 추가', '소재 결합', '그래프·그림 제시', '자체 출제']
+EFFECTS = ['같음', '쉬워짐', '어려워짐']
+# 2학기 중간 실측: 원문과의 골격 유사도(shingle Jaccard). 1–16 0.29–0.71(중앙 0.46), 17·18 0.06–0.15
+DIST = {'front': (0.28, 0.72), 'top': (0.0, 0.25)}
+# 2학기 중간 실측: 숫자 선지 17개 중 오름차순 15, 공차 1이 10개, 2가 3개, 그 밖 1/2·1/5·1/20·5
+GOOD_D = {Fraction(x) for x in (1, 2, 3, 4, 5, 10)} | {Fraction(1, k) for k in (2, 3, 4, 5, 10, 20)}
+
+def rtype(d):
+    f = os.path.join(d, 'round.json')
+    return json.load(open(f)).get('type', '학교형') if os.path.exists(f) else '학교형'
+
+def band(n):
+    n = 19 if n == 'S1' else 20 if n == 'S2' else int(n)
+    return '1–4' if n <= 4 else '5–8' if n <= 8 else '9–12' if n <= 12 else '13–16' if n <= 16 else '17–18' if n <= 18 else '서답'
+
+def val(c):
+    c = re.sub(r'\\\(|\\\)|\\displaystyle|\s', '', str(c))
+    m = re.fullmatch(r'(-?)\\[dt]?frac\{?(\d+)\}?\{?(\d+)\}?', c)
+    if m: return Fraction(int(m[2]), int(m[3])) * (-1 if m[1] else 1)
+    try: return Fraction(c)
+    except Exception: return None
+
+def body(it):
+    from items_common import COND
+    return it['body'] + (COND(it['cond']) if it.get('cond') else '') + (it.get('after') or '')
+
+def odist(it):
+    try:
+        import items_final as F
+        o = F.I.get(it.get('key'))
+    except Exception: o = None
+    if not o: return None
+    A = set(DC.shingles(DC.skel(DC.norm(re.split('①', body(it))[0])))); B = set(DC.shingles(DC.skel(DC.norm(re.split('①', o[0])[0]))))
+    return len(A & B) / max(1, len(A | B))
+
+def check_item(n, it, rt):
+    msg, warn = [], []
+    vt = it.get('vtype'); ef = it.get('effect'); bs = it.get('bunseok'); pc = it.get('precedent')
+    if not vt or any(v not in VTYPES for v in vt): msg.append(f'vtype 없음/잘못({vt}) — {"·".join(VTYPES)} 중에서')
+    if ef not in EFFECTS: msg.append(f'effect 없음/잘못({ef}) — 같음·쉬워짐·어려워짐')
+    if bs not in (True, False): msg.append('bunseok(분석집 방향·TIP 사용 여부) 없음')
+    if not pc: msg.append("precedent(따른 학교 선례, 예: '2학기 중간 7번' 또는 라이브 문항 id) 없음")
+    if rt == '학교형':
+        if vt and '함정 추가' in vt: msg.append('학교형 회차에 함정 추가(학교 3회 60문항 중 0회)')
+        if bs: msg.append('학교형 회차에 분석집 방향·TIP 저격')
+    b = band(n)
+    if b in ('1–4', '5–8', '9–12') and ef == '어려워짐': warn.append('1–12번 어려워짐(학교 36문항 중 4개, 회당 1개까지)')
+    if vt and b in ('1–4', '5–8', '9–12') and len(vt) > 3: warn.append(f'변경 {len(vt)}가지(학교 1–12번 평균 2–3가지)')
+    d = None if '자체' in str(it.get('src', '')) else odist(it)   # 자체 출제는 원문 거리 제외
+    if d is not None:
+        lo, hi = DIST['top'] if b == '17–18' else DIST['front'] if b != '서답' else (0, 1)
+        if not (lo <= d <= hi): warn.append(f'원문 골격 유사도 {d:.2f} (학교 {b} 범위 {lo:.2f}–{hi:.2f})')
+    try:
+        import items_final as F
+        o = F.I.get(it.get('key'))
+    except Exception: o = None
+    if o:   # 원문에 없던 줄 바꾼 식(조각함수 제외) — 억지 들여쓰기 (1회 지적)
+        dv = [x for x in re.findall(r'\\\[(.*?)\\\]', body(it), re.S) if 'cases' not in x]
+        do = [x for x in re.findall(r'\\\[(.*?)\\\]', o[0], re.S) if 'cases' not in x]
+        nz = lambda t: re.sub(r'\\[()]|\s|<[^>]+>|&nbsp;', '', t)
+        DAN = r'\(단,([^()]*(?:\([^()]*\)[^()]*)*)\)'
+        dan_o = {nz(x) for x in re.findall(DAN, o[0])}
+        for x in re.findall(DAN, body(it)):
+            if nz(x) not in dan_o: warn.append(f'원문과 다른 단서 (단,{x.strip()[:40]}) — 원문 단서 그대로, 범위를 좁히거나 새로 붙이지 않음 (1회 16번)')
+        if len(dv) > len(do): warn.append(f'줄 바꾼 식 {len(dv)}개 (원문 {len(do)}개) — 원문에 없던 짧은 식은 문장 안에')
+    ch = it.get('choices') or []
+    if ch:   # 그럴듯한 오답이 선지 안에 (1회 지적)
+        ws = [str(w) for w in (it.get('wrongs') or [])]
+        bad = [w for w in ws if w not in [str(c) for c in ch]]
+        need = 2 if b in ('13–16', '17–18') else 1
+        if bad: warn.append(f'wrongs {bad}가 선지에 없음')
+        if len(ws) - len(bad) < need: warn.append(f'선지 안 그럴듯한 오답 {len(ws) - len(bad)}개 (기준 {need}개 이상, wrongs 필드)')
+    if ch and not str(ch[0]).startswith('T:'):
+        v = [val(c) for c in ch]
+        if None not in v and len(v) == 5:
+            dd = v[1] - v[0]
+            if abs(dd) not in GOOD_D: warn.append(f'선지 공차 {dd} (학교는 1 위주, 2·5·1/2·1/5 등 — 오답 근거를 넣으려고 공차를 키우지 않음)')
+    return msg, warn, d
+
+def item(path):
+    rt = rtype(os.path.dirname(os.path.dirname(os.path.abspath(path))))
+    ns = runpy.run_path(path); bad = 0
+    print(f'== 학교 선례 ({rt})')
+    for n, it in list(ns.get('ITEMS', {}).items()) + list(ns.get('SITEMS', {}).items()):
+        msg, warn, d = check_item(n, it, rt)
+        bad += bool(msg)
+        if msg or warn: print(f'{n}: ' + ' | '.join(['✗ ' + m for m in msg] + ['△ ' + w for w in warn]))
+    print('학교 선례 표시', bad, '개'); return bad
+
+def round_(d):
+    sys.path.insert(0, d); import content3 as C
+    rt = rtype(d); its = dict(C.ITEMS); S = dict(C.SITEMS); out = []
+    eff = collections.Counter((band(n), it.get('effect')) for n, it in its.items())
+    trap = [n for n, it in its.items() if '함정 추가' in (it.get('vtype') or [])]
+    bun = [n for n, it in its.items() if it.get('bunseok') and int(n) <= 16]
+    desc = [n for n, it in its.items() if (lambda v: None not in v and v == sorted(v, reverse=True))([val(c) for c in it.get('choices') or []])]
+    figs = [n for n, it in its.items() if 'class="fig"' in it['body'] + (it.get('after') or '')]
+    ans = collections.Counter(it['ans'] for it in its.values())
+    hard12 = sum(c for (b, e), c in eff.items() if b in ('1–4', '5–8', '9–12') and e == '어려워짐')
+    hard16 = eff.get(('13–16', '어려워짐'), 0)
+    out.append(('1–12 어려워짐 ≤1 (학교 회당 0–2)', hard12 <= 1, hard12))
+    out.append(('13–16 어려워짐 1–2', 1 <= hard16 <= 2 or hard16 == 3, hard16))
+    if rt == '학교형': out.append(('함정 추가 0 (학교형)', not trap, trap))
+    else: out.append(('분석집 문항 = 1–16의 절반(8) (복습형)', len(bun) == 8, bun))
+    if rt == '학교형': out.append(('분석집 저격 0 (학교형)', not bun, bun))
+    out.append(('내림차순 선지 ≤2 (학교 17개 중 2)', len(desc) <= 2, desc))
+    num = [(lambda v: (v[1] - v[0]) if None not in v and len(v) == 5 else None)([val(c) for c in it.get('choices') or []]) for it in its.values()]
+    d1 = sum(1 for x in num if x is not None and abs(x) == 1); nn = sum(1 for x in num if x is not None)
+    out.append((f'공차 1 선지 10–13개 (학교 17개 중 10, 숫자 선지 {nn}개)', 10 <= d1 <= 13, d1))
+    tc = collections.Counter()
+    try:
+        sys.path.insert(0, HERE); import predict as _P
+        for n, it in list(its.items()) + list(S.items()):
+            if it.get('key') in _P.F.I: tc.update(_P.topics(it['key']))
+        out.append(('소재 상한 (1회 지적: 수직선 운동 ≤2 등)', all(tc[t] <= _P.TOPIC_LIMIT[t] for t in tc), dict(tc)))
+    except Exception as e: out.append(('소재 상한', False, f'검사 실패 {e}'))
+    out.append(('그림 2–3개, 모두 9번 이후', 2 <= len(figs) <= 3 and all(int(n) >= 9 for n in figs), figs))
+    out.append(('정답 ①–⑤ 각 3–4', all(3 <= ans.get(k, 0) <= 4 for k in range(1, 6)), dict(sorted(ans.items()))))
+    print(f'== 회차 분포 ({rt})')
+    for name, ok, v in out: print(f"{'✓' if ok else '✗'} {name}: {v}")
+    return sum(not ok for _, ok, _ in out)
+
+if __name__ == '__main__':
+    sys.exit(1 if (item(sys.argv[2]) if sys.argv[1] == 'item' else round_(os.path.abspath(sys.argv[2]))) else 0)
+
+exec
+/bin/bash -lc "python3 - <<'PY'
+from pathlib import Path
+for p in ['output/build/기말/지침/dupcheck.py','output/build/기말/지침/stylecheck.py']:
+ print(p);print('\\n'.join(Path(p).read_text().splitlines()[:40]))
+PY" in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+output/build/기말/지침/dupcheck.py
+# -*- coding: utf-8 -*-
+"""익스텐션(일반·라이브) 1,746문항과 새 문항의 겹침 검사.
+
+저장소에는 문항 원문 대신 해시 지문(ext_fp.json.gz)만 둔다.
+- 원문 지문 R: 숫자까지 포함한 6글자 조각
+- 골격 지문 K: 숫자를 #로 바꾼 6글자 조각
+- 본문 숫자 목록 nums (선지 ① 앞까지)
+판정
+- 금지(동일 문항): 골격 포함도 >= 0.85 이고 본문 숫자 목록이 같음, 또는 원문 포함도 >= 0.95 → 절대 출제 불가
+- 허용(숫자만 다름): 골격 포함도 >= 0.85 이고 숫자 목록이 다름 → 숫자만 바꾼 문항 (사용자 허용)
+- 주의(구조 유사): 골격 포함도 0.60~0.85 → 구조가 많이 닮음. 변형 정도 확인
+- 금지(구조 변경 미달): 17·18·서답형2가 익스텐션·분석집 어느 문항과든 골격 0.60 이상
+
+사용
+  python3 dupcheck.py build <corpus.json> [study.json]   # 지문 만들기 (익스텐션 + 분석집, 원문은 저장소 밖)
+  python3 dupcheck.py check <content3.py> [...]    # 시험 RAW 문항 검사
+"""
+import sys, os, re, json, gzip, base64, zlib, array, importlib.util
+HERE = os.path.dirname(os.path.abspath(__file__))
+FP = os.path.join(HERE, 'ext_fp.json.gz')
+N = 6
+
+def norm(t):
+    t = re.sub(r'!\[[^\]]*\]\([^)]*\)', '', t)
+    t = re.sub(r'<[^>]+>', '', t)
+    t = t.replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
+    t = re.sub(r'\\(?:left|right|displaystyle|textstyle|limits|quad|qquad|,|;|!| )', '', t)
+    t = re.sub(r'\\[dt]?frac', 'frac', t)
+    t = re.sub(r'\\(le|leq)q?\b', '≤', t); t = re.sub(r'\\(ge|geq)\b', '≥', t)
+    t = re.sub(r'\\(?:\(|\)|\[|\])', '', t)
+    t = re.sub(r'\\begin\{cases\}|\\end\{cases\}|&|\\\\\[?[0-9a-z]*\]?', ' ', t)
+    t = re.sub(r'[{}\s$*]', '', t)
+    t = re.sub(r'[①②③④⑤]', '|', t)
+    return t
+
+def shingles(s):
+    return sorted({zlib.crc32(s[i:i + N].encode()) for i in range(max(1, len(s) - N + 1))})
+
+def skel(s):
+    return re.sub(r'\d+', '#', s)
+output/build/기말/지침/stylecheck.py
+# -*- coding: utf-8 -*-
+"""말투 검사: 문항 문장의 어절을 자료(익스텐션 1,746 + 분석집 433 + 부교재 원문 280 = 2,459문항)의 어절과 대조.
+자료에 한 번도 없는 어절을 보고한다(수식은 Ⓜ로 바꿔 비교). 어절 빈도표는 style_vocab.json (원문 없음).
+
+사용
+  python3 stylecheck.py build <freq.json>        # 어절 빈도표 갱신 (원문 corpus는 저장소 밖)
+  python3 stylecheck.py check <content3.py> ...   # 시험 문항 검사 (RAW, S1/S2 본문·소문항)
+"""
+import sys, os, re, json, importlib.util
+HERE = os.path.dirname(os.path.abspath(__file__))
+VOC = os.path.join(HERE, 'style_vocab.json')
+# 자료에 거의 없거나 시험지에 쓰지 않는 표현 → 자료식 표현 (지침서 '말투' 절과 같은 목록)
+REPLACE = {
+    '생각하자': "'다음 조건을 만족시키는 ~' / '~라 하자'",
+    '속하고': "'k<f(x)<k+c를 만족시키는 실수 x' 또는 '~에 존재한다'",
+    '속한다': "'~에 존재한다' / 부등식으로",
+    '이하가': "'~ 이하인' 또는 부등식(N≤10)",
+    '이상이': "'~ 이상인'",
+    '중근': "식으로 제시 f(x)=(x-a)^2(x-b) 등",
+    '마다': "'~에 대하여'",
+    '정수이고': "'~하도록 하는 정수 ~에 대하여'",
+    '도형': "'둘러싸인 부분' ('도형의 넓이'는 '부분의 넓이')",
+}
+
+def norm(t):
+    t = re.sub(r'<[^>]+>', ' ', t)
+    t = re.sub(r'\\\[[\s\S]*?\\\]', ' Ⓜ ', t)
+    t = re.sub(r'\\\([\s\S]*?\\\)', 'Ⓜ', t)
+    return re.sub(r'\s+', ' ', t.replace('&lt;', '<').replace('&gt;', '>')).strip()
+
+def key(w):
+    return re.sub(r'^[Ⓜ\(\)\[\]]+', '', w.strip('.,?')).lstrip('Ⓜ')
+
+def build(freq):
+    W = json.load(open(freq))['W']
+    voc = {}
+    for w, c in W.items():
+        k = key(w)
+        if k: voc[k] = voc.get(k, 0) + c
+    json.dump(voc, open(VOC, 'w'), ensure_ascii=False, separators=(',', ':'))
+
+codex
+13번은 적분 조건으로 상수항까지 정하도록 바꾸고, 15번은 이동량 후보 중 근이 두 번 겹치는 경우를 제외하도록 구성했습니다. 담당 8문항의 선지 공차는 1이 6개, 1/2과 2가 각각 1개입니다.
+
+apply patch
+patch: completed
+/home/runner/work/Finale/Finale/output/build/기말/2회/parts/c1.py
+/home/runner/work/Finale/Finale/output/build/기말/2회/parts/c2.py
+diff --git a/output/build/기말/2회/parts/c1.py b/output/build/기말/2회/parts/c1.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..531fb2664aad6785b6bcd7fa51b07b31423b1207
+--- /dev/null
++++ b/output/build/기말/2회/parts/c1.py
+@@ -0,0 +1,56 @@
++# -*- coding: utf-8 -*-
++"""2회 Codex 담당: 1·3·5·7번."""
++ITEMS = {
++    1: dict(
++        body=r"두 상수 \(a\), \(b\)에 대하여 삼차함수 \(f(x)=ax^3+bx+a\)는 \(x=1\)에서 극소이다. 함수 \(f(x)\)의 극솟값이 \(-1\)일 때, 함수 \(f(x)\)의 극댓값은?",
++        choices=['2', '3', '4', '5', '6'], ans=2,
++        key='D17', src='2024학년도 대수능 6월 모의평가 18번 [24107-0117]',
++        author='codex', level='하',
++        vtype=['숫자 변경', '형식 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 1번',
++        var=r'[숫자 변경·형식 변경] 극솟값을 바꾸고 단답형을 선택형으로 바꿈.',
++        sol=r"극소인 점에서 \(f'(1)=0\)이므로 \(3a+b=0\)이다. 또한 \(f(1)=2a+b=-1\)이므로 \(a=1\), \(b=-3\)이다. \(f'(x)=3(x+1)(x-1)\)의 부호가 \(x=-1\)에서 양에서 음으로 바뀌므로 극댓값은 \(f(-1)=-1+3+1=3\)이다.",
++        fast=r'\(f(x)-a\)는 기함수이다. \(b=-3a\), \(f(1)=-a=-1\)에서 \(a=1\)이므로 극댓값은 \(2a-(-1)=3\)이다.',
++        wrong=r'① \(2\): 극대점에 대입할 때 상수항 \(a\)를 빠뜨려 \(-1+3=2\)로 계산한 값.',
++        wrongs=['2'], note='원문의 극값 조건과 계수 결정 방법을 유지한 기본 문항.'),
++    3: dict(
++        body=r'다항함수 \(f(x)\)가 모든 실수 \(x\)에 대하여 \(f(x)+f(-x)=2\)를 만족시키고 \(\displaystyle\int_0^1 xf(x)\,dx=1\)일 때, \(\displaystyle\int_{-1}^1(x+1)f(x)\,dx\)의 값은?',
++        choices=['3', '4', '5', '6', '7'], ans=1,
++        key='I29', src='2022년 수능완성 [22054-0163]',
++        author='codex', level='하',
++        vtype=['조건 변경', '구하는 대상 변경'], effect='같음', bunseok=True,
++        precedent='2학기 중간 3번',
++        var=r'[조건 변경·구하는 대상 변경] 상수를 뺀 함수가 기함수가 되도록 바꾸고 곱하는 다항식은 일차식으로 낮춤.',
++        sol=r'\(h(x)=f(x)-1\)이라 하면 \(h(-x)=-h(x)\)이다. 따라서 \(\displaystyle\int_0^1 xh(x)\,dx=1-\int_0^1x\,dx=\frac12\)이다. 대칭구간에서 기함수의 적분은 \(0\)이므로 \(\displaystyle\int_{-1}^1(x+1)f(x)\,dx=\int_{-1}^1\{xh(x)+1\}\,dx=2\cdot\frac12+2=3\)이다.',
++        fast=r'음의 구간을 양의 구간으로 바꾸면 \((x+1)f(x)+(1-x)f(-x)=2xf(x)+2-2x\)이다. 따라서 구하는 값은 \(2\cdot1+2-1=3\)이다.',
++        wrong=r'② \(4\): \(\int_0^1xh\)를 \(\int_0^1xf=1\)과 같다고 하여 \(2\cdot1+2=4\)로 계산한 값.',
++        wrongs=['4'],
++        note='분석집 I29 방향2: 상수를 뺀 함수의 홀짝을 이용하고 주어진 가중 적분도 보정한다. 곱하는 식을 일차식으로 줄여 계산량을 유지했다.'),
++    5: dict(
++        body=r'곡선 \(y=x(x-2)(x-k)^2\)과 \(x\)축으로 둘러싸인 두 부분의 넓이가 서로 같을 때, 상수 \(k\)의 값은? (단, \(k>2\))',
++        choices=['3', r'\dfrac72', '4', r'\dfrac92', '5'], ans=5,
++        key='J20', src='2022년 수능특강 [22009-0171]',
++        author='codex', level='중',
++        vtype=['함수 교체', '형식 변경'], effect='같음', bunseok=True,
++        precedent='2학기 중간 7번',
++        var=r'[함수 교체·형식 변경] 제곱인 인수를 오른쪽 끝으로 옮기고 전개식 대신 인수 곱으로 제시.',
++        sol=r'\(k>2\)이므로 함수는 \(0<x<2\)에서 음수이고 \(2<x<k\)에서 양수이다. 두 넓이가 같으므로 \(\displaystyle\int_0^k x(x-2)(x-k)^2\,dx=0\)이다. 피적분함수를 전개하여 적분하면 \(\displaystyle\frac{k^5}{5}-\frac{(2k+2)k^4}{4}+\frac{(k^2+4k)k^3}{3}-k^4=\frac{k^4(k-5)}{30}=0\)이다. 따라서 \(k=5\)이다.',
++        fast=r'제곱인 인수에 해당하는 오른쪽 끝 \(k\)부터 잰 근의 거리 비는 \(0:3:5\)이다. \((k-2):k=3:5\)이므로 \(k=5\)이다.',
++        wrong=r'③ \(4\): 제곱인 인수를 무시하고 삼차함수의 넓이 조건처럼 가운데 근 \(2\)를 \(0\)과 \(k\)의 중점으로 놓은 값.',
++        wrongs=['4'], note='분석집 J20 방향1: 근의 위치 비를 제곱인 인수가 있는 오른쪽 끝에서부터 잰다. 원문의 k>2 단서를 유지했다.'),
++    7: dict(
++        body=r'다항함수 \(f(x)\)가 다음 조건을 만족시킬 때, 함수 \(y=f(x)\)의 그래프와 \(x\)축으로 둘러싸인 부분의 넓이는?',
++        cond=[('가', r'모든 실수 \(x\)에 대하여 \(f(x)=-f(-x)\)이다.'),
++              ('나', r'\(\displaystyle\int_{-2}^4f(x)\,dx=1\), \(\displaystyle\int_{-4}^0f(x)\,dx=3\)이다.'),
++              ('다', r'방정식 \(f(x)=0\)을 만족시키는 양수 \(x\)는 \(2\)와 \(4\)뿐이다.')],
++        choices=['4', '6', '8', '10', '12'], ans=4,
++        key='J45', src='2025년 수능특강 [25009-0177]',
++        author='codex', level='중',
++        vtype=['숫자 변경', '함수 교체'], effect='같음', bunseok=False,
++        precedent='2학기 중간 7번',
++        var=r'[숫자 변경·함수 교체] 근과 적분값을 바꾸고 연속함수의 범위를 다항함수로 정함.',
++        sol=r'\(f\)는 기함수이므로 \(\displaystyle\int_{-2}^2f(x)\,dx=0\), \(\displaystyle\int_0^4f(x)\,dx=-3\)이다. 따라서 \(\displaystyle\int_2^4f(x)\,dx=1\), \(\displaystyle\int_0^2f(x)\,dx=-3-1=-4\)이다. (다)에 의하여 각 구간에서 부호가 일정하므로 \(0<x<2\)에서 음수, \(2<x<4\)에서 양수이다. 원점 대칭을 이용하면 구하는 넓이는 \(2(4+1)=10\)이다.',
++        fast=r'대칭구간의 적분을 지우면 양의 쪽 두 부분의 부호 있는 적분은 \(-4\), \(1\)이다. 절댓값을 더하고 두 배 하여 \(10\)을 얻는다.',
++        wrong=r'② \(6\): 부호가 다른 두 부분을 나누지 않고 \(2\left|\int_0^4f(x)\,dx\right|=2\cdot3\)으로 계산한 값.',
++        wrongs=['6'], note='원문의 기함수 대칭·영점 사이 부호 일정·넓이 합을 유지했다. 분석집의 이동 대칭이나 우함수 변형은 쓰지 않았다.'),
++}
+diff --git a/output/build/기말/2회/parts/c2.py b/output/build/기말/2회/parts/c2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..cb5aecb3c91e5a07b8d91db931b91f83e9a9f1c7
+--- /dev/null
++++ b/output/build/기말/2회/parts/c2.py
+@@ -0,0 +1,65 @@
++# -*- coding: utf-8 -*-
++"""2회 Codex 담당: 9·11·13·15번. 9번 그림은 Claude가 제작한다."""
++ITEMS = {
++    9: dict(
++        body=r'''함수 \(y=f(x)\)의 그래프가 그림과 같다. 최고차항의 계수가 \(1\)인 삼차함수 \(f(x)\)가
++\[f(1)=f(2)=0,\quad f'(0)=-10\]
++을 만족시킨다. 원점 \(\mathrm{O}\)와 점 \(\mathrm{P}(3,\,f(3))\)에 대하여 선분 \(\mathrm{OP}\)가 곡선 \(y=f(x)\)와 만나는 점 중 \(\mathrm{P}\)가 아닌 점을 \(\mathrm{Q}\)라 하자. 곡선 \(y=f(x)\)와 \(y\)축 및 선분 \(\mathrm{OQ}\)로 둘러싸인 부분의 넓이를 \(A\), 곡선 \(y=f(x)\)와 선분 \(\mathrm{PQ}\)로 둘러싸인 부분의 넓이를 \(B\)라 할 때, \(B-A\)의 값은?
++<div class="fig"><img src="fig_9.svg" style="width:150pt"></div>''',
++        choices=[r'\dfrac{43}4', r'\dfrac{47}4', r'\dfrac{51}4', r'\dfrac{55}4', r'\dfrac{59}4'], ans=3,
++        key='J58', src='2025학년도 수능 13번',
++        author='codex', level='중상',
++        vtype=['숫자 변경', '형식 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 9번',
++        var=r'[숫자 변경·형식 변경] 도함숫값과 선지 배열을 바꾸고 그림 문항의 첫 문장을 학교식으로 정리.',
++        sol=r"\(f(x)=(x-1)(x-2)(x+c)\)라 하면 \(f'(0)=2-3c=-10\)이므로 \(c=4\)이다. 따라서 \(f(x)=x^3+x^2-10x+8\), \(f(3)=14\)이고 직선 \(\mathrm{OP}\)는 \(y=\frac{14}{3}x\)이다. \(\mathrm{Q}\)의 왼쪽에서는 곡선이 직선보다 위에 있고 오른쪽에서는 아래에 있으므로 \(\displaystyle B-A=\int_0^3\left(\frac{14}{3}x-f(x)\right)dx=21-\left(\frac{81}{4}+9-45+24\right)=\frac{51}{4}\)이다.",
++        fast=r'넓이의 차이므로 중간 교점의 좌표를 구할 필요가 없다. 삼각형의 부호 있는 넓이에서 정적분을 빼면 \(\displaystyle\frac{3f(3)}2-\int_0^3f(x)\,dx=\frac{51}{4}\)이다.',
++        wrong=r"② \(\dfrac{47}4\): \(f'(0)=2-3c\)에서 \(2\)를 빠뜨려 \(c=\frac{10}{3}\)으로 구한 뒤 계산한 값. 일반적으로 이 넓이 차는 \(\frac{27}{4}+\frac32c\)이다.",
++        wrongs=[r'\dfrac{47}4'],
++        note=r'원문의 넓이 차를 한 정적분으로 계산하는 원리를 유지했다. 그림 제작: 원문 J58과 같은 배치. 곡선 y=(x-1)(x-2)(x+4), 선분 OP: y=14x/3 (0≤x≤3). O=(0,0), P=(3,14), Q=(-2+2√15/3,14(-2+2√15/3)/3), y절편 (0,8), x절편 1·2를 표시한다. 0≤x≤x_Q의 곡선 아래·직선 위를 A, x_Q≤x≤3의 직선 아래·곡선 위를 B로 회색 칠한다. 필요한 수치는 모두 본문 조건으로 정해지며 그림에서 읽을 필요가 없다.'),
++    11: dict(
++        body=r'''\(f'(0)=0\)인 이차함수 \(f(x)\)와 연속함수 \(g(x)\)가 모든 실수 \(x\)에 대하여
++\[xg(x)=\int_{-1}^1|x-t|f(t)\,dt\]
++를 만족시킨다. \(g(2)=-2\)일 때, \(f(1)\)의 값은?''',
++        choices=['3', '4', '5', '6', '7'], ans=1,
++        key='I43', src='2024년 수능특강 [24009-0155]',
++        author='codex', level='중',
++        vtype=['숫자 변경', '구하는 대상 변경', '형식 변경'], effect='같음', bunseok=True,
++        precedent='2학기 중간 11번',
++        var=r'[숫자 변경·구하는 대상 변경·형식 변경] 양의 구간 밖 함숫값을 주고 f(1)을 묻는 선택형으로 바꿈.',
++        sol=r"\(f'(0)=0\)이므로 \(f(x)=px^2+q\)라 하자. \(x=0\)을 대입하면 \(\displaystyle0=2\int_0^1t(pt^2+q)\,dt=\frac p2+q\)이다. \(x=2\)를 대입하면 \(\displaystyle-4=\int_{-1}^1(2-t)(pt^2+q)\,dt=2\left(\frac{2p}{3}+2q\right)\)이므로 \(\frac{2p}{3}+2q=-2\)이다. 두 식에서 \(p=6\), \(q=-3\)이므로 \(f(1)=3\)이다.",
++        fast=r'대칭성에 의하여 \(q=-p/2\), 구간 밖 양의 \(x\)에서 \(g(x)=\int_{-1}^1 f=-p/3\)이다. 따라서 \(p=6\), \(f(1)=p/2=3\).',
++        wrong=r'④ \(6\): \(p=6\)을 구한 뒤 \(f(1)=p+q\)에서 상수항 \(q=-3\)을 빠뜨린 값.',
++        wrongs=['6'], note='분석집 I43 TIP: 구간 밖에서 절댓값을 풀고 tf(t)의 기함수 적분을 소거한다. 내부 구간 분할이나 추가 미분은 요구하지 않는다.'),
++    13: dict(
++        body=r"일차함수 \(f(x)\)와 최고차항의 계수가 \(1\)인 이차함수 \(g(x)\)가 다음 조건을 만족시킬 때, \(f(g(1))\)의 값은?",
++        cond=[('가', r'\(\displaystyle\lim_{x\to0}\frac1{x^2}\int_0^xf(t)\,dt=1\)이다.'),
++              ('나', r'\(\displaystyle\int_{-1}^1f(x)g(x)\,dx=\frac43\), \(\displaystyle\int_0^1g(x)\,dx=\frac{11}{6}\)이다.')],
++        choices=['5', '6', '7', '8', '9'], ans=2,
++        key='I45', src='2025년 수능특강 [25009-0154]',
++        author='codex', level='중상',
++        vtype=['조건 변경', '구하는 대상 변경'], effect='어려워짐', bunseok=False,
++        precedent='2학기 중간 16번',
++        var=r'[조건 변경·구하는 대상 변경] 극한 분모를 x²으로 바꾸고 정적분 조건으로 g의 상수항까지 정하여 합성함숫값을 물음.',
++        sol=r'\(f(x)=mx+n\)이라 하면 (가)의 극한식은 \(\frac m2+\frac nx\)이다. 유한한 극한값이 존재하므로 \(n=0\), \(m=2\)이다. \(g(x)=x^2+bx+c\)라 하면 \(\displaystyle\int_{-1}^1 2x(x^2+bx+c)\,dx=\frac{4b}{3}=\frac43\)이므로 \(b=1\)이다. 또한 \(\frac13+\frac12+c=\frac{11}{6}\)이므로 \(c=1\)이다. 따라서 \(f(g(1))=f(3)=6\)이다.',
++        fast=r'극한의 존재와 값에서 바로 \(f(x)=2x\). 대칭구간 적분에서 \(b=1\), 나머지 적분에서 \(c=1\)이므로 답은 \(2(1+1+1)=6\).',
++        wrong=r'① \(5\): 원문처럼 g의 일차항이 없다고 단정하여 \(g=x^2+c\), \(c=\frac32\)로 구한 값. ③ \(7\): \(b=1\)은 구했지만 \([0,1]\)에서도 홀수항의 적분을 지워 \(c=\frac32\), \(f(g(1))=7\)로 계산한 값.',
++        wrongs=['5', '7'], note='원문은 g의 상수항이 필요 없었지만 이번에는 두 정적분에서 일차항과 상수항을 모두 정한다. 분석집의 중심 이동·절댓값 방향을 쓰지 않았다.'),
++    15: dict(
++        body=r'''이차함수 \(f(x)\)에 대하여 함수
++\[g(x)=\begin{cases}x^3+6x^2+9x+3 & (x\le0)\\ f(x) & (x>0)\end{cases}\]
++가 다음 조건을 만족시킬 때, \(x\)에 대한 방정식 \(g'(x)g'(x-k)=0\)의 서로 다른 실근의 개수가 \(5\)가 되도록 하는 모든 양수 \(k\)의 값의 합은?''',
++        cond=[('가', r'함수 \(g(x)\)는 실수 전체의 집합에서 미분가능하다.'),
++              ('나', r'\(f(2)=3\)이다.')],
++        choices=['2', '3', '4', '5', '6'], ans=3,
++        key='M66', src='2025학년도 수능 15번',
++        author='codex', level='중상',
++        vtype=['조건 변경', '구하는 대상 변경', '함정 추가'], effect='같음', bunseok=True,
++        precedent='2학기 중간 16번',
++        var=r'[조건 변경·구하는 대상 변경] 접합과 함숫값으로 두 조각을 정하고, 실근 다섯 개를 만드는 이동량을 역으로 물음.',
++        sol=r"(가)에 의하여 \(f(0)=3\), \(f'(0)=9\)이므로 \(f(x)=px^2+9x+3\)이다. (나)에서 \(4p+21=3\), 즉 \(p=-\frac92\)이다. 따라서 \(x\le0\)에서 \(g'(x)=3(x+3)(x+1)\), \(x>0\)에서 \(g'(x)=-9x+9\)이므로 도함수의 영점 집합은 \(S=\{-3,-1,1\}\)이다. 주어진 방정식의 근은 \(S\cup(S+k)\)의 원소이다. 서로 다른 근이 \(5\)개이려면 두 집합이 정확히 한 원소에서 겹쳐야 한다. 양수 \(k\)에서 겹칠 수 있는 값은 두 영점의 양의 차인 \(2\), \(4\)뿐이다. \(k=2\)이면 \(-1\), \(1\)에서 두 번 겹쳐 근이 \(4\)개이고, \(k=4\)이면 \(1\)에서만 겹쳐 근이 \(5\)개이다. 따라서 구하는 합은 \(4\)이다.",
++        fast=r'접합과 \(f(2)=f(0)\)에서 오른쪽 극점은 \(x=1\). 왼쪽 영점은 \(-3,-1\)이므로 세 영점의 간격은 \(2,2\)이다. 한 번만 겹치는 이동량은 양 끝의 차 \(4\)이다.',
++        wrong=r'① \(2\): 이웃한 영점의 간격만 보고 겹침이 두 번 생기는 것을 놓친 값. ⑤ \(6\): 이동량 후보 \(2\), \(4\)를 구한 뒤 각 경우의 근 개수를 확인하지 않고 모두 더한 값.',
++        wrongs=['2', '6'],
++        note='분석집 M66 방향2: 근 다섯 개는 정확히 한 번의 겹침이다. 고정된 함수에서 이동량을 역으로 찾아 모든 후보를 확인한다. 원문의 a 배제 단서는 a를 없애 삭제했고 최고차항 음수 조건은 (가)(나)로 자동 결정되어 삭제했다. 함정은 분석집 TIP의 겹침 횟수 확인만 사용했다.'),
++}
+
+exec
+/bin/bash -lc 'PYTHONPATH="$PWD/template/db/parts" python3 output/build/기말/2회/checkpart.py output/build/기말/2회/parts/c1.py' in /home/runner/work/Finale/Finale
+exec
+/bin/bash -lc 'PYTHONPATH="$PWD/template/db/parts" python3 output/build/기말/2회/checkpart.py output/build/기말/2회/parts/c2.py' in /home/runner/work/Finale/Finale
+exec
+/bin/bash -lc "python3 - <<'PY'
+import sympy as s
+x,u,v=s.symbols('x u v');f=x*(x*x-4)*(x*x-16)*(u*x*x+v)
+z=s.solve([s.integrate(f,(x,0,2))+4,s.integrate(f,(x,2,4))-1],(u,v));print(z, s.factor(f.subs(z)))
+PY" in /home/runner/work/Finale/Finale
+ succeeded in 411ms:
+{u: 97/13824, v: -533/6912} x*(x - 4)*(x - 2)*(x + 2)*(x + 4)*(97*x**2 - 1066)/13824
+
+ exited 1 in 606ms:
+1: 주의(분석집 구조 유사, 복습형) 골격 0.77 원문 0.74 ← [분석집] STUDY-D17-원문 분석집 D17 원문
+3: 허용(분석집 숫자만 다름, 복습형) 골격 0.86 원문 0.65 ← [분석집] STUDY-I29-변형② 분석집 I29 변형②
+5: 금지(분석집 동일 문항) 골격 0.87 원문 0.75 ← [분석집] STUDY-J20-변형① 분석집 J20 변형①
+7: 주의(분석집 구조 유사, 복습형) 골격 0.84 원문 0.58 ← [분석집] STUDY-J45-원문 분석집 J45 원문
+== 학교 선례 (복습형)
+1: △ 원문 골격 유사도 0.88 (학교 1–4 범위 0.28–0.72)
+7: △ 원문 골격 유사도 0.81 (학교 5–8 범위 0.28–0.72)
+학교 선례 표시 0 개
+== 중복 (복습형)
+== 말투
+== 형식
+형식 표시 0 개
+
+ succeeded in 713ms:
+9: 허용(숫자만 다름) 골격 0.96 원문 0.84 ← [익스텐션] LIVE2-04-156 백암고 2024 19번 · 부교재 182p 58번
+11: 허용(숫자만 다름) 골격 0.90 원문 0.65 ← [익스텐션] LIVE2-03-152 영동고 2024 12번 · 부교재 147p 43번
+13: 주의(분석집 구조 유사, 복습형) 골격 0.66 원문 0.59 ← [분석집] STUDY-I45-원문 분석집 I45 원문
+15: 통과 골격 0.51 원문 0.23 ← [익스텐션] LIVE1-02-143 동덕여고 2024 21번 · 부교재 120p 42번
+== 학교 선례 (복습형)
+11: △ 원문 골격 유사도 0.73 (학교 9–12 범위 0.28–0.72)
+학교 선례 표시 0 개
+== 중복 (복습형)
+== 말투
+== 형식
+형식 표시 0 개
+
+exec
+/bin/bash -lc "python3 - <<'PY'
+import sympy as s
+x,r,q=s.symbols('x r q');f=-x*(x*x-4)*(x*x-16)*((x*x-r)**2+q)
+a=-s.integrate(f,(x,0,2));b=s.integrate(f,(x,2,4));print(s.factor(a),s.factor(b));print(s.solve(b-a/4,q))
+PY" in /home/runner/work/Finale/Finale
+ succeeded in 528ms:
+16*(55*q + 55*r**2 - 140*r + 136)/15 144*(5*q + 5*r**2 - 100*r + 536)/5
+[-r**2 + 2132*r/97 - 57752/485]
+
+exec
+/bin/bash -lc "python3 - <<'PY'
+from pathlib import Path
+p=Path('output/build/기말/2회/parts/c1.py');s=p.read_text();a=s.index('    5: dict(');b=s.index('    7: dict(',a)
+s=s[:a]+r'''    5: dict(
+        body=r'곡선 \\(y=(x+1)(x-2)(x-k)"'^2'"\\)과 \\(x\\)축으로 둘러싸인 두 부분의 넓이가 서로 같을 때, 상수 \\(k\\)의 값은? (단, \\(k>2\\))',
+        choices=[r'\\dfrac92', '5', r'\\dfrac{11}2', '6', r'\\dfrac{13}2'], ans=5,
+        key='J20', src='2022년 수능특강 [22009-0171]',
+        author='codex', level='중',
+        vtype=['숫자 변경', '함수 교체', '형식 변경'], effect='같음', bunseok=True,
+        precedent='2학기 중간 7번',
+        var=r'[숫자 변경·함수 교체·형식 변경] 왼쪽 근을 옮기고 제곱인 인수를 오른쪽 끝으로 바꾸어 인수 곱으로 제시.',
+        sol=r'\\(k>2\\)이므로 함수는 \\(-1&lt;x&lt;2\\)에서 음수이고 \\(2&lt;x&lt;k\\)에서 양수이다. 두 넓이가 같으므로 \\(\\displaystyle\\int_{-1}"'^k(x+1)(x-2)(x-k)''^2'"\\,dx=0\\)이다. \\(u=x+1\\), \\(K=k+1\\)로 놓으면 이 적분은 \\(\\displaystyle\\int_0"'^K u(u-3)(u-K)''^2'"\\,du=\\frac{K"'^4(2K-15)}{60}'"\\)이다. \\(K>3\\)이므로 \\(K=\\frac{15}{2}\\), 따라서 \\(k=\\frac{13}{2}\\)이다.',
+        fast=r'제곱인 인수에 해당하는 오른쪽 끝부터 잰 근의 거리 비는 \\(0:3:5\\)이다. \\((k-2):(k+1)=3:5\\)이므로 \\(k=\\frac{13}{2}\\)이다.',
+        wrong=r'② \\(5\\): 제곱인 인수를 무시하고 삼차함수처럼 가운데 근 \\(2\\)를 \\(-1\\)과 \\(k\\)의 중점으로 놓은 값.',
+        wrongs=['5'], note='분석집 J20 방향1: 근의 위치 비를 제곱인 인수가 있는 오른쪽 끝에서부터 잰다. 원문의 k>2 단서를 유지했다.'),
+''' +s[b:];p.write_text(s)
+# HTML text inside formulae must escape less-than signs.
+for p in [p,Path('output/build/기말/2회/parts/c2.py')]:
+ s=p.read_text();import re
+ s=re.sub(r'\\\\\\((.*?)\\\\\\)',lambda m:r'\\('+m[1].replace('<','&lt;')+r'\\)',s,flags=re.S)
+ p.write_text(s)
+PY" in /home/runner/work/Finale/Finale
+ succeeded in 0ms:
+codex
+첫 검사에서 5번이 분석집 문항과 동일하다고 표시되어, 왼쪽 근의 위치를 바꿨습니다. 검증 스크립트에는 정답·오답 근거·원문 정답과 함께 15번의 조건 빼 보기 및 이동량 후보 검사를 넣고 있습니다.
+
+apply patch
+patch: completed
+/home/runner/work/Finale/Finale/output/build/기말/2회/parts/verify_c1.py
+/home/runner/work/Finale/Finale/output/build/기말/2회/parts/verify_c2.py
+diff --git a/output/build/기말/2회/parts/c1.py b/output/build/기말/2회/parts/c1.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..531fb2664aad6785b6bcd7fa51b07b31423b1207
+--- /dev/null
++++ b/output/build/기말/2회/parts/c1.py
+@@ -0,0 +1,56 @@
++# -*- coding: utf-8 -*-
++"""2회 Codex 담당: 1·3·5·7번."""
++ITEMS = {
++    1: dict(
++        body=r"두 상수 \(a\), \(b\)에 대하여 삼차함수 \(f(x)=ax^3+bx+a\)는 \(x=1\)에서 극소이다. 함수 \(f(x)\)의 극솟값이 \(-1\)일 때, 함수 \(f(x)\)의 극댓값은?",
++        choices=['2', '3', '4', '5', '6'], ans=2,
++        key='D17', src='2024학년도 대수능 6월 모의평가 18번 [24107-0117]',
++        author='codex', level='하',
++        vtype=['숫자 변경', '형식 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 1번',
++        var=r'[숫자 변경·형식 변경] 극솟값을 바꾸고 단답형을 선택형으로 바꿈.',
++        sol=r"극소인 점에서 \(f'(1)=0\)이므로 \(3a+b=0\)이다. 또한 \(f(1)=2a+b=-1\)이므로 \(a=1\), \(b=-3\)이다. \(f'(x)=3(x+1)(x-1)\)의 부호가 \(x=-1\)에서 양에서 음으로 바뀌므로 극댓값은 \(f(-1)=-1+3+1=3\)이다.",
++        fast=r'\(f(x)-a\)는 기함수이다. \(b=-3a\), \(f(1)=-a=-1\)에서 \(a=1\)이므로 극댓값은 \(2a-(-1)=3\)이다.',
++        wrong=r'① \(2\): 극대점에 대입할 때 상수항 \(a\)를 빠뜨려 \(-1+3=2\)로 계산한 값.',
++        wrongs=['2'], note='원문의 극값 조건과 계수 결정 방법을 유지한 기본 문항.'),
++    3: dict(
++        body=r'다항함수 \(f(x)\)가 모든 실수 \(x\)에 대하여 \(f(x)+f(-x)=2\)를 만족시키고 \(\displaystyle\int_0^1 xf(x)\,dx=1\)일 때, \(\displaystyle\int_{-1}^1(x+1)f(x)\,dx\)의 값은?',
++        choices=['3', '4', '5', '6', '7'], ans=1,
++        key='I29', src='2022년 수능완성 [22054-0163]',
++        author='codex', level='하',
++        vtype=['조건 변경', '구하는 대상 변경'], effect='같음', bunseok=True,
++        precedent='2학기 중간 3번',
++        var=r'[조건 변경·구하는 대상 변경] 상수를 뺀 함수가 기함수가 되도록 바꾸고 곱하는 다항식은 일차식으로 낮춤.',
++        sol=r'\(h(x)=f(x)-1\)이라 하면 \(h(-x)=-h(x)\)이다. 따라서 \(\displaystyle\int_0^1 xh(x)\,dx=1-\int_0^1x\,dx=\frac12\)이다. 대칭구간에서 기함수의 적분은 \(0\)이므로 \(\displaystyle\int_{-1}^1(x+1)f(x)\,dx=\int_{-1}^1\{xh(x)+1\}\,dx=2\cdot\frac12+2=3\)이다.',
++        fast=r'음의 구간을 양의 구간으로 바꾸면 \((x+1)f(x)+(1-x)f(-x)=2xf(x)+2-2x\)이다. 따라서 구하는 값은 \(2\cdot1+2-1=3\)이다.',
++        wrong=r'② \(4\): \(\int_0^1xh\)를 \(\int_0^1xf=1\)과 같다고 하여 \(2\cdot1+2=4\)로 계산한 값.',
++        wrongs=['4'],
++        note='분석집 I29 방향2: 상수를 뺀 함수의 홀짝을 이용하고 주어진 가중 적분도 보정한다. 곱하는 식을 일차식으로 줄여 계산량을 유지했다.'),
++    5: dict(
++        body=r'곡선 \(y=x(x-2)(x-k)^2\)과 \(x\)축으로 둘러싸인 두 부분의 넓이가 서로 같을 때, 상수 \(k\)의 값은? (단, \(k>2\))',
++        choices=['3', r'\dfrac72', '4', r'\dfrac92', '5'], ans=5,
++        key='J20', src='2022년 수능특강 [22009-0171]',
++        author='codex', level='중',
++        vtype=['함수 교체', '형식 변경'], effect='같음', bunseok=True,
++        precedent='2학기 중간 7번',
++        var=r'[함수 교체·형식 변경] 제곱인 인수를 오른쪽 끝으로 옮기고 전개식 대신 인수 곱으로 제시.',
++        sol=r'\(k>2\)이므로 함수는 \(0<x<2\)에서 음수이고 \(2<x<k\)에서 양수이다. 두 넓이가 같으므로 \(\displaystyle\int_0^k x(x-2)(x-k)^2\,dx=0\)이다. 피적분함수를 전개하여 적분하면 \(\displaystyle\frac{k^5}{5}-\frac{(2k+2)k^4}{4}+\frac{(k^2+4k)k^3}{3}-k^4=\frac{k^4(k-5)}{30}=0\)이다. 따라서 \(k=5\)이다.',
++        fast=r'제곱인 인수에 해당하는 오른쪽 끝 \(k\)부터 잰 근의 거리 비는 \(0:3:5\)이다. \((k-2):k=3:5\)이므로 \(k=5\)이다.',
++        wrong=r'③ \(4\): 제곱인 인수를 무시하고 삼차함수의 넓이 조건처럼 가운데 근 \(2\)를 \(0\)과 \(k\)의 중점으로 놓은 값.',
++        wrongs=['4'], note='분석집 J20 방향1: 근의 위치 비를 제곱인 인수가 있는 오른쪽 끝에서부터 잰다. 원문의 k>2 단서를 유지했다.'),
++    7: dict(
++        body=r'다항함수 \(f(x)\)가 다음 조건을 만족시킬 때, 함수 \(y=f(x)\)의 그래프와 \(x\)축으로 둘러싸인 부분의 넓이는?',
++        cond=[('가', r'모든 실수 \(x\)에 대하여 \(f(x)=-f(-x)\)이다.'),
++              ('나', r'\(\displaystyle\int_{-2}^4f(x)\,dx=1\), \(\displaystyle\int_{-4}^0f(x)\,dx=3\)이다.'),
++              ('다', r'방정식 \(f(x)=0\)을 만족시키는 양수 \(x\)는 \(2\)와 \(4\)뿐이다.')],
++        choices=['4', '6', '8', '10', '12'], ans=4,
++        key='J45', src='2025년 수능특강 [25009-0177]',
++        author='codex', level='중',
++        vtype=['숫자 변경', '함수 교체'], effect='같음', bunseok=False,
++        precedent='2학기 중간 7번',
++        var=r'[숫자 변경·함수 교체] 근과 적분값을 바꾸고 연속함수의 범위를 다항함수로 정함.',
++        sol=r'\(f\)는 기함수이므로 \(\displaystyle\int_{-2}^2f(x)\,dx=0\), \(\displaystyle\int_0^4f(x)\,dx=-3\)이다. 따라서 \(\displaystyle\int_2^4f(x)\,dx=1\), \(\displaystyle\int_0^2f(x)\,dx=-3-1=-4\)이다. (다)에 의하여 각 구간에서 부호가 일정하므로 \(0<x<2\)에서 음수, \(2<x<4\)에서 양수이다. 원점 대칭을 이용하면 구하는 넓이는 \(2(4+1)=10\)이다.',
++        fast=r'대칭구간의 적분을 지우면 양의 쪽 두 부분의 부호 있는 적분은 \(-4\), \(1\)이다. 절댓값을 더하고 두 배 하여 \(10\)을 얻는다.',
++        wrong=r'② \(6\): 부호가 다른 두 부분을 나누지 않고 \(2\left|\int_0^4f(x)\,dx\right|=2\cdot3\)으로 계산한 값.',
++        wrongs=['6'], note='원문의 기함수 대칭·영점 사이 부호 일정·넓이 합을 유지했다. 분석집의 이동 대칭이나 우함수 변형은 쓰지 않았다.'),
++}
+diff --git a/output/build/기말/2회/parts/c2.py b/output/build/기말/2회/parts/c2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..cb5aecb3c91e5a07b8d91db931b91f83e9a9f1c7
+--- /dev/null
++++ b/output/build/기말/2회/parts/c2.py
+@@ -0,0 +1,65 @@
++# -*- coding: utf-8 -*-
++"""2회 Codex 담당: 9·11·13·15번. 9번 그림은 Claude가 제작한다."""
++ITEMS = {
++    9: dict(
++        body=r'''함수 \(y=f(x)\)의 그래프가 그림과 같다. 최고차항의 계수가 \(1\)인 삼차함수 \(f(x)\)가
++\[f(1)=f(2)=0,\quad f'(0)=-10\]
++을 만족시킨다. 원점 \(\mathrm{O}\)와 점 \(\mathrm{P}(3,\,f(3))\)에 대하여 선분 \(\mathrm{OP}\)가 곡선 \(y=f(x)\)와 만나는 점 중 \(\mathrm{P}\)가 아닌 점을 \(\mathrm{Q}\)라 하자. 곡선 \(y=f(x)\)와 \(y\)축 및 선분 \(\mathrm{OQ}\)로 둘러싸인 부분의 넓이를 \(A\), 곡선 \(y=f(x)\)와 선분 \(\mathrm{PQ}\)로 둘러싸인 부분의 넓이를 \(B\)라 할 때, \(B-A\)의 값은?
++<div class="fig"><img src="fig_9.svg" style="width:150pt"></div>''',
++        choices=[r'\dfrac{43}4', r'\dfrac{47}4', r'\dfrac{51}4', r'\dfrac{55}4', r'\dfrac{59}4'], ans=3,
++        key='J58', src='2025학년도 수능 13번',
++        author='codex', level='중상',
++        vtype=['숫자 변경', '형식 변경'], effect='같음', bunseok=False,
++        precedent='2학기 중간 9번',
++        var=r'[숫자 변경·형식 변경] 도함숫값과 선지 배열을 바꾸고 그림 문항의 첫 문장을 학교식으로 정리.',
++        sol=r"\(f(x)=(x-1)(x-2)(x+c)\)라 하면 \(f'(0)=2-3c=-10\)이므로 \(c=4\)이다. 따라서 \(f(x)=x^3+x^2-10x+8\), \(f(3)=14\)이고 직선 \(\mathrm{OP}\)는 \(y=\frac{14}{3}x\)이다. \(\mathrm{Q}\)의 왼쪽에서는 곡선이 직선보다 위에 있고 오른쪽에서는 아래에 있으므로 \(\displaystyle B-A=\int_0^3\left(\frac{14}{3}x-f(x)\right)dx=21-\left(\frac{81}{4}+9-45+24\right)=\frac{51}{4}\)이다.",
++        fast=r'넓이의 차이므로 중간 교점의 좌표를 구할 필요가 없다. 삼각형의 부호 있는 넓이에서 정적분을 빼면 \(\displaystyle\frac{3f(3)}2-\int_0^3f(x)\,dx=\frac{51}{4}\)이다.',
++        wrong=r"② \(\dfrac{47}4\): \(f'(0)=2-3c\)에서 \(2\)를 빠뜨려 \(c=\frac{10}{3}\)으로 구한 뒤 계산한 값. 일반적으로 이 넓이 차는 \(\frac{27}{4}+\frac32c\)이다.",
++        wrongs=[r'\dfrac{47}4'],
++        note=r'원문의 넓이 차를 한 정적분으로 계산하는 원리를 유지했다. 그림 제작: 원문 J58과 같은 배치. 곡선 y=(x-1)(x-2)(x+4), 선분 OP: y=14x/3 (0≤x≤3). O=(0,0), P=(3,14), Q=(-2+2√15/3,14(-2+2√15/3)/3), y절편 (0,8), x절편 1·2를 표시한다. 0≤x≤x_Q의 곡선 아래·직선 위를 A, x_Q≤x≤3의 직선 아래·곡선 위를 B로 회색 칠한다. 필요한 수치는 모두 본문 조건으로 정해지며 그림에서 읽을 필요가 없다.'),
++    11: dict(
++        body=r'''\(f'(0)=0\)인 이차함수 \(f(x)\)와 연속함수 \(g(x)\)가 모든 실수 \(x\)에 대하여
++\[xg(x)=\int_{-1}^1|x-t|f(t)\,dt\]
++를 만족시킨다. \(g(2)=-2\)일 때, \(f(1)\)의 값은?''',
++        choices=['3', '4', '5', '6', '7'], ans=1,
++        key='I43', src='2024년 수능특강 [24009-0155]',
++        author='codex', level='중',
++        vtype=['숫자 변경', '구하는 대상 변경', '형식 변경'], effect='같음', bunseok=True,
++        precedent='2학기 중간 11번',
++        var=r'[숫자 변경·구하는 대상 변경·형식 변경] 양의 구간 밖 함숫값을 주고 f(1)을 묻는 선택형으로 바꿈.',
++        sol=r"\(f'(0)=0\)이므로 \(f(x)=px^2+q\)라 하자. \(x=0\)을 대입하면 \(\displaystyle0=2\int_0^1t(pt^2+q)\,dt=\frac p2+q\)이다. \(x=2\)를 대입하면 \(\displaystyle-4=\int_{-1}^1(2-t)(pt^2+q)\,dt=2\left(\frac{2p}{3}+2q\right)\)이므로 \(\frac{2p}{3}+2q=-2\)이다. 두 식에서 \(p=6\), \(q=-3\)이므로 \(f(1)=3\)이다.",
++        fast=r'대칭성에 의하여 \(q=-p/2\), 구간 밖 양의 \(x\)에서 \(g(x)=\int_{-1}^1 f=-p/3\)이다. 따라서 \(p=6\), \(f(1)=p/2=3\).',
++        wrong=r'④ \(6\): \(p=6\)을 구한 뒤 \(f(1)=p+q\)에서 상수항 \(q=-3\)을 빠뜨린 값.',
++        wrongs=['6'], note='분석집 I43 TIP: 구간 밖에서 절댓값을 풀고 tf(t)의 기함수 적분을 소거한다. 내부 구간 분할이나 추가 미분은 요구하지 않는다.'),
++    13: dict(
++        body=r"일차함수 \(f(x)\)와 최고차항의 계수가 \(1\)인 이차함수 \(g(x)\)가 다음 조건을 만족시킬 때, \(f(g(1))\)의 값은?",
++        cond=[('가', r'\(\displaystyle\lim_{x\to0}\frac1{x^2}\int_0^xf(t)\,dt=1\)이다.'),
++              ('나', r'\(\displaystyle\int_{-1}^1f(x)g(x)\,dx=\frac43\), \(\displaystyle\int_0^1g(x)\,dx=\frac{11}{6}\)이다.')],
++        choices=['5', '6', '7', '8', '9'], ans=2,
++        key='I45', src='2025년 수능특강 [25009-0154]',
++        author='codex', level='중상',
++        vtype=['조건 변경', '구하는 대상 변경'], effect='어려워짐', bunseok=False,
++        precedent='2학기 중간 16번',
++        var=r'[조건 변경·구하는 대상 변경] 극한 분모를 x²으로 바꾸고 정적분 조건으로 g의 상수항까지 정하여 합성함숫값을 물음.',
++        sol=r'\(f(x)=mx+n\)이라 하면 (가)의 극한식은 \(\frac m2+\frac nx\)이다. 유한한 극한값이 존재하므로 \(n=0\), \(m=2\)이다. \(g(x)=x^2+bx+c\)라 하면 \(\displaystyle\int_{-1}^1 2x(x^2+bx+c)\,dx=\frac{4b}{3}=\frac43\)이므로 \(b=1\)이다. 또한 \(\frac13+\frac12+c=\frac{11}{6}\)이므로 \(c=1\)이다. 따라서 \(f(g(1))=f(3)=6\)이다.',
++        fast=r'극한의 존재와 값에서 바로 \(f(x)=2x\). 대칭구간 적분에서 \(b=1\), 나머지 적분에서 \(c=1\)이므로 답은 \(2(1+1+1)=6\).',
++        wrong=r'① \(5\): 원문처럼 g의 일차항이 없다고 단정하여 \(g=x^2+c\), \(c=\frac32\)로 구한 값. ③ \(7\): \(b=1\)은 구했지만 \([0,1]\)에서도 홀수항의 적분을 지워 \(c=\frac32\), \(f(g(1))=7\)로 계산한 값.',
++        wrongs=['5', '7'], note='원문은 g의 상수항이 필요 없었지만 이번에는 두 정적분에서 일차항과 상수항을 모두 정한다. 분석집의 중심 이동·절댓값 방향을 쓰지 않았다.'),
++    15: dict(
++        body=r'''이차함수 \(f(x)\)에 대하여 함수
++\[g(x)=\begin{cases}x^3+6x^2+9x+3 & (x\le0)\\ f(x) & (x>0)\end{cases}\]
++가 다음 조건을 만족시킬 때, \(x\)에 대한 방정식 \(g'(x)g'(x-k)=0\)의 서로 다른 실근의 개수가 \(5\)가 되도록 하는 모든 양수 \(k\)의 값의 합은?''',
++        cond=[('가', r'함수 \(g(x)\)는 실수 전체의 집합에서 미분가능하다.'),
++              ('나', r'\(f(2)=3\)이다.')],
++        choices=['2', '3', '4', '5', '6'], ans=3,
++        key='M66', src='2025학년도 수능 15번',
++        author='codex', level='중상',
++        vtype=['조건 변경', '구하는 대상 변경', '함정 추가'], effect='같음', bunseok=True,
++        precedent='2학기 중간 16번',
++        var=r'[조건 변경·구하는 대상 변경] 접합과 함숫값으로 두 조각을 정하고, 실근 다섯 개를 만드는 이동량을 역으로 물음.',
++        sol=r"(가)에 의하여 \(f(0)=3\), \(f'(0)=9\)이므로 \(f(x)=px^2+9x+3\)이다. (나)에서 \(4p+21=3\), 즉 \(p=-\frac92\)이다. 따라서 \(x\le0\)에서 \(g'(x)=3(x+3)(x+1)\), \(x>0\)에서 \(g'(x)=-9x+9\)이므로 도함수의 영점 집합은 \(S=\{-3,-1,1\}\)이다. 주어진 방정식의 근은 \(S\cup(S+k)\)의 원소이다. 서로 다른 근이 \(5\)개이려면 두 집합이 정확히 한 원소에서 겹쳐야 한다. 양수 \(k\)에서 겹칠 수 있는 값은 두 영점의 양의 차인 \(2\), \(4\)뿐이다. \(k=2\)이면 \(-1\), \(1\)에서 두 번 겹쳐 근이 \(4\)개이고, \(k=4\)이면 \(1\)에서만 겹쳐 근이 \(5\)개이다. 따라서 구하는 합은 \(4\)이다.",
++        fast=r'접합과 \(f(2)=f(0)\)에서 오른쪽 극점은 \(x=1\). 왼쪽 영점은 \(-3,-1\)이므로 세 영점의 간격은 \(2,2\)이다. 한 번만 겹치는 이동량은 양 끝의 차 \(4\)이다.',
++        wrong=r'① \(2\): 이웃한 영점의 간격만 보고 겹침이 두 번 생기는 것을 놓친 값. ⑤ \(6\): 이동량 후보 \(2\), \(4\)를 구한 뒤 각 경우의 근 개수를 확인하지 않고 모두 더한 값.',
++        wrongs=['2', '6'],
++        note='분석집 M66 방향2: 근 다섯 개는 정확히 한 번의 겹침이다. 고정된 함수에서 이동량을 역으로 찾아 모든 후보를 확인한다. 원문의 a 배제 단서는 a를 없애 삭제했고 최고차항 음수 조건은 (가)(나)로 자동 결정되어 삭제했다. 함정은 분석집 TIP의 겹침 횟수 확인만 사용했다.'),
++}
+diff --git a/output/build/기말/2회/parts/verify_c1.py b/output/build/기말/2회/parts/verify_c1.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..22f43b7de8a138c3d9fccf020c455facaad13e72
+--- /dev/null
++++ b/output/build/기말/2회/parts/verify_c1.py
+@@ -0,0 +1,111 @@
++"""정답, 선지, 오답 산식, 원문 및 다항함수의 존재 검증."""
++from pathlib import Path
++import re
++import runpy
++import sys
++import sympy as s
++
++HERE = Path(__file__).resolve().parent
++ROOT = HERE.parents[4]
++sys.path.insert(0, str(ROOT / 'output/build/부교재_기말'))
++import items_final as F
++ITEMS = runpy.run_path(str(HERE / 'c1.py'))['ITEMS']
++x, a, b, k = s.symbols('x a b k', real=True)
++
++
++def number(raw):
++    raw = str(raw).replace(' ', '')
++    m = re.fullmatch(r'(-?)\\(?:dfrac|frac)\{?(\d+)\}?\{?(\d+)\}?', raw)
++    if m:
++        return (-1 if m[1] else 1) * s.Rational(m[2], m[3])
++    return s.Rational(raw)
++
++
++def check(n, result, expected, mistakes):
++    it = ITEMS[n]
++    vals = list(map(number, it['choices']))
++    assert len(vals) == len(set(vals)) == 5
++    assert len(set(vals[i + 1] - vals[i] for i in range(4))) == 1
++    assert vals[1] > vals[0]
++    assert it['ans'] == expected and result == vals[expected - 1]
++    assert vals.count(result) == 1
++    assert set(it['wrongs']) == set(mistakes)
++    for text, value in mistakes.items():
++        assert text in it['choices'] and number(text) == value != result
++    assert it['author'] == 'codex'
++    print(f'{n}: answer={result}, index={expected}, choices/wrongs OK')
++
++
++def original(key, result):
++    _, choices, answer, _ = F.I[key]
++    want = number(choices['①②③④⑤'.index(answer)]) if answer in '①②③④⑤' else number(answer)
++    assert result == want, (key, result, want)
++    print(f'ORIGINAL {key}: {result} OK')
++
++
++# 1: the two independent equations uniquely fix a and b; derivative signs
++# distinguish the maximum from the minimum.
++f = a*x**3+b*x+a
++sol = s.solve([s.diff(f, x).subs(x, 1), f.subs(x, 1)+1], [a, b], dict=True)
++assert sol == [{a: 1, b: -3}]
++f = f.subs(sol[0])
++assert s.solve(s.diff(f, x), x) == [-1, 1]
++assert s.diff(f, x, 2).subs(x, -1) < 0 < s.diff(f, x, 2).subs(x, 1)
++check(1, f.subs(x, -1), 2, {'2': (f-1).subs(x, -1)})
++fo = a*x**3+b*x+a
++so = s.solve([s.diff(fo, x).subs(x, 1), fo.subs(x, 1)+2], [a, b])
++original('D17', fo.subs(so).subs(x, -1))
++
++# 3: pair x and -x. This algebra holds for arbitrary f, not just sampled
++# polynomial degrees. The remaining integral is 2*given + int(2-2x).
++y = s.symbols('y')
++pair = s.expand((x+1)*y+(1-x)*(2-y))
++assert pair == 2*x*y-2*x+2
++answer = 2+s.integrate(2-2*x, (x, 0, 1))
++# A witness checks that the conditions are consistent.
++fw = 1+s.Rational(3, 2)*x
++assert s.expand(fw+fw.subs(x, -x)) == 2
++assert s.integrate(x*fw, (x, 0, 1)) == 1
++check(3, answer, 1, {'4': 2*1+2})
++assert s.expand((x+2)**2*y+(-x+2)**2*(-y)) == 8*x*y
++original('I29', 8*s.Integer(3))
++
++# 5: k>2 fixes the order of all zeros, hence the two integrals have
++# opposite signs. The integral equation has precisely one admissible root.
++f = (x+1)*(x-2)*(x-k)**2
++area_difference = s.factor(s.integrate(f, (x, -1, k)))
++assert area_difference == (k+1)**4*(2*k-13)/60
++roots = s.solve(area_difference, k)
++admissible = [v for v in roots if v > 2]
++assert admissible == [s.Rational(13, 2)]
++fv = f.subs(k, admissible[0])
++A = -s.integrate(fv, (x, -1, 2))
++B = s.integrate(fv, (x, 2, admissible[0]))
++assert A == B and A > 0
++check(5, admissible[0], 5, {'5': s.solve(s.Eq((-1+k)/2, 2), k)[0]})
++fo = x**2*(x-2)*(x-k)
++original_roots = [v for v in s.solve(s.integrate(fo, (x, 0, k)), k) if v > 2]
++assert len(original_roots) == 1
++original('J20', original_roots[0])
++
++# 7: oddness cancels the symmetric interval. Between consecutive zeros
++# continuity makes the sign constant, so these two integrals determine area.
++inner, outer = s.symbols('inner outer')
++solution = s.solve([outer-1, -inner-outer-3], [inner, outer], dict=True)
++assert solution == [{inner: -4, outer: 1}]
++answer = 2*(abs(solution[0][inner])+abs(solution[0][outer]))
++check(7, answer, 4, {'6': 2*abs(solution[0][inner]+solution[0][outer])})
++# A globally positive even factor guarantees no unwanted real zeros.
++positive = (x*x-11)**2+s.Rational(823, 485)
++base = -x*(x*x-4)*(x*x-16)*positive
++scale = -4/s.integrate(base, (x, 0, 2))
++witness = s.expand(scale*base)
++assert scale > 0 and s.Rational(823, 485) > 0
++assert s.expand(witness+witness.subs(x, -x)) == 0
++assert s.integrate(witness, (x, -2, 4)) == 1
++assert s.integrate(witness, (x, -4, 0)) == 3
++# Thus its only positive roots are 2 and 4, and the required signs hold.
++assert witness.subs(x, 1) < 0 < witness.subs(x, 3)
++old = s.solve([outer-3, -inner-outer-5], [inner, outer])
++original('J45', 2*(abs(old[inner])+abs(old[outer])))
++print('ALL OK')
+diff --git a/output/build/기말/2회/parts/verify_c2.py b/output/build/기말/2회/parts/verify_c2.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..11538a5b0cc0553a3593397e3027af0c22e5c0a1
+--- /dev/null
++++ b/output/build/기말/2회/parts/verify_c2.py
+@@ -0,0 +1,179 @@
++"""9·11·13·15번 및 원문 검증. 15번은 모든 이동량과 조건 제거를 검사."""
++from pathlib import Path
++import re
++import runpy
++import sys
++import sympy as s
++
++HERE = Path(__file__).resolve().parent
++ROOT = HERE.parents[4]
++sys.path.insert(0, str(ROOT / 'output/build/부교재_기말'))
++import items_final as F
++ITEMS = runpy.run_path(str(HERE / 'c2.py'))['ITEMS']
++x, t, p, q, c, m, n, b = s.symbols('x t p q c m n b', real=True)
++
++
++def number(raw):
++    raw = str(raw).replace(' ', '')
++    z = re.fullmatch(r'(-?)\\(?:dfrac|frac)\{?(\d+)\}?\{?(\d+)\}?', raw)
++    if z:
++        return (-1 if z[1] else 1)*s.Rational(z[2], z[3])
++    return s.Rational(raw)
++
++
++def check(no, result, expected, mistakes):
++    it = ITEMS[no]
++    vals = list(map(number, it['choices']))
++    assert len(vals) == len(set(vals)) == 5
++    assert len(set(vals[i+1]-vals[i] for i in range(4))) == 1
++    assert vals[1] > vals[0]
++    assert it['ans'] == expected and result == vals[expected-1]
++    assert vals.count(result) == 1
++    assert set(it['wrongs']) == set(mistakes)
++    for text, value in mistakes.items():
++        assert text in it['choices'] and number(text) == value != result
++    assert it['author'] == 'codex'
++    print(f'{no}: answer={result}, index={expected}, choices/wrongs OK')
++
++
++def original(key, result):
++    _, choices, answer, _ = F.I[key]
++    want = number(choices['①②③④⑤'.index(answer)]) if answer in '①②③④⑤' else number(answer)
++    assert result == want, (key, result, want)
++    print(f'ORIGINAL {key}: {result} OK')
++
++
++# 9: determine the cubic, then independently check the two shaded areas.
++family = (x-1)*(x-2)*(x+c)
++cs = s.solve(s.diff(family, x).subs(x, 0)+10, c)
++assert cs == [4]
++f = s.expand(family.subs(c, cs[0]))
++line = f.subs(x, 3)*x/3
++intersections = s.solve(f-line, x)
++inside = [v for v in intersections if 0 < v < 3]
++assert len(inside) == 1
++u = inside[0]
++assert s.simplify(u-(-2+2*s.sqrt(15)/3)) == 0
++assert (f-line).subs(x, 0) > 0 and (f-line).subs(x, 1) < 0
++A = s.integrate(f-line, (x, 0, u))
++B = s.integrate(line-f, (x, u, 3))
++assert A > 0 and B > 0
++answer = s.simplify(B-A)
++diff = s.simplify(3*family.subs(x, 3)/2-s.integrate(family, (x, 0, 3)))
++assert diff == s.Rational(27, 4)+3*c/2
++check(9, answer, 3, {r'\dfrac{47}4': diff.subs(c, s.Rational(10, 3))})
++old_c = s.solve(s.diff(family, x).subs(x, 0)+7, c)
++assert old_c == [3]
++original('J58', diff.subs(c, old_c[0]))
++
++# 11: compute the integral at 0 and outside [-1,1], including signs.
++ft = p*t*t+q
++H0 = 2*s.integrate(t*ft, (t, 0, 1))
++H2 = s.integrate((2-t)*ft, (t, -1, 1))
++pq = s.solve([H0, H2+4], [p, q], dict=True)
++assert pq == [{p: 6, q: -3}]
++check(11, (p+q).subs(pq[0]), 1, {'6': p.subs(pq[0])})
++# Construction of a continuous g shows the x=0 constraint suffices.
++Hinside = s.integrate((x-t)*ft, (t, -1, x))+s.integrate((t-x)*ft, (t, x, 1))
++gi = s.cancel(Hinside.subs(pq[0])/x)
++assert s.expand(gi) == x**3-3*x
++gminus = s.cancel(s.integrate((t-x)*ft, (t, -1, 1)).subs(pq[0])/x)
++gplus = s.cancel(s.integrate((x-t)*ft, (t, -1, 1)).subs(pq[0])/x)
++assert gi.subs(x, -1) == gminus == 2
++assert gi.subs(x, 1) == gplus == -2
++assert s.limit(gi, x, 0) == 0
++old_pq = s.solve([H0, s.integrate((t+2)*ft, (t, -1, 1))+4], [p, q])
++original('I43', (4*p+q).subs(old_pq))
++
++# 13: the integral quotient is m/2+n/x; a finite two-sided limit forces n=0.
++quot = s.expand(s.integrate(m*t+n, (t, 0, x))/x**2)
++assert quot == m/2+n/x
++assert s.limit(quot.subs({m: 2, n: 0}), x, 0) == 1
++gg = x*x+b*x+c
++bc = s.solve([s.integrate(2*x*gg, (x, -1, 1))-s.Rational(4, 3),
++              s.integrate(gg, (x, 0, 1))-s.Rational(11, 6)], [b, c], dict=True)
++assert bc == [{b: 1, c: 1}]
++wrong_c = s.solve(s.integrate(x*x+c, (x, 0, 1))-s.Rational(11, 6), c)[0]
++check(13, 2*gg.subs(bc[0]).subs(x, 1), 2,
++      {'5': 2*(1+wrong_c), '7': 2*(1+1+wrong_c)})
++# Each independent equation is needed for the requested value.
++assert 2*(1+0+wrong_c) == 5
++print('ABLATION 13 첫 정적분: 필요(b=0이면 답 5)')
++assert 2*(1+1+0) == 4
++print('ABLATION 13 둘째 정적분: 필요(c=0이면 답 4)')
++# Without (가), f=x, g=x²+2x+1/2 still satisfy both integrals, answer 7/2.
++altg = x*x+2*x+s.Rational(1, 2)
++assert s.integrate(x*altg, (x, -1, 1)) == s.Rational(4, 3)
++assert s.integrate(altg, (x, 0, 1)) == s.Rational(11, 6)
++assert altg.subs(x, 1) == s.Rational(7, 2)
++print('ABLATION 13 극한 조건: 필요(f=x인 예에서 답 7/2)')
++old_m = s.solve(s.integrate(m*x*s.diff(gg, x), (x, -1, 1))-8, m)[0]
++old_b = s.solve(s.integrate(old_m*x*gg, (x, -1, 1)), b)[0]
++original('I45', old_m*s.diff(gg, x).subs({b: old_b, x: 1}))
++
++
++def shifts(S, target=5):
++    """Outside pairwise positive differences no roots overlap: exhaustive."""
++    candidates = sorted({v-u for u in S for v in S if v > u})
++    counts = {d: len(S | {v+d for v in S}) for d in candidates}
++    # All examples have 2*|S| != target, so only these candidates can work.
++    assert 2*len(S) != target
++    return [d for d in candidates if counts[d] == target], counts
++
++
++# 15: first use continuity and matching derivatives, then f(2)=3.
++right = p*x*x+b*x+c
++rp = s.solve([right.subs(x, 0)-3, s.diff(right, x).subs(x, 0)-9,
++              right.subs(x, 2)-3], [p, b, c], dict=True)
++assert rp == [{p: -s.Rational(9, 2), b: 9, c: 3}]
++left = x**3+6*x*x+9*x+3
++S = {v for v in s.solve(s.diff(left, x), x) if v <= 0}
++S |= {v for v in s.solve(s.diff(right.subs(rp[0]), x), x) if v > 0}
++assert S == {-3, -1, 1}
++valid, counts = shifts(S)
++assert counts == {2: 4, 4: 5} and valid == [4]
++check(15, sum(valid), 3, {'2': min(counts), '6': sum(counts)})
++print(f'15 exhaustive shift counts: {counts}; all other positive shifts give 6')
++
++# ABLATION of both labeled conditions, plus degree and k>0.
++alternative = -s.Rational(9, 4)*x*x+9*x+3
++assert alternative.subs(x, 0) == left.subs(x, 0)
++assert s.diff(alternative, x).subs(x, 0) == s.diff(left, x).subs(x, 0)
++assert alternative.subs(x, 2) != 3
++valid_alt, _ = shifts({-3, -1, 2})
++assert sum(valid_alt) == 10
++print('ABLATION 15 (나): 필요(f=-9x²/4+9x+3이면 답 10)')
++unjoined = -x*x+4*x-1
++assert unjoined.subs(x, 2) == 3 and unjoined.subs(x, 0) != left.subs(x, 0)
++# The derivative at 0 would not exist, so the equation loses its global
++# definition; the derivatives on the two open pieces also give a different sum.
++assert sum(shifts({-3, -1, 2})[0]) == 10
++print('ABLATION 15 (가): 필요(f=-x²+4x-1이면 접합 실패로 g\'(0) 정의 불가; 열린 조각의 근으로도 합 10)')
++# Without the quadratic restriction a cubic satisfies both labeled conditions
++# but produces four stationary points whose pairwise gaps are all different.
++derivative_cubic = s.Rational(54, 5)*(x-s.Rational(1, 2))*(x-s.Rational(5, 3))
++cubic = 3+s.integrate(derivative_cubic.subs(x, t), (t, 0, x))
++assert cubic.subs(x, 0) == 3 and derivative_cubic.subs(x, 0) == 9
++assert cubic.subs(x, 2) == 3
++assert shifts({-3, -1, s.Rational(1, 2), s.Rational(5, 3)})[0] == []
++print('ABLATION 15 이차함수: 필요(삼차함수 반례는 조건을 만족하나 해당 이동량 없음)')
++assert len(S | {v-4 for v in S}) == 5
++assert sum([-4, 4]) == 0
++print('ABLATION 15 k의 양수 조건: 필요(음수 -4까지 허용하면 합 0)')
++
++# Original M66: the excluded discriminant-zero case leaves either one or
++# three stationary points. One point yields two union elements, so there
++# must be three; union size four forces a length-three chain of step four.
++r = s.symbols('r', real=True)
++# Two negative roots of 3x²+2ax+15 have product 5.
++chain_starts = s.solve(r*(r+4)-5, r)
++chains = [(v, v+4, v+8) for v in chain_starts if v < v+4 < 0 < v+8]
++assert chains == [(-5, -1, 3)]
++old_a = -s.Rational(3, 2)*sum(chains[0][:2])
++old_p = -s.Rational(15, 2)/chains[0][2]
++old_left = x**3+old_a*x*x+15*x+7
++old_right = old_p*x*x+15*x+7
++assert old_a != 3*s.sqrt(5) and old_p < 0
++assert len(set(chains[0]) | {v+4 for v in chains[0]}) == 4
++original('M66', old_left.subs(x, -2)+old_right.subs(x, 2))
++print('ALL OK')
+
+exec
+/bin/bash -lc 'python3 output/build/기말/2회/parts/verify_c1.py' in /home/runner/work/Finale/Finale
+exec
+/bin/bash -lc 'python3 output/build/기말/2회/parts/verify_c2.py' in /home/runner/work/Finale/Finale
+exec
+/bin/bash -lc 'PYTHONPATH="$PWD/template/db/parts" python3 output/build/기말/2회/checkpart.py output/build/기말/2회/parts/c1.py' in /home/runner/work/Finale/Finale
+exec
+/bin/bash -lc 'PYTHONPATH="$PWD/template/db/parts" python3 output/build/기말/2회/checkpart.py output/build/기말/2회/parts/c2.py' in /home/runner/work/Finale/Finale
+ succeeded in 801ms:
+1: 주의(분석집 구조 유사, 복습형) 골격 0.77 원문 0.74 ← [분석집] STUDY-D17-원문 분석집 D17 원문
+3: 허용(분석집 숫자만 다름, 복습형) 골격 0.86 원문 0.65 ← [분석집] STUDY-I29-변형② 분석집 I29 변형②
+5: 주의(분석집 구조 유사, 복습형) 골격 0.78 원문 0.68 ← [분석집] STUDY-J20-변형① 분석집 J20 변형①
+7: 주의(분석집 구조 유사, 복습형) 골격 0.84 원문 0.58 ← [분석집] STUDY-J45-원문 분석집 J45 원문
+== 학교 선례 (복습형)
+1: △ 원문 골격 유사도 0.88 (학교 1–4 범위 0.28–0.72)
+7: △ 원문 골격 유사도 0.81 (학교 5–8 범위 0.28–0.72)
+학교 선례 표시 0 개
+== 중복 (복습형)
+== 말투
+== 형식
+형식 표시 0 개
+
+ succeeded in 900ms:
+1: answer=3, index=2, choices/wrongs OK
+ORIGINAL D17: 6 OK
+3: answer=3, index=1, choices/wrongs OK
+ORIGINAL I29: 24 OK
+5: answer=13/2, index=5, choices/wrongs OK
+ORIGINAL J20: 10/3 OK
+7: answer=10, index=4, choices/wrongs OK
+ORIGINAL J45: 22 OK
+ALL OK
+
+ succeeded in 953ms:
+9: 허용(숫자만 다름) 골격 0.96 원문 0.84 ← [익스텐션] LIVE2-04-156 백암고 2024 19번 · 부교재 182p 58번
+11: 허용(숫자만 다름) 골격 0.90 원문 0.65 ← [익스텐션] LIVE2-03-152 영동고 2024 12번 · 부교재 147p 43번
+13: 주의(분석집 구조 유사, 복습형) 골격 0.66 원문 0.59 ← [분석집] STUDY-I45-원문 분석집 I45 원문
+15: 통과 골격 0.51 원문 0.23 ← [익스텐션] LIVE1-02-143 동덕여고 2024 21번 · 부교재 120p 42번
+== 학교 선례 (복습형)
+11: △ 원문 골격 유사도 0.73 (학교 9–12 범위 0.28–0.72)
+학교 선례 표시 0 개
+== 중복 (복습형)
+== 말투
+== 형식
+형식 표시 0 개
+
+ succeeded in 1122ms:
+9: answer=51/4, index=3, choices/wrongs OK
+ORIGINAL J58: 45/4 OK
+11: answer=3, index=1, choices/wrongs OK
+ORIGINAL I43: 21 OK
+13: answer=6, index=2, choices/wrongs OK
+ABLATION 13 첫 정적분: 필요(b=0이면 답 5)
+ABLATION 13 둘째 정적분: 필요(c=0이면 답 4)
+ABLATION 13 극한 조건: 필요(f=x인 예에서 답 7/2)
+ORIGINAL I45: 12 OK
+15: answer=4, index=3, choices/wrongs OK
+15 exhaustive shift counts: {2: 4, 4: 5}; all other positive shifts give 6
+ABLATION 15 (나): 필요(f=-9x²/4+9x+3이면 답 10)
+ABLATION 15 (가): 필요(f=-x²+4x-1이면 접합 실패로 g'(0) 정의 불가; 열린 조각의 근으로도 합 10)
+ABLATION 15 이차함수: 필요(삼차함수 반례는 조건을 만족하나 해당 이동량 없음)
+ABLATION 15 k의 양수 조건: 필요(음수 -4까지 허용하면 합 0)
+ORIGINAL M66: 32 OK
+ALL OK
+
+codex
+1·3·5·7·9·11·13·15번 작성 완료 — 정답 ②·①·⑤·④·③·①·②·③, 검증 모두 ALL OK·checkpart 통과.
+tokens used
+120,016
+1·3·5·7·9·11·13·15번 작성 완료 — 정답 ②·①·⑤·④·③·①·②·③, 검증 모두 ALL OK·checkpart 통과.

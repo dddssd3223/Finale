@@ -1,0 +1,71 @@
+{
+ "round": "11회",
+ "base": "기준프로필",
+ "anchors": [
+  3,
+  6,
+  8,
+  10,
+  12,
+  15,
+  17,
+  18
+ ],
+ "items": {
+  "11회-2": {
+   "hash": "f86e5288ecc0",
+   "bunseok": false,
+   "key": "I29"
+  },
+  "11회-8": {
+   "hash": "2603b917cdfe",
+   "bunseok": false,
+   "key": "D23"
+  },
+  "11회-9": {
+   "hash": "6dddb74493bf",
+   "bunseok": false,
+   "key": "D70"
+  },
+  "11회-10": {
+   "hash": "e75eb5a2798d",
+   "bunseok": false,
+   "key": "J8"
+  },
+  "11회-11": {
+   "hash": "abe061a81b33",
+   "bunseok": false,
+   "key": "J43"
+  },
+  "11회-12": {
+   "hash": "55e49690307c",
+   "bunseok": false,
+   "key": "D59"
+  },
+  "11회-13": {
+   "hash": "d690f3f20e04",
+   "bunseok": false,
+   "key": "J40"
+  },
+  "11회-14": {
+   "hash": "08a9cf732d3b",
+   "bunseok": false,
+   "key": "J19"
+  },
+  "11회-15": {
+   "hash": "b1f478d05366",
+   "bunseok": false,
+   "key": "J65"
+  },
+  "11회-16": {
+   "hash": "e539f9b032f3",
+   "bunseok": false,
+   "key": "M61"
+  },
+  "11회-18": {
+   "hash": "d7e7390568f0",
+   "bunseok": false,
+   "key": "M36"
+  }
+ }
+}

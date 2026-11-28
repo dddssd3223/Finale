@@ -1,0 +1,66 @@
+{
+ "round": "13회",
+ "base": "기준프로필",
+ "anchors": [
+  3,
+  6,
+  8,
+  10,
+  12,
+  15,
+  17,
+  18
+ ],
+ "items": {
+  "13회-1": {
+   "hash": "56478e6183d4",
+   "bunseok": false,
+   "key": "M17"
+  },
+  "13회-2": {
+   "hash": "c294a711047e",
+   "bunseok": false,
+   "key": "J56"
+  },
+  "13회-3": {
+   "hash": "342f73a33f02",
+   "bunseok": false,
+   "key": "M43"
+  },
+  "13회-4": {
+   "hash": "3eb7a7d7d0a9",
+   "bunseok": false,
+   "key": "I2"
+  },
+  "13회-5": {
+   "hash": "9962b030da6f",
+   "bunseok": false,
+   "key": "I19"
+  },
+  "13회-6": {
+   "hash": "f2a0ec21da62",
+   "bunseok": false,
+   "key": "I15"
+  },
+  "13회-7": {
+   "hash": "651f2875bfd5",
+   "bunseok": false,
+   "key": "J36"
+  },
+  "13회-8": {
+   "hash": "ee7bdcfe49db",
+   "bunseok": false,
+   "key": "M8"
+  },
+  "13회-S1": {
+   "hash": "5e8083f24054",
+   "bunseok": false,
+   "key": "D15"
+  },
+  "13회-S2": {
+   "hash": "f3b04987861e",
+   "bunseok": false,
+   "key": "D62"
+  }
+ }
+}

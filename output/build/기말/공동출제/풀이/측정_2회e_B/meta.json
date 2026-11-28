@@ -1,0 +1,77 @@
+{
+ "round": "2회",
+ "anchors": [
+  3,
+  6,
+  8,
+  10,
+  12,
+  15,
+  17,
+  18
+ ],
+ "items": {
+  "2회-2": {
+   "hash": "f7f878b83a06",
+   "bunseok": false,
+   "key": "M11"
+  },
+  "2회-4": {
+   "hash": "9c14ab6f3ad1",
+   "bunseok": false,
+   "key": "D54"
+  },
+  "2회-6": {
+   "hash": "4b2aa33d4e10",
+   "bunseok": true,
+   "key": "D30"
+  },
+  "2회-8": {
+   "hash": "450e598841b6",
+   "bunseok": true,
+   "key": "J25"
+  },
+  "2회-10": {
+   "hash": "4e8beb7da50f",
+   "bunseok": true,
+   "key": "I60"
+  },
+  "2회-12": {
+   "hash": "2cee9315a582",
+   "bunseok": true,
+   "key": "M35"
+  },
+  "2회-14": {
+   "hash": "099d73886b7e",
+   "bunseok": false,
+   "key": "I24"
+  },
+  "2회-16": {
+   "hash": "3db8ebb0bc0c",
+   "bunseok": false,
+   "key": "I61"
+  },
+  "2회-18": {
+   "hash": "72c811b3357a",
+   "bunseok": false,
+   "key": "D45"
+  },
+  "2회-S2": {
+   "hash": "6318be545ead",
+   "bunseok": false,
+   "key": "M56"
+  }
+ },
+ "study": {
+  "cards": 18,
+  "round_cards": [
+   "D30",
+   "J25",
+   "I60",
+   "M35",
+   "I61",
+   "M56"
+  ],
+  "noise": 12
+ }
+}

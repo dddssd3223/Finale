@@ -1,0 +1,31 @@
+{
+ "round": "10회",
+ "base": "기준프로필",
+ "anchors": [
+  3,
+  6,
+  8,
+  10,
+  12,
+  15,
+  17,
+  18
+ ],
+ "items": {
+  "10회-13": {
+   "hash": "97d08254b38d",
+   "bunseok": false,
+   "key": "D36"
+  },
+  "10회-15": {
+   "hash": "3ad34ab75fc5",
+   "bunseok": false,
+   "key": "M60"
+  },
+  "10회-17": {
+   "hash": "9d70236db8b2",
+   "bunseok": false,
+   "key": "M32"
+  }
+ }
+}
